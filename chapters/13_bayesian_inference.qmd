@@ -17,6 +17,13 @@ Bayesian inference answers that question directly. It treats probability as a me
 Bayesian methods are increasingly required in clinical research. The US FDA released updated guidance in 2026 on the use of Bayesian statistics in medical device trials, and Bayesian adaptive trial designs are now standard in oncology. Understanding this framework is no longer optional for quantitative researchers in medicine and public health.
 :::
 
+::: {.callout-note title="Notation used in this chapter"}
+- $P(A \mid B)$ means "the probability of A, given that B is true"
+- $\theta$ (theta) is the parameter we want to estimate (e.g., a treatment effect)
+- $D$ stands for "data" — the observations we have collected
+- $\propto$ means "is proportional to"
+:::
+
 ## Two Philosophies of Probability
 
 ### The Frequentist View
@@ -405,6 +412,36 @@ plt.show()
 ```
 
 :::
+
+### A first taste of Bayesian software
+
+You do not need to write MCMC samplers yourself. Modern software handles this entirely. Here is what fitting a Bayesian logistic regression looks like in practice:
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+library(rstanarm)
+fit <- stan_glm(chd_10yr ~ age + sex + smoking,
+                data = framingham,
+                family = binomial(),
+                prior = normal(0, 2.5),  # weakly informative
+                chains = 4, iter = 2000, seed = 42)
+summary(fit)
+```
+
+## Python
+```{python}
+#| eval: false
+import bambi as bmb
+model = bmb.Model("chd_10yr ~ age + sex + smoking",
+                   data=framingham, family="bernoulli")
+results = model.fit(draws=2000, chains=4, random_seed=42)
+results.summary()
+```
+:::
+
+The next chapter covers this in full detail, including how to check your model and interpret the output.
 
 ## When Bayesian Methods Add Value
 

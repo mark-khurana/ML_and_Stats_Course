@@ -14,6 +14,12 @@ By the end of this chapter, you will be able to:
 7. Apply the practical recommendations from Lopez-Ayala et al. (2025) in your own analyses
 :::
 
+::: {.callout-note title="What is different about this chapter"}
+This chapter introduces tools you probably haven't seen before. The pace is faster than the previous chapters, and the concepts (splines, knot placement) may feel unfamiliar. Budget extra time here.
+
+**Why it matters for your research:** If you build a prediction model or run a regression without properly handling continuous variables, your results will be less accurate — or wrong. Systematic reviews show that most published clinical prediction models categorise continuous variables inappropriately. This chapter teaches you the right way.
+:::
+
 ## Introduction
 
 Imagine you are studying the relationship between body mass index (BMI) and mortality. You have data on thousands of patients, and you need to build a regression model. What do you do with BMI?
@@ -177,6 +183,12 @@ The key advantage of fractional polynomials is that they can capture a wide rang
 Lopez-Ayala et al. [-@lopezayala2025] note that fractional polynomials and splines are *complementary* approaches, and in many cases they give similar results. However, for most applications in clinical research, **restricted cubic splines have become the recommended default** due to their greater flexibility and better behaviour at the boundaries.
 
 ## Splines: The Recommended Approach
+
+### What is a spline, in plain language?
+
+Think of a spline as a flexible ruler. A straight line forces the same slope everywhere. A spline lets the curve bend at specific points (called **knots**), producing a smooth curve that follows the data's actual shape. The result is a single smooth function — not separate lines stitched together.
+
+You have already seen the problem a spline solves: in @sec-regression-foundations, we used a straight line to model the relationship between age and blood pressure. That works if the relationship is genuinely linear. But many clinical relationships are not — BMI and mortality is U-shaped, age and surgical risk accelerates in the elderly. A spline captures these patterns.
 
 ### What Is a Spline?
 
@@ -602,7 +614,7 @@ c) Suggest a better modelling approach and explain how you would implement it.
 
 ### Exercise 2: Fitting and Interpreting Spline Models
 
-Using the built-in `PBC` dataset (primary biliary cholangitis) from the `survival` package in R, model the relationship between serum bilirubin and transplant-free survival.
+Using the built-in `PBC` dataset (primary biliary cholangitis) from the `survival` package in R, model the relationship between serum bilirubin and transplant status (a binary outcome: transplanted or not).
 
 ::: {.panel-tabset}
 
@@ -613,22 +625,24 @@ Using the built-in `PBC` dataset (primary biliary cholangitis) from the `surviva
 #| eval: false
 
 library(rms)
-library(survival)
 library(ggplot2)
 
 # Load the PBC data
 data(pbc, package = "survival")
 pbc <- pbc[!is.na(pbc$trt), ]  # Remove incomplete cases
 
+# Create a binary outcome: transplanted (status == 1) vs not
+pbc$transplant <- as.numeric(pbc$status == 1)
+
 # Set up datadist
 dd <- datadist(pbc)
 options(datadist = "dd")
 
-# Task 1: Fit a Cox model with bilirubin as a linear term
-fit_linear <- cph(Surv(time, status == 2) ~ bili, data = pbc)
+# Task 1: Fit a logistic regression with bilirubin as a linear term
+fit_linear <- lrm(transplant ~ bili, data = pbc)
 
-# Task 2: Fit a Cox model with bilirubin modelled using RCS (4 knots)
-fit_rcs <- cph(Surv(time, status == 2) ~ rcs(bili, 4), data = pbc)
+# Task 2: Fit a logistic regression with bilirubin modelled using RCS (4 knots)
+fit_rcs <- lrm(transplant ~ rcs(bili, 4), data = pbc)
 
 # Task 3: Test for non-linearity
 anova(fit_rcs)
@@ -640,9 +654,9 @@ AIC(fit_rcs)
 # Task 5: Plot the relationship
 p <- Predict(fit_rcs, bili)
 plot(p, xlab = "Serum Bilirubin (mg/dL)",
-     ylab = "Log Relative Hazard")
+     ylab = "Log-Odds of Transplant")
 
-# Task 6: What does the plot tell you about the bilirubin-survival
+# Task 6: What does the plot tell you about the bilirubin-transplant
 #          relationship? Is it linear?
 ```
 
@@ -655,62 +669,50 @@ plot(p, xlab = "Serum Bilirubin (mg/dL)",
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from lifelines import CoxPHFitter
+import statsmodels.api as sm
 from patsy import dmatrix
 
-# Load PBC data (available via lifelines or statsmodels)
-from lifelines.datasets import load_rossi
-# Note: PBC not in lifelines by default; use a CSV or the R dataset
-# For illustration, we simulate similar data:
+# Simulate data similar to PBC bilirubin-transplant relationship
 np.random.seed(42)
 n = 300
 bili = np.random.exponential(scale=2, size=n)
 bili = np.clip(bili, 0.3, 25)
-log_hr = 0.1 * bili + 0.005 * bili**2  # Non-linear true relationship
-time = np.random.exponential(scale=2000 * np.exp(-log_hr))
-event = np.random.binomial(1, 0.7, size=n)
+logit_p = -3 + 0.1 * bili + 0.005 * bili**2  # Non-linear true relationship
+prob = 1 / (1 + np.exp(-logit_p))
+transplant = np.random.binomial(1, prob)
 
-df = pd.DataFrame({'time': time, 'event': event, 'bili': bili})
+df = pd.DataFrame({'bili': bili, 'transplant': transplant})
 
-# Task 1: Fit Cox model with linear bilirubin
-cph_linear = CoxPHFitter()
-cph_linear.fit(df, duration_col='time', event_col='event',
-               formula='bili')
+# Task 1: Fit logistic regression with linear bilirubin
+X_linear = sm.add_constant(df[['bili']])
+fit_linear = sm.GLM(df['transplant'], X_linear,
+                     family=sm.families.Binomial()).fit()
 print("Linear model:")
-cph_linear.print_summary()
+print(fit_linear.summary())
 
-# Task 2: Create spline basis and fit Cox model with splines
-spline_basis = dmatrix("cr(bili, df=3) - 1", data=df,
-                        return_type='dataframe')
-spline_basis.columns = ['spline1', 'spline2', 'spline3']
-df_spline = pd.concat([df[['time', 'event']], spline_basis], axis=1)
-
-cph_spline = CoxPHFitter()
-cph_spline.fit(df_spline, duration_col='time', event_col='event')
+# Task 2: Create spline basis and fit logistic regression with splines
+spline_basis = dmatrix("cr(bili, df=3)", data=df, return_type='dataframe')
+fit_spline = sm.GLM(df['transplant'], spline_basis,
+                      family=sm.families.Binomial()).fit()
 print("\nSpline model:")
-cph_spline.print_summary()
+print(fit_spline.summary())
 
 # Task 3: Compare AIC
-print(f"\nAIC Linear: {cph_linear.AIC_partial_}")
-print(f"AIC Spline: {cph_spline.AIC_partial_}")
+print(f"\nAIC Linear: {fit_linear.aic:.1f}")
+print(f"AIC Spline: {fit_spline.aic:.1f}")
 
-# Task 4: Plot the predicted log-hazard ratio across bilirubin range
+# Task 4: Plot the predicted log-odds across bilirubin range
 bili_range = np.linspace(df['bili'].min(), df['bili'].max(), 200)
-spline_pred = dmatrix("cr(bili_range, df=3) - 1",
+spline_pred = dmatrix("cr(bili_range, df=3)",
                        {"bili_range": bili_range},
                        return_type='dataframe')
-spline_pred.columns = ['spline1', 'spline2', 'spline3']
-
-# Calculate log-HR relative to median
-log_hr_pred = spline_pred.values @ cph_spline.params_.values
-log_hr_pred -= np.median(log_hr_pred)
+pred_prob = fit_spline.predict(spline_pred)
 
 plt.figure(figsize=(8, 5))
-plt.plot(bili_range, log_hr_pred, 'k-', linewidth=2)
+plt.plot(bili_range, pred_prob, 'k-', linewidth=2)
 plt.xlabel('Serum Bilirubin (mg/dL)')
-plt.ylabel('Log Relative Hazard')
-plt.title('Non-linear effect of bilirubin on survival (RCS)')
-plt.axhline(y=0, color='grey', linestyle='--')
+plt.ylabel('Predicted Probability of Transplant')
+plt.title('Non-linear effect of bilirubin on transplant (RCS)')
 plt.tight_layout()
 plt.show()
 ```

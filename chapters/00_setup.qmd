@@ -6,6 +6,12 @@ Throughout this course, you will work with both **R** and **Python**. This is no
 
 You do not need to be an expert programmer to succeed in this course. We will introduce code gradually and explain every line. Think of R and Python as lab instruments: you will learn to use them by doing, and we will always prioritize understanding the statistical ideas over memorizing syntax.
 
+::: {.callout-tip title="Which language should I pick?"}
+If you have no programming experience, **start with R and RStudio**. RStudio is designed for data analysis and is the standard in biostatistics departments. You can always add Python later.
+
+If you already know some Python, stick with Python. Both languages can do everything in this course.
+:::
+
 ## Installing R and RStudio
 
 ### What Are R and RStudio?
@@ -426,6 +432,14 @@ quarto render my_document.qmd
 
 **Problem**: Jupyter notebook does not show the correct Python kernel.
 **Solution**: Install the IPython kernel in your environment: `conda install ipykernel` or `pip install ipykernel`. Then register it: `python -m ipykernel install --user --name mlstats --display-name "ML Stats Course"`.
+
+### Common Error Messages
+
+**Error**: `Error: object 'x' not found`
+**Solution**: You haven't run the earlier code blocks that create `x`. Go back and run all preceding code chunks in order. In RStudio, use "Run All Chunks Above" from the Run menu. In Jupyter, use "Run All Above" from the Cell menu.
+
+**Error**: `Error in library(xxx): there is no package called 'xxx'`
+**Solution**: Install it first with `install.packages("xxx")` in R, or `pip install xxx` / `conda install xxx` in Python. Then try loading it again.
 
 ### General Tips
 

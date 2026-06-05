@@ -29,6 +29,15 @@ Let us address several misconceptions head-on:
 
 5. **"Deep learning is always the best approach."** False. For tabular clinical data (the kind in most EHR studies), gradient-boosted trees often outperform deep learning. Deep learning excels with images, text, and time series.
 
+### How is ML different from what I already know?
+
+If you have worked through the regression chapters, you already know machine learning — you just did not call it that. Logistic regression is a machine learning algorithm. The difference is mainly one of emphasis:
+
+- **Traditional statistics** focuses on understanding relationships (what is the effect of smoking on lung cancer risk, adjusted for age?).
+- **Machine learning** focuses on prediction accuracy (given these 50 variables, what is the probability this patient will be readmitted within 30 days?).
+
+The tools overlap substantially. The new concepts in this chapter — cross-validation, regularisation, ensemble methods — are techniques for improving prediction performance when you have many variables and complex relationships.
+
 ## Supervised vs Unsupervised vs Reinforcement Learning
 
 ### Supervised Learning
@@ -106,6 +115,10 @@ ggplot(df_bv, aes(x = Complexity, y = Error, color = Component, linetype = Compo
   theme_minimal(base_size = 14) +
   theme(legend.position = "top")
 ```
+
+::: {.callout-tip title="You have already seen bias and variance"}
+In Chapter 4, you modelled non-linear relationships. A straight line through a U-shaped relationship has **high bias** — it systematically misses the true pattern. A spline with 20 knots that follows every wiggle in the training data has **high variance** — it captures noise and will perform poorly on new data. The bias-variance tradeoff is the formal name for this tension you have already experienced.
+:::
 
 In practice, we cannot directly observe bias and variance separately. We detect the tradeoff by comparing **training error** (how well the model fits the data it learned from) and **test error** (how well it performs on new data). When training error is low but test error is high, the model is overfitting.
 
