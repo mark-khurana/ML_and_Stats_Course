@@ -1,0 +1,183 @@
+---
+title: "Dataset Codebook"
+---
+
+# Dataset Codebook {#sec-codebook .unnumbered}
+
+This appendix describes all datasets used throughout the course. Each dataset is stored as a CSV file in the `data/` directory.
+
+## Framingham Heart Study (Teaching Dataset)
+
+**File:** `data/framingham.csv`
+**Source:** NHLBI Biologic Specimen and Data Repository (BioLINCC) teaching dataset. Also available via the R package `riskCommunicator`.
+**Description:** Prospective cohort study data from Framingham, Massachusetts. This is the classic cardiovascular epidemiology dataset used to develop the Framingham Risk Score.
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `age` | Continuous | Age at baseline examination (years) |
+| `sex` | Binary | 0 = Female, 1 = Male |
+| `bmi` | Continuous | Body mass index (kg/m^2^) |
+| `sbp` | Continuous | Systolic blood pressure (mmHg) |
+| `dbp` | Continuous | Diastolic blood pressure (mmHg) |
+| `totchol` | Continuous | Total cholesterol (mg/dL) |
+| `hdl` | Continuous | HDL cholesterol (mg/dL) |
+| `glucose` | Continuous | Fasting blood glucose (mg/dL) |
+| `smoking` | Binary | 0 = Non-smoker, 1 = Current smoker |
+| `diabetes` | Binary | 0 = No, 1 = Yes |
+| `bp_meds` | Binary | 0 = Not on BP meds, 1 = On BP meds |
+| `chd_10yr` | Binary | 10-year incident CHD (0 = No, 1 = Yes) |
+| `time_chd` | Continuous | Time to CHD event or censoring (days) |
+
+**Used in:** Chapters 3, 4, 5, 10, 11, 19 (Capstone 1)
+
+---
+
+## Wisconsin Diagnostic Breast Cancer (WDBC)
+
+**File:** `data/wdbc.csv`
+**Source:** UCI Machine Learning Repository. Also available via `sklearn.datasets.load_breast_cancer()` in Python and `mlbench::BreastCancer` in R.
+**Description:** Features computed from digitised images of fine needle aspirates (FNA) of breast masses. Each row represents one tumour sample.
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `id` | Integer | Patient ID |
+| `diagnosis` | Binary | M = Malignant, B = Benign |
+| `radius_mean` | Continuous | Mean of distances from centre to perimeter |
+| `texture_mean` | Continuous | Standard deviation of grey-scale values |
+| `perimeter_mean` | Continuous | Mean tumour perimeter |
+| `area_mean` | Continuous | Mean tumour area |
+| `smoothness_mean` | Continuous | Local variation in radius lengths |
+| `compactness_mean` | Continuous | Perimeter^2^ / area - 1.0 |
+| `concavity_mean` | Continuous | Severity of concave portions |
+| `concave_points_mean` | Continuous | Number of concave portions |
+| `symmetry_mean` | Continuous | Tumour symmetry |
+| `fractal_dimension_mean` | Continuous | "Coastline approximation" - 1 |
+| *Plus `_se` and `_worst` variants of each* | | Standard error and worst (largest) value |
+
+**Total variables:** 32 (ID + diagnosis + 30 features)
+**Observations:** 569 (357 benign, 212 malignant)
+**Used in:** Chapters 5, 8, 9, 15
+
+---
+
+## Primary Biliary Cholangitis (PBC)
+
+**File:** `data/pbc.csv`
+**Source:** Mayo Clinic trial in primary biliary cholangitis (formerly primary biliary cirrhosis). Available via `survival::pbc` in R.
+**Description:** Data from 418 patients enrolled in a randomised trial of D-penicillamine vs placebo for PBC, a chronic liver disease.
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `id` | Integer | Patient ID |
+| `time` | Continuous | Days from registration to death, transplant, or censoring |
+| `status` | Integer | 0 = Censored, 1 = Transplant, 2 = Dead |
+| `trt` | Binary | 1 = D-penicillamine, 2 = Placebo |
+| `age` | Continuous | Age (years) |
+| `sex` | Binary | 0 = Male, 1 = Female |
+| `ascites` | Binary | Presence of ascites |
+| `hepato` | Binary | Presence of hepatomegaly |
+| `spiders` | Binary | Presence of spider angiomata |
+| `edema` | Ordinal | 0 = None, 0.5 = Untreated/resolved, 1 = Despite treatment |
+| `bili` | Continuous | Serum bilirubin (mg/dL) |
+| `chol` | Continuous | Serum cholesterol (mg/dL) |
+| `albumin` | Continuous | Serum albumin (g/dL) |
+| `copper` | Continuous | Urine copper (µg/day) |
+| `alk_phos` | Continuous | Alkaline phosphatase (U/L) |
+| `ast` | Continuous | Aspartate aminotransferase (U/L) |
+| `trig` | Continuous | Triglycerides (mg/dL) |
+| `platelet` | Continuous | Platelet count |
+| `protime` | Continuous | Prothrombin time (seconds) |
+| `stage` | Ordinal | Histologic stage (1–4) |
+
+**Used in:** Chapters 4, 6, 14 (Capstone 3)
+
+---
+
+## NHANES Subset
+
+**File:** `data/nhanes_subset.csv`
+**Source:** National Health and Nutrition Examination Survey (CDC). Extracted using the `nhanesA` R package from NHANES 2017–2020 cycle.
+**Description:** A curated subset of NHANES data with demographics, lab results, and health indicators for dimensionality reduction and clustering exercises.
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `seqn` | Integer | Respondent sequence number |
+| `age` | Continuous | Age (years) |
+| `sex` | Binary | 1 = Male, 2 = Female |
+| `race_ethnicity` | Categorical | Race/ethnicity category |
+| `education` | Ordinal | Education level |
+| `bmi` | Continuous | Body mass index (kg/m^2^) |
+| `sbp` | Continuous | Systolic blood pressure (mmHg) |
+| `dbp` | Continuous | Diastolic blood pressure (mmHg) |
+| `hba1c` | Continuous | Glycated haemoglobin (%) |
+| `totchol` | Continuous | Total cholesterol (mg/dL) |
+| `hdl` | Continuous | HDL cholesterol (mg/dL) |
+| `ldl` | Continuous | LDL cholesterol (mg/dL) |
+| `triglycerides` | Continuous | Triglycerides (mg/dL) |
+| `creatinine` | Continuous | Serum creatinine (mg/dL) |
+| `egfr` | Continuous | Estimated GFR (mL/min/1.73m^2^) |
+| `albumin` | Continuous | Serum albumin (g/dL) |
+| `diabetes` | Binary | Self-reported diabetes |
+| `hypertension` | Binary | Hypertension (SBP ≥ 140 or DBP ≥ 90 or on meds) |
+| `smoking` | Categorical | Never / Former / Current |
+| `physical_activity` | Continuous | Minutes of moderate-vigorous activity per week |
+
+**Used in:** Chapters 2, 10, 15, 16, 19 (Capstone 2)
+
+---
+
+## Simulated Meningitis Data
+
+**File:** `data/meningitis_sim.csv`
+**Source:** Simulated dataset inspired by the case study in Lopez-Ayala et al. (*BMJ* 2025). Variable distributions are based on published summary statistics from the Duke University Medical Center meningitis cohort.
+**Description:** Simulated data on acute meningitis patients for demonstrating spline modelling of non-linear associations.
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `id` | Integer | Patient ID |
+| `age` | Continuous | Age (years) |
+| `sex` | Binary | 0 = Female, 1 = Male |
+| `csf_glucose` | Continuous | CSF glucose (mg/dL) |
+| `csf_leuk` | Continuous | CSF leucocyte count (cells/mm^3^) |
+| `csf_protein` | Continuous | CSF protein (mg/dL) |
+| `blood_glucose` | Continuous | Blood glucose (mg/dL) |
+| `bacterial` | Binary | 1 = Acute bacterial meningitis, 0 = Viral |
+
+**Observations:** 501
+**Used in:** Chapter 4 (primary), Chapter 3
+
+---
+
+## Downloading the data
+
+All datasets are included in the course repository. If you have cloned the repo, they are in the `data/` directory.
+
+To load them:
+
+::: {.panel-tabset}
+
+## R
+
+```{r}
+#| eval: false
+library(readr)
+framingham <- read_csv("data/framingham.csv")
+wdbc <- read_csv("data/wdbc.csv")
+pbc <- read_csv("data/pbc.csv")
+nhanes <- read_csv("data/nhanes_subset.csv")
+meningitis <- read_csv("data/meningitis_sim.csv")
+```
+
+## Python
+
+```{python}
+#| eval: false
+import pandas as pd
+framingham = pd.read_csv("data/framingham.csv")
+wdbc = pd.read_csv("data/wdbc.csv")
+pbc = pd.read_csv("data/pbc.csv")
+nhanes = pd.read_csv("data/nhanes_subset.csv")
+meningitis = pd.read_csv("data/meningitis_sim.csv")
+```
+
+:::

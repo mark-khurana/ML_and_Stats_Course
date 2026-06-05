@@ -1,0 +1,73 @@
+---
+title: "Machine Learning and Advanced Statistics for Health Research"
+---
+
+# Welcome {.unnumbered}
+
+This course teaches machine learning and advanced statistics to people who work in health research. It assumes you know the basics --- means, standard deviations, maybe a t-test --- and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.
+
+Everything uses **clinical data**. Every exercise works in **R and Python**. Pick one or try both.
+
+## What you will learn
+
+By the end of this course, you will be able to:
+
+- Model non-linear relationships properly instead of categorising continuous variables
+- Build, validate, and report clinical prediction models to current standards (TRIPOD+AI)
+- Use machine learning methods (random forests, gradient boosting) and know when they help and when they don't
+- Apply Bayesian methods including hierarchical models for multi-site studies
+- Reduce high-dimensional data with PCA, t-SNE, and UMAP
+- Produce analyses that meet the expectations of BMJ, JAMA, and Lancet Digital Health
+
+## Structure
+
+| Part | What it covers | Time |
+|------|---------------|------|
+| **Pre-Course** | Setup, probability, inference, regression refresher | ~12 hrs self-study |
+| **I** | Splines, penalised regression, survival analysis | 1.5 days |
+| **II** | ML foundations, trees, ensembles, model evaluation | 1.5 days |
+| **III** | Clinical prediction models, validation, reporting | 1.5 days |
+| **IV** | Bayesian inference and hierarchical models | 1 day |
+| **V** | PCA, UMAP, clustering | 0.5 days |
+| **Advanced Toolkit** | Causal inference, meta-analysis, journal-ready analysis | Reference material |
+
+The **Pre-Course** material should be completed before Day 1 if you are taking this in person. If you are self-studying, work through everything in order.
+
+The **Advanced Research Toolkit** is for after the course --- use it when you are doing your own research and need guidance on causal inference, meta-analysis, or producing a journal-ready manuscript.
+
+## Datasets
+
+All exercises use real or realistically simulated clinical data:
+
+- **Framingham Heart Study** --- cardiovascular risk
+- **Wisconsin Breast Cancer** --- diagnostic classification
+- **PBC (Mayo Clinic)** --- liver disease survival
+- **NHANES** --- national health survey
+- **Simulated meningitis** --- based on Lopez-Ayala et al. (*BMJ* 2025)
+
+Details in the [Dataset Codebook](appendices/A_dataset_codebook.qmd).
+
+## Prerequisites
+
+- One introductory statistics course (means, SDs, hypothesis tests, basic regression)
+- Willingness to write code (we start from the basics)
+- A laptop with R or Python installed (see [Setup Guide](chapters/00_setup.qmd))
+
+If you are not sure whether your stats background is sufficient, skim Chapters 1--3. If the material feels familiar, you are ready. If it feels new, work through those chapters carefully before moving on.
+
+## Key sources
+
+This course draws heavily on:
+
+- Smits, van Kuijk & Wynants, *Improving Health Care with Clinical Prediction Models* (2026, CC BY 4.0)
+- Van Calster et al., *Lancet Digital Health* (2025) --- performance measures for prediction models
+- Lopez-Ayala et al., *BMJ* (2025) --- handling continuous variables and splines
+- Collins et al., *BMJ* (2024) --- TRIPOD+AI reporting guidelines
+- Harrell, *Regression Modeling Strategies* (2015)
+- McElreath, *Statistical Rethinking* (2020)
+
+Full references appear at the bottom of each chapter.
+
+## Licence
+
+[Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). Use it, adapt it, share it --- just give credit.

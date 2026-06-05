@@ -1,0 +1,114 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Machine Learning and Advanced Statistics for Health Research"
+  subtitle: "A Practical Course for Medical Students and Public Health Researchers"
+  date: last-modified
+  date-format: "MMMM D, YYYY"
+  repo-url: https://github.com/bxc331/ML_and_Stats_Course
+  repo-actions: [edit, issue, source]
+  repo-branch: main
+  search: true
+  downloads: [pdf]
+  sharing: [twitter, linkedin]
+  reader-mode: true
+  page-navigation: true
+  sidebar:
+    collapse-level: 1
+    style: floating
+
+  chapters:
+    - index.qmd
+
+    - part: "Pre-Course: Foundations"
+      chapters:
+        - chapters/00_setup.qmd
+        - chapters/01_probability_and_distributions.qmd
+        - chapters/02_inference_and_estimation.qmd
+        - chapters/03_regression_foundations.qmd
+
+    - part: "Advanced Statistical Methods"
+      chapters:
+        - chapters/04_continuous_variables_and_splines.qmd
+        - chapters/05_penalized_regression.qmd
+        - chapters/06_survival_analysis.qmd
+
+    - part: "Introduction to Machine Learning"
+      chapters:
+        - chapters/07_ml_foundations.qmd
+        - chapters/08_trees_and_ensembles.qmd
+        - chapters/09_model_evaluation.qmd
+
+    - part: "Clinical Prediction Models"
+      chapters:
+        - chapters/10_building_prediction_models.qmd
+        - chapters/11_performance_and_validation.qmd
+        - chapters/12_reporting_and_implementation.qmd
+
+    - part: "Bayesian Methods"
+      chapters:
+        - chapters/13_bayesian_inference.qmd
+        - chapters/14_applied_bayesian_modeling.qmd
+
+    - part: "Dimensionality Reduction and Unsupervised Learning"
+      chapters:
+        - chapters/15_dimensionality_reduction.qmd
+        - chapters/16_clustering.qmd
+
+    - part: "Advanced Research Toolkit"
+      chapters:
+        - advanced/17_causal_inference.qmd
+        - advanced/18_meta_analysis.qmd
+        - advanced/19_journal_ready_analysis.qmd
+
+    - part: "Appendices"
+      chapters:
+        - appendices/A_dataset_codebook.qmd
+        - appendices/B_math_notation.qmd
+        - appendices/C_further_reading.qmd
+
+  appendices:
+    - references.qmd
+
+format:
+  html:
+    theme:
+      light: [cosmo, custom.scss]
+    code-tools: true
+    code-copy: true
+    code-fold: show
+    code-overflow: wrap
+    code-line-numbers: true
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    number-depth: 3
+    fig-responsive: true
+    linestretch: 1.6
+    smooth-scroll: true
+
+  pdf:
+    documentclass: scrbook
+    papersize: letter
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    colorlinks: true
+
+execute:
+  eval: false
+  freeze: auto
+  warning: false
+  message: false
+
+bibliography: references.bib
+# csl: vancouver-superscript.csl
+
+knitr:
+  opts_chunk:
+    fig.width: 8
+    fig.height: 5
+    fig.align: center
+    out.width: "100%"

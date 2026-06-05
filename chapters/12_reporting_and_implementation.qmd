@@ -1,0 +1,233 @@
+---
+title: "Reporting Standards, TRIPOD+AI, and Clinical Impact"
+---
+
+# Reporting Standards, TRIPOD+AI, and Clinical Impact {#sec-reporting}
+
+## Introduction
+
+Thousands of clinical prediction models are published every year. Yet only a small fraction are ever validated externally, and fewer still make it into clinical practice. One of the major reasons is poor reporting: papers that omit critical methodological details, overstate performance, or fail to describe the model in enough detail for anyone to reproduce or implement it. In 2024, the TRIPOD+AI statement was published to address this problem head-on.
+
+This chapter walks you through the current reporting standards for clinical prediction models, explains why they matter, and gives you the tools to produce work that meets the expectations of top medical journals.
+
+## Why reporting standards matter
+
+Consider trying to use a published prediction model in your own clinical setting. You would need to know:
+
+- What predictors are included, and exactly how they were measured
+- What outcome was predicted, and at what time horizon
+- How missing data were handled
+- How the model was validated, and on what population
+- The model's calibration, not just its discrimination
+- Whether the model would be feasible to use in your context
+
+Remarkably, many published prediction model studies omit several of these details. A systematic review by Collins et al. found that reporting quality was poor across most published prediction model studies, motivating the development of formal reporting guidelines.
+
+## The TRIPOD+AI statement
+
+The **Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis** (TRIPOD) guideline was first published in 2015. In 2024, it was updated as **TRIPOD+AI** to address machine learning and AI-based models.
+
+TRIPOD+AI applies to studies that develop, validate, or update a prediction model, whether based on regression, machine learning, or deep learning. The key additions in the +AI version include:
+
+- **Fairness evaluation**: assessing whether the model performs equitably across demographic groups
+- **Open science**: sharing code, data (where possible), and the model itself
+- **Handling of AI-specific issues**: hyperparameter tuning, computational requirements, software dependencies
+
+### Key TRIPOD+AI items
+
+The full checklist contains items across title, abstract, introduction, methods, results, and discussion. Here are some of the most commonly missed items:
+
+**Study design and participants:**
+
+- Describe the study design (e.g., cohort, case-control, registry)
+- Specify the eligibility criteria clearly
+- Report dates of recruitment and follow-up
+
+**Predictors and outcome:**
+
+- List all candidate predictors, how they were defined, and when they were measured
+- Define the outcome precisely, including the time horizon for prognostic models
+
+**Missing data:**
+
+- Report the amount of missing data for each variable
+- Describe the method used to handle missing data (complete case analysis, imputation)
+- If multiple imputation was used, report the number of imputations and imputation model
+
+**Model development:**
+
+- Describe the modelling approach (logistic regression, random forest, etc.)
+- Report how continuous predictors were handled (linear terms, splines, categorised)
+- For ML models: report hyperparameter tuning strategy, software, and random seeds
+
+**Model performance:**
+
+- Report discrimination (e.g., C-statistic) with confidence intervals
+- Report calibration (calibration plot, calibration slope and intercept)
+- Report clinical utility (decision curve analysis or net benefit) where relevant
+
+**Validation:**
+
+- Describe the validation approach (internal, external, temporal)
+- Report performance in the validation data, not just the development data
+
+::: {.callout-tip title="Exercise 12.1: TRIPOD+AI audit"}
+Find a recently published clinical prediction model paper (try searching PubMed for "prediction model" in your area of interest). Using the TRIPOD+AI checklist, evaluate how many items the paper reports adequately.
+
+Focus on:
+
+1. Is the outcome clearly defined with a time horizon?
+2. Is calibration reported, or only discrimination?
+3. How was missing data handled?
+4. Were continuous predictors appropriately modelled (splines) or just categorised?
+5. Is the model available for others to use (coefficients, code, web calculator)?
+
+Write a brief (one paragraph) critical appraisal.
+:::
+
+## From model to bedside: the implementation gap
+
+Even well-developed, well-validated models face an uphill battle to clinical implementation. Smits, van Kuijk & Wynants (2026) dedicate five chapters of their book to this topic, covering the journey from model selection through innovation development, impact evaluation, and implementation.
+
+### Key barriers to implementation
+
+1. **The model doesn't address a real clinical need.** Models built for academic interest rather than to solve a genuine decision problem rarely get implemented.
+
+2. **The model isn't embedded in clinical workflow.** A model that requires a clinician to manually enter 15 variables into a spreadsheet will not be used, regardless of how accurate it is.
+
+3. **Performance hasn't been demonstrated in the target population.** External validation in the specific setting where the model will be used is essential.
+
+4. **Clinicians don't trust the model.** Transparency, explainability, and evidence of clinical utility (not just statistical performance) build trust.
+
+5. **There is no plan for maintenance.** Models can degrade over time as populations and practices change. A plan for monitoring and updating is essential.
+
+### The prediction model-based innovation (PMBI) framework
+
+Smits et al. (2026) introduce the concept of a PMBI: the complete clinical tool that wraps around a prediction model, including:
+
+- The user interface (how predictions are displayed)
+- Decision support (what actions are recommended at different risk levels)
+- Integration with electronic health records
+- Training materials for end users
+- A monitoring and updating plan
+
+::: {.callout-note}
+**Key insight:** Building a good prediction model is necessary but not sufficient for clinical impact. The model must be embedded in a workable clinical tool, validated in the target setting, and demonstrated to improve patient outcomes.
+:::
+
+## Risk communication
+
+Presenting predicted probabilities to patients and clinicians is not straightforward. Research in health literacy shows that:
+
+- **Frequencies are easier to understand than probabilities.** "3 out of 100 patients like you" is clearer than "3% probability."
+- **Visual aids help.** Icon arrays (showing 100 faces with 3 highlighted) are effective.
+- **Framing matters.** "97% chance of survival" feels different from "3% chance of death" — both are true.
+- **Uncertainty should be communicated.** Presenting a point estimate without a confidence interval overstates precision.
+
+### Presenting results to different audiences
+
+| Audience | Recommended format |
+|----------|-------------------|
+| Patients | Frequencies, icon arrays, plain language |
+| Clinicians | Risk categories with action thresholds, decision curves |
+| Researchers | Full performance metrics, calibration plots, code |
+| Policymakers | Population-level impact, cost-effectiveness |
+
+## Ethical considerations
+
+### Algorithmic bias
+
+Prediction models can perpetuate or amplify existing health disparities if:
+
+- Training data underrepresents certain populations
+- Predictors serve as proxies for protected characteristics (e.g., postcode as proxy for race/ethnicity)
+- Performance is not evaluated across subgroups
+
+TRIPOD+AI specifically requires fairness evaluation: reporting model performance stratified by relevant demographic groups.
+
+### Informed consent and transparency
+
+Patients have a right to know when a prediction model is being used in their care, what data it uses, and how its output influences clinical decisions. This is particularly important for models that inform treatment decisions or resource allocation.
+
+### The EU AI Act and regulatory considerations
+
+The European Union's AI Act (2024) classifies medical AI applications as "high risk" and imposes requirements for transparency, human oversight, and documentation. Clinical prediction models that qualify as medical devices may need regulatory approval (e.g., CE marking in the EU, FDA clearance in the US).
+
+## Writing a statistical methods section
+
+A well-written methods section for a prediction model study should include:
+
+1. **Study design and setting** (one paragraph)
+2. **Participants** — eligibility criteria, dates, sample size (one paragraph)
+3. **Predictors** — list, definitions, measurement timing (one paragraph)
+4. **Outcome** — definition, ascertainment, time horizon (one paragraph)
+5. **Missing data** — amount, mechanism assumed, handling method (one paragraph)
+6. **Model development** — method, how continuous variables were handled, variable selection approach (one paragraph)
+7. **Model performance** — discrimination, calibration, clinical utility measures (one paragraph)
+8. **Validation** — internal and/or external validation approach (one paragraph)
+9. **Software** — R/Python version, key packages, random seed (one sentence)
+
+::: {.callout-tip title="Exercise 12.2: Write a methods section"}
+Using the prediction model you developed in earlier chapters (or a hypothetical one), write a complete statistical methods section following the structure above. Aim for approximately 500 words.
+
+Check your methods section against the TRIPOD+AI checklist. Are all key items covered?
+
+::: {.callout-note collapse="true" title="Example methods section"}
+*Study design and setting.* We conducted a retrospective cohort study using data from the Framingham Heart Study (original cohort, examinations 1–10). Participants were adults aged 30–74 years free of cardiovascular disease at baseline.
+
+*Outcome.* The primary outcome was incident coronary heart disease (CHD) within 10 years of baseline examination, defined as myocardial infarction, coronary insufficiency, or CHD death.
+
+*Predictors.* Candidate predictors were age, sex, systolic blood pressure (modelled with restricted cubic splines, 4 knots), total cholesterol (restricted cubic splines, 4 knots), HDL cholesterol, current smoking status, diabetes status, and use of antihypertensive medication.
+
+*Missing data.* Missing data ranged from 0% (age, sex) to 8% (HDL cholesterol). We used multiple imputation by chained equations (MICE, 20 imputations) assuming data were missing at random.
+
+*Model development.* We fitted a logistic regression model. Continuous predictors were modelled with restricted cubic splines to allow for non-linear associations. No automated variable selection was performed; all pre-specified predictors were retained. The model was fitted on the full imputed dataset using Rubin's rules.
+
+*Model performance.* Discrimination was quantified using the C-statistic with 95% confidence intervals. Calibration was assessed using calibration plots (loess smoother) and the calibration slope and intercept. Clinical utility was evaluated using decision curve analysis, reporting net benefit across decision thresholds from 5% to 40%.
+
+*Validation.* Internal validation was performed using bootstrap resampling (500 samples) to estimate optimism-corrected performance.
+
+*Software.* All analyses were performed in R 4.4.1 using the rms, mice, and dcurves packages.
+:::
+:::
+
+## The future of clinical prediction
+
+Several trends are shaping the next decade of clinical prediction modelling:
+
+- **Dynamic prediction models** that update as new patient data become available (e.g., during a hospital stay)
+- **Federated learning** that trains models across institutions without sharing patient data
+- **Foundation models** adapted for clinical tasks (large language models, multimodal models)
+- **Continuous model monitoring** with automated detection of performance degradation
+- **Patient-facing prediction tools** integrated into health apps and patient portals
+
+Regardless of the technology, the fundamentals covered in this course — proper validation, calibration assessment, clinical utility evaluation, and transparent reporting — will remain essential.
+
+::: {.callout-tip title="Exercise 12.3: Critical appraisal"}
+Find a prediction model paper from 2024 or 2025 in a journal relevant to your field. Answer the following:
+
+1. What clinical question does the model address?
+2. Was the model developed with regression, ML, or both?
+3. Was calibration reported? If so, was it assessed using a calibration plot?
+4. Was clinical utility (decision curve analysis) reported?
+5. Could you implement this model in your own setting with the information provided?
+6. Does the paper comply with TRIPOD+AI?
+
+Discuss your findings with a colleague or in the course discussion forum.
+:::
+
+## References and further reading
+
+- Collins GS, Moons KGM, Dhiman P, et al. **TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods.** *BMJ* 2024;385:e078378. The definitive reporting guideline for prediction models.
+
+- Smits LJM, van Kuijk SMJ, Wynants L. **Improving Health Care with Clinical Prediction Models: From Idea to Impact.** Maastricht University Press, 2026. Chapters 10–15 cover model selection for impact, innovation development, research question formulation, impact evaluation (decision modelling and empirical), and implementation.
+
+- Van Calster B, Collins GS, Vickers AJ, et al. **Evaluation of performance measures in predictive artificial intelligence models to support medical decisions: overview and guidance.** *Lancet Digital Health* 2025;7:e100916. Comprehensive guide to choosing appropriate performance measures.
+
+- Steyerberg EW. **Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating.** Springer, 2019. Chapter 23 covers implementation.
+
+- Vickers AJ, van Calster B, Steyerberg EW. **A simple, step-by-step guide to interpreting decision curve analysis.** *Diagnostic and Prognostic Research* 2019;3:18.
+
+- **EU AI Act** (Regulation 2024/1689). Official text available at eur-lex.europa.eu.
+
+- Gigerenzer G, Edwards A. **Simple tools for understanding risks: from innumeracy to insight.** *BMJ* 2003;327:741–744. Classic paper on risk communication.

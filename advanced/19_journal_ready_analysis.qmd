@@ -1,0 +1,885 @@
+# Producing Journal-Ready Statistical Analyses {#sec-journal-ready}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(gtsummary)
+library(gt)
+library(survival)
+library(broom)
+library(patchwork)
+```
+
+## Introduction
+
+You have learned how to fit models, validate predictions, and draw causal inferences. The final --- and often most undervalued --- skill is **communicating your results** in a form that meets the standards of peer-reviewed medical journals. Reviewers and editors routinely reject papers not because the statistics are wrong, but because the presentation is unclear, tables are poorly formatted, figures are low resolution, or the statistical methods section is incomplete.
+
+This chapter walks you through the complete workflow: from creating publication-quality tables and figures to writing a statistical methods section, meeting reporting guideline requirements, and building a reproducible research pipeline. We conclude with three capstone project descriptions that bring together everything in the course.
+
+## What Do Top Journals Expect?
+
+### General standards
+
+Major medical journals (The Lancet, BMJ, JAMA, NEJM, Lancet Digital Health) share common expectations:
+
+1. **Transparent reporting**: Follow the relevant reporting guideline (CONSORT for RCTs, STROBE for observational studies, TRIPOD+AI for prediction models, PRISMA for systematic reviews).
+2. **Pre-specified analysis plan**: Distinguish confirmatory from exploratory analyses.
+3. **Effect estimates with uncertainty**: Report point estimates, confidence intervals, and (where appropriate) p-values. Never report p-values alone.
+4. **Reproducibility**: Many journals now require data availability statements and code sharing.
+5. **Figure quality**: Minimum 300 DPI, specific file formats (TIFF, EPS, or high-resolution PDF), accessible colour palettes.
+
+### Journal-specific requirements
+
+| Journal | Key statistical requirements |
+|---|---|
+| **Lancet / Lancet Digital Health** | TRIPOD+AI for prediction models; structured statistical methods; data sharing encouraged |
+| **BMJ** | EQUATOR reporting guidelines mandatory; patient involvement statement; open access to data |
+| **JAMA** | Statistical review by dedicated biostatistician; eTable/eFigure supplements expected |
+| **NEJM** | Extreme rigour; independent statistical review; full protocol as supplement |
+
+::: {.callout-important}
+## The statistical review
+All top medical journals employ dedicated statistical reviewers. Common reasons for rejection on statistical grounds include: inappropriate handling of missing data, failure to account for multiple comparisons, presenting associations as causal claims without proper methodology, and inadequate model validation.
+:::
+
+## Table 1: Baseline Characteristics
+
+"Table 1" is the standard first table in any clinical paper, describing the study population by group (treatment arms, exposure groups, or clusters).
+
+### What belongs in Table 1
+
+- Demographics: age, sex, race/ethnicity
+- Clinical characteristics: comorbidities, disease severity, vital signs
+- Laboratory values: relevant biomarkers
+- Medications and prior treatments
+- Summary statistics: mean (SD) or median (IQR) for continuous variables; n (%) for categorical variables
+
+### Creating Table 1 in R with gtsummary
+
+```{r}
+#| label: table1-r
+#| eval: false
+
+library(gtsummary)
+
+# Using built-in trial dataset (modify for your data)
+trial |>
+  select(trt, age, grade, stage, marker, response) |>
+  tbl_summary(
+    by = trt,
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous() ~ 1,
+      all_categorical() ~ c(0, 1)
+    ),
+    label = list(
+      age ~ "Age, years",
+      grade ~ "Tumour grade",
+      stage ~ "Cancer stage",
+      marker ~ "Biomarker level, ng/mL",
+      response ~ "Tumour response"
+    ),
+    missing_text = "Missing"
+  ) |>
+  add_overall() |>
+  add_p(
+    test = list(
+      all_continuous() ~ "t.test",
+      all_categorical() ~ "chisq.test"
+    )
+  ) |>
+  add_n() |>
+  modify_header(label = "**Characteristic**") |>
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment Group**") |>
+  bold_labels() |>
+  as_gt() |>
+  gt::tab_header(
+    title = "Table 1. Baseline Characteristics of the Study Population"
+  )
+```
+
+::: {.callout-tip}
+## Should Table 1 include p-values?
+In a randomised trial, baseline differences are due to chance, so p-values for baseline comparisons are widely considered inappropriate (they test a hypothesis you know to be true). In observational studies, standardised mean differences (SMDs) are preferred over p-values because SMDs are not influenced by sample size.
+:::
+
+### Creating Table 1 in Python with tableone
+
+```{python}
+#| label: table1-python
+#| eval: false
+
+import pandas as pd
+from tableone import TableOne
+import numpy as np
+
+# Simulate clinical trial data
+np.random.seed(42)
+n = 500
+
+data = pd.DataFrame({
+    'Treatment': np.random.choice(['Drug A', 'Drug B'], n),
+    'Age': np.random.normal(65, 10, n).round(1),
+    'Sex': np.random.choice(['Male', 'Female'], n, p=[0.55, 0.45]),
+    'BMI': np.random.normal(28, 5, n).round(1),
+    'Diabetes': np.random.choice(['Yes', 'No'], n, p=[0.3, 0.7]),
+    'eGFR': np.random.normal(62, 18, n).round(0),
+    'Systolic_BP': np.random.normal(140, 20, n).round(0),
+    'Smoking': np.random.choice(['Never', 'Former', 'Current'], n, p=[0.4, 0.35, 0.25])
+})
+
+# Define variable types
+columns = ['Age', 'Sex', 'BMI', 'Diabetes', 'eGFR', 'Systolic_BP', 'Smoking']
+categorical = ['Sex', 'Diabetes', 'Smoking']
+nonnormal = ['eGFR']  # Report as median [IQR]
+
+# Create Table 1
+table1 = TableOne(
+    data,
+    columns=columns,
+    categorical=categorical,
+    groupby='Treatment',
+    nonnormal=nonnormal,
+    pval=True,
+    smd=True  # Standardised mean differences
+)
+
+print(table1.tabulate(tablefmt="github"))
+
+# Export to various formats
+# table1.to_excel('table1.xlsx')
+# table1.to_latex('table1.tex')
+# table1.to_html('table1.html')
+```
+
+## Regression Tables
+
+### Presenting regression results
+
+A well-formatted regression table should include:
+
+- Variable names (not raw column names)
+- Effect estimates (OR, HR, RR, or coefficients) with 95% CIs
+- P-values (to appropriate decimal places)
+- Sample size and number of events
+- Model fit statistics (R-squared, C-statistic, AIC)
+
+### Regression tables in R
+
+```{r}
+#| label: regression-table-r
+#| eval: false
+
+library(gtsummary)
+library(survival)
+
+# Fit a Cox model
+cox_model <- coxph(Surv(time, status) ~ age + sex + ph.ecog + ph.karno + wt.loss,
+                   data = lung)
+
+# Publication-quality table
+tbl_regression(
+  cox_model,
+  exponentiate = TRUE,
+  label = list(
+    age ~ "Age, per year",
+    sex ~ "Sex (female vs male)",
+    ph.ecog ~ "ECOG performance status",
+    ph.karno ~ "Karnofsky performance score",
+    wt.loss ~ "Weight loss, kg"
+  ),
+  pvalue_fun = ~ style_pvalue(.x, digits = 3)
+) |>
+  add_global_p() |>
+  bold_p(t = 0.05) |>
+  modify_header(label = "**Variable**") |>
+  modify_footnote(
+    estimate ~ "HR = hazard ratio; CI = confidence interval",
+  ) |>
+  as_gt() |>
+  gt::tab_header(
+    title = "Table 2. Multivariable Cox Regression for Overall Survival"
+  )
+```
+
+### Regression tables in Python
+
+```{python}
+#| label: regression-table-python
+#| eval: false
+
+import pandas as pd
+import numpy as np
+from lifelines import CoxPHFitter
+from lifelines.datasets import load_lung
+
+# Load and prepare data
+lung = load_lung()
+lung = lung[['T', 'status', 'age', 'sex', 'ph.ecog', 'ph.karno', 'wt.loss']].dropna()
+lung['status'] = lung['status'] - 1  # Convert to 0/1
+
+# Fit Cox model
+cph = CoxPHFitter()
+cph.fit(lung, duration_col='T', event_col='status')
+
+# Extract results as a formatted table
+summary_df = cph.summary[['exp(coef)', 'exp(coef) lower 95%',
+                           'exp(coef) upper 95%', 'p']].copy()
+summary_df.columns = ['HR', 'Lower 95% CI', 'Upper 95% CI', 'p-value']
+summary_df = summary_df.round({'HR': 2, 'Lower 95% CI': 2,
+                                'Upper 95% CI': 2, 'p-value': 4})
+
+# Create formatted CI column
+summary_df['HR (95% CI)'] = summary_df.apply(
+    lambda r: f"{r['HR']:.2f} ({r['Lower 95% CI']:.2f}-{r['Upper 95% CI']:.2f})",
+    axis=1
+)
+
+# Rename index for publication
+name_map = {
+    'age': 'Age, per year',
+    'sex': 'Sex (female vs male)',
+    'ph.ecog': 'ECOG performance status',
+    'ph.karno': 'Karnofsky score, per 10 points',
+    'wt.loss': 'Weight loss, per kg'
+}
+summary_df.index = summary_df.index.map(lambda x: name_map.get(x, x))
+
+print(summary_df[['HR (95% CI)', 'p-value']].to_string())
+```
+
+## Publication-Quality Figures
+
+### Journal specifications
+
+Most journals require:
+
+- **Resolution**: minimum 300 DPI (600 DPI for line art)
+- **Format**: TIFF, EPS, or high-resolution PDF
+- **Size**: single column (89 mm) or double column (183 mm)
+- **Fonts**: Arial, Helvetica, or Times New Roman, minimum 8pt
+- **Colours**: Accessible to colour-blind readers (avoid red-green combinations)
+
+### Creating journal-quality figures in R
+
+```{r}
+#| label: pub-figures-r
+#| eval: false
+
+library(ggplot2)
+library(survival)
+library(survminer)
+library(RColorBrewer)
+
+# Define a publication theme
+theme_publication <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) %+replace%
+    theme(
+      text = element_text(family = "Arial"),
+      plot.title = element_text(size = base_size + 2, face = "bold",
+                                 hjust = 0, margin = margin(b = 10)),
+      axis.title = element_text(size = base_size, face = "bold"),
+      axis.text = element_text(size = base_size - 1, colour = "black"),
+      legend.title = element_text(size = base_size, face = "bold"),
+      legend.text = element_text(size = base_size - 1),
+      legend.position = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(colour = "grey90"),
+      strip.text = element_text(size = base_size, face = "bold"),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+# Colour-blind friendly palette
+cb_palette <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7",
+                "#F0E442", "#56B4E9", "#E69F00", "#000000")
+
+# --- Kaplan-Meier survival curve ---
+fit <- survfit(Surv(time, status) ~ sex, data = lung)
+
+p_surv <- ggsurvplot(
+  fit,
+  data = lung,
+  palette = cb_palette[1:2],
+  risk.table = TRUE,
+  risk.table.col = "strata",
+  pval = TRUE,
+  conf.int = TRUE,
+  xlab = "Time (days)",
+  ylab = "Survival probability",
+  legend.labs = c("Male", "Female"),
+  legend.title = "Sex",
+  font.main = c(14, "bold"),
+  font.x = c(12, "bold"),
+  font.y = c(12, "bold"),
+  font.tickslab = 11,
+  risk.table.fontsize = 3.5,
+  ggtheme = theme_publication()
+)
+
+print(p_surv)
+
+# --- Saving at journal quality ---
+# For TIFF (most journals)
+ggsave("figure1_survival.tiff",
+       plot = p_surv$plot,
+       width = 183, height = 120,
+       units = "mm", dpi = 300,
+       compression = "lzw")
+
+# For PDF (vector format, scalable)
+ggsave("figure1_survival.pdf",
+       plot = p_surv$plot,
+       width = 183, height = 120,
+       units = "mm", device = cairo_pdf)
+```
+
+### Publication figures in Python
+
+```{python}
+#| label: pub-figures-python
+#| eval: false
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
+from lifelines import KaplanMeierFitter
+from lifelines.datasets import load_lung
+
+# Set publication defaults
+plt.rcParams.update({
+    'font.family': 'Arial',
+    'font.size': 11,
+    'axes.labelsize': 12,
+    'axes.titlesize': 13,
+    'axes.labelweight': 'bold',
+    'figure.dpi': 300,
+    'savefig.dpi': 300,
+    'figure.figsize': (7.2, 4.7),  # ~183mm x 120mm
+    'axes.spines.top': False,
+    'axes.spines.right': False,
+})
+
+# Colour-blind friendly palette
+cb_palette = ['#0072B2', '#D55E00', '#009E73', '#CC79A7']
+
+# Prepare data
+lung = load_lung()
+lung['status'] = lung['status'] - 1
+
+fig, ax = plt.subplots()
+
+kmf = KaplanMeierFitter()
+
+for i, (sex_val, label) in enumerate([(1, 'Male'), (2, 'Female')]):
+    mask = lung['sex'] == sex_val
+    kmf.fit(lung.loc[mask, 'T'], lung.loc[mask, 'status'], label=label)
+    kmf.plot_survival_function(ax=ax, color=cb_palette[i], ci_show=True)
+
+ax.set_xlabel('Time (days)')
+ax.set_ylabel('Survival Probability')
+ax.set_title('Kaplan-Meier Survival by Sex')
+ax.legend(loc='lower left', frameon=False)
+ax.set_ylim(0, 1.05)
+
+plt.tight_layout()
+plt.savefig('figure1_survival.tiff', dpi=300, bbox_inches='tight')
+plt.savefig('figure1_survival.pdf', bbox_inches='tight')
+plt.show()
+```
+
+### Multi-panel figures
+
+Journals often prefer combined multi-panel figures (Figure 1A, 1B, etc.) rather than separate images.
+
+```{r}
+#| label: multipanel-r
+#| eval: false
+
+library(patchwork)
+
+p1 <- ggplot(lung, aes(x = factor(sex), y = age)) +
+  geom_boxplot(fill = cb_palette[1:2], alpha = 0.7) +
+  labs(x = "Sex", y = "Age (years)", title = "A") +
+  scale_x_discrete(labels = c("Male", "Female")) +
+  theme_publication()
+
+p2 <- ggplot(lung, aes(x = age, y = ph.karno)) +
+  geom_point(alpha = 0.5, colour = cb_palette[1]) +
+  geom_smooth(method = "lm", colour = cb_palette[2], se = TRUE) +
+  labs(x = "Age (years)", y = "Karnofsky Score", title = "B") +
+  theme_publication()
+
+combined <- p1 + p2 +
+  plot_layout(ncol = 2, widths = c(1, 1))
+
+ggsave("figure2_panels.tiff",
+       plot = combined,
+       width = 183, height = 90,
+       units = "mm", dpi = 300)
+```
+
+## Writing a Statistical Methods Section
+
+### Structure
+
+A complete statistical methods section should address:
+
+1. **Study design and population**: Brief recap (detailed in Methods)
+2. **Primary and secondary outcomes**: How each was defined and measured
+3. **Sample size / power calculation**: How you determined the required sample size
+4. **Descriptive statistics**: How continuous and categorical variables are summarised
+5. **Primary analysis**: The statistical model, its assumptions, and how they were checked
+6. **Missing data**: How much was missing, the assumed mechanism (MCAR/MAR/MNAR), and the handling method
+7. **Sensitivity analyses**: Pre-specified alternative approaches
+8. **Multiple comparisons**: Whether and how adjusted (Bonferroni, FDR, etc.)
+9. **Software**: Packages, versions, and random seeds
+
+### Example statistical methods paragraph
+
+> Baseline characteristics were summarised as means (SD) for normally distributed continuous variables, medians (IQR) for skewed continuous variables, and frequencies (percentages) for categorical variables. The primary outcome (time to first major adverse cardiovascular event) was analysed using multivariable Cox proportional hazards regression, adjusting for age, sex, diabetes, eGFR, systolic blood pressure, and smoking status. The proportional hazards assumption was tested using Schoenfeld residuals. Missing covariate data (3.2% overall, assumed missing at random) were handled using multiple imputation by chained equations (50 imputed datasets, 20 iterations). Rubin's rules were used to pool effect estimates. Model discrimination was assessed using Harrell's C-statistic with 95% confidence intervals estimated via 500 bootstrap resamples. Calibration was assessed graphically and using the Greenwood-Nam-D'Agostino test. Internal-external cross-validation was performed across the three recruitment centres. All analyses were pre-specified and conducted using R version 4.4.1 (R Foundation for Statistical Computing) with the survival (v3.7), mice (v3.16), and rms (v6.8) packages. Two-sided p-values < 0.05 were considered statistically significant.
+
+::: {.callout-warning}
+## Common mistakes in statistical methods sections
+1. Not specifying the handling of missing data
+2. Claiming "data were normally distributed" without stating how this was assessed
+3. Using stepwise variable selection without acknowledging its limitations
+4. Reporting only p-values without effect estimates and confidence intervals
+5. Not specifying the software and package versions
+6. Not describing how the proportional hazards or linearity assumptions were checked
+7. Claiming causation from an observational study without using causal inference methods
+:::
+
+## TRIPOD+AI Compliance
+
+The **TRIPOD+AI** statement (Collins et al., 2024) extends the original TRIPOD guideline for prediction models to include AI-specific items. If your study develops, validates, or updates a clinical prediction model --- whether based on logistic regression or deep learning --- you should follow TRIPOD+AI.
+
+### Key TRIPOD+AI items
+
+| Item | Requirement | How to address |
+|---|---|---|
+| Title | State it is a prediction model study and the type (development, validation, both) | "Development and external validation of a machine learning model for..." |
+| Source of data | Describe the data source, setting, dates | EHR data from Hospital X, 2015-2023 |
+| Participants | Eligibility criteria, sampling, flow diagram | Include a CONSORT-style flow diagram |
+| Outcome | Clear definition, timing, blinding | "30-day all-cause mortality ascertained from hospital records" |
+| Sample size | Justify based on Riley et al. criteria | Use `pmsampsize` package |
+| Missing data | Report extent and handling | Multiple imputation; report complete case sensitivity analysis |
+| Model development | Full specification including hyperparameters | Report all hyperparameters; include code supplement |
+| Model performance | Discrimination (C-statistic, AUROC) AND calibration (calibration plot, slope, intercept) | Never report AUROC alone --- calibration is equally important |
+| Model fairness | Assess performance across demographic subgroups | Report C-statistic and calibration by sex, age group, ethnicity |
+| Code and data | Availability statement | Share code via GitHub; data via controlled access repository |
+
+### Step-by-step TRIPOD+AI walkthrough
+
+```{r}
+#| label: tripod-checklist
+#| eval: false
+
+# Step 1: Sample size calculation for a prediction model
+library(pmsampsize)
+
+# Binary outcome model
+# Assume: 15 candidate predictors, outcome prevalence 10%,
+# target C-statistic 0.80, max shrinkage 10%
+ss <- pmsampsize(type = "b",
+                 rsquared = 0.15,  # Cox-Snell R-squared
+                 parameters = 15,
+                 prevalence = 0.10)
+ss
+
+# Step 2: Develop model with full pre-specification
+library(rms)
+
+# Set up data distribution summaries
+dd <- datadist(your_data)
+options(datadist = "dd")
+
+# Fit model
+full_model <- lrm(outcome ~ age + sex + rcs(sbp, 4) + diabetes + egfr +
+                     smoking + rcs(bmi, 3),
+                   data = your_data, x = TRUE, y = TRUE)
+
+# Step 3: Internal validation with bootstrap
+val <- validate(full_model, B = 200)
+print(val)
+
+# Optimism-corrected C-statistic
+c_stat_apparent <- full_model$stats["C"]
+c_stat_corrected <- c_stat_apparent - (val["Dxy", "index.orig"] -
+                                        val["Dxy", "index.corrected"]) / 2
+
+# Step 4: Calibration plot
+cal <- calibrate(full_model, B = 200)
+plot(cal, xlab = "Predicted probability", ylab = "Observed proportion",
+     main = "Calibration Plot (Bootstrap-Corrected)")
+
+# Step 5: Fairness assessment
+# Evaluate performance in subgroups
+for (subgroup in c("Male", "Female")) {
+  sub_data <- your_data |> filter(sex == subgroup)
+  pred <- predict(full_model, newdata = sub_data, type = "fitted")
+  auc <- pROC::auc(sub_data$outcome, pred)
+  cat(subgroup, ": C-statistic =", round(auc, 3), "\n")
+}
+```
+
+## Reproducible Research Workflow
+
+### Project structure
+
+A reproducible research project should follow a consistent directory structure:
+
+```
+project/
+  |-- README.md               # Project overview
+  |-- renv.lock                # R package versions (or environment.yml for conda)
+  |-- _targets.R               # Pipeline definition (or Makefile)
+  |-- data/
+  |     |-- raw/               # Never modify raw data
+  |     |-- processed/         # Cleaned datasets
+  |     |-- metadata/          # Data dictionaries
+  |-- R/                       # R functions
+  |-- python/                  # Python scripts
+  |-- analysis/
+  |     |-- 01_data_cleaning.qmd
+  |     |-- 02_descriptive.qmd
+  |     |-- 03_primary_analysis.qmd
+  |     |-- 04_sensitivity.qmd
+  |-- output/
+  |     |-- figures/
+  |     |-- tables/
+  |-- manuscript/
+  |     |-- manuscript.qmd     # The paper itself
+  |     |-- references.bib
+  |-- Dockerfile               # For full computational reproducibility
+```
+
+### Package management
+
+**R (renv)**:
+
+```{r}
+#| label: renv-setup
+#| eval: false
+
+# Initialise renv in your project
+renv::init()
+
+# After installing packages, take a snapshot
+renv::snapshot()
+
+# Collaborator restores exact versions
+renv::restore()
+```
+
+**Python (conda/pip)**:
+
+```{python}
+#| label: conda-setup
+#| eval: false
+
+# Create environment
+# conda create -n my_project python=3.11
+# conda activate my_project
+# pip install pandas numpy scikit-learn lifelines tableone
+
+# Export environment
+# pip freeze > requirements.txt
+# OR
+# conda env export > environment.yml
+
+# Collaborator recreates environment
+# pip install -r requirements.txt
+# OR
+# conda env create -f environment.yml
+```
+
+### Version control with Git
+
+Essential git practices for research:
+
+1. **Commit analysis scripts, not data** (unless data are small and non-sensitive)
+2. **Use `.gitignore`** to exclude data files, outputs, and sensitive information
+3. **Write meaningful commit messages**: "Add multiple imputation for missing eGFR values" not "update script"
+4. **Tag milestones**: `git tag -a v1.0-submission -m "Initial journal submission"`
+5. **Use branches** for exploratory analyses that may not make it into the paper
+
+### Docker for full reproducibility (brief)
+
+A Dockerfile captures the complete computational environment:
+
+```dockerfile
+FROM rocker/verse:4.4.1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y libglpk-dev
+
+# Install R packages
+RUN R -e "install.packages(c('survival', 'rms', 'mice', 'gtsummary', 'pmsampsize'))"
+
+# Copy project files
+COPY . /home/rstudio/project
+
+WORKDIR /home/rstudio/project
+```
+
+This guarantees that anyone, anywhere, at any time can reproduce your exact results.
+
+## Case Study: Replicating a Lancet Digital Health Analytical Approach
+
+To illustrate the complete workflow, we replicate the analytical structure of a 2025 Lancet Digital Health prediction model study.
+
+**Study design**: Development and external validation of a machine learning model to predict 30-day hospital readmission in heart failure patients.
+
+```{r}
+#| label: case-study
+#| eval: false
+
+# --- STEP 1: Data preparation ---
+library(tidyverse)
+library(mice)
+
+# Load data (using a public dataset as proxy)
+# In practice, this would be your EHR extract
+data("heart", package = "survival")  # Stanford heart transplant data
+
+# Document missingness
+missing_summary <- data.frame(
+  variable = names(heart),
+  n_missing = sapply(heart, function(x) sum(is.na(x))),
+  pct_missing = sapply(heart, function(x) mean(is.na(x)) * 100)
+)
+print(missing_summary)
+
+# Multiple imputation
+imp <- mice(heart, m = 50, maxit = 20, method = "pmm", seed = 42,
+            printFlag = FALSE)
+
+# --- STEP 2: Table 1 ---
+library(gtsummary)
+
+heart |>
+  tbl_summary(
+    by = transplant,
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) |>
+  add_overall() |>
+  add_p()
+
+# --- STEP 3: Model development (in imputed data) ---
+library(rms)
+library(pROC)
+
+# Pool results across imputations using Rubin's rules
+# (Simplified example with complete cases for illustration)
+dd <- datadist(heart)
+options(datadist = "dd")
+
+# Pre-specify model based on clinical knowledge
+model <- lrm(event ~ age + year + surgery + rcs(futime, 4),
+             data = heart, x = TRUE, y = TRUE)
+
+print(model)
+
+# --- STEP 4: Internal validation ---
+set.seed(42)
+val <- validate(model, B = 500)
+print(val)
+
+# Optimism-corrected C-statistic
+cat("Apparent C-statistic:", model$stats["C"], "\n")
+cat("Optimism:", (val["Dxy", "index.orig"] - val["Dxy", "index.corrected"])/2, "\n")
+
+# --- STEP 5: Calibration plot ---
+cal <- calibrate(model, B = 200)
+plot(cal,
+     xlab = "Predicted Probability",
+     ylab = "Observed Proportion",
+     main = "Calibration Plot (Internal Bootstrap Validation)")
+abline(0, 1, lty = 2, col = "grey50")
+
+# --- STEP 6: Decision curve analysis ---
+library(dcurves)
+
+dca_result <- dca(event ~ predicted_prob,
+                  data = heart_with_preds,
+                  thresholds = seq(0, 0.5, by = 0.01))
+plot(dca_result)
+
+# --- STEP 7: Export all results ---
+# Tables to Word/HTML
+tbl_summary_result |> as_gt() |> gt::gtsave("output/tables/table1.docx")
+
+# Figures at publication quality
+ggsave("output/figures/figure1_calibration.tiff",
+       width = 89, height = 89, units = "mm", dpi = 300)
+```
+
+## Capstone Projects
+
+Choose one of the following three capstone projects. Each requires you to produce a complete, journal-ready analysis with Table 1, regression/model results, publication-quality figures, and a statistical methods section.
+
+### Capstone 1: Cardiovascular Risk Prediction Model
+
+**Objective**: Develop a cardiovascular risk prediction model using Framingham Heart Study methodology and validate it in NHANES data.
+
+**Dataset**: Framingham Heart Study (public teaching dataset from `riskCommunicator` R package) for development; NHANES 2017-2020 (via `nhanesA` package) for external validation.
+
+**Requirements**:
+
+1. **Table 1**: Baseline characteristics of the development cohort, stratified by 10-year CVD event status.
+2. **Model development**: Logistic regression predicting 10-year CVD risk using age, sex, total cholesterol, HDL cholesterol, systolic blood pressure, blood pressure treatment, smoking, and diabetes.
+3. **Internal validation**: Bootstrap-corrected C-statistic and calibration slope.
+4. **External validation in NHANES**: Apply the model, report discrimination and calibration in the external population.
+5. **Fairness assessment**: Report model performance stratified by sex and race/ethnicity.
+6. **Figures**: (A) Calibration plot (development, bootstrap-corrected), (B) Calibration plot (NHANES external validation), (C) Decision curve analysis.
+7. **Statistical methods section**: Following TRIPOD+AI structure.
+8. **Code**: Fully reproducible R or Python scripts with renv/conda environment.
+
+### Capstone 2: Metabolic Phenotype Clustering
+
+**Objective**: Identify metabolic phenotypes in the US adult population using unsupervised learning and assess their association with mortality.
+
+**Dataset**: NHANES 2017-2020 (demographics, laboratory, examination, and mortality linkage files).
+
+**Requirements**:
+
+1. **Data preparation**: Select metabolic variables (glucose, HbA1c, insulin, triglycerides, HDL, LDL, waist circumference, BMI, blood pressure, CRP). Handle missing data with multiple imputation.
+2. **Dimensionality reduction**: PCA to identify major axes of metabolic variation. Present scree plot and loadings table.
+3. **Clustering**: Apply k-means and Gaussian mixture models to PC scores. Use the gap statistic, silhouette width, and BIC to select the number of clusters. Visualise clusters in PC space.
+4. **Table 1**: Baseline characteristics stratified by cluster assignment.
+5. **Cluster characterisation**: Describe the clinical profile of each cluster (the "metabolic phenotypes").
+6. **Survival analysis**: Kaplan-Meier curves and Cox regression for all-cause mortality by cluster, adjusting for age, sex, race/ethnicity, smoking, and education.
+7. **Figures**: (A) Scree plot, (B) Cluster visualisation in PC1-PC2 space, (C) Kaplan-Meier curves by cluster, (D) Forest plot of hazard ratios.
+8. **Statistical methods section**: Including justification for unsupervised approach and cluster validation.
+
+### Capstone 3: Bayesian Survival Analysis
+
+**Objective**: Fit a Bayesian hierarchical survival model to the primary biliary cholangitis (PBC) dataset, comparing Bayesian and frequentist approaches.
+
+**Dataset**: `pbc` dataset from the `survival` R package (Mayo Clinic PBC trial, 418 patients).
+
+**Requirements**:
+
+1. **Table 1**: Baseline characteristics stratified by treatment arm (D-penicillamine vs placebo).
+2. **Frequentist Cox model**: Standard Cox PH regression with selected predictors. Check proportional hazards assumption.
+3. **Bayesian Cox model**: Fit using `brms` (R) or `PyMC` (Python) with:
+   - Weakly informative priors on log-hazard ratios: $\beta \sim N(0, 1)$
+   - Compare with informative priors based on prior literature
+   - Report posterior medians, 95% credible intervals, and posterior probability of benefit
+4. **Hierarchical extension**: If the data include centre/site information, fit a model with random intercepts. Otherwise, use histological stage as a grouping variable.
+5. **Model comparison**: Compare DIC/WAIC/LOO-CV between Bayesian models.
+6. **Posterior predictive checks**: Simulate survival curves from the posterior and overlay on observed Kaplan-Meier.
+7. **Figures**: (A) Prior vs posterior distributions for key parameters, (B) Posterior predictive survival curves, (C) Forest plot comparing Bayesian vs frequentist estimates.
+8. **Statistical methods section**: Justify the Bayesian approach, describe priors and sensitivity to prior choice.
+
+::: {.callout-tip}
+## Capstone assessment criteria
+Each capstone will be assessed on:
+
+- **Statistical correctness** (40%): Appropriate methods, valid assumptions, correct interpretation
+- **Reproducibility** (20%): Code runs from start to finish; environment documented
+- **Presentation quality** (20%): Journal-ready tables, figures, and methods section
+- **Critical thinking** (20%): Discussion of limitations, sensitivity analyses, clinical implications
+:::
+
+## Exercises
+
+### Exercise 1: Table 1 in both R and Python
+
+Using the `lung` dataset (R) or an equivalent simulated dataset (Python):
+
+a) Create a Table 1 stratified by sex, with appropriate summary statistics for age, ECOG score, Karnofsky score, meal calories, and weight loss.
+b) Include standardised mean differences instead of p-values.
+c) Export the table to a format suitable for journal submission (Word or LaTeX).
+
+**R**:
+```{r}
+#| label: ex1-r
+#| eval: false
+
+data(lung, package = "survival")
+# Your code here using gtsummary
+```
+
+**Python**:
+```{python}
+#| label: ex1-python
+#| eval: false
+
+from lifelines.datasets import load_lung
+lung = load_lung()
+# Your code here using tableone
+```
+
+### Exercise 2: Publication-quality figure
+
+Create a multi-panel figure (at least 3 panels) summarising a survival analysis of the `lung` dataset:
+
+- Panel A: Kaplan-Meier curve by sex
+- Panel B: Forest plot of hazard ratios from a multivariable Cox model
+- Panel C: Calibration plot for a 1-year survival prediction
+
+Requirements: colour-blind accessible palette, Arial font, 300 DPI, single figure file suitable for a double-column journal layout (183 mm wide).
+
+### Exercise 3: Write a statistical methods section
+
+Write a complete statistical methods section (250-400 words) for the following study:
+
+> A retrospective cohort study of 5,000 patients with type 2 diabetes from a hospital EHR database (2015-2023). The primary outcome is time to first major adverse cardiovascular event (MACE). The exposure is SGLT2 inhibitor use (vs DPP-4 inhibitor use). Covariates include age, sex, BMI, HbA1c, eGFR, prior CVD, hypertension, and smoking. Missing data range from 2% (age) to 15% (BMI). The analysis uses propensity score matching followed by Cox regression in the matched cohort.
+
+Your methods section should cover all items listed in the "Writing a statistical methods section" subsection above.
+
+### Exercise 4: TRIPOD+AI checklist
+
+Download the TRIPOD+AI checklist (from the EQUATOR Network website). For one of the three capstone projects above, complete the checklist, indicating:
+
+- The page/section number where each item is addressed
+- Items that are not applicable and why
+- Items that you cannot fully address and what you would need
+
+## Summary
+
+| Component | Tool/Package | Key considerations |
+|---|---|---|
+| Table 1 | gtsummary (R), tableone (Python) | SMDs over p-values in observational studies |
+| Regression tables | gtsummary, broom, gt (R) | Always include CIs; exponentiate where appropriate |
+| Figures | ggplot2 + patchwork (R), matplotlib (Python) | 300+ DPI, colour-blind safe, journal size specs |
+| Methods section | - | Missing data, assumptions, software versions |
+| Reporting guideline | TRIPOD+AI, STROBE, CONSORT | Choose based on study design |
+| Reproducibility | renv (R), conda (Python), Git, Docker | Capture full computational environment |
+| Calibration | rms, probably (R), scikit-learn (Python) | Never report discrimination without calibration |
+
+## References and Further Reading
+
+1. **Collins GS, Moons KGM, Dhiman P, et al.** TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods. *BMJ.* 2024;385:e078378.
+
+2. **von Elm E, Altman DG, Egger M, et al.** The Strengthening the Reporting of Observational Studies in Epidemiology (STROBE) statement. *Lancet.* 2007;370(9596):1453--1457.
+
+3. **Sjoberg DD, Whiting K, Curry M, Lavery JA, Larmarange J.** Reproducible summary tables with the gtsummary package. *The R Journal.* 2021;13(1):570--580.
+
+4. **Riley RD, Ensor J, Snell KIE, et al.** Calculating the sample size required for developing a clinical prediction model. *BMJ.* 2020;368:m441.
+
+5. **Steyerberg EW.** *Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating.* 2nd ed. Springer, 2019.
+
+6. **Van Calster B, McLernon DJ, van Smeden M, et al.** Calibration: the Achilles heel of predictive analytics. *BMC Medicine.* 2019;17:230.
+
+7. **Vickers AJ, Elkin EB.** Decision curve analysis: a novel method for evaluating prediction models. *Medical Decision Making.* 2006;26(6):565--574.
+
+8. **Hernan MA, Robins JM.** *Causal Inference: What If.* Chapman & Hall/CRC, 2024.
+
+9. **Harrell FE.** *Regression Modeling Strategies.* 2nd ed. Springer, 2015.
+
+10. **The Lancet Digital Health.** Author guidelines. Available at [https://www.thelancet.com/digital-health](https://www.thelancet.com/digital-health).
+
+11. **EQUATOR Network.** Reporting guidelines for health research. Available at [https://www.equator-network.org](https://www.equator-network.org).
+
+12. **Wickham H.** *ggplot2: Elegant Graphics for Data Analysis.* 3rd ed. Springer, 2024.
+
+13. **Wilson G, Bryan J, Cranston K, et al.** Good enough practices in scientific computing. *PLoS Computational Biology.* 2017;13(6):e1005510.

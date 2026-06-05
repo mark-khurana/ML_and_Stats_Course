@@ -1,0 +1,896 @@
+# Modelling Non-Linear Relationships: Splines, Fractional Polynomials, and Why Categorisation Fails {#sec-splines}
+
+::: {.callout-note}
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+
+1. Explain why categorising continuous variables leads to information loss and biased estimates
+2. Recognise when a linear term is insufficient for modelling a continuous predictor
+3. Describe fractional polynomials and their role in flexible modelling
+4. Understand how splines work, including the concepts of knots, cubic splines, and restricted cubic splines
+5. Implement and interpret restricted cubic spline models in both R and Python
+6. Compare linear, categorical, and spline models using appropriate fit statistics
+7. Apply the practical recommendations from Lopez-Ayala et al. (2025) in your own analyses
+:::
+
+## Introduction
+
+Imagine you are studying the relationship between body mass index (BMI) and mortality. You have data on thousands of patients, and you need to build a regression model. What do you do with BMI?
+
+If you are like most researchers in clinical medicine, you probably split BMI into categories: underweight (<18.5), normal (18.5--24.9), overweight (25--29.9), and obese (30+). You then include these categories as dummy variables in your regression model. This approach feels natural --- it mirrors how we think clinically, and the results are easy to present in a table.
+
+**This is almost always the wrong approach.**
+
+Categorising continuous variables is one of the most common and most damaging analytic practices in clinical research. It throws away information, introduces bias, reduces statistical power, and can lead to completely wrong conclusions about the shape of relationships between predictors and outcomes.
+
+This chapter draws heavily on a landmark tutorial by Lopez-Ayala et al. [-@lopezayala2025], published in the *BMJ* in 2025, which provides a comprehensive guide to modelling continuous variables correctly. We will follow their framework closely, supplementing it with additional clinical examples and implementation guidance.
+
+## The Problem with Categorising Continuous Variables
+
+### What Happens When You Categorise
+
+When you convert a continuous variable into categories, you make three implicit assumptions, all of which are almost certainly wrong:
+
+1. **Within each category, the relationship is flat.** A patient with a BMI of 18.6 is treated identically to a patient with a BMI of 24.8 --- despite a difference of over 6 kg/m^2^.
+
+2. **At the category boundary, there is a sudden jump.** A patient with a BMI of 24.9 is treated as fundamentally different from a patient with a BMI of 25.0 --- despite a difference of only 0.1 kg/m^2^.
+
+3. **The cut-points are meaningful.** The chosen boundaries (often based on clinical convention or percentiles) capture the true biology of the relationship.
+
+None of these assumptions hold for most biological relationships. Biology is smooth, not stepped.
+
+### The Consequences Are Serious
+
+Lopez-Ayala et al. [-@lopezayala2025] enumerate several consequences of categorisation:
+
+- **Loss of statistical power.** Categorising a continuous variable into two groups is equivalent to discarding roughly one-third of your data [@royston2006]. Even with more categories, substantial information is lost.
+
+- **Biased effect estimates.** Because the relationship within each category is forced to be flat, the estimated effects are systematically wrong. The direction and magnitude of the bias depend on where you place the cut-points.
+
+- **Residual confounding.** When a categorised variable is used as a confounder in an adjusted model, the adjustment is incomplete. The true confounding effect varies smoothly, but your model only adjusts in crude steps. This is sometimes called *residual confounding due to categorisation*.
+
+- **Arbitrary cut-points change conclusions.** Different choices of cut-points can lead to different --- even contradictory --- conclusions from the same data. This is a form of researcher degrees of freedom that inflates false positive rates.
+
+- **Loss of predictive accuracy.** Prediction models that categorise continuous predictors perform worse than those that model them appropriately.
+
+::: {.callout-warning}
+## A Common But Flawed Justification
+
+Researchers often justify categorisation by saying "it's easier to interpret" or "clinicians think in categories." While clinical decision-making does involve thresholds (e.g., treat if blood pressure > 140 mmHg), the *modelling* of relationships should reflect reality, not convenience. You can always convert a continuous model's output into clinically actionable categories *after* modelling --- but you cannot recover the information lost by categorising *before* modelling.
+:::
+
+### A Visual Demonstration
+
+Consider the true relationship between a biomarker (say, C-reactive protein) and the log-odds of a diagnosis. Suppose the true relationship is U-shaped: both very low and very high values are associated with increased risk.
+
+If you categorise CRP into tertiles (low, medium, high), you will estimate a *monotonically increasing* relationship --- completely missing the U-shape. The low-risk group is contaminated by some high-risk individuals at the low end, and the comparison between groups obscures the smooth curve.
+
+```{r}
+#| label: fig-categorisation-problem
+#| fig-cap: "True non-linear relationship (solid curve) versus what categorisation into tertiles recovers (stepped line). Categorisation misses the U-shape entirely."
+#| code-fold: true
+#| warning: false
+
+library(ggplot2)
+
+set.seed(42)
+x <- seq(0, 10, length.out = 300)
+# True U-shaped relationship
+y_true <- 0.3 * (x - 5)^2 - 2
+
+df <- data.frame(x = x, y_true = y_true)
+
+# Categorise into tertiles
+df$category <- cut(df$x, breaks = quantile(df$x, probs = c(0, 1/3, 2/3, 1)),
+                   include.lowest = TRUE, labels = c("Low", "Medium", "High"))
+cat_means <- aggregate(y_true ~ category, data = df, FUN = mean)
+
+df$y_cat <- cat_means$y_true[match(df$category, cat_means$category)]
+
+ggplot(df, aes(x = x)) +
+  geom_line(aes(y = y_true), linewidth = 1.2, colour = "#2c3e50") +
+  geom_step(aes(y = y_cat), linewidth = 1, colour = "#e74c3c", linetype = "dashed") +
+  labs(x = "Biomarker Level", y = "Log-Odds of Outcome",
+       subtitle = "Black curve = true relationship; Red steps = categorised estimate") +
+  theme_minimal(base_size = 14) +
+  theme(plot.subtitle = element_text(size = 11))
+```
+
+## When Linear Terms Are Not Enough
+
+### The Linearity Assumption
+
+In standard logistic or linear regression, including a continuous predictor $x$ as a simple linear term assumes:
+
+$$\text{logit}(p) = \beta_0 + \beta_1 x$$
+
+This means that each one-unit increase in $x$ is associated with the same change in the log-odds, regardless of where on the $x$ scale you start. For BMI, this would mean that going from 20 to 21 has the same effect as going from 35 to 36.
+
+For many clinical variables, this assumption is **wrong**:
+
+- **BMI and mortality**: U-shaped or J-shaped. Both very low and very high BMI are associated with increased mortality.
+- **Alcohol consumption and cardiovascular risk**: J-shaped. Moderate consumption may be associated with lower risk than either abstinence or heavy drinking (though this remains debated).
+- **Age and many outcomes**: Often non-linear, with steeper increases at older ages.
+- **Blood pressure and stroke risk**: The relationship steepens at higher pressures.
+- **CSF glucose and bacterial meningitis**: A threshold effect where low values are strongly predictive but the relationship flattens at higher values (we will explore this in detail below).
+
+### Detecting Non-Linearity
+
+Before choosing a modelling strategy, it helps to assess whether non-linearity is present:
+
+1. **Visual inspection.** Plot the predictor against the outcome using a loess (locally estimated scatterplot smoothing) curve or a generalised additive model (GAM) smooth. If the relationship is not a straight line, you need a non-linear term.
+
+2. **Likelihood ratio test.** Fit a model with a linear term and a model with a non-linear term (e.g., a spline). Compare them using a likelihood ratio test. A significant result indicates that the non-linear model fits substantially better.
+
+3. **AIC/BIC comparison.** Compare the Akaike Information Criterion (AIC) or Bayesian Information Criterion (BIC) of the linear and non-linear models. Lower values indicate better fit (penalised for complexity).
+
+4. **Residual plots.** Plot residuals against the predictor. A systematic pattern (e.g., a curve) suggests non-linearity.
+
+::: {.callout-tip}
+## Practical Rule
+
+As Lopez-Ayala et al. [-@lopezayala2025] recommend: when in doubt, use a non-linear term. The cost of modelling a truly linear relationship with a spline is minimal (you lose very little power), but the cost of forcing a non-linear relationship into a linear term can be severe (biased estimates, wrong conclusions).
+:::
+
+## Fractional Polynomials
+
+### The Idea
+
+Fractional polynomials (FPs), developed by Royston and Altman [-@royston1994], extend conventional polynomials by allowing *fractional* and *negative* powers. Instead of being restricted to $x, x^2, x^3, \ldots$, fractional polynomials choose from the set of powers:
+
+$$\{-2, -1, -0.5, 0, 0.5, 1, 2, 3\}$$
+
+where $x^0$ is defined as $\log(x)$.
+
+A **first-degree fractional polynomial** (FP1) has the form:
+
+$$\beta_0 + \beta_1 x^{p_1}$$
+
+A **second-degree fractional polynomial** (FP2) has the form:
+
+$$\beta_0 + \beta_1 x^{p_1} + \beta_2 x^{p_2}$$
+
+where $p_1$ and $p_2$ are selected from the allowed power set. If $p_1 = p_2$, the second term becomes $x^{p_1} \log(x)$ (the so-called "repeated powers" convention).
+
+### How FPs Work
+
+The algorithm searches through all combinations of powers from the allowed set and selects the combination that best fits the data (by maximum likelihood or AIC). For an FP2, there are 36 possible combinations of powers, making the search computationally straightforward.
+
+The key advantage of fractional polynomials is that they can capture a wide range of curve shapes --- monotone increasing, monotone decreasing, U-shaped, J-shaped, S-shaped --- with only one or two parameters beyond the linear term.
+
+### Strengths and Limitations
+
+**Strengths:**
+
+- Parsimonious: only 1--2 additional parameters
+- Can capture many common curve shapes
+- Well-established methodology with formal model selection procedures (the FP selection algorithm, also called MFP for multivariable fractional polynomials)
+- Particularly useful when sample size is modest
+
+**Limitations:**
+
+- Behaviour at the extremes of the predictor range can be erratic (the curves are governed by global functions)
+- Cannot capture complex local features (e.g., a bump in the middle of the range)
+- The set of allowed shapes, while broad, is still constrained
+
+Lopez-Ayala et al. [-@lopezayala2025] note that fractional polynomials and splines are *complementary* approaches, and in many cases they give similar results. However, for most applications in clinical research, **restricted cubic splines have become the recommended default** due to their greater flexibility and better behaviour at the boundaries.
+
+## Splines: The Recommended Approach
+
+### What Is a Spline?
+
+A spline is a piecewise polynomial function --- a curve made up of polynomial segments joined smoothly at specific points called **knots**. The idea is simple: rather than fitting one global function to the entire range of a predictor, you fit separate polynomial segments in different intervals and then connect them smoothly.
+
+Think of it like bending a flexible ruler: the ruler is smooth everywhere, but you can create complex curves by bending it at specific points.
+
+### Knots
+
+**Knots** are the points along the predictor's range where the polynomial segments connect. The number and placement of knots control the flexibility of the spline:
+
+- **More knots** = more flexible curve (can capture more complex shapes)
+- **Fewer knots** = smoother, more constrained curve
+
+**How to choose knot locations:**
+
+The standard recommendation, following Harrell [-@harrell2015], is to place knots at **fixed percentiles** of the predictor's distribution:
+
+| Number of Knots | Percentile Locations |
+|:---:|:---|
+| 3 | 10th, 50th, 90th |
+| 4 | 5th, 35th, 65th, 95th |
+| 5 | 5th, 27.5th, 50th, 72.5th, 95th |
+
+This data-driven placement ensures that knots are spread across the range of observed data, with more knots where there are more observations.
+
+### Cubic Splines
+
+A **cubic spline** uses third-degree (cubic) polynomial segments between knots. The segments are constrained to have continuous first and second derivatives at each knot, ensuring the resulting curve is smooth.
+
+A cubic spline with $k$ knots uses $k + 3$ parameters (degrees of freedom) --- the cubic polynomial in the first segment, plus one additional parameter for each knot beyond the first. This can become expensive in terms of degrees of freedom when many knots are used.
+
+### Restricted Cubic Splines (RCS)
+
+A **restricted cubic spline** (also called a **natural cubic spline**) adds one more constraint: the function is forced to be **linear** beyond the outermost knots (i.e., in the tails of the distribution).
+
+This constraint is motivated by the fact that there are typically few observations in the tails, so we have little information to estimate complex curves there. Forcing linearity in the tails:
+
+- Prevents wild oscillations at the extremes
+- Reduces the number of parameters (an RCS with $k$ knots uses $k - 1$ parameters)
+- Makes extrapolation more sensible (linear extrapolation is more defensible than cubic extrapolation)
+
+::: {.callout-important}
+## The Recommended Default
+
+Lopez-Ayala et al. [-@lopezayala2025] and Harrell [-@harrell2015] recommend **restricted cubic splines with 3 to 5 knots** as the default approach for modelling continuous predictors. With 4 knots (3 degrees of freedom), you can capture the vast majority of biologically plausible curve shapes. Use 5 knots (4 df) if you suspect a particularly complex relationship and have adequate sample size.
+
+An RCS with 3 knots (2 df) can capture monotone and simple U/J-shaped curves. This is a good starting point when sample size is limited or when you do not expect a complex relationship.
+:::
+
+### Why Restricted Cubic Splines?
+
+To summarise the case for RCS:
+
+1. **Flexibility.** They can capture a wide variety of non-linear shapes without requiring you to specify the shape in advance.
+2. **Parsimony.** With $k - 1$ parameters for $k$ knots, they are relatively economical. A 4-knot RCS adds only 2 parameters beyond a linear term.
+3. **Good boundary behaviour.** The linearity constraint in the tails prevents overfitting where data are sparse.
+4. **Interpretability through plots.** While the individual coefficients of a spline are not directly interpretable, the resulting curve is highly interpretable when plotted.
+5. **Well supported by software.** The `rms` package in R and various Python libraries make implementation straightforward.
+
+### Interpreting Spline Models
+
+This is a critical point that many researchers initially find confusing:
+
+**You cannot interpret the individual regression coefficients of a spline model.** An RCS with 4 knots produces 3 coefficients (e.g., `rcs(bmi, 4)`, `rcs(bmi, 4)'`, `rcs(bmi, 4)''`), but these individual numbers are meaningless in isolation. They define the *shape* of the curve jointly.
+
+Instead, you interpret spline models through:
+
+1. **Plots.** Plot the predicted outcome (or log-odds, or hazard ratio) as a function of the predictor. This shows you the entire shape of the relationship.
+
+2. **Specific contrasts.** You can calculate the predicted difference in outcome between any two values of the predictor (e.g., the odds ratio for BMI = 35 vs BMI = 25).
+
+3. **Overall tests.** Use a chunk test (Wald test or likelihood ratio test) with $k - 1$ degrees of freedom to test whether the predictor has *any* association with the outcome. Use a test with $k - 2$ degrees of freedom to test specifically for *non-linearity* (i.e., whether the relationship departs from a straight line).
+
+```{r}
+#| label: fig-rcs-interpretation
+#| fig-cap: "Illustration of an RCS(4) fit. Knot locations are marked with triangles. The relationship is linear beyond the outer knots and flexibly curved between them."
+#| code-fold: true
+#| warning: false
+#| message: false
+
+library(rms)
+library(ggplot2)
+
+set.seed(123)
+n <- 500
+x <- runif(n, 20, 45)
+# True non-linear relationship (U-shaped in BMI)
+logit_p <- -8 + 0.05 * (x - 30)^2
+p <- plogis(logit_p)
+y <- rbinom(n, 1, p)
+
+dd <- datadist(x)
+options(datadist = "dd")
+
+fit <- lrm(y ~ rcs(x, 4))
+knot_locs <- attr(rcs(x, 4), "parms")
+
+# Prediction
+x_pred <- seq(20, 45, length.out = 200)
+pred <- Predict(fit, x = x_pred)
+
+ggplot(as.data.frame(pred), aes(x = x, y = yhat)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "#3498db") +
+  geom_line(linewidth = 1.2, colour = "#2c3e50") +
+  geom_point(data = data.frame(x = knot_locs, y = rep(min(pred$yhat), length(knot_locs))),
+             aes(x = x, y = y), shape = 17, size = 3, colour = "#e74c3c") +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  labs(x = "BMI (kg/m\u00b2)", y = "Log-Odds of Outcome",
+       subtitle = "RCS with 4 knots; triangles mark knot positions") +
+  theme_minimal(base_size = 14)
+```
+
+## Clinical Example: CSF Glucose and Bacterial Meningitis
+
+This example is adapted from Lopez-Ayala et al. [-@lopezayala2025], who use it to illustrate the full workflow for modelling a continuous predictor.
+
+### The Clinical Question
+
+In patients presenting with suspected meningitis, cerebrospinal fluid (CSF) glucose is one of several laboratory values used to distinguish bacterial from viral meningitis. Low CSF glucose is a hallmark of bacterial infection, as bacteria consume glucose. But what is the precise shape of this relationship? And is it appropriate to use a simple cut-point (e.g., CSF glucose < 2.2 mmol/L)?
+
+### Step-by-Step Analysis
+
+**Step 1: Visualise the raw relationship.**
+
+Before fitting any model, plot the outcome against the predictor using a smoothing function (loess or GAM). This gives you a preliminary sense of the shape.
+
+```{r}
+#| label: fig-csf-glucose-raw
+#| fig-cap: "Simulated relationship between CSF glucose and probability of bacterial meningitis, illustrating the non-linear (threshold-like) pattern."
+#| code-fold: true
+#| warning: false
+#| message: false
+
+library(ggplot2)
+library(rms)
+
+set.seed(2025)
+n <- 400
+csf_glucose <- rlnorm(n, meanlog = log(3), sdlog = 0.6)
+csf_glucose <- pmin(csf_glucose, 10)
+
+# True relationship: steep drop in probability below ~2, then flat
+logit_p <- 3 - 4 * pmax(0, 2.5 - csf_glucose) - 0.3 * csf_glucose
+p_bact <- plogis(logit_p)
+bacterial <- rbinom(n, 1, p_bact)
+
+df_csf <- data.frame(csf_glucose = csf_glucose, bacterial = bacterial)
+
+ggplot(df_csf, aes(x = csf_glucose, y = bacterial)) +
+  geom_jitter(height = 0.05, alpha = 0.3, width = 0.05) +
+  geom_smooth(method = "loess", se = TRUE, colour = "#2c3e50") +
+  labs(x = "CSF Glucose (mmol/L)", y = "Probability of Bacterial Meningitis",
+       subtitle = "Loess smooth suggests a non-linear (threshold-like) relationship") +
+  theme_minimal(base_size = 14)
+```
+
+**Step 2: Fit competing models.**
+
+We fit three models and compare them:
+
+- **Model 1 (Linear):** `bacterial ~ csf_glucose`
+- **Model 2 (Categorised):** `bacterial ~ I(csf_glucose < 2.2)` (a common clinical cut-point)
+- **Model 3 (RCS):** `bacterial ~ rcs(csf_glucose, 4)`
+
+```{r}
+#| label: model-comparison-csf
+#| warning: false
+#| message: false
+
+library(rms)
+
+dd_csf <- datadist(df_csf)
+options(datadist = "dd_csf")
+
+# Model 1: Linear
+fit_linear <- lrm(bacterial ~ csf_glucose, data = df_csf)
+
+# Model 2: Categorised
+df_csf$glucose_low <- as.numeric(df_csf$csf_glucose < 2.2)
+fit_cat <- lrm(bacterial ~ glucose_low, data = df_csf)
+
+# Model 3: RCS with 4 knots
+fit_rcs <- lrm(bacterial ~ rcs(csf_glucose, 4), data = df_csf)
+
+# Compare AIC
+aic_vals <- c(
+  Linear = AIC(fit_linear),
+  Categorised = AIC(fit_cat),
+  RCS_4knots = AIC(fit_rcs)
+)
+
+cat("AIC Comparison:\n")
+print(round(aic_vals, 1))
+cat("\nLower AIC = better fit (penalised for complexity)\n")
+```
+
+**Step 3: Test for non-linearity.**
+
+```{r}
+#| label: nonlinearity-test
+#| warning: false
+#| message: false
+
+# The anova() function in rms tests the overall effect and non-linearity separately
+cat("ANOVA for RCS model:\n")
+print(anova(fit_rcs))
+```
+
+The ANOVA output from `rms` provides two key tests:
+
+- **Total effect** (all spline terms combined): tests whether CSF glucose has *any* association with the outcome
+- **Nonlinear component** (spline terms beyond the linear): tests whether the relationship departs from linearity
+
+If the non-linear component is significant, this confirms that a linear term is insufficient.
+
+**Step 4: Plot the fitted curves from all three models.**
+
+```{r}
+#| label: fig-csf-model-comparison
+#| fig-cap: "Comparison of linear (blue), categorised (red), and RCS (black) model fits for the CSF glucose--bacterial meningitis relationship."
+#| code-fold: true
+#| warning: false
+#| message: false
+
+x_seq <- seq(min(df_csf$csf_glucose), max(df_csf$csf_glucose), length.out = 200)
+
+# Predictions from each model
+pred_linear <- predict(fit_linear, newdata = data.frame(csf_glucose = x_seq),
+                       type = "fitted")
+pred_cat <- predict(fit_cat,
+                    newdata = data.frame(glucose_low = as.numeric(x_seq < 2.2)),
+                    type = "fitted")
+
+pred_rcs_obj <- Predict(fit_rcs, csf_glucose = x_seq)
+
+plot_df <- data.frame(
+  csf_glucose = rep(x_seq, 3),
+  probability = c(pred_linear, pred_cat, as.data.frame(pred_rcs_obj)$yhat),
+  Model = rep(c("Linear", "Categorised (<2.2)", "RCS (4 knots)"), each = length(x_seq))
+)
+
+# Convert RCS from log-odds to probability for fair comparison
+plot_df$probability[plot_df$Model == "RCS (4 knots)"] <-
+  plogis(plot_df$probability[plot_df$Model == "RCS (4 knots)"])
+
+ggplot(plot_df, aes(x = csf_glucose, y = probability, colour = Model)) +
+  geom_line(linewidth = 1.1) +
+  scale_colour_manual(values = c("Linear" = "#3498db",
+                                  "Categorised (<2.2)" = "#e74c3c",
+                                  "RCS (4 knots)" = "#2c3e50")) +
+  labs(x = "CSF Glucose (mmol/L)", y = "Predicted Probability of Bacterial Meningitis") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom")
+```
+
+### What This Example Teaches Us
+
+1. The **linear model** misses the threshold-like nature of the relationship. It estimates a constant decrease in probability per unit increase in glucose, which underestimates the risk at very low glucose levels and overestimates it at intermediate levels.
+
+2. The **categorised model** captures the broad direction (low glucose = higher risk) but loses all nuance. It cannot tell you that a glucose of 0.5 mmol/L carries a very different risk than a glucose of 2.0 mmol/L --- both are simply "low."
+
+3. The **RCS model** captures the steep decline in risk at low glucose levels and the flattening at higher levels, providing the most accurate and informative picture.
+
+## Practical Recommendations
+
+Lopez-Ayala et al. [-@lopezayala2025] provide a practical framework (their Box 2) that we adapt here:
+
+::: {.callout-tip}
+## Workflow for Modelling Continuous Predictors
+
+1. **Keep continuous variables continuous.** Do not categorise unless there is a strong *a priori* biological or clinical reason (and even then, think twice).
+
+2. **Start by visualising** the predictor--outcome relationship using a smoother (loess, GAM, or a spline with many knots).
+
+3. **Fit a restricted cubic spline** with 3--5 knots as the default modelling strategy. Use 3 knots when sample size is small or the relationship is expected to be simple; 4--5 knots when sample size is adequate and the relationship may be complex.
+
+4. **Test for non-linearity** using a likelihood ratio test or the Wald test from `anova(fit)` in `rms`. If non-linearity is not significant, you *may* simplify to a linear term --- but the spline model will give very similar results anyway, so simplification is optional.
+
+5. **Present results as plots** showing the predicted outcome across the range of the predictor, with confidence intervals. Supplement with specific contrasts (e.g., odds ratio for value A vs value B) as needed.
+
+6. **Do not report individual spline coefficients** in tables. They are not interpretable. Instead, report the overall test for the predictor and any non-linearity test, along with a figure.
+
+7. **Use AIC or likelihood ratio tests** to compare models (linear vs spline, different numbers of knots).
+:::
+
+## Implementation
+
+### R: Using the `rms` Package
+
+The `rms` package by Frank Harrell is the gold standard for modelling continuous variables with restricted cubic splines.
+
+```{r}
+#| label: r-implementation
+#| eval: false
+
+# Install and load required packages
+# install.packages(c("rms", "ggplot2"))
+library(rms)
+library(ggplot2)
+
+# Step 1: Prepare data and set datadist (required by rms)
+dd <- datadist(your_data)
+options(datadist = "dd")
+
+# Step 2: Fit a logistic regression with RCS
+# rcs(variable, number_of_knots)
+fit <- lrm(outcome ~ rcs(predictor, 4) + confounder1 + confounder2,
+            data = your_data)
+
+# Step 3: Examine the model
+print(fit)         # Overall model summary
+anova(fit)         # Tests for each predictor (total + non-linearity)
+
+# Step 4: Plot the relationship
+p <- Predict(fit, predictor)  # Predictions across range of predictor
+plot(p)                        # rms built-in plotting
+
+# Or use ggplot for more control
+pred_df <- as.data.frame(p)
+ggplot(pred_df, aes(x = predictor, y = yhat)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
+  geom_line(linewidth = 1) +
+  labs(x = "Predictor", y = "Log-Odds") +
+  theme_minimal()
+
+# Step 5: Specific contrasts
+# Odds ratio for predictor = 30 vs predictor = 25 (reference)
+summary(fit, predictor = c(25, 30))
+```
+
+### Python: Using `patsy` and `statsmodels`
+
+```{python}
+#| label: python-implementation
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from patsy import dmatrix, bs, cr
+
+# --- Method 1: Using patsy's cr() for natural (restricted) cubic splines ---
+
+# Create the spline basis using patsy formula
+# cr() creates a natural cubic spline (restricted cubic spline)
+# df = number of knots - 1 (so df=3 means 4 knots)
+formula = "cr(predictor, df=3)"
+spline_basis = dmatrix(formula, data=your_data, return_type='dataframe')
+
+# Fit logistic regression
+X = pd.concat([spline_basis, your_data[['confounder1', 'confounder2']]], axis=1)
+model = sm.GLM(your_data['outcome'], X, family=sm.families.Binomial())
+result = model.fit()
+print(result.summary())
+
+# --- Method 2: Using scikit-learn's SplineTransformer ---
+
+from sklearn.preprocessing import SplineTransformer
+
+# Create spline features
+spline_transformer = SplineTransformer(
+    n_knots=4,
+    degree=3,
+    extrapolation='linear'  # This mimics the RCS constraint
+)
+X_spline = spline_transformer.fit_transform(
+    your_data[['predictor']].values
+)
+
+# Fit logistic regression
+model = sm.GLM(your_data['outcome'],
+               sm.add_constant(X_spline),
+               family=sm.families.Binomial())
+result = model.fit()
+
+# --- Plotting the fitted relationship ---
+
+x_range = np.linspace(your_data['predictor'].min(),
+                       your_data['predictor'].max(), 200)
+
+# Generate predictions
+X_pred = dmatrix(formula, data=pd.DataFrame({'predictor': x_range}),
+                 return_type='dataframe')
+pred_logodds = result.predict(X_pred)
+
+plt.figure(figsize=(8, 5))
+plt.plot(x_range, pred_logodds, 'k-', linewidth=2)
+plt.xlabel('Predictor')
+plt.ylabel('Predicted Probability')
+plt.title('Non-linear relationship modelled with RCS')
+plt.tight_layout()
+plt.show()
+```
+
+## Comparison with Other Approaches
+
+| Approach | Pros | Cons |
+|:---|:---|:---|
+| **Linear term** | Simple, 1 df | Assumes linearity --- often wrong |
+| **Categorisation** | "Easy" to present | Information loss, bias, arbitrary cut-points |
+| **Quadratic polynomial** | Can capture U-shapes, 2 df | Symmetric, poor boundary behaviour |
+| **Fractional polynomials** | Flexible, parsimonious | Global functions; limited local flexibility |
+| **Restricted cubic splines** | Flexible, good boundary behaviour, well-supported | Coefficients not directly interpretable |
+| **GAM (smoothing splines)** | Very flexible, automatic smoothing | Can overfit; penalty selection needed |
+
+: Comparison of approaches for modelling continuous variables {#tbl-comparison}
+
+For most clinical research, **restricted cubic splines with 3--5 knots** represent the best balance of flexibility, parsimony, and practical usability.
+
+## Exercises
+
+### Exercise 1: Recognising the Problem
+
+Consider a study of the association between systolic blood pressure (SBP) and stroke risk. The researchers categorise SBP into: normal (<120), elevated (120--129), Stage 1 hypertension (130--139), and Stage 2 hypertension (>=140).
+
+**Questions:**
+
+a) What assumptions does this categorisation impose on the SBP--stroke relationship?
+b) A patient with SBP of 131 mmHg is classified identically to a patient with SBP of 139 mmHg. Why is this problematic?
+c) Suggest a better modelling approach and explain how you would implement it.
+
+### Exercise 2: Fitting and Interpreting Spline Models
+
+Using the built-in `PBC` dataset (primary biliary cholangitis) from the `survival` package in R, model the relationship between serum bilirubin and transplant-free survival.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: exercise-2-r
+#| eval: false
+
+library(rms)
+library(survival)
+library(ggplot2)
+
+# Load the PBC data
+data(pbc, package = "survival")
+pbc <- pbc[!is.na(pbc$trt), ]  # Remove incomplete cases
+
+# Set up datadist
+dd <- datadist(pbc)
+options(datadist = "dd")
+
+# Task 1: Fit a Cox model with bilirubin as a linear term
+fit_linear <- cph(Surv(time, status == 2) ~ bili, data = pbc)
+
+# Task 2: Fit a Cox model with bilirubin modelled using RCS (4 knots)
+fit_rcs <- cph(Surv(time, status == 2) ~ rcs(bili, 4), data = pbc)
+
+# Task 3: Test for non-linearity
+anova(fit_rcs)
+
+# Task 4: Compare AIC
+AIC(fit_linear)
+AIC(fit_rcs)
+
+# Task 5: Plot the relationship
+p <- Predict(fit_rcs, bili)
+plot(p, xlab = "Serum Bilirubin (mg/dL)",
+     ylab = "Log Relative Hazard")
+
+# Task 6: What does the plot tell you about the bilirubin-survival
+#          relationship? Is it linear?
+```
+
+#### Python
+
+```{python}
+#| label: exercise-2-python
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from lifelines import CoxPHFitter
+from patsy import dmatrix
+
+# Load PBC data (available via lifelines or statsmodels)
+from lifelines.datasets import load_rossi
+# Note: PBC not in lifelines by default; use a CSV or the R dataset
+# For illustration, we simulate similar data:
+np.random.seed(42)
+n = 300
+bili = np.random.exponential(scale=2, size=n)
+bili = np.clip(bili, 0.3, 25)
+log_hr = 0.1 * bili + 0.005 * bili**2  # Non-linear true relationship
+time = np.random.exponential(scale=2000 * np.exp(-log_hr))
+event = np.random.binomial(1, 0.7, size=n)
+
+df = pd.DataFrame({'time': time, 'event': event, 'bili': bili})
+
+# Task 1: Fit Cox model with linear bilirubin
+cph_linear = CoxPHFitter()
+cph_linear.fit(df, duration_col='time', event_col='event',
+               formula='bili')
+print("Linear model:")
+cph_linear.print_summary()
+
+# Task 2: Create spline basis and fit Cox model with splines
+spline_basis = dmatrix("cr(bili, df=3) - 1", data=df,
+                        return_type='dataframe')
+spline_basis.columns = ['spline1', 'spline2', 'spline3']
+df_spline = pd.concat([df[['time', 'event']], spline_basis], axis=1)
+
+cph_spline = CoxPHFitter()
+cph_spline.fit(df_spline, duration_col='time', event_col='event')
+print("\nSpline model:")
+cph_spline.print_summary()
+
+# Task 3: Compare AIC
+print(f"\nAIC Linear: {cph_linear.AIC_partial_}")
+print(f"AIC Spline: {cph_spline.AIC_partial_}")
+
+# Task 4: Plot the predicted log-hazard ratio across bilirubin range
+bili_range = np.linspace(df['bili'].min(), df['bili'].max(), 200)
+spline_pred = dmatrix("cr(bili_range, df=3) - 1",
+                       {"bili_range": bili_range},
+                       return_type='dataframe')
+spline_pred.columns = ['spline1', 'spline2', 'spline3']
+
+# Calculate log-HR relative to median
+log_hr_pred = spline_pred.values @ cph_spline.params_.values
+log_hr_pred -= np.median(log_hr_pred)
+
+plt.figure(figsize=(8, 5))
+plt.plot(bili_range, log_hr_pred, 'k-', linewidth=2)
+plt.xlabel('Serum Bilirubin (mg/dL)')
+plt.ylabel('Log Relative Hazard')
+plt.title('Non-linear effect of bilirubin on survival (RCS)')
+plt.axhline(y=0, color='grey', linestyle='--')
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Exercise 3: Categorisation vs Splines Head-to-Head
+
+Simulate data with a known non-linear (U-shaped) relationship and compare the performance of categorised and spline models.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: exercise-3-r
+#| eval: false
+
+library(rms)
+library(ggplot2)
+
+set.seed(2025)
+n <- 1000
+x <- rnorm(n, mean = 50, sd = 10)
+
+# True U-shaped relationship
+logit_p <- -5 + 0.004 * (x - 50)^2
+y <- rbinom(n, 1, plogis(logit_p))
+
+sim_data <- data.frame(x = x, y = y)
+dd <- datadist(sim_data)
+options(datadist = "dd")
+
+# Model 1: Categorise into quartiles
+sim_data$x_cat <- cut(sim_data$x,
+                       breaks = quantile(sim_data$x, c(0, 0.25, 0.5, 0.75, 1)),
+                       include.lowest = TRUE)
+fit_cat <- lrm(y ~ x_cat, data = sim_data)
+
+# Model 2: Linear term
+fit_lin <- lrm(y ~ x, data = sim_data)
+
+# Model 3: RCS with 5 knots
+fit_rcs <- lrm(y ~ rcs(x, 5), data = sim_data)
+
+# Questions:
+# a) Compare AIC of the three models. Which fits best?
+# b) Plot all three fitted curves on the same graph along with the
+#    true logit function. Which model best recovers the truth?
+# c) What happens if you change the quartile cut-points to tertiles?
+#    Does it affect the categorised model's conclusions?
+
+cat("AIC values:\n")
+cat("Categorised:", AIC(fit_cat), "\n")
+cat("Linear:     ", AIC(fit_lin), "\n")
+cat("RCS(5):     ", AIC(fit_rcs), "\n")
+```
+
+#### Python
+
+```{python}
+#| label: exercise-3-python
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from patsy import dmatrix
+from scipy.special import expit
+
+np.random.seed(2025)
+n = 1000
+x = np.random.normal(50, 10, size=n)
+
+# True U-shaped relationship
+logit_p = -5 + 0.004 * (x - 50)**2
+y = np.random.binomial(1, expit(logit_p))
+
+df = pd.DataFrame({'x': x, 'y': y})
+
+# Model 1: Categorise into quartiles
+df['x_cat'] = pd.qcut(df['x'], q=4, labels=['Q1', 'Q2', 'Q3', 'Q4'])
+X_cat = pd.get_dummies(df['x_cat'], drop_first=True).astype(float)
+X_cat = sm.add_constant(X_cat)
+fit_cat = sm.GLM(df['y'], X_cat, family=sm.families.Binomial()).fit()
+
+# Model 2: Linear
+X_lin = sm.add_constant(df[['x']])
+fit_lin = sm.GLM(df['y'], X_lin, family=sm.families.Binomial()).fit()
+
+# Model 3: RCS
+X_rcs = dmatrix("cr(x, df=4)", data=df, return_type='dataframe')
+fit_rcs = sm.GLM(df['y'], X_rcs, family=sm.families.Binomial()).fit()
+
+print(f"AIC Categorised: {fit_cat.aic:.1f}")
+print(f"AIC Linear:      {fit_lin.aic:.1f}")
+print(f"AIC RCS:         {fit_rcs.aic:.1f}")
+
+# Plot all three fitted curves
+x_range = np.linspace(df['x'].min(), df['x'].max(), 200)
+
+# True curve
+true_logit = -5 + 0.004 * (x_range - 50)**2
+true_prob = expit(true_logit)
+
+# RCS predictions
+X_rcs_pred = dmatrix("cr(x_range, df=4)", {"x_range": x_range},
+                      return_type='dataframe')
+rcs_prob = fit_rcs.predict(X_rcs_pred)
+
+# Linear predictions
+X_lin_pred = sm.add_constant(pd.DataFrame({'x': x_range}))
+lin_prob = fit_lin.predict(X_lin_pred)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_range, true_prob, 'k--', linewidth=2, label='True relationship')
+plt.plot(x_range, rcs_prob, 'b-', linewidth=2, label='RCS')
+plt.plot(x_range, lin_prob, 'r-', linewidth=1.5, label='Linear')
+plt.xlabel('Predictor (x)')
+plt.ylabel('Predicted Probability')
+plt.legend()
+plt.title('Comparing modelling strategies for a U-shaped relationship')
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Summary
+
+| Key Concept | Details |
+|:---|:---|
+| **Do not categorise** | Categorising continuous variables loses information, introduces bias, and reduces power |
+| **Linear terms** | Assume a constant effect per unit change; often wrong for biological variables |
+| **Fractional polynomials** | Use non-integer powers for flexible global curves; parsimonious but limited locally |
+| **Splines** | Piecewise polynomials joined at knots; flexible and locally adaptive |
+| **Restricted cubic splines** | Splines forced to be linear in the tails; recommended default with 3--5 knots |
+| **Interpretation** | Use plots and contrasts, not individual coefficients |
+| **Testing** | Overall association test ($k-1$ df); non-linearity test ($k-2$ df) |
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
+
+<!-- Reference list (for use with a .bib file) -->
+
+<!--
+@article{lopezayala2025,
+  author = {Lopez-Ayala, Pedro and others},
+  title = {Modelling continuous variables in clinical research: an overview},
+  journal = {BMJ},
+  year = {2025},
+  doi = {10.1136/bmj-2024-082440}
+}
+
+@book{harrell2015,
+  author = {Harrell, Frank E},
+  title = {Regression Modeling Strategies},
+  edition = {2nd},
+  publisher = {Springer},
+  year = {2015}
+}
+
+@article{royston2006,
+  author = {Royston, Patrick and Altman, Douglas G and Sauerbrei, Willi},
+  title = {Dichotomizing continuous predictors in multiple regression: a bad idea},
+  journal = {Statistics in Medicine},
+  volume = {25},
+  pages = {127--141},
+  year = {2006}
+}
+
+@article{royston1994,
+  author = {Royston, Patrick and Altman, Douglas G},
+  title = {Regression using fractional polynomials of continuous covariates: parsimonious parametric modelling},
+  journal = {Journal of the Royal Statistical Society: Series C},
+  volume = {43},
+  pages = {429--467},
+  year = {1994}
+}
+-->

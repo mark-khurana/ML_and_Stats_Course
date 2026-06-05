@@ -1,0 +1,898 @@
+# Applied Bayesian Modelling: Regression, Hierarchical Models, and Clinical Applications {#sec-applied-bayesian}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(knitr)
+```
+
+## Introduction
+
+The previous chapter introduced the conceptual foundations of Bayesian inference: priors, likelihoods, posteriors, and MCMC. This chapter puts those ideas to work. We will fit Bayesian regression models, learn the critical model-checking steps that distinguish careful Bayesian analysis from careless button-pressing, and then tackle the most powerful application of the Bayesian framework in clinical research: **hierarchical (multilevel) models**.
+
+Hierarchical models deserve special attention because they solve a problem that arises constantly in medicine. Clinical data are almost always grouped: patients within hospitals, measurements within patients, sites within multi-centre trials. Frequentist mixed-effects models handle this, but the Bayesian hierarchical framework does it more flexibly and with clearer interpretation. By the end of this chapter, you will understand partial pooling, shrinkage, and why these ideas matter for clinical decision-making.
+
+## Bayesian Linear Regression
+
+### How It Differs from Frequentist Regression
+
+In frequentist ordinary least squares (OLS), we obtain point estimates of regression coefficients and standard errors. A 95% confidence interval is a statement about long-run coverage.
+
+In Bayesian linear regression, each coefficient has a **full posterior distribution**. We obtain not just an estimate and an interval, but the entire shape of our uncertainty. This is the same linear model:
+
+$$
+y_i = \beta_0 + \beta_1 x_{1i} + \cdots + \beta_p x_{pi} + \epsilon_i, \quad \epsilon_i \sim \text{Normal}(0, \sigma^2)
+$$
+
+But now we place priors on all parameters: $\beta_0, \beta_1, \ldots, \beta_p, \sigma$. The MCMC sampler then generates draws from the joint posterior $P(\beta_0, \beta_1, \ldots, \beta_p, \sigma \mid \mathbf{y})$.
+
+### Clinical Example: Predicting Systolic Blood Pressure
+
+We will model systolic blood pressure (SBP) as a function of age, BMI, and whether the patient is on antihypertensive medication.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: bayesian-lm-r
+#| message: false
+#| warning: false
+
+library(brms)
+
+# Simulate clinical data
+set.seed(123)
+n <- 200
+bp_data <- tibble(
+  age = round(rnorm(n, 55, 12)),
+  bmi = round(rnorm(n, 28, 5), 1),
+  on_meds = rbinom(n, 1, 0.4),
+  sbp = round(90 + 0.5 * age + 0.8 * bmi - 8 * on_meds + rnorm(n, 0, 12))
+)
+
+# Fit Bayesian linear regression with weakly informative priors
+fit_bp <- brm(
+  sbp ~ age + bmi + on_meds,
+  data = bp_data,
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 20), class = "b"),        # weakly informative for slopes
+    prior(normal(120, 30), class = "Intercept"), # centred on typical SBP
+    prior(exponential(0.1), class = "sigma")     # positive scale parameter
+  ),
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  seed = 42,
+  silent = 2,
+  refresh = 0
+)
+
+summary(fit_bp)
+```
+
+```{r}
+#| label: fig-posterior-coefs-r
+#| fig-cap: "Posterior distributions of regression coefficients for the blood pressure model."
+#| fig-width: 9
+#| fig-height: 5
+
+library(bayesplot)
+mcmc_areas(fit_bp, pars = c("b_age", "b_bmi", "b_on_meds"),
+           prob = 0.95, prob_outer = 0.99) +
+  labs(title = "Posterior Distributions of Regression Coefficients",
+       subtitle = "Shaded region = 95% credible interval") +
+  theme_minimal(base_size = 13)
+```
+
+### Python
+
+```{python}
+#| label: bayesian-lm-py
+#| message: false
+
+import numpy as np
+import pandas as pd
+import pymc as pm
+import arviz as az
+
+np.random.seed(123)
+n = 200
+bp_data = pd.DataFrame({
+    'age': np.round(np.random.normal(55, 12, n)),
+    'bmi': np.round(np.random.normal(28, 5, n), 1),
+    'on_meds': np.random.binomial(1, 0.4, n)
+})
+bp_data['sbp'] = np.round(
+    90 + 0.5 * bp_data['age'] + 0.8 * bp_data['bmi']
+    - 8 * bp_data['on_meds'] + np.random.normal(0, 12, n)
+)
+
+with pm.Model() as bp_model:
+    # Priors
+    intercept = pm.Normal("Intercept", mu=120, sigma=30)
+    b_age     = pm.Normal("b_age", mu=0, sigma=20)
+    b_bmi     = pm.Normal("b_bmi", mu=0, sigma=20)
+    b_meds    = pm.Normal("b_on_meds", mu=0, sigma=20)
+    sigma     = pm.Exponential("sigma", lam=0.1)
+
+    # Linear model
+    mu = intercept + b_age * bp_data['age'].values + \
+         b_bmi * bp_data['bmi'].values + \
+         b_meds * bp_data['on_meds'].values
+
+    # Likelihood
+    y_obs = pm.Normal("sbp", mu=mu, sigma=sigma, observed=bp_data['sbp'].values)
+
+    # Sample
+    trace_bp = pm.sample(1000, tune=1000, chains=4, random_seed=42,
+                          progressbar=False)
+
+print(az.summary(trace_bp, var_names=["Intercept", "b_age", "b_bmi",
+                                        "b_on_meds", "sigma"]))
+```
+
+```{python}
+#| label: fig-posterior-coefs-py
+#| fig-cap: "Posterior distributions of regression coefficients for the blood pressure model."
+
+az.plot_forest(trace_bp, var_names=["b_age", "b_bmi", "b_on_meds"],
+               combined=True, hdi_prob=0.95, figsize=(8, 4))
+import matplotlib.pyplot as plt
+plt.title("Posterior Distributions of Regression Coefficients\n95% HDI")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+The output shows the **posterior mean**, **standard deviation** (the Bayesian analogue of the standard error), and the **95% credible interval** for each coefficient. Notice that the on-medication effect has a credible interval that is entirely below zero, providing direct evidence that medication lowers SBP.
+
+## Bayesian Logistic Regression
+
+For binary outcomes (e.g., 30-day readmission, treatment response), we use Bayesian logistic regression. The model is identical to the frequentist version except that all parameters receive priors:
+
+$$
+\text{logit}(P(y_i = 1)) = \beta_0 + \beta_1 x_{1i} + \cdots + \beta_p x_{pi}
+$$
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: bayesian-logistic-r
+#| message: false
+#| warning: false
+
+# Simulate readmission data
+set.seed(456)
+n <- 300
+readmit_data <- tibble(
+  age = round(rnorm(n, 65, 10)),
+  charlson = rpois(n, 2),
+  los = rpois(n, 5) + 1,  # length of stay in days
+  readmit_30 = rbinom(n, 1,
+    plogis(-3 + 0.02 * round(rnorm(n, 65, 10)) +
+             0.3 * rpois(n, 2) + 0.1 * (rpois(n, 5) + 1)))
+)
+
+fit_readmit <- brm(
+  readmit_30 ~ age + charlson + los,
+  data = readmit_data,
+  family = bernoulli(link = "logit"),
+  prior = c(
+    prior(normal(0, 2.5), class = "b"),       # weakly informative on log-odds
+    prior(normal(0, 5), class = "Intercept")
+  ),
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  seed = 42,
+  silent = 2,
+  refresh = 0
+)
+
+# Posterior summary on the odds ratio scale
+posterior_samples <- as_draws_df(fit_readmit)
+or_summary <- posterior_samples %>%
+  transmute(
+    OR_age = exp(b_age),
+    OR_charlson = exp(b_charlson),
+    OR_los = exp(b_los)
+  ) %>%
+  summarise(across(everything(),
+    list(mean = mean,
+         q2.5 = ~quantile(., 0.025),
+         q97.5 = ~quantile(., 0.975))))
+
+cat("Posterior odds ratios (mean [95% CrI]):\n")
+cat(sprintf("  Age:      %.3f [%.3f, %.3f]\n",
+    or_summary$OR_age_mean, or_summary$OR_age_q2.5, or_summary$OR_age_q97.5))
+cat(sprintf("  Charlson: %.3f [%.3f, %.3f]\n",
+    or_summary$OR_charlson_mean, or_summary$OR_charlson_q2.5,
+    or_summary$OR_charlson_q97.5))
+cat(sprintf("  LOS:      %.3f [%.3f, %.3f]\n",
+    or_summary$OR_los_mean, or_summary$OR_los_q2.5, or_summary$OR_los_q97.5))
+```
+
+### Python
+
+```{python}
+#| label: bayesian-logistic-py
+#| message: false
+
+import numpy as np
+import pandas as pd
+import pymc as pm
+import arviz as az
+
+np.random.seed(456)
+n = 300
+readmit_data = pd.DataFrame({
+    'age': np.round(np.random.normal(65, 10, n)),
+    'charlson': np.random.poisson(2, n),
+    'los': np.random.poisson(5, n) + 1
+})
+
+from scipy.special import expit
+lp = -3 + 0.02 * readmit_data['age'] + 0.3 * readmit_data['charlson'] + \
+     0.1 * readmit_data['los']
+readmit_data['readmit_30'] = np.random.binomial(1, expit(lp))
+
+with pm.Model() as readmit_model:
+    intercept = pm.Normal("Intercept", mu=0, sigma=5)
+    b_age     = pm.Normal("b_age", mu=0, sigma=2.5)
+    b_charl   = pm.Normal("b_charlson", mu=0, sigma=2.5)
+    b_los     = pm.Normal("b_los", mu=0, sigma=2.5)
+
+    logit_p = intercept + b_age * readmit_data['age'].values + \
+              b_charl * readmit_data['charlson'].values + \
+              b_los * readmit_data['los'].values
+
+    y_obs = pm.Bernoulli("readmit", logit_p=logit_p,
+                          observed=readmit_data['readmit_30'].values)
+    trace_readmit = pm.sample(1000, tune=1000, chains=4, random_seed=42,
+                               progressbar=False)
+
+# Compute odds ratios from posterior
+posterior = az.extract(trace_readmit)
+for var in ["b_age", "b_charlson", "b_los"]:
+    or_vals = np.exp(posterior[var].values)
+    print(f"OR {var}: {or_vals.mean():.3f} "
+          f"[{np.percentile(or_vals, 2.5):.3f}, "
+          f"{np.percentile(or_vals, 97.5):.3f}]")
+```
+
+:::
+
+## Prior Predictive Checks
+
+A prior predictive check asks: **before seeing any data, does the model generate plausible outcomes?** This is a critical step that is often skipped. If your priors allow the model to predict systolic blood pressures of 500 mmHg or negative values, your priors are too vague.
+
+The procedure:
+
+1. Sample parameter values from the priors (not the posterior).
+2. Simulate data from the model using those parameter values.
+3. Plot the simulated data and check whether it covers a plausible range.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-prior-predictive-r
+#| fig-cap: "Prior predictive check: simulated SBP distributions under the chosen priors."
+#| fig-width: 8
+#| fig-height: 5
+#| message: false
+#| warning: false
+
+# Generate prior predictive samples
+pp_check_prior <- brm(
+  sbp ~ age + bmi + on_meds,
+  data = bp_data,
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 20), class = "b"),
+    prior(normal(120, 30), class = "Intercept"),
+    prior(exponential(0.1), class = "sigma")
+  ),
+  sample_prior = "only",
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  seed = 42,
+  silent = 2,
+  refresh = 0
+)
+
+pp_samples <- posterior_predict(pp_check_prior)
+
+# Plot density of prior predictive samples vs observed data
+tibble(
+  simulated = as.vector(pp_samples[sample(nrow(pp_samples), 50), ]),
+  type = "Prior predictive"
+) %>%
+  ggplot(aes(x = simulated)) +
+  geom_density(fill = "steelblue", alpha = 0.3) +
+  geom_density(data = bp_data, aes(x = sbp), fill = "firebrick", alpha = 0.3) +
+  labs(x = "Systolic Blood Pressure (mmHg)",
+       y = "Density",
+       title = "Prior Predictive Check",
+       subtitle = "Blue = simulated from priors; Red = observed data") +
+  xlim(-100, 350) +
+  theme_minimal(base_size = 13)
+```
+
+### Python
+
+```{python}
+#| label: fig-prior-predictive-py
+#| fig-cap: "Prior predictive check: simulated SBP distributions under the chosen priors."
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+n_sim = 2000
+
+# Simulate from priors
+intercepts = np.random.normal(120, 30, n_sim)
+b_ages     = np.random.normal(0, 20, n_sim)
+b_bmis     = np.random.normal(0, 20, n_sim)
+b_meds_arr = np.random.normal(0, 20, n_sim)
+sigmas     = np.random.exponential(10, n_sim)
+
+# Pick a "typical" patient: age=55, bmi=28, on_meds=0
+sim_sbp = intercepts + b_ages * 55 + b_bmis * 28 + b_meds_arr * 0
+sim_sbp += np.random.normal(0, sigmas)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.hist(sim_sbp, bins=80, density=True, alpha=0.4, color="steelblue",
+        label="Prior predictive", range=(-500, 800))
+ax.hist(bp_data['sbp'].values, bins=30, density=True, alpha=0.4,
+        color="firebrick", label="Observed data")
+ax.set_xlabel("Systolic Blood Pressure (mmHg)")
+ax.set_ylabel("Density")
+ax.set_title("Prior Predictive Check\nBlue = simulated from priors; Red = observed")
+ax.set_xlim(-200, 400)
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+If the prior predictive distribution is wildly broader than any plausible clinical range, consider tightening the priors. If it is too narrow and excludes plausible values, widen them. This iterative process happens **before** fitting the model to data.
+
+## Posterior Predictive Checks
+
+After fitting, we ask: **does the fitted model generate data that look like the observed data?** This is the Bayesian equivalent of residual diagnostics.
+
+The procedure:
+
+1. Draw parameter values from the posterior.
+2. Simulate new data from the model using those posterior draws.
+3. Compare the distribution of simulated data to the observed data.
+
+If the model is well specified, the simulated data should be nearly indistinguishable from the real data in terms of summary statistics (mean, variance, range, shape).
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-posterior-predictive-r
+#| fig-cap: "Posterior predictive check: the model-generated data (blue) should resemble the observed data (dark line)."
+#| fig-width: 8
+#| fig-height: 5
+#| message: false
+
+pp_check(fit_bp, type = "dens_overlay", ndraws = 100) +
+  labs(title = "Posterior Predictive Check",
+       subtitle = "Light blue = simulated from posterior; Dark = observed") +
+  theme_minimal(base_size = 13)
+```
+
+### Python
+
+```{python}
+#| label: fig-posterior-predictive-py
+#| fig-cap: "Posterior predictive check for the blood pressure model."
+
+import pymc as pm
+import arviz as az
+import matplotlib.pyplot as plt
+
+# Using the previously fitted model
+with bp_model:
+    ppc = pm.sample_posterior_predictive(trace_bp, random_seed=42,
+                                          progressbar=False)
+
+az.plot_ppc(az.from_pymc3(posterior_predictive=ppc,
+                           observed_data={"sbp": bp_data['sbp'].values}),
+            num_pp_samples=100, figsize=(8, 5))
+plt.title("Posterior Predictive Check")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Bayesian Hierarchical (Multilevel) Models
+
+### Why They Matter
+
+Consider a multi-site clinical trial testing a new antihypertensive drug across 12 hospitals. The treatment effect might vary from site to site due to differences in patient populations, clinical protocols, or local practice patterns. How should we estimate the treatment effect at each site?
+
+There are three naive approaches:
+
+1. **Complete pooling**: ignore the site structure and estimate a single treatment effect. This assumes all sites are identical --- clearly wrong.
+2. **No pooling**: estimate a separate treatment effect at each site. This ignores that the sites are studying the same drug. Small sites will have wildly imprecise estimates.
+3. **Partial pooling (hierarchical model)**: the Bayesian approach. Each site has its own treatment effect, but those effects are drawn from a shared distribution. Sites with small samples are **pulled toward the overall mean**, while sites with large samples retain their individual estimates.
+
+This pulling toward the grand mean is called **shrinkage**, and it is one of the most powerful ideas in applied statistics.
+
+### The Model Structure
+
+A Bayesian hierarchical model for treatment effects across $J$ hospitals:
+
+$$
+y_{ij} = \beta_0 + \beta_1 \text{treatment}_{ij} + u_j + \epsilon_{ij}
+$$
+
+where:
+
+- $u_j \sim \text{Normal}(0, \tau^2)$ is the random effect for hospital $j$
+- $\tau$ is the between-hospital standard deviation (estimated from the data)
+- $\epsilon_{ij} \sim \text{Normal}(0, \sigma^2)$ is the residual error
+
+In the Bayesian framework, $\tau$ also gets a prior. A common choice is a half-Cauchy or half-normal distribution, which allows for substantial between-group variation while gently regularising toward zero.
+
+### Clinical Example: Treatment Effects Across Hospitals
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-hierarchical-r
+#| fig-cap: "Shrinkage in a Bayesian hierarchical model: hospital-specific estimates are pulled toward the grand mean."
+#| fig-width: 10
+#| fig-height: 6
+#| message: false
+#| warning: false
+
+library(brms)
+
+# Simulate multi-site trial data
+set.seed(789)
+n_hospitals <- 12
+patients_per_hospital <- c(15, 20, 25, 30, 35, 40, 50, 60, 80, 100, 120, 150)
+true_grand_effect <- -8  # mmHg reduction in SBP
+tau_true <- 3            # between-hospital SD
+
+hospital_effects <- rnorm(n_hospitals, 0, tau_true)
+
+trial_data <- map2_dfr(1:n_hospitals, patients_per_hospital, function(j, nj) {
+  tibble(
+    hospital = factor(j),
+    treatment = rep(0:1, length.out = nj),
+    sbp = 140 + (true_grand_effect + hospital_effects[j]) * treatment +
+      rnorm(nj, 0, 15)
+  )
+})
+
+# Fit hierarchical model
+fit_hier <- brm(
+  sbp ~ treatment + (treatment | hospital),
+  data = trial_data,
+  prior = c(
+    prior(normal(0, 20), class = "b"),
+    prior(normal(140, 30), class = "Intercept"),
+    prior(cauchy(0, 5), class = "sd"),
+    prior(exponential(0.1), class = "sigma")
+  ),
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  seed = 42,
+  silent = 2,
+  refresh = 0,
+  control = list(adapt_delta = 0.95)
+)
+
+# Extract hospital-specific treatment effects (partial pooling)
+ranefs <- ranef(fit_hier)$hospital[, , "treatment"]
+grand_mean <- fixef(fit_hier)["treatment", "Estimate"]
+
+# No-pooling estimates (separate OLS per hospital)
+no_pool <- trial_data %>%
+  group_by(hospital) %>%
+  summarise(no_pool_est = coef(lm(sbp ~ treatment))[2],
+            n = n(), .groups = "drop") %>%
+  mutate(
+    hospital_num = as.numeric(hospital),
+    partial_pool_est = grand_mean + ranefs[, "Estimate"]
+  )
+
+# Plot shrinkage
+ggplot(no_pool, aes(y = reorder(hospital, n))) +
+  geom_point(aes(x = no_pool_est, colour = "No pooling"), size = 3) +
+  geom_point(aes(x = partial_pool_est, colour = "Partial pooling"), size = 3) +
+  geom_vline(xintercept = grand_mean, linetype = "dashed", colour = "grey40") +
+  annotate("text", x = grand_mean + 0.5, y = 12.5,
+           label = paste0("Grand mean = ", round(grand_mean, 1)),
+           hjust = 0, size = 3.5) +
+  geom_segment(aes(x = no_pool_est, xend = partial_pool_est,
+                   yend = reorder(hospital, n)),
+               arrow = arrow(length = unit(0.15, "cm")),
+               colour = "grey60") +
+  scale_colour_manual(values = c("No pooling" = "steelblue",
+                                  "Partial pooling" = "firebrick")) +
+  labs(x = "Treatment Effect (mmHg change in SBP)",
+       y = "Hospital (ordered by sample size)",
+       colour = "Estimate Type",
+       title = "Shrinkage in a Hierarchical Model",
+       subtitle = "Arrows show how partial pooling pulls estimates toward the grand mean") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+### Python
+
+```{python}
+#| label: fig-hierarchical-py
+#| fig-cap: "Shrinkage in a Bayesian hierarchical model."
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+np.random.seed(789)
+n_hospitals = 12
+patients = [15, 20, 25, 30, 35, 40, 50, 60, 80, 100, 120, 150]
+grand_effect = -8
+tau = 3
+
+hospital_effects = np.random.normal(0, tau, n_hospitals)
+
+rows = []
+for j in range(n_hospitals):
+    nj = patients[j]
+    trt = np.tile([0, 1], nj // 2 + 1)[:nj]
+    sbp = 140 + (grand_effect + hospital_effects[j]) * trt + \
+          np.random.normal(0, 15, nj)
+    for i in range(nj):
+        rows.append({'hospital': j, 'treatment': trt[i], 'sbp': sbp[i]})
+
+trial_data = pd.DataFrame(rows)
+
+# No-pooling estimates
+no_pool = []
+for j in range(n_hospitals):
+    df_j = trial_data[trial_data['hospital'] == j]
+    trt_mean = df_j[df_j['treatment'] == 1]['sbp'].mean()
+    ctl_mean = df_j[df_j['treatment'] == 0]['sbp'].mean()
+    no_pool.append(trt_mean - ctl_mean)
+
+no_pool = np.array(no_pool)
+grand_mean_est = np.mean(no_pool)
+
+# Simulate partial pooling (shrinkage toward grand mean)
+# Shrinkage factor depends on sample size: larger sites shrink less
+shrinkage_factor = np.array([15 / (15 + nj) for nj in patients])
+partial_pool = grand_mean_est + (1 - shrinkage_factor) * (no_pool - grand_mean_est)
+
+# Plot
+fig, ax = plt.subplots(figsize=(10, 6))
+order = np.argsort(patients)
+y_pos = np.arange(n_hospitals)
+
+for i, idx in enumerate(order):
+    ax.plot([no_pool[idx], partial_pool[idx]], [i, i],
+            color="grey", linewidth=1, zorder=1)
+    ax.annotate("", xy=(partial_pool[idx], i), xytext=(no_pool[idx], i),
+                arrowprops=dict(arrowstyle="->", color="grey"))
+
+ax.scatter(no_pool[order], y_pos, color="steelblue", s=60, zorder=2,
+           label="No pooling")
+ax.scatter(partial_pool[order], y_pos, color="firebrick", s=60, zorder=2,
+           label="Partial pooling")
+ax.axvline(grand_mean_est, linestyle="--", color="grey", linewidth=1)
+ax.set_yticks(y_pos)
+ax.set_yticklabels([f"Hospital {order[i]+1}\n(n={patients[order[i]]})"
+                     for i in range(n_hospitals)], fontsize=9)
+ax.set_xlabel("Treatment Effect (mmHg)")
+ax.set_title("Shrinkage in a Hierarchical Model\n"
+             "Arrows show estimates pulled toward the grand mean")
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Understanding Shrinkage
+
+The figure above illustrates the key behaviour of hierarchical models:
+
+- **Small hospitals** (few patients) are pulled strongly toward the grand mean. Their individual data are noisy, so the model relies more on the shared information from other sites.
+- **Large hospitals** (many patients) retain estimates close to their no-pooling values. Their data are informative enough to override the group-level information.
+- **The grand mean** itself is estimated from all sites, so every site contributes to it.
+
+This is **partial pooling** --- a principled compromise between treating all sites as identical (complete pooling) and treating them as completely independent (no pooling). It is particularly valuable when some sites have very few patients, where no-pooling estimates would be unreliable.
+
+::: {.callout-note}
+## Shrinkage is not bias
+Shrinkage toward the grand mean might seem like it introduces bias. In a narrow sense it does: individual site estimates are biased toward the mean. But this bias is traded for reduced variance, and the overall mean squared error is lower. This is the bias-variance trade-off that we discussed in earlier chapters, now appearing naturally in the Bayesian framework.
+:::
+
+### Varying Slopes
+
+The model above includes a varying (random) slope for treatment by hospital. This means we are estimating not just "does the treatment effect vary across hospitals?" but also "by how much?" The between-hospital standard deviation $\tau$ directly quantifies this heterogeneity. If the 95% credible interval for $\tau$ excludes zero, there is evidence of meaningful variation across sites.
+
+## The Practical Bayesian Workflow
+
+A complete Bayesian analysis follows a structured workflow:
+
+### Step 1: Specify the Model
+
+- Write down the likelihood (data-generating process).
+- Choose priors for all parameters.
+- Justify your choices: are the priors weakly informative? Are they based on prior studies?
+
+### Step 2: Prior Predictive Check
+
+- Simulate data from the priors alone.
+- Verify that the implied range of outcomes is clinically plausible.
+- Iterate if necessary: tighten or widen priors.
+
+### Step 3: Fit the Model
+
+- Run MCMC (typically 4 chains, 1000--2000 post-warmup iterations each).
+- Check for warnings (divergent transitions, max treedepth warnings).
+
+### Step 4: Diagnose Convergence
+
+- Inspect trace plots: should look like "hairy caterpillars".
+- Check $\hat{R} < 1.01$ for all parameters.
+- Check ESS > 400 for both bulk and tail.
+- If any diagnostic fails, do **not** interpret the results. Fix the model first.
+
+### Step 5: Posterior Predictive Check
+
+- Simulate data from the fitted posterior.
+- Compare to observed data: distributions, summary statistics, patterns.
+- If the model is badly misspecified, revise the likelihood or priors.
+
+### Step 6: Summarise and Report
+
+- Report posterior means (or medians), credible intervals, and relevant posterior probabilities.
+- Include sensitivity analyses: how do results change under alternative priors?
+- Report MCMC diagnostics alongside the results.
+
+::: {.callout-tip}
+## Reporting Template
+"We estimated the treatment effect using a Bayesian [model type] with [prior specification]. The posterior mean treatment effect was X (95% credible interval: [L, U]). The posterior probability that the treatment effect exceeds the clinically meaningful threshold of Y was Z%. All chains converged ($\hat{R} < 1.01$, bulk ESS > [value], tail ESS > [value])."
+:::
+
+## Implementation: Software Choices
+
+### R Ecosystem
+
+**brms** (Bayesian Regression Models using Stan) is the recommended package for applied Bayesian analysis in R. It uses the familiar R formula syntax and compiles models in Stan behind the scenes. Essentially, anything you can fit with `lme4` can be fit with `brms`, but with priors and full posterior inference.
+
+**rstanarm** provides pre-compiled Stan models for common regression types. It is faster to start (no compilation time) but less flexible than brms.
+
+Both produce Stan code that you can inspect, which is excellent for learning.
+
+### Python Ecosystem
+
+**PyMC** (version 5+) is the most mature probabilistic programming library in Python. It uses the JAX or NumPy backends and provides NUTS sampling out of the box.
+
+**Bambi** (BAyesian Model-Building Interface) is the Python analogue of brms: it provides a formula-based interface on top of PyMC, making it easy to specify complex models without writing raw PyMC code.
+
+::: {.panel-tabset}
+
+### R (brms)
+
+```{r}
+#| label: brms-workflow-example
+#| eval: false
+
+library(brms)
+
+# Specify and fit
+fit <- brm(
+  outcome ~ predictor1 + predictor2 + (1 | group),
+  data = my_data,
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 10), class = "b"),
+    prior(normal(0, 20), class = "Intercept"),
+    prior(cauchy(0, 5), class = "sd"),
+    prior(exponential(0.1), class = "sigma")
+  ),
+  chains = 4, iter = 2000, warmup = 1000, seed = 42
+)
+
+# Diagnose
+plot(fit)                  # trace plots
+summary(fit)               # R-hat, ESS
+pp_check(fit)              # posterior predictive check
+conditional_effects(fit)   # visualise effects
+
+# Posterior probability of meaningful effect
+hypothesis(fit, "predictor1 > 0.5")
+```
+
+### Python (bambi)
+
+```{python}
+#| label: bambi-workflow-example
+#| eval: false
+
+import bambi as bmb
+import arviz as az
+
+# Specify and fit
+model = bmb.Model("outcome ~ predictor1 + predictor2 + (1 | group)",
+                   data=my_data, family="gaussian")
+results = model.fit(draws=1000, tune=1000, chains=4, random_seed=42)
+
+# Diagnose
+az.plot_trace(results)       # trace plots
+print(az.summary(results))   # R-hat, ESS
+az.plot_ppc(results)         # posterior predictive check
+
+# Posterior probability
+posterior = az.extract(results)
+prob = (posterior['predictor1'] > 0.5).mean()
+print(f"P(predictor1 > 0.5 | data) = {prob:.3f}")
+```
+
+:::
+
+## Exercises
+
+### Exercise 1: Bayesian Logistic Regression for ICU Mortality
+
+A dataset contains 500 ICU admissions with the following variables: age, APACHE II score, mechanical ventilation status (yes/no), and 28-day mortality (outcome).
+
+a. Simulate a dataset with plausible parameter values.
+b. Fit a Bayesian logistic regression model using weakly informative priors.
+c. Perform a prior predictive check: do the priors imply plausible mortality rates?
+d. Report posterior odds ratios with 95% credible intervals.
+e. Calculate $P(\text{OR}_{\text{APACHE}} > 1.10 \mid \text{data})$ --- the probability that each unit increase in APACHE score increases the odds of death by more than 10%.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: exercise-1-solution
+#| code-fold: true
+#| code-summary: "Show solution"
+#| message: false
+#| warning: false
+
+set.seed(101)
+n <- 500
+icu_data <- tibble(
+  age = round(rnorm(n, 62, 15)),
+  apache = round(rnorm(n, 18, 7)),
+  ventilated = rbinom(n, 1, 0.35),
+  mortality = rbinom(n, 1,
+    plogis(-4.5 + 0.02 * round(rnorm(n, 62, 15)) +
+             0.12 * round(rnorm(n, 18, 7)) + 0.8 * rbinom(n, 1, 0.35)))
+)
+
+fit_icu <- brm(
+  mortality ~ age + apache + ventilated,
+  data = icu_data,
+  family = bernoulli(),
+  prior = c(
+    prior(normal(0, 2.5), class = "b"),
+    prior(normal(0, 5), class = "Intercept")
+  ),
+  chains = 4, iter = 2000, warmup = 1000, seed = 42,
+  silent = 2, refresh = 0
+)
+
+# Posterior OR for APACHE
+post <- as_draws_df(fit_icu)
+or_apache <- exp(post$b_apache)
+cat(sprintf("OR APACHE: %.3f [%.3f, %.3f]\n",
+    mean(or_apache), quantile(or_apache, 0.025), quantile(or_apache, 0.975)))
+cat(sprintf("P(OR > 1.10 | data): %.3f\n", mean(or_apache > 1.10)))
+```
+
+### Python
+
+```{python}
+#| label: exercise-1-solution-py
+#| code-fold: true
+#| code-summary: "Show solution"
+
+import numpy as np
+import pandas as pd
+import pymc as pm
+import arviz as az
+from scipy.special import expit
+
+np.random.seed(101)
+n = 500
+icu_data = pd.DataFrame({
+    'age': np.round(np.random.normal(62, 15, n)),
+    'apache': np.round(np.random.normal(18, 7, n)),
+    'ventilated': np.random.binomial(1, 0.35, n)
+})
+lp = -4.5 + 0.02 * icu_data['age'] + 0.12 * icu_data['apache'] + \
+     0.8 * icu_data['ventilated']
+icu_data['mortality'] = np.random.binomial(1, expit(lp))
+
+with pm.Model() as icu_model:
+    intercept = pm.Normal("Intercept", 0, 5)
+    b_age = pm.Normal("b_age", 0, 2.5)
+    b_apache = pm.Normal("b_apache", 0, 2.5)
+    b_vent = pm.Normal("b_ventilated", 0, 2.5)
+
+    logit_p = intercept + b_age * icu_data['age'].values + \
+              b_apache * icu_data['apache'].values + \
+              b_vent * icu_data['ventilated'].values
+
+    y = pm.Bernoulli("mort", logit_p=logit_p,
+                      observed=icu_data['mortality'].values)
+    trace = pm.sample(1000, tune=1000, chains=4, random_seed=42,
+                       progressbar=False)
+
+post = az.extract(trace)
+or_apache = np.exp(post['b_apache'].values)
+print(f"OR APACHE: {or_apache.mean():.3f} "
+      f"[{np.percentile(or_apache, 2.5):.3f}, "
+      f"{np.percentile(or_apache, 97.5):.3f}]")
+print(f"P(OR > 1.10 | data): {(or_apache > 1.10).mean():.3f}")
+```
+
+:::
+
+### Exercise 2: Hierarchical Model for Multi-Site Drug Trial
+
+Twelve hospitals participate in a trial comparing a new statin to standard care. The primary outcome is change in LDL cholesterol (mg/dL) at 12 weeks. Hospitals vary in patient volume from 20 to 200 patients.
+
+a. Simulate data where the true average treatment effect is --25 mg/dL with between-hospital SD of 5 mg/dL.
+b. Fit a Bayesian hierarchical model with random intercepts and random slopes for treatment by hospital.
+c. Create a shrinkage plot showing how hospital-specific estimates are pulled toward the grand mean.
+d. Compare the hierarchical model estimates to separate hospital-by-hospital OLS regressions. Which approach is more appropriate and why?
+
+### Exercise 3: Prior Sensitivity for Rare Events
+
+A new surgical technique is tested in 40 patients. Zero patients experience a major adverse event.
+
+a. Compute the posterior distribution for the adverse event rate using three priors: Beta(1,1), Beta(0.5, 0.5) (Jeffreys prior), and Beta(1, 9) (informative: prior belief ~10% rate).
+b. Report the posterior mean and 95% upper credible bound for each prior.
+c. A frequentist would report the point estimate as 0/40 = 0. Explain why the Bayesian estimates are more useful for regulatory decision-making.
+
+## Summary
+
+Bayesian regression models extend familiar linear and logistic regression by placing priors on parameters and yielding full posterior distributions rather than point estimates. The practical workflow --- specify, check priors, fit, diagnose, check posteriors, report --- ensures rigorous and transparent analysis. Hierarchical models, with their partial pooling and shrinkage properties, are especially powerful for multi-site clinical studies where borrowing information across groups improves estimation. Modern software (brms in R, PyMC/bambi in Python) makes these methods accessible to applied researchers.
+
+::: {.callout-tip}
+## Key Takeaways
+1. Bayesian regression yields full posterior distributions for all coefficients, not just point estimates.
+2. Prior and posterior predictive checks are essential quality-control steps.
+3. Hierarchical models perform partial pooling: small groups shrink toward the grand mean, large groups retain their individual estimates.
+4. Shrinkage reduces mean squared error by trading a small amount of bias for a large reduction in variance.
+5. Always report MCMC diagnostics ($\hat{R}$, ESS, trace plots) alongside posterior summaries.
+:::
+
+## References and Further Reading
+
+The primary reference for the brms package is Buerkner's 2017 paper "brms: An R Package for Bayesian Multilevel Models Using Stan" published in the *Journal of Statistical Software*, which provides a thorough overview of the formula syntax, prior specification, and model families available. For the hierarchical modelling concepts presented in this chapter, Gelman and Hill's *Data Analysis Using Regression and Multilevel/Hierarchical Models* (2006) remains the classic applied reference, and Gelman, Carlin, Stern, Dunson, Vehtari, and Rubin's *Bayesian Data Analysis* (3rd edition, 2013) provides the theoretical foundations.
+
+McElreath's *Statistical Rethinking* (2nd edition, 2020) devotes several excellent chapters to multilevel models with a focus on intuition and simulation. For the clinical applications of hierarchical Bayesian models, the FDA's 2010 guidance on Bayesian statistics in medical device trials and its 2026 update provide the regulatory perspective. Berry, Carlin, Lee, and Muller's *Bayesian Adaptive Methods for Clinical Trials* (2010) covers the design and analysis of adaptive trials using Bayesian methods, including hierarchical borrowing across subgroups and historical controls.
+
+On the Python side, the PyMC documentation (pymc.io) includes a growing library of case studies, and Osvaldo Martin's *Bayesian Analysis with Python* (3rd edition, 2024) provides a practical guide to PyMC for applied researchers. The ArviZ documentation (arviz-devs.github.io/arviz) covers posterior diagnostics and visualisation in detail. For the concept of shrinkage and partial pooling, Efron and Morris's classic 1977 paper "Stein's Paradox in Statistics" in *Scientific American* remains a wonderfully accessible introduction, showing that shrinkage estimators outperform individual estimates even in simple settings.

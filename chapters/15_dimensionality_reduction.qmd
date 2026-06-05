@@ -1,0 +1,682 @@
+# PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data {#sec-dimensionality-reduction}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(knitr)
+```
+
+## Introduction
+
+A single patient encounter can generate hundreds of variables: vital signs, lab results, imaging features, medication lists, genomic markers, clinical notes. When the number of features ($p$) is large relative to the number of observations ($n$), standard statistical methods break down. Regression models become unstable, distances between data points become uninformative, and visualisation is impossible.
+
+**Dimensionality reduction** addresses this by projecting high-dimensional data into a lower-dimensional space while preserving as much meaningful structure as possible. This chapter covers three complementary methods: **PCA** (principal component analysis), **t-SNE** (t-distributed stochastic neighbour embedding), and **UMAP** (uniform manifold approximation and projection). Each serves a different purpose, and understanding when to use which is a core skill in modern data analysis.
+
+## The Curse of Dimensionality
+
+The "curse of dimensionality" refers to a collection of phenomena that arise when data live in high-dimensional spaces. The most important for clinical data analysis:
+
+**Distances become meaningless.** In high dimensions, the distance between the nearest and farthest data points converges. If all points are approximately equidistant, distance-based methods (k-nearest neighbours, clustering) lose their ability to discriminate.
+
+**Sparsity.** The volume of a high-dimensional space grows exponentially with the number of dimensions. Data points become increasingly sparse --- you need exponentially more observations to maintain the same data density. A study with 200 patients and 500 gene expression features has data that are extraordinarily sparse.
+
+**Overfitting.** With many features, models can find spurious patterns in the noise. A logistic regression with 200 predictors and 100 observations is almost guaranteed to overfit, even with regularisation.
+
+**Visualisation is impossible.** Humans perceive at most three spatial dimensions. To explore the structure of a 50-dimensional dataset, we must reduce it to 2 or 3 dimensions.
+
+## PCA: Principal Component Analysis
+
+PCA is the oldest and most widely used dimensionality reduction technique. It finds the directions (linear combinations of the original variables) along which the data vary the most.
+
+### The Core Idea
+
+Given a data matrix $\mathbf{X}$ with $n$ observations and $p$ variables:
+
+1. **Centre** the data: subtract the mean of each variable.
+2. **Compute the covariance matrix** $\mathbf{C} = \frac{1}{n-1}\mathbf{X}^T\mathbf{X}$.
+3. **Find the eigenvectors** of $\mathbf{C}$. These are the **principal components** --- the directions of maximum variance.
+4. **The eigenvalues** tell you how much variance each component captures.
+
+The first principal component (PC1) captures the most variance, PC2 captures the second most (orthogonal to PC1), and so on. By keeping only the first $k$ components, you reduce the data from $p$ dimensions to $k$ dimensions.
+
+### Key Properties
+
+- PCA is a **linear** method: each component is a weighted sum of the original variables.
+- It is **deterministic**: running PCA twice on the same data gives the same result (up to sign flips).
+- It preserves **global structure** (distances and variance) well, but may miss non-linear patterns.
+
+### Choosing the Number of Components
+
+**Scree plot.** Plot the eigenvalues (or proportion of variance explained) against the component number. Look for an "elbow" --- a point where the curve flattens, suggesting that additional components contribute little.
+
+**Cumulative variance threshold.** Keep enough components to explain a target percentage of total variance (commonly 80--90%).
+
+**Kaiser criterion.** Keep components with eigenvalues > 1 (only meaningful when data are standardised).
+
+### Clinical Example: Metabolic Panel PCA
+
+A common application: reducing a panel of correlated lab values to a few interpretable dimensions. Consider a dataset with glucose, HbA1c, triglycerides, LDL, HDL, creatinine, ALT, and albumin.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-pca-metabolic-r
+#| fig-cap: "PCA of a simulated metabolic panel: scree plot and biplot."
+#| fig-width: 12
+#| fig-height: 5
+
+set.seed(42)
+n <- 300
+
+# Simulate correlated metabolic data
+# Create correlation structure: glucose/HbA1c/triglycerides cluster;
+# creatinine/albumin cluster
+library(MASS)
+Sigma <- matrix(c(
+  1.0, 0.7, 0.5, 0.3,-0.2, 0.1, 0.2,-0.1,
+  0.7, 1.0, 0.4, 0.2,-0.2, 0.1, 0.1,-0.1,
+  0.5, 0.4, 1.0, 0.4,-0.3, 0.1, 0.3,-0.1,
+  0.3, 0.2, 0.4, 1.0,-0.5, 0.1, 0.2, 0.0,
+ -0.2,-0.2,-0.3,-0.5, 1.0,-0.1,-0.1, 0.2,
+  0.1, 0.1, 0.1, 0.1,-0.1, 1.0, 0.1,-0.3,
+  0.2, 0.1, 0.3, 0.2,-0.1, 0.1, 1.0,-0.2,
+ -0.1,-0.1,-0.1, 0.0, 0.2,-0.3,-0.2, 1.0
+), nrow = 8)
+
+z <- mvrnorm(n, mu = rep(0, 8), Sigma = Sigma)
+metabolic <- tibble(
+  glucose      = round(z[,1] * 30 + 100),
+  hba1c        = round(z[,2] * 1.0 + 5.8, 1),
+  triglycerides = round(z[,3] * 50 + 150),
+  ldl          = round(z[,4] * 30 + 120),
+  hdl          = round(z[,5] * 12 + 55),
+  creatinine   = round(z[,6] * 0.3 + 1.0, 2),
+  alt          = round(z[,7] * 15 + 30),
+  albumin      = round(z[,8] * 0.4 + 4.0, 1)
+)
+
+# PCA on scaled data
+pca_result <- prcomp(metabolic, scale. = TRUE)
+
+# Scree plot and biplot side by side
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+
+# Scree plot
+var_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+barplot(var_explained, names.arg = paste0("PC", 1:8),
+        col = "steelblue", main = "Scree Plot",
+        ylab = "Proportion of Variance", xlab = "Component",
+        ylim = c(0, 0.4))
+abline(h = 1/8, lty = 2, col = "firebrick")  # Kaiser criterion line
+text(9, 1/8 + 0.015, "Kaiser threshold", col = "firebrick", cex = 0.8)
+
+# Biplot
+biplot(pca_result, scale = 0, cex = 0.6,
+       col = c("grey70", "firebrick"),
+       main = "PCA Biplot: Metabolic Panel")
+```
+
+### Python
+
+```{python}
+#| label: fig-pca-metabolic-py
+#| fig-cap: "PCA of a simulated metabolic panel: scree plot and biplot."
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+np.random.seed(42)
+n = 300
+
+Sigma = np.array([
+    [1.0, 0.7, 0.5, 0.3,-0.2, 0.1, 0.2,-0.1],
+    [0.7, 1.0, 0.4, 0.2,-0.2, 0.1, 0.1,-0.1],
+    [0.5, 0.4, 1.0, 0.4,-0.3, 0.1, 0.3,-0.1],
+    [0.3, 0.2, 0.4, 1.0,-0.5, 0.1, 0.2, 0.0],
+    [-0.2,-0.2,-0.3,-0.5, 1.0,-0.1,-0.1, 0.2],
+    [0.1, 0.1, 0.1, 0.1,-0.1, 1.0, 0.1,-0.3],
+    [0.2, 0.1, 0.3, 0.2,-0.1, 0.1, 1.0,-0.2],
+    [-0.1,-0.1,-0.1, 0.0, 0.2,-0.3,-0.2, 1.0]
+])
+
+z = np.random.multivariate_normal(np.zeros(8), Sigma, n)
+labels = ["glucose", "hba1c", "triglycerides", "ldl",
+          "hdl", "creatinine", "alt", "albumin"]
+metabolic = pd.DataFrame(z, columns=labels)
+
+# Scale and fit PCA
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(metabolic)
+pca = PCA()
+scores = pca.fit_transform(X_scaled)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Scree plot
+axes[0].bar(range(1, 9), pca.explained_variance_ratio_,
+            color="steelblue", edgecolor="white")
+axes[0].axhline(y=1/8, color="firebrick", linestyle="--", label="Kaiser threshold")
+axes[0].set_xlabel("Component")
+axes[0].set_ylabel("Proportion of Variance")
+axes[0].set_title("Scree Plot")
+axes[0].set_xticks(range(1, 9))
+axes[0].legend()
+
+# Biplot
+loadings = pca.components_[:2].T  # first 2 PCs
+scale_factor = 3
+axes[1].scatter(scores[:, 0], scores[:, 1], alpha=0.3, s=10, color="grey")
+for i, lab in enumerate(labels):
+    axes[1].annotate("", xy=(loadings[i, 0]*scale_factor,
+                              loadings[i, 1]*scale_factor),
+                     xytext=(0, 0),
+                     arrowprops=dict(arrowstyle="->", color="firebrick", lw=1.5))
+    axes[1].text(loadings[i, 0]*scale_factor*1.15,
+                 loadings[i, 1]*scale_factor*1.15,
+                 lab, fontsize=9, color="firebrick", ha="center")
+axes[1].set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%} var)")
+axes[1].set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} var)")
+axes[1].set_title("PCA Biplot: Metabolic Panel")
+axes[1].axhline(0, color="grey", linewidth=0.5)
+axes[1].axvline(0, color="grey", linewidth=0.5)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Interpreting the Biplot
+
+The biplot overlays two things:
+
+- **Points** (grey): individual patients projected onto the first two principal components.
+- **Arrows** (red): the original variables. The direction and length of each arrow show how strongly and in which direction that variable contributes to each PC.
+
+In our metabolic panel:
+
+- **PC1** is dominated by glucose, HbA1c, and triglycerides pointing in one direction, with HDL pointing in the opposite direction. This is a "metabolic syndrome" axis: patients to the right tend to have higher glucose and triglycerides and lower HDL.
+- **PC2** separates creatinine and albumin, capturing a "renal/hepatic" dimension.
+
+This kind of interpretation is exactly what makes PCA useful in clinical research: it reveals which variables "travel together" and suggests underlying biological dimensions.
+
+## t-SNE: Non-Linear Dimensionality Reduction
+
+### The Core Idea
+
+PCA preserves global, linear structure. But many datasets contain non-linear patterns --- clusters, manifolds, or curves --- that PCA cannot capture well. **t-SNE** (t-distributed stochastic neighbour embedding) was designed specifically for **visualisation** of high-dimensional data in 2 or 3 dimensions.
+
+t-SNE works in two steps:
+
+1. In the high-dimensional space, compute the probability that any two points are "neighbours" (using a Gaussian kernel). Nearby points have high probability; distant points have low probability.
+2. In the low-dimensional (2D) embedding, try to arrange points so that the same neighbourhood probabilities are preserved, using a **t-distribution** kernel (heavier tails than a Gaussian, which helps prevent crowding).
+
+The algorithm minimises the KL divergence between the high-dimensional and low-dimensional probability distributions using gradient descent.
+
+### The Perplexity Parameter
+
+Perplexity (typically 5--50) controls how many neighbours each point considers. It roughly corresponds to the effective number of local neighbours.
+
+- **Low perplexity** (5--10): focuses on very local structure. May produce many small, tight clusters.
+- **High perplexity** (30--50): considers broader neighbourhoods. Produces smoother, more global layouts.
+
+There is no single correct value; try several and see how the structure changes.
+
+### Critical Pitfalls and Misinterpretations
+
+::: {.callout-warning}
+## t-SNE is for exploration, not inference
+t-SNE is a visualisation tool. It is not a statistical test. Do not draw conclusions about statistical significance from a t-SNE plot.
+:::
+
+**Distances between clusters are meaningless.** Two clusters that appear far apart may not actually be more different than two clusters that appear close. t-SNE distorts global distances to preserve local neighbourhoods.
+
+**Cluster sizes are meaningless.** A tight cluster in t-SNE space does not mean those points are more similar than a spread-out cluster.
+
+**Different runs give different layouts.** t-SNE uses stochastic optimisation. Running it twice with different seeds gives different-looking plots (though the same clusters should emerge).
+
+**It does not scale well.** Standard t-SNE is $O(n^2)$, making it slow for datasets with more than ~10,000 observations. Approximations (Barnes-Hut, FIt-SNE) help.
+
+### Clinical Example: Visualising Patient Phenotypes
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-tsne-r
+#| fig-cap: "t-SNE visualisation of simulated patient data with three disease subtypes."
+#| fig-width: 10
+#| fig-height: 5
+
+library(Rtsne)
+
+set.seed(42)
+
+# Simulate 3 patient subtypes with 20 features
+n_per_group <- 100
+p <- 20
+
+group1 <- matrix(rnorm(n_per_group * p, mean = 0, sd = 1), ncol = p)
+group2 <- matrix(rnorm(n_per_group * p, mean = 2, sd = 1.2), ncol = p)
+group3 <- matrix(rnorm(n_per_group * p, mean = -1, sd = 0.8), ncol = p)
+# Make groups differ in specific feature subsets
+group2[, 1:5] <- group2[, 1:5] + 3
+group3[, 10:15] <- group3[, 10:15] - 4
+
+X <- rbind(group1, group2, group3)
+labels <- factor(rep(c("Type A", "Type B", "Type C"), each = n_per_group))
+
+# Run t-SNE with two perplexity values
+tsne_low  <- Rtsne(X, perplexity = 10, dims = 2, verbose = FALSE, max_iter = 1000)
+tsne_high <- Rtsne(X, perplexity = 40, dims = 2, verbose = FALSE, max_iter = 1000)
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+cols <- c("steelblue", "firebrick", "forestgreen")
+
+plot(tsne_low$Y, col = cols[labels], pch = 16, cex = 0.8,
+     main = "t-SNE (perplexity = 10)", xlab = "t-SNE 1", ylab = "t-SNE 2")
+legend("topright", levels(labels), col = cols, pch = 16, cex = 0.8)
+
+plot(tsne_high$Y, col = cols[labels], pch = 16, cex = 0.8,
+     main = "t-SNE (perplexity = 40)", xlab = "t-SNE 1", ylab = "t-SNE 2")
+legend("topright", levels(labels), col = cols, pch = 16, cex = 0.8)
+```
+
+### Python
+
+```{python}
+#| label: fig-tsne-py
+#| fig-cap: "t-SNE visualisation of simulated patient data with three disease subtypes."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+
+np.random.seed(42)
+n_per = 100
+p = 20
+
+g1 = np.random.normal(0, 1, (n_per, p))
+g2 = np.random.normal(2, 1.2, (n_per, p))
+g3 = np.random.normal(-1, 0.8, (n_per, p))
+g2[:, :5] += 3
+g3[:, 10:15] -= 4
+
+X = np.vstack([g1, g2, g3])
+labels = np.repeat(["Type A", "Type B", "Type C"], n_per)
+colors = {"Type A": "steelblue", "Type B": "firebrick", "Type C": "forestgreen"}
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+for ax, perp in zip(axes, [10, 40]):
+    tsne = TSNE(n_components=2, perplexity=perp, random_state=42, max_iter=1000)
+    emb = tsne.fit_transform(X)
+    for lab in ["Type A", "Type B", "Type C"]:
+        mask = labels == lab
+        ax.scatter(emb[mask, 0], emb[mask, 1], c=colors[lab],
+                   s=15, alpha=0.7, label=lab)
+    ax.set_title(f"t-SNE (perplexity = {perp})")
+    ax.set_xlabel("t-SNE 1")
+    ax.set_ylabel("t-SNE 2")
+    ax.legend(fontsize=9)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+Notice how perplexity changes the visual appearance but the three groups are consistently separated. This is reassuring --- the cluster structure is real, not an artefact of a particular perplexity setting.
+
+## UMAP: Uniform Manifold Approximation and Projection
+
+### How UMAP Differs from t-SNE
+
+UMAP (McInnes, Healy, and Melville, 2018) is a newer method that has largely replaced t-SNE in many applications. Key advantages:
+
+| Feature | t-SNE | UMAP |
+|---|---|---|
+| Speed | Slow ($O(n^2)$ or $O(n \log n)$ approximate) | Fast (typically 3--10x faster) |
+| Global structure | Poorly preserved | Better preserved |
+| Reproducibility | Stochastic, varies across runs | More stable (with fixed seed) |
+| Scalability | Struggles above ~50k points | Handles millions of points |
+| Embedding dimensions | Typically 2--3 | 2 to arbitrary $d$ |
+| Use beyond visualisation | Rarely | Commonly used as a preprocessing step |
+
+: Comparison of t-SNE and UMAP {#tbl-tsne-umap}
+
+UMAP works by constructing a topological representation (a weighted graph) of the data in high dimensions, then optimising a low-dimensional layout that preserves the graph structure.
+
+### Key Parameters
+
+**n_neighbors** (analogous to perplexity in t-SNE): controls the balance between local and global structure. Small values (5--15) emphasise local clusters; large values (50--200) emphasise global connectivity.
+
+**min_dist**: controls how tightly points are packed in the embedding. Small values (0.0--0.1) produce tight, well-separated clusters; large values (0.5--1.0) produce a more uniform spread.
+
+### When to Use Which Method
+
+- **PCA**: use for initial exploration, as a preprocessing step (reduce to 20--50 PCs before t-SNE/UMAP), or when you need interpretable components. Use when linear relationships are sufficient.
+- **t-SNE**: use for detailed visualisation of moderate-sized datasets (< 10,000 points) when you want to emphasise local cluster structure. Avoid for quantitative downstream analysis.
+- **UMAP**: use as your default non-linear method. Faster, better global structure, and can serve as a preprocessing step for clustering.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-umap-comparison-r
+#| fig-cap: "PCA, t-SNE, and UMAP visualisations of the same simulated patient dataset."
+#| fig-width: 14
+#| fig-height: 4.5
+
+library(Rtsne)
+library(uwot)
+
+set.seed(42)
+
+pca_scores <- prcomp(X, scale. = TRUE)$x[, 1:2]
+tsne_emb   <- Rtsne(X, perplexity = 30, dims = 2, verbose = FALSE)$Y
+umap_emb   <- umap(X, n_neighbors = 15, min_dist = 0.1, verbose = FALSE)
+
+par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
+cols <- c("steelblue", "firebrick", "forestgreen")[as.numeric(labels)]
+
+plot(pca_scores, col = cols, pch = 16, cex = 0.8,
+     main = "PCA", xlab = "PC1", ylab = "PC2")
+
+plot(tsne_emb, col = cols, pch = 16, cex = 0.8,
+     main = "t-SNE (perplexity = 30)", xlab = "t-SNE 1", ylab = "t-SNE 2")
+
+plot(umap_emb, col = cols, pch = 16, cex = 0.8,
+     main = "UMAP (n_neighbors = 15)", xlab = "UMAP 1", ylab = "UMAP 2")
+```
+
+### Python
+
+```{python}
+#| label: fig-umap-comparison-py
+#| fig-cap: "PCA, t-SNE, and UMAP visualisations of the same simulated patient dataset."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from umap import UMAP
+
+pca_2d = PCA(n_components=2).fit_transform(X)
+tsne_2d = TSNE(n_components=2, perplexity=30, random_state=42).fit_transform(X)
+umap_2d = UMAP(n_components=2, n_neighbors=15, min_dist=0.1,
+                random_state=42).fit_transform(X)
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+titles = ["PCA", "t-SNE (perplexity=30)", "UMAP (n_neighbors=15)"]
+embeddings = [pca_2d, tsne_2d, umap_2d]
+
+for ax, emb, title in zip(axes, embeddings, titles):
+    for lab, col in colors.items():
+        mask = labels == lab
+        ax.scatter(emb[mask, 0], emb[mask, 1], c=col, s=15, alpha=0.7, label=lab)
+    ax.set_title(title)
+    ax.set_xlabel("Dim 1")
+    ax.set_ylabel("Dim 2")
+    ax.legend(fontsize=8)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+All three methods recover the three groups, but with different visual characteristics. PCA shows the groups with some overlap (because the separation is partly non-linear). t-SNE and UMAP separate them more clearly, with UMAP preserving more of the relative distances between clusters.
+
+## Practical Workflow: Scale, Reduce, Visualise, Interpret
+
+A standard workflow for high-dimensional clinical data:
+
+1. **Scale** the data. PCA, t-SNE, and UMAP are all sensitive to the scale of variables. Always standardise (mean = 0, SD = 1) before applying any dimensionality reduction.
+
+2. **Reduce with PCA first.** If the original data have hundreds or thousands of features, first reduce to 20--50 principal components. This removes noise and speeds up t-SNE/UMAP dramatically.
+
+3. **Visualise with UMAP (or t-SNE).** Apply the non-linear method to the PCA-reduced data. Colour points by known labels (diagnosis, treatment group) or by continuous variables (lab values, scores).
+
+4. **Interpret cautiously.** Look for clusters, gradients, or outliers. Generate hypotheses --- but remember that these are visualisations, not tests. Validate any apparent structure with formal statistical methods.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-workflow-r
+#| fig-cap: "The standard workflow: PCA for initial reduction, then UMAP for visualisation."
+#| fig-width: 10
+#| fig-height: 5
+
+library(uwot)
+
+set.seed(42)
+
+# Simulate high-dimensional data: 500 patients, 100 features
+n <- 500; p <- 100
+group <- sample(c("Healthy", "Mild", "Severe"), n, replace = TRUE,
+                prob = c(0.4, 0.35, 0.25))
+
+X_hd <- matrix(rnorm(n * p), ncol = p)
+# Add signal in first few features
+X_hd[group == "Mild", 1:10]   <- X_hd[group == "Mild", 1:10] + 1.5
+X_hd[group == "Severe", 1:10] <- X_hd[group == "Severe", 1:10] + 3
+X_hd[group == "Severe", 11:20] <- X_hd[group == "Severe", 11:20] - 2
+
+# Step 1: Scale
+X_scaled <- scale(X_hd)
+
+# Step 2: PCA to 20 components
+pca_20 <- prcomp(X_scaled)$x[, 1:20]
+
+# Step 3: UMAP on PCA-reduced data
+umap_result <- umap(pca_20, n_neighbors = 15, min_dist = 0.1, verbose = FALSE)
+
+# Step 4: Visualise
+plot_df <- tibble(
+  UMAP1 = umap_result[, 1],
+  UMAP2 = umap_result[, 2],
+  Group = factor(group, levels = c("Healthy", "Mild", "Severe"))
+)
+
+ggplot(plot_df, aes(x = UMAP1, y = UMAP2, colour = Group)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  scale_colour_manual(values = c("Healthy" = "steelblue",
+                                  "Mild" = "goldenrod",
+                                  "Severe" = "firebrick")) +
+  labs(title = "UMAP After PCA Reduction",
+       subtitle = "500 patients, 100 features → 20 PCs → 2D UMAP") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+### Python
+
+```{python}
+#| label: fig-workflow-py
+#| fig-cap: "The standard workflow: PCA for initial reduction, then UMAP for visualisation."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from umap import UMAP
+
+np.random.seed(42)
+n, p = 500, 100
+group = np.random.choice(["Healthy", "Mild", "Severe"], n, p=[0.4, 0.35, 0.25])
+
+X_hd = np.random.normal(0, 1, (n, p))
+X_hd[group == "Mild", :10] += 1.5
+X_hd[group == "Severe", :10] += 3
+X_hd[group == "Severe", 10:20] -= 2
+
+# Workflow
+X_scaled = StandardScaler().fit_transform(X_hd)
+pca_20 = PCA(n_components=20).fit_transform(X_scaled)
+umap_2d = UMAP(n_neighbors=15, min_dist=0.1, random_state=42).fit_transform(pca_20)
+
+fig, ax = plt.subplots(figsize=(8, 6))
+color_map = {"Healthy": "steelblue", "Mild": "goldenrod", "Severe": "firebrick"}
+for g in ["Healthy", "Mild", "Severe"]:
+    mask = group == g
+    ax.scatter(umap_2d[mask, 0], umap_2d[mask, 1],
+               c=color_map[g], s=12, alpha=0.6, label=g)
+ax.set_xlabel("UMAP 1")
+ax.set_ylabel("UMAP 2")
+ax.set_title("UMAP After PCA Reduction\n500 patients, 100 features → 20 PCs → 2D")
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Exercises
+
+### Exercise 1: PCA on Clinical Lab Data
+
+Using the simulated metabolic panel data from this chapter (or a real dataset if available):
+
+a. Perform PCA on the standardised data.
+b. Create a scree plot and determine how many components to retain using the cumulative variance threshold (80%) and the Kaiser criterion.
+c. Examine the loadings of the first two PCs. Which variables load most strongly on each? Propose a clinical interpretation.
+d. Create a biplot coloured by a simulated diabetes status variable. Do diabetic patients separate along PC1?
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: exercise-1-solution
+#| code-fold: true
+#| code-summary: "Show solution"
+#| fig-width: 10
+#| fig-height: 5
+
+# Add diabetes status (correlated with glucose/HbA1c)
+set.seed(99)
+metabolic$diabetes <- factor(ifelse(metabolic$glucose > 110 & metabolic$hba1c > 6.2,
+                                     "Diabetic", "Non-diabetic"))
+
+pca_fit <- prcomp(metabolic %>% select(-diabetes), scale. = TRUE)
+
+# (a) & (b) Scree plot with cumulative variance
+var_prop <- pca_fit$sdev^2 / sum(pca_fit$sdev^2)
+cum_var  <- cumsum(var_prop)
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+barplot(var_prop, names.arg = paste0("PC", 1:8), col = "steelblue",
+        main = "Variance Explained", ylab = "Proportion")
+abline(h = 1/8, col = "firebrick", lty = 2)
+
+plot(1:8, cum_var, type = "b", pch = 16, col = "steelblue",
+     main = "Cumulative Variance", xlab = "Components",
+     ylab = "Cumulative proportion", ylim = c(0, 1))
+abline(h = 0.80, col = "firebrick", lty = 2)
+text(6, 0.82, "80% threshold", col = "firebrick", cex = 0.8)
+
+cat("Components for 80% variance:", which(cum_var >= 0.80)[1], "\n")
+
+# (c) Loadings
+cat("\nPC1 loadings:\n")
+print(round(sort(pca_fit$rotation[, 1], decreasing = TRUE), 3))
+cat("\nPC2 loadings:\n")
+print(round(sort(pca_fit$rotation[, 2], decreasing = TRUE), 3))
+```
+
+### Python
+
+```{python}
+#| label: exercise-1-solution-py
+#| code-fold: true
+#| code-summary: "Show solution"
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+# Recreate metabolic data (using earlier arrays)
+diabetes = ["Diabetic" if metabolic.iloc[i]['glucose'] > 110 and
+            metabolic.iloc[i]['hba1c'] > 6.2 else "Non-diabetic"
+            for i in range(len(metabolic))]
+
+X = metabolic[['glucose','hba1c','triglycerides','ldl','hdl',
+               'creatinine','alt','albumin']].values
+X_s = StandardScaler().fit_transform(X)
+pca = PCA().fit(X_s)
+
+cum_var = np.cumsum(pca.explained_variance_ratio_)
+n_80 = np.argmax(cum_var >= 0.80) + 1
+print(f"Components for 80% variance: {n_80}")
+
+# Loadings
+feat_names = ['glucose','hba1c','triglycerides','ldl','hdl',
+              'creatinine','alt','albumin']
+for pc in [0, 1]:
+    loadings = pca.components_[pc]
+    order = np.argsort(np.abs(loadings))[::-1]
+    print(f"\nPC{pc+1} loadings:")
+    for idx in order:
+        print(f"  {feat_names[idx]:>15s}: {loadings[idx]:+.3f}")
+```
+
+:::
+
+### Exercise 2: t-SNE Sensitivity to Perplexity
+
+Using the three-group simulated dataset:
+
+a. Run t-SNE with perplexity values of 5, 15, 30, and 50.
+b. Create a 2x2 panel of the resulting embeddings.
+c. At which perplexity value do the three groups first become clearly separated?
+d. Are the distances between clusters consistent across perplexity values? What does this tell you about interpreting t-SNE?
+
+### Exercise 3: UMAP Parameter Exploration
+
+Using the same dataset:
+
+a. Run UMAP with `n_neighbors` in {5, 15, 50, 100} while holding `min_dist = 0.1`.
+b. Run UMAP with `min_dist` in {0.0, 0.1, 0.5, 1.0} while holding `n_neighbors = 15`.
+c. Create a panel of plots for each parameter sweep.
+d. Describe how each parameter affects the visual appearance. Which combination would you recommend for this dataset?
+
+### Exercise 4: Full Workflow on Simulated Genomic Data
+
+Simulate a dataset of 1,000 patients with 500 gene expression features and 4 cancer subtypes.
+
+a. Scale the data and perform PCA. How many PCs are needed for 80% variance?
+b. Apply UMAP to the first 30 PCs. Colour by cancer subtype. Are the subtypes visually separable?
+c. Repeat with t-SNE. Compare the two visualisations.
+d. One of the four subtypes is rare (5% of patients). Can you still identify it in the UMAP plot?
+
+## Summary
+
+Dimensionality reduction transforms high-dimensional clinical data into interpretable, lower-dimensional representations. PCA provides linear, interpretable components that are ideal for initial exploration and preprocessing. t-SNE and UMAP offer non-linear embeddings that reveal complex structure invisible to PCA, though their outputs must be interpreted with care. The standard workflow --- scale, reduce with PCA, embed with UMAP, interpret cautiously --- is a reliable starting point for any high-dimensional dataset in clinical research.
+
+::: {.callout-tip}
+## Key Takeaways
+1. Always scale your data before dimensionality reduction.
+2. PCA is linear, deterministic, and interpretable. Use it first.
+3. t-SNE is for visualisation only. Distances between clusters are meaningless; cluster sizes are meaningless.
+4. UMAP is faster, preserves more global structure, and can serve as a preprocessing step for downstream analysis.
+5. Non-linear methods are exploratory. Validate any apparent structure with formal statistical methods or domain expertise.
+:::
+
+## References and Further Reading
+
+The foundational reference for UMAP is McInnes, Healy, and Melville's 2018 paper "UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction," available on arXiv (1802.03426). For t-SNE, van der Maaten and Hinton's 2008 paper in the *Journal of Machine Learning Research* introduced the method, and Wattenberg, Viegas, and Johnson's 2016 interactive article "How to Use t-SNE Effectively" on Distill.pub remains the best practical guide to understanding its behaviour and pitfalls.
+
+For PCA in a clinical context, Jolliffe and Cadima's 2016 tutorial "Principal Component Analysis: A Review and Recent Developments" in the *Philosophical Transactions of the Royal Society A* provides a modern overview. Becht et al.'s 2019 paper "Dimensionality Reduction for Visualizing Single-Cell Data Using UMAP" in *Nature Biotechnology* demonstrates the advantages of UMAP over t-SNE in a biological context that generalises well to other high-dimensional clinical data.
+
+A comprehensive 2024 review by Xiang et al. in *BMC Bioinformatics* compares PCA, t-SNE, UMAP, and newer methods (PHATE, TriMap) across multiple benchmarks, providing guidance on method selection for different data types. For the mathematical foundations, Murphy's *Probabilistic Machine Learning: An Introduction* (2022) covers PCA in depth, while the UMAP documentation (umap-learn.readthedocs.io) includes excellent tutorials with worked examples. James, Witten, Hastie, and Tibshirani's *An Introduction to Statistical Learning* (2nd edition, 2021) provides an accessible introduction to PCA that is well suited for students with a biostatistics background.

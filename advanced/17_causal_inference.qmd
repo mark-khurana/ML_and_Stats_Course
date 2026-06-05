@@ -1,0 +1,626 @@
+# Causal Inference for Observational Health Data {#sec-causal-inference}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(MatchIt)
+library(WeightIt)
+library(cobalt)
+library(survival)
+library(broom)
+```
+
+## Introduction
+
+Most clinical research relies on observational data --- electronic health records, claims databases, registries, and cohort studies. Yet the questions we care about most are causal: *Does* this drug reduce mortality? *Would* this surgery improve outcomes compared with conservative management? Answering causal questions with observational data requires careful methodology, because the fundamental problem is that patients who receive a treatment are systematically different from those who do not.
+
+This chapter equips you with the conceptual frameworks and practical tools to move from "Drug X is associated with lower mortality" to a defensible causal claim --- or, equally important, to recognise when the data cannot support one.
+
+::: {.callout-important}
+## The stakes are real
+Confounding by indication --- where sicker patients receive more aggressive treatment --- has led to published studies concluding that treatments *cause harm* when they actually help, and vice versa. The Women's Health Initiative overturned decades of observational evidence on hormone replacement therapy. Causal inference methods do not guarantee correct answers, but they make your assumptions explicit and testable.
+:::
+
+## Correlation vs Causation in Medicine
+
+### Why simple regression is not enough
+
+Consider a hospital database showing that patients who receive mechanical ventilation have higher mortality than those who do not. A naive analyst might conclude ventilation is harmful. But the confounding is obvious: ventilation is given to the sickest patients.
+
+This is **confounding by indication** --- the indication for treatment is itself a risk factor for the outcome. Standard regression can adjust for *measured* confounders, but:
+
+1. You must know which variables to include (and which to exclude).
+2. You must model the relationships correctly (linearity, interactions).
+3. You cannot adjust for *unmeasured* confounders.
+
+Causal inference methods address problems 1 and 2 more systematically, and provide tools to assess sensitivity to problem 3.
+
+### The potential outcomes framework
+
+The modern causal inference framework, formalised by Rubin (1974) and extended by Hernan and Robins, rests on **potential outcomes**:
+
+- $Y^{a=1}$: the outcome a patient *would have* under treatment
+- $Y^{a=0}$: the outcome a patient *would have* under control
+
+The **individual causal effect** is $Y^{a=1} - Y^{a=0}$, but we can never observe both for the same person. This is the **fundamental problem of causal inference**.
+
+We can, however, estimate the **average treatment effect (ATE)**:
+
+$$
+\text{ATE} = E[Y^{a=1}] - E[Y^{a=0}]
+$$
+
+or the **average treatment effect on the treated (ATT)**:
+
+$$
+\text{ATT} = E[Y^{a=1} - Y^{a=0} \mid A=1]
+$$
+
+The key assumption that allows us to estimate these from observational data is **exchangeability** (no unmeasured confounding): conditional on measured covariates $L$, treatment assignment is independent of potential outcomes.
+
+$$
+Y^a \perp\!\!\!\perp A \mid L
+$$
+
+## Directed Acyclic Graphs (DAGs)
+
+### What is a DAG?
+
+A **directed acyclic graph** is a visual representation of your causal assumptions. Each node represents a variable. Each arrow represents a direct causal effect. "Acyclic" means no variable can cause itself through a chain of arrows.
+
+```{mermaid}
+%%| label: fig-dag-basic
+%%| fig-cap: "A simple DAG showing confounding. Age affects both statin use and cardiovascular death."
+graph LR
+    Age --> StatinUse
+    Age --> CVDeath
+    StatinUse --> CVDeath
+```
+
+### Key structures in DAGs
+
+There are three fundamental structures you must recognise:
+
+**1. Confounders (common causes)**
+
+A variable that causes both treatment and outcome. You MUST adjust for confounders to remove bias.
+
+```
+L --> A --> Y
+L ---------> Y
+```
+
+If `L` is diabetes severity, `A` is insulin therapy, and `Y` is HbA1c, then diabetes severity confounds the insulin-HbA1c relationship.
+
+**2. Mediators (intermediate variables)**
+
+A variable on the causal pathway from treatment to outcome. You should NOT adjust for mediators if you want the total effect.
+
+```
+A --> M --> Y
+```
+
+If `A` is exercise, `M` is weight loss, and `Y` is blood pressure, then weight loss mediates the exercise-BP relationship. Adjusting for weight loss would block part of the effect you want to estimate.
+
+**3. Colliders (common effects)**
+
+A variable caused by both treatment and outcome (or by variables on each path). You should NOT adjust for colliders --- doing so *creates* a spurious association (collider bias).
+
+```
+A --> C <-- Y
+```
+
+If `A` is obesity, `Y` is genetic predisposition to diabetes, and `C` is being in a diabetes clinic, then conditioning on clinic attendance (a collider) creates a spurious negative association between obesity and genetic risk.
+
+::: {.callout-tip}
+## The "d-separation" rule of thumb
+A path between treatment and outcome is **blocked** if:
+
+- It passes through a variable you condition on (confounder or mediator), OR
+- It passes through a collider you do NOT condition on.
+
+A path is **open** if it is not blocked. Bias exists when there are open non-causal paths (backdoor paths) between treatment and outcome.
+:::
+
+### Drawing your own DAG
+
+Before any causal analysis, draw a DAG. Steps:
+
+1. List all variables relevant to treatment assignment and the outcome.
+2. Use clinical knowledge to draw arrows (not data --- DAGs encode assumptions).
+3. Identify all backdoor paths from treatment to outcome.
+4. Determine the minimal adjustment set that blocks all backdoor paths without opening new ones.
+
+Tools like [DAGitty](https://dagitty.net) automate step 4 once you have drawn the DAG.
+
+## Propensity Score Methods
+
+### The propensity score
+
+The **propensity score** is the probability of receiving treatment given observed covariates:
+
+$$
+e(L) = P(A=1 \mid L)
+$$
+
+Rosenbaum and Rubin (1983) showed that, if exchangeability holds conditional on $L$, it also holds conditional on the scalar $e(L)$. This reduces a high-dimensional adjustment problem to a single dimension.
+
+### Estimating the propensity score
+
+We typically estimate $e(L)$ using logistic regression (or more flexible methods like gradient boosting):
+
+```{r}
+#| label: propensity-score-estimation
+#| eval: false
+
+# Simulate clinical data
+set.seed(42)
+n <- 2000
+
+dat <- tibble(
+  age = rnorm(n, 65, 10),
+  diabetes = rbinom(n, 1, 0.3),
+  egfr = rnorm(n, 60, 15),
+  smoking = rbinom(n, 1, 0.25),
+  # Treatment assignment depends on covariates (confounding)
+  ps_true = plogis(-2 + 0.03 * age + 0.5 * diabetes - 0.02 * egfr + 0.4 * smoking),
+  treatment = rbinom(n, 1, ps_true),
+  # Outcome depends on treatment AND covariates
+  mortality = rbinom(n, 1, plogis(-3 + 0.04 * age + 0.6 * diabetes -
+                                    0.03 * egfr + 0.3 * smoking -
+                                    0.5 * treatment))
+)
+
+# Estimate propensity score via logistic regression
+ps_model <- glm(treatment ~ age + diabetes + egfr + smoking,
+                data = dat, family = binomial)
+dat$ps <- predict(ps_model, type = "response")
+
+# Visualise overlap
+ggplot(dat, aes(x = ps, fill = factor(treatment))) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Propensity Score", fill = "Treatment",
+       title = "Propensity Score Distribution by Treatment Group") +
+  theme_minimal()
+```
+
+::: {.callout-warning}
+## Positivity assumption
+Every patient must have a non-zero probability of receiving *either* treatment. If some patients have propensity scores near 0 or 1, the overlap assumption is violated and estimates become unstable. Always check the propensity score distributions visually.
+:::
+
+### Propensity score matching
+
+**Matching** creates a pseudo-randomised subset by pairing treated and control patients with similar propensity scores.
+
+```{r}
+#| label: matching-example
+#| eval: false
+
+# Using MatchIt for nearest-neighbour matching with caliper
+m_out <- matchit(treatment ~ age + diabetes + egfr + smoking,
+                 data = dat,
+                 method = "nearest",
+                 distance = "glm",        # logistic regression PS
+                 caliper = 0.2,           # 0.2 SD of logit PS
+                 ratio = 1)               # 1:1 matching
+
+summary(m_out)
+
+# Check covariate balance using cobalt
+love.plot(m_out,
+          thresholds = c(m = 0.1),    # SMD threshold of 0.1
+          binary = "std",
+          title = "Covariate Balance: Before and After Matching")
+
+# Extract matched data and estimate treatment effect
+m_data <- match.data(m_out)
+
+# Outcome model in matched sample
+outcome_model <- glm(mortality ~ treatment,
+                     data = m_data,
+                     family = binomial,
+                     weights = weights)
+
+tidy(outcome_model, conf.int = TRUE, exponentiate = TRUE)
+```
+
+**Checking balance** is the most important step after matching. A standardised mean difference (SMD) below 0.1 for all covariates is the conventional threshold for acceptable balance.
+
+### Inverse probability of treatment weighting (IPTW)
+
+Instead of discarding unmatched patients, **IPTW** reweights the entire sample so that the distribution of covariates is balanced between groups:
+
+$$
+w_i = \frac{A_i}{e(L_i)} + \frac{1 - A_i}{1 - e(L_i)}
+$$
+
+This estimates the ATE. For the ATT, the weights are:
+
+$$
+w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
+$$
+
+```{r}
+#| label: iptw-example
+#| eval: false
+
+# Using WeightIt
+w_out <- weightit(treatment ~ age + diabetes + egfr + smoking,
+                  data = dat,
+                  method = "ps",
+                  estimand = "ATE")
+
+# Check balance
+bal.tab(w_out, thresholds = c(m = 0.1))
+
+# Stabilised weights (recommended to reduce variance)
+summary(w_out)
+
+# Estimate treatment effect with IPTW
+library(survey)
+d_weighted <- svydesign(ids = ~1, weights = w_out$weights, data = dat)
+svyglm(mortality ~ treatment, design = d_weighted, family = quasibinomial) |>
+  tidy(conf.int = TRUE, exponentiate = TRUE)
+```
+
+::: {.callout-note}
+## Stabilised weights
+Extreme weights can inflate variance. **Stabilised weights** replace the numerator 1 with $P(A=1)$ for treated and $P(A=0)$ for untreated. The `WeightIt` package does this by default. Always check that weights are not excessively large (e.g., max weight > 20 warrants investigation).
+:::
+
+### Doubly robust estimation
+
+**Doubly robust** methods combine a propensity score model and an outcome model. The estimate is consistent if *either* model is correctly specified (but not necessarily both). This provides an extra layer of protection against model misspecification.
+
+The augmented inverse probability weighted (AIPW) estimator is:
+
+$$
+\hat{\tau}_{DR} = \frac{1}{n} \sum_{i=1}^n \left[ \frac{A_i Y_i}{e(L_i)} - \frac{A_i - e(L_i)}{e(L_i)} \hat{\mu}_1(L_i) \right] - \frac{1}{n} \sum_{i=1}^n \left[ \frac{(1-A_i) Y_i}{1-e(L_i)} + \frac{A_i - e(L_i)}{1-e(L_i)} \hat{\mu}_0(L_i) \right]
+$$
+
+where $\hat{\mu}_a(L)$ is the predicted outcome under treatment $a$.
+
+In practice, packages like `AIPW` in R or `DoWhy` in Python handle this computation.
+
+## Target Trial Emulation
+
+### The framework
+
+**Target trial emulation**, developed by Hernan and Robins, asks: "What randomised trial would we *like* to conduct?" and then designs the observational analysis to mimic that trial as closely as possible.
+
+The key components to specify are:
+
+| Protocol component | Target trial | Observational emulation |
+|---|---|---|
+| Eligibility criteria | Defined inclusion/exclusion | Same criteria applied to database |
+| Treatment strategies | e.g., start drug A vs drug B | Same, defined at "time zero" |
+| Treatment assignment | Random | Adjusted via PS methods or g-estimation |
+| Start of follow-up | Randomisation date | Date eligibility + treatment criteria met |
+| Outcome | e.g., 5-year mortality | Same |
+| Causal contrast | Intention-to-treat or per-protocol | Same (with appropriate methods) |
+| Analysis plan | Intention-to-treat analysis | Clone-censor-weight or similar |
+
+### Why this reduces bias
+
+Target trial emulation directly addresses several common biases:
+
+**Immortal time bias**: In a naive observational study comparing drug users to non-users, the time between cohort entry and first prescription is "immortal" --- the patient must survive to receive the drug. This artificially inflates survival in the treated group. Target trial emulation avoids this by aligning "time zero" (start of follow-up) with treatment assignment.
+
+**Selection bias from prevalent user designs**: Studying patients already on a drug (prevalent users) conflates treatment initiation effects with survival conditioning. Target trial emulation uses a **new-user (incident user) design**.
+
+**Vague eligibility and time zero**: When eligibility criteria and the start of follow-up are not clearly defined, analyses can be plagued by look-ahead bias. The target trial framework forces explicit specification.
+
+::: {.callout-tip}
+## The TARGET reporting guideline (2025)
+The TARGET (TrAnsparent ReportinG of observational studies Emulating a Target trial) guideline provides a structured checklist for reporting target trial emulation studies. It was published in the BMJ in 2025 and should be followed for any observational study making causal claims.
+:::
+
+### Example: Statin initiation and cardiovascular events
+
+Suppose we want to estimate the effect of initiating statins within 6 months of a type 2 diabetes diagnosis on 5-year cardiovascular events.
+
+**Target trial specification:**
+
+- **Eligibility**: Adults aged 40--75 with new T2DM diagnosis, no prior CVD, no prior statin use
+- **Treatment strategies**: (1) Initiate statin within 6 months, (2) Do not initiate statin within 6 months
+- **Time zero**: Date of T2DM diagnosis
+- **Outcome**: First major adverse cardiovascular event (MACE) within 5 years
+- **Analysis**: Intention-to-treat using IPTW for confounding, clone-censor-weight for treatment strategy adherence
+
+## Regression Discontinuity Design
+
+**Regression discontinuity (RD)** exploits arbitrary thresholds in clinical decision-making. When treatment is assigned based on whether a continuous variable exceeds a cutoff, patients just above and just below the cutoff are essentially randomly assigned.
+
+**Clinical example**: Many guidelines recommend antihypertensive therapy when systolic blood pressure exceeds 140 mmHg. Patients with SBP of 141 are very similar to patients with SBP of 139, but the former are much more likely to receive treatment. Comparing outcomes near the cutoff provides a quasi-experimental estimate.
+
+Key requirements for a valid RD design:
+
+1. **Treatment probability changes sharply at the cutoff** (first stage)
+2. **Other covariates do not jump at the cutoff** (continuity assumption)
+3. **Patients cannot precisely manipulate their score** (no bunching)
+
+RD designs are less common in clinical research than propensity score methods, but when applicable, they provide strong evidence because the assumptions are more testable.
+
+## Implementation in Python
+
+Python's causal inference ecosystem is maturing. Here we demonstrate propensity score matching and IPTW using `dowhy` and `causalinference`.
+
+```{python}
+#| label: python-causal
+#| eval: false
+
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from scipy import stats
+import matplotlib.pyplot as plt
+
+# Simulate clinical data
+np.random.seed(42)
+n = 2000
+
+age = np.random.normal(65, 10, n)
+diabetes = np.random.binomial(1, 0.3, n)
+egfr = np.random.normal(60, 15, n)
+smoking = np.random.binomial(1, 0.25, n)
+
+# Confounded treatment assignment
+ps_true = 1 / (1 + np.exp(-(-2 + 0.03*age + 0.5*diabetes - 0.02*egfr + 0.4*smoking)))
+treatment = np.random.binomial(1, ps_true)
+
+# Outcome
+mortality_prob = 1 / (1 + np.exp(-(-3 + 0.04*age + 0.6*diabetes -
+                                     0.03*egfr + 0.3*smoking -
+                                     0.5*treatment)))
+mortality = np.random.binomial(1, mortality_prob)
+
+df = pd.DataFrame({
+    'age': age, 'diabetes': diabetes, 'egfr': egfr,
+    'smoking': smoking, 'treatment': treatment, 'mortality': mortality
+})
+
+# --- Propensity Score Estimation ---
+covariates = ['age', 'diabetes', 'egfr', 'smoking']
+ps_model = LogisticRegression(max_iter=1000)
+ps_model.fit(df[covariates], df['treatment'])
+df['ps'] = ps_model.predict_proba(df[covariates])[:, 1]
+
+# --- IPTW ---
+# Compute ATE weights
+df['iptw'] = np.where(
+    df['treatment'] == 1,
+    1 / df['ps'],
+    1 / (1 - df['ps'])
+)
+
+# Stabilised weights
+p_treat = df['treatment'].mean()
+df['sw'] = np.where(
+    df['treatment'] == 1,
+    p_treat / df['ps'],
+    (1 - p_treat) / (1 - df['ps'])
+)
+
+# Check balance: weighted standardised mean differences
+def weighted_smd(data, var, treatment_col, weight_col):
+    treated = data[data[treatment_col] == 1]
+    control = data[data[treatment_col] == 0]
+    mean_t = np.average(treated[var], weights=treated[weight_col])
+    mean_c = np.average(control[var], weights=control[weight_col])
+    sd_pooled = np.sqrt((treated[var].var() + control[var].var()) / 2)
+    return (mean_t - mean_c) / sd_pooled
+
+print("Covariate balance (weighted SMD):")
+for var in covariates:
+    smd = weighted_smd(df, var, 'treatment', 'sw')
+    print(f"  {var}: {smd:.4f}")
+
+# --- Weighted outcome estimation ---
+from statsmodels.api import WLS, add_constant
+
+X = add_constant(df['treatment'])
+wls_model = WLS(df['mortality'], X, weights=df['sw']).fit()
+print("\nIPTW Treatment Effect Estimate:")
+print(f"  Coefficient: {wls_model.params[1]:.4f}")
+print(f"  95% CI: ({wls_model.conf_int()[1][0]:.4f}, {wls_model.conf_int()[1][1]:.4f})")
+```
+
+### Using DoWhy for causal analysis
+
+```{python}
+#| label: dowhy-example
+#| eval: false
+
+# DoWhy provides a structured causal inference workflow
+# Install: pip install dowhy
+
+import dowhy
+from dowhy import CausalModel
+
+# Step 1: Model - encode causal assumptions
+model = CausalModel(
+    data=df,
+    treatment='treatment',
+    outcome='mortality',
+    common_causes=['age', 'diabetes', 'egfr', 'smoking']
+)
+
+# Step 2: Identify - find valid adjustment strategy
+identified_estimand = model.identify_effect()
+print(identified_estimand)
+
+# Step 3: Estimate - using propensity score weighting
+estimate = model.estimate_effect(
+    identified_estimand,
+    method_name="backdoor.propensity_score_weighting",
+    method_params={"weighting_scheme": "ips_stabilized_weight"}
+)
+print(f"Causal Estimate: {estimate.value:.4f}")
+
+# Step 4: Refute - sensitivity analysis
+refutation = model.refute_estimate(
+    identified_estimand, estimate,
+    method_name="random_common_cause"
+)
+print(refutation)
+```
+
+## Sensitivity Analysis for Unmeasured Confounding
+
+No observational study can prove the absence of unmeasured confounding. **Sensitivity analysis** quantifies how strong unmeasured confounding would need to be to explain away the observed effect.
+
+The **E-value** (VanderWeele and Ding, 2017) provides a simple summary: it is the minimum strength of association (on the risk ratio scale) that an unmeasured confounder would need to have with both the treatment and the outcome to fully explain away the observed treatment-outcome association.
+
+$$
+\text{E-value} = RR + \sqrt{RR \times (RR - 1)}
+$$
+
+where $RR$ is the observed risk ratio. The E-value for the confidence interval bound closest to the null is also reported.
+
+```{r}
+#| label: evalue
+#| eval: false
+
+# E-value calculation
+library(EValue)
+
+# Suppose our IPTW analysis found RR = 0.65 (95% CI: 0.50, 0.85)
+# Convert protective RR to above-null: 1/0.65 = 1.538
+evalues.RR(est = 1/0.65, lo = 1/0.85, hi = 1/0.50)
+```
+
+## Practical Guidance: Choosing Your Method
+
+| Scenario | Recommended approach |
+|---|---|
+| Binary treatment, many controls available | Propensity score matching |
+| Binary treatment, need full sample | IPTW |
+| Concern about model misspecification | Doubly robust estimation |
+| Time-varying treatment | Marginal structural models (IPTW over time) |
+| Natural threshold for treatment | Regression discontinuity |
+| Emulating a specific trial design | Target trial emulation framework |
+
+## Exercises
+
+### Exercise 1: DAG construction (Conceptual)
+
+You are studying the relationship between **ACE inhibitor use** and **acute kidney injury (AKI)** in hospitalised patients.
+
+a) List at least five variables that might be relevant to this relationship.
+b) Draw a DAG (on paper or using DAGitty) encoding your causal assumptions.
+c) Identify the minimal sufficient adjustment set for estimating the effect of ACE inhibitors on AKI.
+d) Identify at least one potential collider. What would happen if you adjusted for it?
+
+### Exercise 2: Propensity score matching in R
+
+Using the simulated dataset below, perform propensity score matching and estimate the treatment effect.
+
+```{r}
+#| label: exercise-2-data
+#| eval: false
+
+set.seed(123)
+n <- 1500
+exercise_dat <- tibble(
+  age = rnorm(n, 70, 8),
+  creatinine = rnorm(n, 1.2, 0.4),
+  heart_failure = rbinom(n, 1, 0.35),
+  prior_mi = rbinom(n, 1, 0.20),
+  # Confounded treatment (beta-blocker use)
+  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
+                                     0.5*prior_mi - 0.8*creatinine)),
+  # Outcome: 1-year mortality
+  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
+                                     0.6*prior_mi + 1.0*creatinine -
+                                     0.7*treatment))
+)
+```
+
+a) Estimate propensity scores using logistic regression.
+b) Perform 1:1 nearest-neighbour matching with a caliper of 0.2 SD.
+c) Create a Love plot to assess balance before and after matching.
+d) Estimate the ATT for beta-blocker use on 1-year mortality.
+e) Calculate the E-value for your estimate. Interpret it.
+
+### Exercise 3: IPTW in Python
+
+Using the same data-generating process as Exercise 2 (replicate it in Python):
+
+```{python}
+#| label: exercise-3-data
+#| eval: false
+
+import numpy as np
+import pandas as pd
+
+np.random.seed(123)
+n = 1500
+age = np.random.normal(70, 8, n)
+creatinine = np.random.normal(1.2, 0.4, n)
+heart_failure = np.random.binomial(1, 0.35, n)
+prior_mi = np.random.binomial(1, 0.20, n)
+
+ps_true = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
+                               0.5*prior_mi - 0.8*creatinine)))
+treatment = np.random.binomial(1, ps_true)
+
+mort_prob = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
+                                 0.6*prior_mi + 1.0*creatinine -
+                                 0.7*treatment)))
+death_1yr = np.random.binomial(1, mort_prob)
+
+df = pd.DataFrame({
+    'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
+    'prior_mi': prior_mi, 'treatment': treatment, 'death_1yr': death_1yr
+})
+```
+
+a) Fit a propensity score model and compute stabilised IPTW weights.
+b) Assess covariate balance using weighted standardised mean differences.
+c) Estimate the ATE using weighted regression.
+d) Perform a sensitivity analysis: add a simulated unmeasured confounder and show how the estimate changes.
+
+### Exercise 4: Target trial emulation (Conceptual)
+
+You have access to a large electronic health records database and want to estimate the effect of **early metformin initiation** (within 3 months of type 2 diabetes diagnosis) vs **delayed initiation** (3--12 months after diagnosis) on 5-year cardiovascular events.
+
+a) Write a complete target trial protocol table (eligibility, treatment strategies, assignment, start of follow-up, outcome, causal contrast, analysis plan).
+b) Identify potential sources of immortal time bias in a naive analysis.
+c) Describe how the new-user, active comparator design addresses confounding by indication.
+d) What unmeasured confounders might remain? How would you conduct a sensitivity analysis?
+
+## Summary
+
+| Concept | Key point |
+|---|---|
+| Confounding by indication | Sicker patients get more treatment --- naive comparisons are biased |
+| DAGs | Encode causal assumptions visually; identify what to adjust for |
+| Propensity score | $P(\text{treatment} \mid \text{covariates})$; reduces dimensionality |
+| Matching | Creates balanced pseudo-randomised groups; check balance |
+| IPTW | Reweights full sample; preserves sample size |
+| Doubly robust | Combines PS + outcome model; consistent if either is correct |
+| Target trial emulation | Design observational analysis to mimic an ideal RCT |
+| E-value | Quantifies robustness to unmeasured confounding |
+
+## References and Further Reading
+
+1. **Hernan MA, Robins JM.** *Causal Inference: What If.* Chapman & Hall/CRC, 2024. Freely available at [https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/). The definitive modern textbook on causal inference.
+
+2. **Rosenbaum PR.** *Observational Studies.* 2nd ed. Springer, 2002. The classic text on propensity score methods and sensitivity analysis.
+
+3. **Rosenbaum PR, Rubin DB.** The central role of the propensity score in observational studies for causal effects. *Biometrika.* 1983;70(1):41--55.
+
+4. **TARGET Guideline.** TrAnsparent ReportinG of observational studies Emulating a Target trial. *BMJ.* 2025. Reporting checklist for target trial emulation studies.
+
+5. **VanderWeele TJ, Ding P.** Sensitivity analysis in observational research: introducing the E-value. *Annals of Internal Medicine.* 2017;167(4):268--274.
+
+6. **Textor J, van der Zander B, Gilthorpe MS, et al.** Robust causal inference using directed acyclic graphs: the R package 'dagitty'. *International Journal of Epidemiology.* 2016;45(6):1887--1894.
+
+7. **Ho DE, Imai K, King G, Stuart EA.** MatchIt: nonparametric preprocessing for parametric causal inference. *Journal of Statistical Software.* 2011;42(8):1--28.
+
+8. **Greifer N.** WeightIt: weighting for covariate balance in observational studies. R package. [https://ngreifer.github.io/WeightIt/](https://ngreifer.github.io/WeightIt/).
+
+9. **Sharma A, Kiciman E.** DoWhy: An end-to-end library for causal inference. arXiv:2011.04216, 2020.
+
+10. **Lodi S, Phillips A, Lundgren J, et al.** Effect estimates in randomized trials and observational studies: comparing apples with apples. *American Journal of Epidemiology.* 2019;188(8):1569--1577.

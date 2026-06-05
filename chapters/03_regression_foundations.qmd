@@ -1,0 +1,862 @@
+# Regression: The Workhorse of Clinical Research {#sec-regression}
+
+## Introduction
+
+If you read clinical research papers, you will encounter regression in nearly every one. It is by far the most commonly used statistical method in medicine. Whether researchers are adjusting for confounders in an observational study, building a risk prediction model, or estimating the effect of a treatment, regression is the tool they reach for.
+
+This chapter covers the foundations: linear regression for continuous outcomes and logistic regression for binary outcomes. We will work through clinical examples in detail, discuss assumptions and diagnostics, and build your intuition for interpreting regression output -- a skill you will use throughout your career.
+
+## Why Regression?
+
+Regression serves two distinct (but related) purposes in clinical research:
+
+1. **Estimating adjusted effects.** In an observational study comparing smokers to non-smokers, smokers are also older, more likely to be male, and more likely to drink alcohol. Simple comparisons confound the smoking effect with these other variables. Regression lets you estimate the effect of smoking *while holding age, sex, and alcohol constant* -- what we call "adjusting for confounders."
+
+2. **Predicting outcomes.** A cardiologist wants to estimate a patient's 10-year risk of coronary heart disease (CHD) based on their age, sex, smoking status, blood pressure, and cholesterol. Regression can combine these predictors into a single risk score. The Framingham Risk Score, one of the most widely used tools in medicine, is essentially a logistic regression model.
+
+These two goals require different approaches to model building and evaluation, as we will see in later chapters. For now, we focus on the mechanics.
+
+## Simple Linear Regression
+
+### The Setup
+
+Suppose we have data from 150 adults and want to understand the relationship between **age** (in years) and **systolic blood pressure** (SBP, in mmHg). We suspect that blood pressure increases with age.
+
+Simple linear regression fits a straight line through the data:
+
+$$\text{SBP}_i = \beta_0 + \beta_1 \times \text{Age}_i + \epsilon_i$$
+
+where:
+
+- $\beta_0$ is the **intercept** -- the predicted SBP when Age = 0 (often not directly meaningful)
+- $\beta_1$ is the **slope** -- the predicted change in SBP for each one-year increase in age
+- $\epsilon_i$ is the **residual** -- the difference between the observed and predicted SBP for person $i$
+
+We assume: $\epsilon_i \sim N(0, \sigma^2)$ -- the residuals are normally distributed with mean zero and constant variance.
+
+### Fitting the Line
+
+The method of **ordinary least squares (OLS)** finds the values of $\beta_0$ and $\beta_1$ that minimize the sum of squared residuals:
+
+$$\min_{\beta_0, \beta_1} \sum_{i=1}^{n} (y_i - \beta_0 - \beta_1 x_i)^2$$
+
+This has a closed-form solution:
+
+$$\hat{\beta}_1 = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - \bar{x})^2}, \qquad \hat{\beta}_0 = \bar{y} - \hat{\beta}_1 \bar{x}$$
+
+### Interpreting the Output
+
+Suppose our regression yields:
+
+$$\widehat{\text{SBP}} = 90.5 + 0.65 \times \text{Age}$$
+
+**Intercept (90.5 mmHg):** The predicted SBP when Age = 0. This is a mathematical necessity, not a clinical statement -- no one in our study is zero years old. The intercept anchors the line but is rarely interpreted on its own.
+
+**Slope (0.65 mmHg/year):** For each additional year of age, systolic blood pressure is predicted to increase by 0.65 mmHg, on average. This is the key quantity of interest. A 10-year age difference corresponds to a predicted 6.5 mmHg difference in SBP.
+
+::: {.callout-important}
+**Correlation is not causation.** The slope tells you about the *association* between age and blood pressure. It does not mean that aging *causes* blood pressure to rise by exactly 0.65 mmHg per year. There may be confounders (e.g., weight gain, decreased physical activity, dietary changes) that both increase with age and raise blood pressure. To estimate causal effects, you need additional assumptions or study designs (e.g., randomized trials, instrumental variables).
+:::
+
+### Hypothesis Testing for the Slope
+
+The standard test asks: is $\beta_1$ significantly different from zero?
+
+$$H_0: \beta_1 = 0 \quad \text{(no linear relationship)}$$
+$$H_A: \beta_1 \neq 0$$
+
+The test statistic is: $t = \hat{\beta}_1 / SE(\hat{\beta}_1)$
+
+If the output gives $\hat{\beta}_1 = 0.65$, $SE = 0.08$, then $t = 0.65/0.08 = 8.13$, which is highly significant ($p < 0.001$). But remember from Chapter 2: report the confidence interval for $\beta_1$ as well. Here: $0.65 \pm 1.96 \times 0.08 = (0.49, 0.81)$. We are quite confident that each year of age is associated with a 0.49 to 0.81 mmHg increase in SBP.
+
+## Multiple Linear Regression
+
+### Adding Predictors
+
+In practice, we rarely care about just one predictor. Let us add **sex** (0 = female, 1 = male) and **BMI** (kg/m^2^) to our model:
+
+$$\text{SBP}_i = \beta_0 + \beta_1 \times \text{Age}_i + \beta_2 \times \text{Male}_i + \beta_3 \times \text{BMI}_i + \epsilon_i$$
+
+### Interpreting "Adjusted" Coefficients
+
+Suppose the output is:
+
+| Variable | Coefficient | SE | p-value |
+|---|---|---|---|
+| Intercept | 72.3 | 6.1 | < 0.001 |
+| Age | 0.58 | 0.07 | < 0.001 |
+| Male | 4.2 | 1.8 | 0.021 |
+| BMI | 0.92 | 0.21 | < 0.001 |
+
+Each coefficient is interpreted as the effect of that variable **holding all other variables constant** (also called "adjusting for" or "controlling for" the other variables):
+
+- **Age (0.58):** Each additional year of age is associated with a 0.58 mmHg higher SBP, *after adjusting for sex and BMI*. Notice this is slightly lower than the 0.65 from simple regression -- some of the apparent age effect was actually due to BMI increasing with age.
+
+- **Male (4.2):** Males have, on average, 4.2 mmHg higher SBP than females, *after adjusting for age and BMI*.
+
+- **BMI (0.92):** Each 1 kg/m^2^ increase in BMI is associated with a 0.92 mmHg higher SBP, *after adjusting for age and sex*.
+
+::: {.callout-note}
+The phrase "after adjusting for" is critical. It means: if we compare two people who are the same age and sex, but differ by 1 unit of BMI, we predict that the person with the higher BMI has 0.92 mmHg higher SBP. This is the power of multiple regression -- it lets you isolate the association with one variable while holding others constant.
+:::
+
+## Assumptions of Linear Regression
+
+Linear regression relies on four key assumptions, sometimes remembered by the acronym **LINE**:
+
+### 1. Linearity
+
+The relationship between each predictor and the outcome must be approximately linear (after accounting for other predictors). A curved relationship will produce biased estimates and poor predictions.
+
+**How to check:** Plot residuals vs. each predictor, or residuals vs. fitted values. Look for systematic patterns (curves, U-shapes). If you see curvature, consider adding polynomial terms (e.g., $\text{Age}^2$), using splines, or transforming the variable.
+
+### 2. Independence
+
+Observations must be independent of each other. This is violated when you have:
+
+- Repeated measures on the same patient
+- Patients clustered within hospitals
+- Time-series data
+
+Violations do not bias coefficients but severely affect standard errors, p-values, and confidence intervals. If you have non-independent data, you need methods like mixed models or GEE (covered in later chapters).
+
+### 3. Normality of Residuals
+
+The residuals ($\epsilon_i$) should be approximately normally distributed. This matters most for small samples. With large samples (n > 30-50 per group), the Central Limit Theorem makes inference robust to non-normality.
+
+**How to check:** Q-Q plot (residuals plotted against theoretical normal quantiles). Points should fall approximately on a straight line.
+
+### 4. Equal Variance (Homoscedasticity)
+
+The spread of residuals should be roughly constant across all levels of the predicted values. If residuals "fan out" as predicted values increase (heteroscedasticity), standard errors are biased.
+
+**How to check:** Plot residuals vs. fitted values. The spread should be roughly uniform. If it fans out, consider transforming the outcome (e.g., log transformation) or using robust standard errors.
+
+### Diagnostic Plots
+
+The standard set of diagnostic plots includes:
+
+1. **Residuals vs. Fitted** -- checks linearity and homoscedasticity
+2. **Q-Q Plot** -- checks normality of residuals
+3. **Scale-Location** -- another check for homoscedasticity
+4. **Residuals vs. Leverage** -- identifies influential observations (Cook's distance)
+
+::: {.callout-tip title="Practical Advice"}
+No real dataset perfectly satisfies all assumptions. The question is whether violations are severe enough to invalidate your conclusions. Linear regression is reasonably robust to moderate violations, especially with large samples. However, extreme non-linearity or strong heteroscedasticity can seriously distort your results.
+:::
+
+## Logistic Regression for Binary Outcomes
+
+### Why Not Linear Regression for Binary Outcomes?
+
+Many outcomes in medicine are binary: alive/dead, disease/no disease, hospitalized/not. You might think you could code the outcome as 0/1 and use linear regression. But this causes problems:
+
+- Predicted values can fall below 0 or above 1, which are impossible for probabilities
+- The residuals are not normally distributed
+- The variance is not constant (it depends on the predicted probability)
+
+**Logistic regression** solves these problems by modeling the **log-odds** (logit) of the outcome:
+
+$$\log\left(\frac{p}{1 - p}\right) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \ldots$$
+
+where $p = P(Y = 1)$ is the probability of the event.
+
+### The Logit Link
+
+The **logit** function transforms a probability (bounded between 0 and 1) into a value that can range from $-\infty$ to $+\infty$:
+
+$$\text{logit}(p) = \log\left(\frac{p}{1-p}\right)$$
+
+The inverse (the **logistic function**) converts back:
+
+$$p = \frac{e^{\beta_0 + \beta_1 x_1 + \ldots}}{1 + e^{\beta_0 + \beta_1 x_1 + \ldots}} = \frac{1}{1 + e^{-(\beta_0 + \beta_1 x_1 + \ldots)}}$$
+
+This ensures predicted probabilities always fall between 0 and 1.
+
+### Interpreting Coefficients as Odds Ratios
+
+In logistic regression, the coefficients are on the log-odds scale, which is not intuitive. We exponentiate them to get **odds ratios (OR)**:
+
+$$OR = e^{\beta}$$
+
+### Clinical Example: Predicting 10-year CHD Risk
+
+Let us build a model predicting 10-year coronary heart disease (CHD) risk from age, sex, smoking status, total cholesterol, and systolic blood pressure. This is similar to the Framingham Risk Score.
+
+Suppose our logistic regression output is:
+
+| Variable | Coefficient ($\beta$) | SE | OR ($e^{\beta}$) | 95% CI for OR | p-value |
+|---|---|---|---|---|---|
+| Intercept | -8.45 | 0.92 | -- | -- | < 0.001 |
+| Age (per year) | 0.065 | 0.012 | 1.067 | (1.042, 1.093) | < 0.001 |
+| Male | 0.72 | 0.19 | 2.054 | (1.414, 2.985) | < 0.001 |
+| Current smoker | 0.58 | 0.21 | 1.786 | (1.182, 2.698) | 0.006 |
+| Total cholesterol (per 10 mg/dL) | 0.11 | 0.04 | 1.116 | (1.032, 1.207) | 0.006 |
+| SBP (per 10 mmHg) | 0.18 | 0.05 | 1.197 | (1.085, 1.321) | < 0.001 |
+
+**Interpretation:**
+
+- **Age (OR = 1.067):** Each additional year of age is associated with 6.7% higher odds of CHD, adjusted for sex, smoking, cholesterol, and SBP.
+
+- **Male (OR = 2.054):** Males have approximately twice the odds of developing CHD compared to females, after adjustment.
+
+- **Current smoker (OR = 1.786):** Current smokers have about 79% higher odds of CHD compared to non-smokers, after adjustment.
+
+- **Total cholesterol (OR = 1.116 per 10 mg/dL):** Each 10 mg/dL increase in total cholesterol is associated with 11.6% higher odds of CHD.
+
+- **SBP (OR = 1.197 per 10 mmHg):** Each 10 mmHg increase in SBP is associated with about 20% higher odds of CHD.
+
+### Predicted Probabilities
+
+You can use the model to compute individual risk. For a 55-year-old male smoker with cholesterol of 240 mg/dL and SBP of 150 mmHg:
+
+$$\text{logit}(p) = -8.45 + 0.065(55) + 0.72(1) + 0.58(1) + 0.11(24) + 0.18(15)$$
+$$= -8.45 + 3.575 + 0.72 + 0.58 + 2.64 + 2.70 = 1.765$$
+
+$$p = \frac{e^{1.765}}{1 + e^{1.765}} = \frac{5.84}{6.84} = 0.854$$
+
+Wait -- that is an 85.4% predicted probability of CHD, which seems too high. This is because our coefficients are illustrative; real Framingham coefficients would produce more calibrated predictions. The important point is the *method*: plug in patient values, compute the linear predictor, and convert to a probability using the logistic function.
+
+::: {.callout-note}
+**Odds ratios vs. risk ratios:** Remember from Chapter 2 that odds ratios exaggerate the effect when the outcome is common. If the baseline risk is 5%, an OR of 2.0 corresponds to a risk ratio of approximately 1.9. But if the baseline risk is 40%, an OR of 2.0 corresponds to a risk ratio of only about 1.4. In logistic regression, you always get ORs; converting to risk ratios requires additional steps. For common outcomes, consider using log-binomial regression or Poisson regression with robust standard errors to obtain risk ratios directly.
+:::
+
+## Model Fit
+
+### R-squared (Linear Regression)
+
+**$R^2$** is the proportion of variance in the outcome explained by the predictors:
+
+$$R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2} = 1 - \frac{SS_{\text{res}}}{SS_{\text{tot}}}$$
+
+- $R^2 = 0$: the model explains none of the variance (no better than the mean)
+- $R^2 = 1$: the model explains all the variance (perfect prediction)
+
+In clinical research, $R^2$ values are often modest (0.10 - 0.40) because human biology is variable. An $R^2$ of 0.25 means your model explains 25% of the variance in blood pressure -- the remaining 75% is due to factors not in your model, measurement error, and inherent biological variability.
+
+**Adjusted $R^2$** penalizes for the number of predictors, preventing the illusion of improvement from adding noise variables:
+
+$$R^2_{\text{adj}} = 1 - \frac{(1 - R^2)(n - 1)}{n - k - 1}$$
+
+where $k$ is the number of predictors. Always report adjusted $R^2$ when comparing models with different numbers of predictors.
+
+### AIC (Akaike Information Criterion)
+
+AIC balances model fit against complexity:
+
+$$AIC = -2\log(L) + 2k$$
+
+where $L$ is the likelihood and $k$ is the number of parameters. Lower AIC is better. AIC is useful for comparing non-nested models (models that are not subsets of each other). Unlike $R^2$, AIC has no absolute interpretation -- it is only meaningful relative to other models fit to the same data.
+
+### Deviance (Logistic Regression)
+
+In logistic regression, we do not have a traditional $R^2$. Instead, we use **deviance**, which plays a similar role to the sum of squares in linear regression:
+
+$$\text{Deviance} = -2 \log(L)$$
+
+A **likelihood ratio test** compares the deviance of your model to a null model (intercept only). Pseudo-$R^2$ measures (e.g., Nagelkerke, McFadden) attempt to provide an $R^2$-like summary, but they do not have the same clean interpretation as linear $R^2$.
+
+## Categorical Predictors and Dummy Variables
+
+### The Problem
+
+Regression requires numeric predictors. How do you include a variable like **race** (White, Black, Hispanic, Asian, Other)?
+
+### Dummy (Indicator) Variables
+
+Create $k - 1$ binary variables for a categorical predictor with $k$ levels. One level is chosen as the **reference category**:
+
+| Patient | White | Black | Hispanic | Asian |
+|---|---|---|---|---|
+| White patient | 1 | 0 | 0 | 0 |
+| Black patient | 0 | 1 | 0 | 0 |
+| Hispanic patient | 0 | 0 | 1 | 0 |
+| Asian patient | 0 | 0 | 0 | 1 |
+| Other patient | 0 | 0 | 0 | 0 |
+
+Here, "Other" is the reference category (all dummies = 0). Each coefficient represents the difference between that group and the reference group.
+
+::: {.callout-warning}
+The choice of reference category changes the coefficients but NOT the model's predictions or overall fit. It only changes which comparisons are directly reported. Choose a reference category that makes clinical sense -- often the most common group or the control/standard-of-care group.
+:::
+
+### Interpreting Dummy Variable Coefficients
+
+If the coefficient for Black (vs. Other) is 3.8, it means: "On average, Black patients have 3.8 mmHg higher SBP than Other patients, holding all other variables constant."
+
+Most statistical software handles this automatically. In R, factors are automatically converted to dummy variables. In Python (statsmodels or scikit-learn), you may need to create them explicitly or use formula notation.
+
+## Interaction Terms
+
+### When Effects Depend on Each Other
+
+An **interaction** occurs when the effect of one predictor depends on the level of another predictor. For example:
+
+- The effect of a drug might differ between men and women
+- The effect of age on blood pressure might be steeper for smokers than non-smokers
+- The effect of exercise on weight loss might depend on baseline BMI
+
+### Specifying an Interaction
+
+To test whether the age-SBP relationship differs by sex:
+
+$$\text{SBP} = \beta_0 + \beta_1 \text{Age} + \beta_2 \text{Male} + \beta_3 (\text{Age} \times \text{Male}) + \epsilon$$
+
+The interaction term $\beta_3$ captures *how much the slope of Age differs for males vs. females*.
+
+### Interpreting Interaction Terms
+
+Suppose we get:
+
+| Variable | Coefficient |
+|---|---|
+| Intercept | 85.0 |
+| Age | 0.50 |
+| Male | -5.0 |
+| Age x Male | 0.20 |
+
+For **females** (Male = 0):
+
+$$\text{SBP} = 85.0 + 0.50 \times \text{Age}$$
+
+For **males** (Male = 1):
+
+$$\text{SBP} = 85.0 + 0.50 \times \text{Age} + (-5.0)(1) + 0.20 \times \text{Age}(1)$$
+$$= 80.0 + 0.70 \times \text{Age}$$
+
+So the age slope is 0.50 mmHg/year for females but 0.70 mmHg/year for males. The interaction coefficient (0.20) is the *difference in slopes*. Males' blood pressure increases more steeply with age than females'.
+
+::: {.callout-important}
+**Main effects rule:** When you include an interaction term, you must also include both "main effects" (the individual terms). Never include $\text{Age} \times \text{Male}$ without also including $\text{Age}$ and $\text{Male}$ separately. Dropping main effects changes the interpretation of the interaction term in misleading ways.
+:::
+
+::: {.callout-tip title="When to Test for Interactions"}
+Do not test every possible interaction -- this leads to multiple testing problems and overfitting. Only test interactions that are:
+
+1. **Pre-specified** based on clinical reasoning (e.g., "We hypothesize the drug works differently in men vs. women")
+2. **Scientifically plausible** (there is a biological mechanism for effect modification)
+3. **Adequately powered** (interaction tests require much larger samples than main effect tests -- roughly 4x the sample size)
+:::
+
+## Exercises
+
+::: {.callout-tip title="Exercise 3.1: Simple Linear Regression"}
+Using simulated clinical data, fit a simple linear regression of systolic blood pressure on age. Interpret the slope and intercept. Create a scatterplot with the regression line.
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+
+# Simulate clinical data
+set.seed(42)
+n <- 150
+age <- round(runif(n, 30, 75))
+sbp <- 85 + 0.6 * age + rnorm(n, 0, 12)
+
+clinical_data <- data.frame(age = age, sbp = sbp)
+
+# Fit the model
+model <- lm(sbp ~ age, data = clinical_data)
+summary(model)
+
+# Interpret
+cat("\nIntercept:", coef(model)[1], "mmHg\n")
+cat("Slope:", coef(model)[2], "mmHg per year of age\n")
+cat("R-squared:", summary(model)$r.squared, "\n")
+
+# Confidence interval for the slope
+confint(model, "age", level = 0.95)
+
+# Scatterplot with regression line
+library(ggplot2)
+ggplot(clinical_data, aes(x = age, y = sbp)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  labs(x = "Age (years)", y = "Systolic Blood Pressure (mmHg)",
+       title = "Age vs. Systolic Blood Pressure") +
+  theme_minimal()
+```
+
+## Python
+```{python}
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+n = 150
+age = np.random.uniform(30, 75, n).round()
+sbp = 85 + 0.6 * age + np.random.normal(0, 12, n)
+
+clinical_data = pd.DataFrame({'age': age, 'sbp': sbp})
+
+# Fit the model
+X = sm.add_constant(clinical_data['age'])
+model = sm.OLS(clinical_data['sbp'], X).fit()
+print(model.summary())
+
+print(f"\nIntercept: {model.params['const']:.2f} mmHg")
+print(f"Slope: {model.params['age']:.3f} mmHg per year of age")
+print(f"R-squared: {model.rsquared:.3f}")
+print(f"95% CI for slope: ({model.conf_int().loc['age', 0]:.3f}, "
+      f"{model.conf_int().loc['age', 1]:.3f})")
+
+# Scatterplot with regression line
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.scatter(age, sbp, alpha=0.5)
+age_range = np.linspace(30, 75, 100)
+predicted = model.params['const'] + model.params['age'] * age_range
+ax.plot(age_range, predicted, 'b-', linewidth=2, label='Regression line')
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Systolic Blood Pressure (mmHg)')
+ax.set_title('Age vs. Systolic Blood Pressure')
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+You should find a slope of approximately 0.6 mmHg/year (close to the true value used in simulation), an intercept around 85, and $R^2$ around 0.40-0.50. The interpretation: each additional year of age is associated with about 0.6 mmHg higher systolic blood pressure. The intercept (approximately 85) represents the predicted SBP at age 0, which is an extrapolation and not clinically meaningful. The 95% CI for the slope should be entirely positive, confirming the association.
+:::
+:::
+
+::: {.callout-tip title="Exercise 3.2: Multiple Regression and Confounding"}
+Add BMI and sex to the model from Exercise 3.1. Compare the age coefficient before and after adjustment. Does it change? What does this tell you about confounding?
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+
+set.seed(42)
+n <- 150
+age <- round(runif(n, 30, 75))
+sex <- rbinom(n, 1, 0.5)  # 1 = male
+# BMI increases slightly with age (confounding)
+bmi <- 22 + 0.08 * age + 2 * sex + rnorm(n, 0, 3)
+# SBP depends on age, sex, AND BMI
+sbp <- 70 + 0.45 * age + 4 * sex + 1.0 * bmi + rnorm(n, 0, 10)
+
+df <- data.frame(age = age, sex = factor(sex, labels = c("Female", "Male")),
+                 bmi = bmi, sbp = sbp)
+
+# Unadjusted model (age only)
+model_unadj <- lm(sbp ~ age, data = df)
+cat("=== Unadjusted Model ===\n")
+cat("Age coefficient:", coef(model_unadj)["age"], "\n")
+cat("R-squared:", summary(model_unadj)$r.squared, "\n\n")
+
+# Adjusted model (age + sex + BMI)
+model_adj <- lm(sbp ~ age + sex + bmi, data = df)
+cat("=== Adjusted Model ===\n")
+summary(model_adj)
+cat("\nAge coefficient (unadjusted):", round(coef(model_unadj)["age"], 3), "\n")
+cat("Age coefficient (adjusted):", round(coef(model_adj)["age"], 3), "\n")
+cat("Change:", round(coef(model_unadj)["age"] - coef(model_adj)["age"], 3), "\n")
+```
+
+## Python
+```{python}
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+np.random.seed(42)
+n = 150
+age = np.random.uniform(30, 75, n).round()
+sex = np.random.binomial(1, 0.5, n)
+# BMI increases slightly with age (confounding)
+bmi = 22 + 0.08 * age + 2 * sex + np.random.normal(0, 3, n)
+# SBP depends on age, sex, AND BMI
+sbp = 70 + 0.45 * age + 4 * sex + 1.0 * bmi + np.random.normal(0, 10, n)
+
+df = pd.DataFrame({'age': age, 'sex': sex, 'bmi': bmi, 'sbp': sbp})
+
+# Unadjusted model
+model_unadj = smf.ols('sbp ~ age', data=df).fit()
+print("=== Unadjusted Model ===")
+print(f"Age coefficient: {model_unadj.params['age']:.3f}")
+print(f"R-squared: {model_unadj.rsquared:.3f}\n")
+
+# Adjusted model
+model_adj = smf.ols('sbp ~ age + C(sex) + bmi', data=df).fit()
+print("=== Adjusted Model ===")
+print(model_adj.summary())
+print(f"\nAge coefficient (unadjusted): {model_unadj.params['age']:.3f}")
+print(f"Age coefficient (adjusted): {model_adj.params['age']:.3f}")
+print(f"Change: {model_unadj.params['age'] - model_adj.params['age']:.3f}")
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+The unadjusted age coefficient should be notably larger than the adjusted coefficient. In the simulation, the true age effect is 0.45, but the unadjusted estimate is inflated because BMI increases with age (confounding path: Age -> BMI -> SBP). After adjusting for BMI and sex, the age coefficient moves closer to the true value of 0.45. This demonstrates **confounding**: the unadjusted age coefficient captured not only the direct effect of age but also the indirect effect through BMI. Adjusted $R^2$ should also be substantially higher in the multiple regression model.
+:::
+:::
+
+::: {.callout-tip title="Exercise 3.3: Logistic Regression"}
+Using simulated data, fit a logistic regression predicting 10-year CHD risk from age, sex, smoking, and cholesterol. Compute and interpret the odds ratios.
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+
+set.seed(42)
+n <- 500
+
+age <- round(runif(n, 35, 75))
+male <- rbinom(n, 1, 0.5)
+smoker <- rbinom(n, 1, 0.25)
+cholesterol <- round(rnorm(n, 220, 40))
+
+# Generate CHD outcome (binary) based on logistic model
+log_odds <- -7 + 0.06 * age + 0.5 * male + 0.4 * smoker + 0.008 * cholesterol
+prob_chd <- plogis(log_odds)  # inverse logit
+chd <- rbinom(n, 1, prob_chd)
+
+df <- data.frame(age, male = factor(male), smoker = factor(smoker),
+                 cholesterol, chd)
+
+cat("CHD prevalence:", mean(chd), "\n\n")
+
+# Fit logistic regression
+model <- glm(chd ~ age + male + smoker + cholesterol,
+             data = df, family = binomial)
+summary(model)
+
+# Odds ratios with 95% CI
+or_table <- data.frame(
+  OR = exp(coef(model)),
+  Lower = exp(confint(model))[, 1],
+  Upper = exp(confint(model))[, 2]
+)
+cat("\nOdds Ratios:\n")
+print(round(or_table[-1, ], 3))  # Exclude intercept
+
+# Predicted probability for a specific patient
+new_patient <- data.frame(age = 60, male = factor(1), smoker = factor(1),
+                          cholesterol = 260)
+pred_prob <- predict(model, newdata = new_patient, type = "response")
+cat("\nPredicted CHD probability for 60-year-old male smoker with",
+    "cholesterol 260:", round(pred_prob, 3), "\n")
+```
+
+## Python
+```{python}
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.formula.api as smf
+from scipy.special import expit
+
+np.random.seed(42)
+n = 500
+
+age = np.random.uniform(35, 75, n).round()
+male = np.random.binomial(1, 0.5, n)
+smoker = np.random.binomial(1, 0.25, n)
+cholesterol = np.random.normal(220, 40, n).round()
+
+# Generate CHD outcome
+log_odds = -7 + 0.06 * age + 0.5 * male + 0.4 * smoker + 0.008 * cholesterol
+prob_chd = expit(log_odds)
+chd = np.random.binomial(1, prob_chd)
+
+df = pd.DataFrame({
+    'age': age, 'male': male, 'smoker': smoker,
+    'cholesterol': cholesterol, 'chd': chd
+})
+
+print(f"CHD prevalence: {chd.mean():.3f}\n")
+
+# Fit logistic regression
+model = smf.logit('chd ~ age + male + smoker + cholesterol', data=df).fit()
+print(model.summary())
+
+# Odds ratios with 95% CI
+params = model.params[1:]  # exclude intercept
+conf = model.conf_int().iloc[1:]
+or_table = pd.DataFrame({
+    'OR': np.exp(params),
+    'Lower 95% CI': np.exp(conf[0]),
+    'Upper 95% CI': np.exp(conf[1])
+})
+print("\nOdds Ratios:")
+print(or_table.round(3))
+
+# Predicted probability for a specific patient
+new_patient = pd.DataFrame({
+    'age': [60], 'male': [1], 'smoker': [1], 'cholesterol': [260]
+})
+pred_prob = model.predict(new_patient)
+print(f"\nPredicted CHD probability for 60yo male smoker, chol=260: {pred_prob.values[0]:.3f}")
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+The logistic regression should recover coefficients close to the true values used in simulation (age: 0.06, male: 0.5, smoker: 0.4, cholesterol: 0.008). The odds ratios should be approximately:
+
+- Age (per year): OR around 1.06 -- each year of age increases CHD odds by about 6%
+- Male: OR around 1.65 -- males have about 65% higher odds of CHD
+- Smoker: OR around 1.50 -- smokers have about 50% higher odds of CHD
+- Cholesterol (per mg/dL): OR around 1.008 -- each 1 mg/dL increase in cholesterol increases CHD odds by 0.8% (or about 8% per 10 mg/dL)
+
+The predicted probability for a high-risk patient (60-year-old male smoker, cholesterol 260) should be noticeably higher than the population average.
+:::
+:::
+
+::: {.callout-tip title="Exercise 3.4: Regression Diagnostics"}
+Using the linear regression model from Exercise 3.1, create diagnostic plots to assess model assumptions. Identify any potential violations.
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+
+set.seed(42)
+n <- 150
+age <- round(runif(n, 30, 75))
+sbp <- 85 + 0.6 * age + rnorm(n, 0, 12)
+df <- data.frame(age = age, sbp = sbp)
+
+model <- lm(sbp ~ age, data = df)
+
+# Standard diagnostic plots (2x2)
+par(mfrow = c(2, 2))
+plot(model)
+par(mfrow = c(1, 1))
+
+# Or using ggplot2 for prettier diagnostics
+library(ggplot2)
+library(patchwork)
+
+diag_data <- data.frame(
+  fitted = fitted(model),
+  residuals = resid(model),
+  std_residuals = rstandard(model)
+)
+
+p1 <- ggplot(diag_data, aes(x = fitted, y = residuals)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_smooth(se = FALSE, color = "blue") +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal()
+
+p2 <- ggplot(diag_data, aes(sample = std_residuals)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(title = "Normal Q-Q Plot", x = "Theoretical Quantiles",
+       y = "Standardized Residuals") +
+  theme_minimal()
+
+p1 + p2
+```
+
+## Python
+```{python}
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+from scipy import stats
+
+np.random.seed(42)
+n = 150
+age = np.random.uniform(30, 75, n).round()
+sbp = 85 + 0.6 * age + np.random.normal(0, 12, n)
+df = pd.DataFrame({'age': age, 'sbp': sbp})
+
+model = smf.ols('sbp ~ age', data=df).fit()
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# 1. Residuals vs Fitted
+axes[0, 0].scatter(model.fittedvalues, model.resid, alpha=0.5)
+axes[0, 0].axhline(y=0, color='red', linestyle='--')
+axes[0, 0].set_xlabel('Fitted Values')
+axes[0, 0].set_ylabel('Residuals')
+axes[0, 0].set_title('Residuals vs Fitted')
+
+# 2. Q-Q Plot
+stats.probplot(model.resid, dist="norm", plot=axes[0, 1])
+axes[0, 1].set_title('Normal Q-Q Plot')
+
+# 3. Scale-Location
+std_resid = np.sqrt(np.abs(model.get_influence().resid_studentized_internal))
+axes[1, 0].scatter(model.fittedvalues, std_resid, alpha=0.5)
+axes[1, 0].set_xlabel('Fitted Values')
+axes[1, 0].set_ylabel('sqrt(|Standardized Residuals|)')
+axes[1, 0].set_title('Scale-Location')
+
+# 4. Residuals vs Leverage
+sm.graphics.influence_plot(model, ax=axes[1, 1], criterion="cooks")
+axes[1, 1].set_title('Residuals vs Leverage')
+
+plt.tight_layout()
+plt.show()
+
+# Formal test for normality
+shapiro_stat, shapiro_p = stats.shapiro(model.resid)
+print(f"Shapiro-Wilk test for normality: W={shapiro_stat:.4f}, p={shapiro_p:.4f}")
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+Since the data were simulated from a correctly specified linear model with normal errors, the diagnostic plots should look well-behaved:
+
+1. **Residuals vs. Fitted:** Points should be randomly scattered around zero with no systematic pattern. No evidence of non-linearity or heteroscedasticity.
+2. **Q-Q Plot:** Points should fall approximately along the diagonal line, confirming normality.
+3. **Scale-Location:** The spread of residuals should be roughly constant across fitted values.
+4. **Residuals vs. Leverage:** No points should have both high leverage and large residuals (high Cook's distance).
+
+In real clinical data, you will rarely see such clean diagnostics. Common violations include: non-linearity (curved pattern in residuals vs. fitted), heteroscedasticity (fanning out of residuals), and heavy tails (deviations at the ends of the Q-Q plot).
+:::
+:::
+
+::: {.callout-tip title="Exercise 3.5: Interaction Terms"}
+Test whether the effect of age on SBP differs between males and females by adding an interaction term. Interpret the interaction coefficient and create a visualization.
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+
+set.seed(42)
+n <- 300
+age <- round(runif(n, 30, 75))
+sex <- factor(rbinom(n, 1, 0.5), labels = c("Female", "Male"))
+
+# True interaction: steeper age slope for males
+sbp <- 80 + 0.45 * age +
+       ifelse(sex == "Male", -8 + 0.25 * age, 0) +
+       rnorm(n, 0, 10)
+
+df <- data.frame(age = age, sex = sex, sbp = sbp)
+
+# Model WITHOUT interaction
+model_no_int <- lm(sbp ~ age + sex, data = df)
+cat("=== Model without interaction ===\n")
+summary(model_no_int)
+
+# Model WITH interaction
+model_int <- lm(sbp ~ age * sex, data = df)
+cat("\n=== Model with interaction ===\n")
+summary(model_int)
+
+# Is the interaction significant?
+anova(model_no_int, model_int)
+
+# Visualization
+library(ggplot2)
+ggplot(df, aes(x = age, y = sbp, color = sex)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "Age (years)", y = "Systolic Blood Pressure (mmHg)",
+       title = "Age-SBP Relationship by Sex",
+       subtitle = "Steeper slope for males indicates an interaction") +
+  theme_minimal() +
+  scale_color_manual(values = c("Female" = "coral", "Male" = "steelblue"))
+```
+
+## Python
+```{python}
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+n = 300
+age = np.random.uniform(30, 75, n).round()
+sex = np.random.binomial(1, 0.5, n)  # 1 = male
+
+# True interaction: steeper age slope for males
+sbp = 80 + 0.45 * age + (-8 + 0.25 * age) * sex + np.random.normal(0, 10, n)
+
+df = pd.DataFrame({'age': age, 'sex': sex, 'sbp': sbp})
+
+# Model WITHOUT interaction
+model_no_int = smf.ols('sbp ~ age + C(sex)', data=df).fit()
+print("=== Model without interaction ===")
+print(model_no_int.summary())
+
+# Model WITH interaction
+model_int = smf.ols('sbp ~ age * C(sex)', data=df).fit()
+print("\n=== Model with interaction ===")
+print(model_int.summary())
+
+# Compare models (likelihood ratio test)
+from scipy.stats import chi2
+lr_stat = -2 * (model_no_int.llf - model_int.llf)
+lr_p = chi2.sf(lr_stat, df=1)
+print(f"\nLikelihood ratio test: chi2={lr_stat:.2f}, p={lr_p:.4f}")
+
+# Visualization
+fig, ax = plt.subplots(figsize=(8, 6))
+for s, label, color in [(0, 'Female', 'coral'), (1, 'Male', 'steelblue')]:
+    mask = df['sex'] == s
+    ax.scatter(df.loc[mask, 'age'], df.loc[mask, 'sbp'],
+               alpha=0.3, color=color, label=label)
+    age_range = np.linspace(30, 75, 100)
+    pred = model_int.params['Intercept'] + model_int.params['age'] * age_range
+    if s == 1:
+        pred += model_int.params['C(sex)[T.1]'] + model_int.params['age:C(sex)[T.1]'] * age_range
+    ax.plot(age_range, pred, color=color, linewidth=2)
+
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Systolic Blood Pressure (mmHg)')
+ax.set_title('Age-SBP Relationship by Sex')
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+The interaction term should be statistically significant and close to the true value of 0.25. Interpretation:
+
+- **Female age slope:** approximately 0.45 mmHg/year (the main effect of age)
+- **Male age slope:** approximately 0.45 + 0.25 = 0.70 mmHg/year (main effect + interaction)
+- **Interaction coefficient (~0.25):** Males' blood pressure increases 0.25 mmHg/year *faster* than females' blood pressure
+
+The visualization should show two regression lines with noticeably different slopes -- the male line is steeper. The lines may cross at some point, which reflects the negative main effect of male sex combined with the positive interaction.
+
+This has clinical implications: if the age-SBP relationship truly differs by sex, then risk prediction models should account for this interaction rather than assuming a uniform age effect.
+:::
+:::
+
+## Key Takeaways
+
+1. **Simple linear regression** fits a line; the slope is the predicted change in the outcome per unit increase in the predictor.
+2. **Multiple regression coefficients** are "adjusted" -- they represent the effect of one variable holding others constant.
+3. **Always check assumptions** with diagnostic plots. Violations can invalidate your inferences.
+4. **Logistic regression** is for binary outcomes. Exponentiate coefficients to get odds ratios.
+5. **Categorical predictors** require dummy variables. The coefficients represent differences from the reference category.
+6. **Interaction terms** allow effects to differ across subgroups. Only test interactions that are pre-specified and scientifically plausible.
+7. **Model fit statistics** ($R^2$, AIC, deviance) help you evaluate and compare models, but no single metric tells the whole story.
+
+## References and Further Reading
+
+- Vittinghoff, E., Glidden, D. V., Shiboski, S. C., & McCulloch, C. E. (2012). *Regression Methods in Biostatistics: Linear, Logistic, Survival, and Repeated Measures Models* (2nd ed.). Springer.
+- Steyerberg, E. W. (2019). *Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating* (2nd ed.). Springer.
+- Smits, L. J. M., et al. (2026). Recommendations for clinical prediction model development, validation, and updating. *BMJ*.
+- Wasserstein, R. L., & Lazar, N. A. (2016). The ASA statement on p-values: Context, process, and purpose. *The American Statistician*, 70(2), 129-133.
+- Harrell, F. E. (2015). *Regression Modeling Strategies* (2nd ed.). Springer.
+- Hosmer, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). *Applied Logistic Regression* (3rd ed.). Wiley.
+- Gelman, A., & Hill, J. (2007). *Data Analysis Using Regression and Multilevel/Hierarchical Models*. Cambridge University Press.
+- D'Agostino, R. B., Vasan, R. S., Pencina, M. J., et al. (2008). General cardiovascular risk profile for use in primary care: The Framingham Heart Study. *Circulation*, 117(6), 743-753.

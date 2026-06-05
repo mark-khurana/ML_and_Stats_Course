@@ -1,0 +1,16 @@
+_book/
+_freeze/
+.quarto/
+*.html
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+renv/
+.env
+
+/.quarto/

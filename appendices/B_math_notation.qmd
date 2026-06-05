@@ -1,0 +1,130 @@
+---
+title: "Mathematical Notation Reference"
+---
+
+# Mathematical Notation Reference {#sec-math-notation .unnumbered}
+
+This appendix provides a quick reference for mathematical notation used throughout the course. You do not need to memorise these --- use this page as a lookup when you encounter unfamiliar symbols.
+
+## Basic notation
+
+| Symbol | Meaning | Example |
+|--------|---------|---------|
+| $x$ | A variable (lowercase) | Blood pressure measurement |
+| $X$ | A random variable (uppercase) | Blood pressure in the population |
+| $\bar{x}$ | Sample mean | Mean blood pressure in your study |
+| $\mu$ | Population mean | True mean blood pressure |
+| $s$ or $\hat{\sigma}$ | Sample standard deviation | SD of blood pressures in your data |
+| $\sigma$ | Population standard deviation | True SD of blood pressures |
+| $n$ | Sample size | Number of patients |
+| $p$ | Probability or proportion | Prevalence of a disease |
+| $\hat{p}$ | Estimated proportion | Observed prevalence in your sample |
+
+## Probability
+
+| Symbol | Meaning |
+|--------|---------|
+| $P(A)$ | Probability of event A |
+| $P(A \mid B)$ | Probability of A given B (conditional probability) |
+| $P(A \cap B)$ | Probability of both A and B |
+| $P(A \cup B)$ | Probability of A or B (or both) |
+
+## Distributions
+
+| Notation | Distribution | Parameters |
+|----------|-------------|------------|
+| $X \sim N(\mu, \sigma^2)$ | Normal | Mean $\mu$, variance $\sigma^2$ |
+| $X \sim \text{Bin}(n, p)$ | Binomial | Trials $n$, success probability $p$ |
+| $X \sim \text{Pois}(\lambda)$ | Poisson | Rate $\lambda$ |
+| $X \sim \text{Beta}(\alpha, \beta)$ | Beta | Shape parameters $\alpha$, $\beta$ |
+
+## Regression
+
+| Symbol | Meaning |
+|--------|---------|
+| $y_i$ | Outcome for patient $i$ |
+| $x_i$ | Predictor value for patient $i$ |
+| $\beta_0$ | Intercept |
+| $\beta_1, \beta_2, \ldots$ | Regression coefficients |
+| $\hat{y}_i$ | Predicted value for patient $i$ |
+| $\epsilon_i$ | Residual (error) for patient $i$ |
+| $\hat{\beta}$ | Estimated coefficient |
+
+**Linear regression:** $y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \epsilon_i$
+
+**Logistic regression:** $\log\left(\frac{p_i}{1 - p_i}\right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots$
+
+## Penalised regression
+
+| Symbol | Meaning |
+|--------|---------|
+| $\lambda$ | Penalty strength (regularisation parameter) |
+| $\alpha$ | Elastic net mixing parameter (0 = ridge, 1 = LASSO) |
+| $\|\boldsymbol{\beta}\|_1 = \sum |\beta_j|$ | L1 norm (sum of absolute values) |
+| $\|\boldsymbol{\beta}\|_2^2 = \sum \beta_j^2$ | L2 norm squared (sum of squares) |
+
+## Survival analysis
+
+| Symbol | Meaning |
+|--------|---------|
+| $T$ | Survival time (random variable) |
+| $t$ | A specific time point |
+| $S(t) = P(T > t)$ | Survival function |
+| $h(t)$ | Hazard function (instantaneous risk) |
+| $H(t)$ | Cumulative hazard |
+| $\text{HR}$ | Hazard ratio (from Cox model) |
+
+**Cox model:** $h(t \mid \mathbf{x}) = h_0(t) \exp(\beta_1 x_1 + \beta_2 x_2 + \cdots)$
+
+## Bayesian statistics
+
+| Symbol | Meaning |
+|--------|---------|
+| $\theta$ | Parameter of interest |
+| $P(\theta)$ or $\pi(\theta)$ | Prior distribution |
+| $P(D \mid \theta)$ or $L(\theta \mid D)$ | Likelihood |
+| $P(\theta \mid D)$ | Posterior distribution |
+| $P(D)$ | Marginal likelihood (evidence) |
+
+**Bayes' theorem:** $P(\theta \mid D) = \frac{P(D \mid \theta) \, P(\theta)}{P(D)}$
+
+Or in words: Posterior $\propto$ Likelihood $\times$ Prior
+
+## Model performance
+
+| Symbol | Meaning |
+|--------|---------|
+| TP, FP, TN, FN | True/false positives/negatives |
+| Se = TP / (TP + FN) | Sensitivity (recall) |
+| Sp = TN / (TN + FP) | Specificity |
+| PPV = TP / (TP + FP) | Positive predictive value (precision) |
+| NPV = TN / (TN + FN) | Negative predictive value |
+| AUC | Area under the ROC curve |
+| NB | Net benefit (from decision curve analysis) |
+
+## Subscripts and superscripts
+
+| Notation | Meaning |
+|----------|---------|
+| $x_i$ | Value for individual $i$ |
+| $x_{ij}$ | Value of variable $j$ for individual $i$ |
+| $\hat{\theta}$ | Estimated value of $\theta$ |
+| $\theta^*$ | Bootstrap replicate of $\theta$ |
+| $x^2$ | $x$ squared |
+| $\sqrt{x}$ | Square root of $x$ |
+
+## Greek letters commonly used in statistics
+
+| Letter | Name | Common use |
+|--------|------|-----------|
+| $\alpha$ | Alpha | Significance level, elastic net mixing |
+| $\beta$ | Beta | Regression coefficients, Type II error rate |
+| $\gamma$ | Gamma | Effect modifier, shape parameter |
+| $\delta$ | Delta | Difference, effect size |
+| $\epsilon$ | Epsilon | Error term, small quantity |
+| $\lambda$ | Lambda | Rate parameter, penalty parameter |
+| $\mu$ | Mu | Population mean |
+| $\pi$ | Pi | Proportion, prior |
+| $\sigma$ | Sigma | Standard deviation |
+| $\tau$ | Tau | Between-study variance (meta-analysis) |
+| $\chi^2$ | Chi-squared | Chi-squared test statistic |

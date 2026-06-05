@@ -1,0 +1,48 @@
+/*-- scss:defaults --*/
+
+$primary: #2c6fbb;
+$link-color: #2c6fbb;
+$font-family-sans-serif: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+$font-family-monospace: "Fira Code", "JetBrains Mono", "Consolas", monospace;
+$font-size-base: 1.05rem;
+
+/*-- scss:rules --*/
+
+.sidebar nav[role=doc-toc] ul > li > a.active {
+  border-left: 2px solid $primary;
+  font-weight: 600;
+}
+
+div.callout-tip {
+  border-left-color: #28a745;
+}
+
+div.callout-note {
+  border-left-color: $primary;
+}
+
+.panel-tabset .nav-link.active {
+  font-weight: 600;
+  border-bottom: 2px solid $primary;
+}
+
+/* Exercise styling */
+.exercise {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+/* References section styling */
+.references-section {
+  border-top: 2px solid #dee2e6;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+}
+
+/* Code output styling */
+.cell-output-display {
+  margin-top: 0.5rem;
+}

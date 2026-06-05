@@ -1,0 +1,695 @@
+# Developing Clinical Prediction Models: A Complete Workflow {#sec-building-prediction-models}
+
+## Introduction
+
+Building a clinical prediction model is not simply a matter of fitting a regression or running a machine learning algorithm. It is a structured process that begins with a clearly defined clinical question and proceeds through study design, data preparation, model specification, and evaluation. At every step, decisions must be guided by clinical knowledge, not just statistical convenience.
+
+This chapter walks you through the complete workflow of developing a clinical prediction model, following the framework described by Smits, van Kuijk, and Wynants (2026) and the foundational principles laid out by Steyerberg (2019). We will use the Framingham Heart Study data as a running example to illustrate each step, building a model to predict 10-year cardiovascular disease (CVD) risk.
+
+## Step 1: Define the Clinical Question
+
+Before touching any data, you must answer four questions:
+
+1. **Who** is the target population? (e.g., adults aged 40--70 without prior CVD)
+2. **What** is the outcome? (e.g., first CVD event within 10 years)
+3. **When** is the prediction made? (e.g., at a routine primary care visit)
+4. **Why** is the prediction needed? (e.g., to guide statin therapy decisions)
+
+The intended use determines everything that follows. A model designed to triage emergency department patients needs different predictors, a different time horizon, and different performance requirements than a model for long-term cardiovascular risk stratification.
+
+::: {.callout-tip}
+## The PICOTS Framework
+You can adapt the familiar PICOTS framework from clinical research:
+**P**opulation, **I**ntended use (Index model), **C**omparators (existing tools), **O**utcome, **T**iming, **S**etting.
+:::
+
+### Common Pitfalls in Problem Definition
+
+- **Vague outcomes**: "clinical deterioration" is not a well-defined outcome. Define exactly what events count, how they are ascertained, and over what time window.
+- **Leaky predictors**: including information that would not be available at the moment of prediction. If you are predicting ICU admission at the time of hospital arrival, you cannot use ICU vital signs as predictors.
+- **Wrong population**: developing a model in hospitalised patients and hoping to apply it in primary care. The case-mix will be entirely different.
+
+## Step 2: Study Design and Sample Size
+
+### Study Design
+
+Clinical prediction models are typically developed from **cohort studies** (prospective or retrospective) or **existing databases** (electronic health records, registries). Randomised trials can also be used, though their selected populations may limit generalisability.
+
+Key design requirements:
+
+- **Inception cohort**: all patients should be enrolled at a similar, well-defined point in their clinical trajectory (the "moment of prediction").
+- **Complete follow-up**: outcomes must be ascertained for as many patients as possible. Differential loss to follow-up can bias estimates.
+- **Outcome rate**: there must be a sufficient number of events to support the number of candidate predictors.
+
+### Sample Size: The Events Per Variable Rule and Beyond
+
+The classical rule of thumb requires at least **10 events per variable (EPV)** in the model. For a logistic regression with 8 predictors, you would need at least 80 events. With 10% prevalence, that means at least 800 patients.
+
+However, this rule is a rough guide. Riley and colleagues (2020) proposed a more rigorous sample size framework based on four criteria:
+
+1. **Small optimism**: the expected shrinkage factor should be close to 1 (e.g., > 0.9).
+2. **Small absolute difference** in the apparent and adjusted Nagelkerke R-squared.
+3. **Precise estimation** of the overall outcome proportion (intercept).
+4. **Precise estimation** of the overall model performance (C-statistic).
+
+The `pmsampsize` package in R implements these calculations.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sample-size-r
+#| eval: false
+
+library(pmsampsize)
+
+# Sample size for a logistic regression prediction model
+# 10 candidate predictors, anticipated outcome prevalence of 15%
+# Expected C-statistic of 0.75, Cox-Snell R-squared of 0.1
+ss <- pmsampsize(type = "b",        # binary outcome
+                 rsquared = 0.10,    # anticipated Cox-Snell R-squared
+                 parameters = 10,    # number of candidate predictors
+                 prevalence = 0.15)  # anticipated prevalence
+
+print(ss)
+cat("\nMinimum sample size:", ss$sample_size, "\n")
+cat("Minimum number of events:", ss$events, "\n")
+```
+
+#### Python
+
+```{python}
+#| label: sample-size-py
+#| eval: false
+
+# Riley et al. sample size criteria (simplified implementation)
+# For full implementation, see the pmsampsize R package
+import numpy as np
+
+def pmsampsize_binary(rsquared, parameters, prevalence, shrinkage=0.9):
+    """
+    Simplified sample size calculation for binary outcome prediction models.
+    Based on Riley et al. (2020) criteria.
+    """
+    # Criterion 1: Target shrinkage
+    # n >= p / ((s - 1) * ln(1 - R^2_cs / s))
+    # where s = target shrinkage, p = parameters, R^2_cs = Cox-Snell R^2
+    n1 = parameters / ((shrinkage - 1) * np.log(1 - rsquared / shrinkage))
+
+    # Criterion 2: Small absolute difference in R^2
+    n2 = parameters / (0.05 * np.log(1 - rsquared))  # delta = 0.05
+
+    # Criterion 3: Precise intercept (SE of log odds of prevalence)
+    n3 = (1.96 / 0.05)**2 * (1 / (prevalence * (1 - prevalence)))
+
+    n_min = max(n1, n2, n3)
+    events = int(np.ceil(n_min * prevalence))
+
+    print(f"Criterion 1 (shrinkage): n = {int(np.ceil(n1))}")
+    print(f"Criterion 2 (R-squared): n = {int(np.ceil(n2))}")
+    print(f"Criterion 3 (intercept): n = {int(np.ceil(n3))}")
+    print(f"\nMinimum sample size: {int(np.ceil(n_min))}")
+    print(f"Minimum events: {events}")
+
+    return int(np.ceil(n_min))
+
+pmsampsize_binary(rsquared=0.10, parameters=10, prevalence=0.15)
+```
+
+:::
+
+## Step 3: Handle Missing Data
+
+Missing data is the norm in clinical research, not the exception. Laboratory values are missing because they were not ordered. Follow-up data is missing because patients moved. Lifestyle variables are missing because patients did not answer the questionnaire.
+
+### Missing Data Mechanisms
+
+Understanding **why** data are missing is essential for choosing the right approach:
+
+- **MCAR (Missing Completely At Random)**: the probability of missingness is unrelated to any observed or unobserved data. Example: a laboratory sample is accidentally dropped. This is rare in practice.
+- **MAR (Missing At Random)**: the probability of missingness depends on **observed** data but not on the missing value itself. Example: HbA1c is more likely to be measured in patients already known to have diabetes. Given diabetes status (observed), the missingness is random.
+- **MNAR (Missing Not At Random)**: the probability of missingness depends on the **unobserved** value itself. Example: patients with severe depression are less likely to attend follow-up appointments, so their depression scores are missing precisely because they are severe.
+
+### Why Complete Case Analysis Fails
+
+Deleting rows with any missing data (complete case analysis) is the default in most software, and it is almost always wrong:
+
+- It **wastes data**: if 10 variables each have 5% missing (independently), only 60% of rows are complete.
+- It **biases estimates**: if missingness is related to the outcome or predictors (MAR or MNAR), the complete cases are a non-random subset.
+- It **reduces power**: smaller effective sample sizes lead to wider confidence intervals and less stable models.
+
+### Multiple Imputation
+
+**Multiple imputation (MI)** is the recommended approach for handling missing data under the MAR assumption. The procedure has three steps:
+
+1. **Impute**: create $m$ complete datasets by filling in missing values with plausible values drawn from the predictive distribution of the missing data, given the observed data.
+2. **Analyse**: fit the prediction model separately in each of the $m$ imputed datasets.
+3. **Pool**: combine the $m$ sets of results using Rubin's rules, which account for both within-imputation and between-imputation variability.
+
+Typically, $m = 20$ or more imputations are recommended.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: multiple-imputation-r
+#| eval: false
+
+library(mice)
+library(dplyr)
+
+# Simulate clinical data with missing values
+set.seed(42)
+n <- 500
+data <- data.frame(
+  age = rnorm(n, 55, 10),
+  sbp = rnorm(n, 130, 20),
+  cholesterol = rnorm(n, 220, 40),
+  smoking = rbinom(n, 1, 0.25),
+  bmi = rnorm(n, 27, 5)
+)
+data$cvd <- rbinom(n, 1, plogis(-4 + 0.03*data$age + 0.01*data$sbp +
+                                   0.005*data$cholesterol + 0.5*data$smoking))
+
+# Introduce MAR missingness
+# Cholesterol more likely missing in younger patients
+data$cholesterol[data$age < 50 & runif(n) < 0.3] <- NA
+# BMI more likely missing in non-smokers
+data$bmi[data$smoking == 0 & runif(n) < 0.2] <- NA
+
+cat("Missing data pattern:\n")
+md.pattern(data, rotate.names = TRUE)
+
+# Perform multiple imputation
+imp <- mice(data, m = 20, method = "pmm", seed = 42, printFlag = FALSE)
+
+# Fit model in each imputed dataset and pool
+fit_imp <- with(imp, glm(cvd ~ age + sbp + cholesterol + smoking + bmi,
+                          family = binomial))
+pooled <- pool(fit_imp)
+summary(pooled)
+```
+
+#### Python
+
+```{python}
+#| label: multiple-imputation-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+from sklearn.linear_model import LogisticRegression
+from scipy.special import expit
+
+np.random.seed(42)
+n = 500
+
+data = pd.DataFrame({
+    'age': np.random.normal(55, 10, n),
+    'sbp': np.random.normal(130, 20, n),
+    'cholesterol': np.random.normal(220, 40, n),
+    'smoking': np.random.binomial(1, 0.25, n),
+    'bmi': np.random.normal(27, 5, n)
+})
+lp = -4 + 0.03*data['age'] + 0.01*data['sbp'] + 0.005*data['cholesterol'] + 0.5*data['smoking']
+data['cvd'] = np.random.binomial(1, expit(lp))
+
+# Introduce MAR missingness
+mask_chol = (data['age'] < 50) & (np.random.uniform(size=n) < 0.3)
+data.loc[mask_chol, 'cholesterol'] = np.nan
+mask_bmi = (data['smoking'] == 0) & (np.random.uniform(size=n) < 0.2)
+data.loc[mask_bmi, 'bmi'] = np.nan
+
+print("Missing values per column:")
+print(data.isnull().sum())
+
+# Simple multiple imputation using IterativeImputer
+# Note: for proper MI with pooling, consider the miceforest package
+predictors = ['age', 'sbp', 'cholesterol', 'smoking', 'bmi']
+X = data[predictors].values
+y = data['cvd'].values
+
+# Create multiple imputed datasets and pool coefficients
+m = 20
+coefs = []
+for i in range(m):
+    imputer = IterativeImputer(random_state=i, max_iter=10, sample_posterior=True)
+    X_imp = imputer.fit_transform(X)
+    model = LogisticRegression(max_iter=1000, penalty=None)
+    model.fit(X_imp, y)
+    coefs.append(np.concatenate([model.intercept_, model.coef_[0]]))
+
+# Pool results (simplified Rubin's rules)
+coefs = np.array(coefs)
+pooled_mean = coefs.mean(axis=0)
+within_var = coefs.var(axis=0)  # simplified
+names = ['intercept'] + predictors
+print("\nPooled coefficients:")
+for name, coef in zip(names, pooled_mean):
+    print(f"  {name}: {coef:.4f}")
+```
+
+:::
+
+## Step 4: Variable Selection
+
+### Choosing Candidate Predictors
+
+The best predictor selection strategy is **expert knowledge**. Decades of cardiovascular research tell us that age, sex, blood pressure, cholesterol, smoking, and diabetes are important predictors of CVD. Starting with established clinical knowledge prevents the discovery of spurious associations and produces more generalisable models.
+
+When expert knowledge is insufficient or the domain is novel, data-driven selection can supplement clinical reasoning. However, the approach matters enormously.
+
+### The Dangers of Stepwise Selection
+
+**Stepwise selection** (forward, backward, or both) is among the most commonly used and most harmful variable selection strategies:
+
+- It inflates the apparent significance of selected variables (multiple testing without correction).
+- It produces unstable models: small changes in the data can lead to entirely different variable selections.
+- It biases regression coefficients away from zero (selected variables appear stronger than they are).
+- It yields overly optimistic performance estimates.
+
+::: {.callout-warning}
+## Avoid Univariable Screening
+A particularly damaging practice is pre-selecting variables based on univariable p-values (e.g., keeping only variables with p < 0.20). This ignores confounding, suppression, and the fact that weak individual predictors can be strong in combination. If you must reduce the candidate set, use clinical knowledge, not univariable screening.
+:::
+
+### Better Approaches
+
+- **Full model with all pre-specified predictors**: if sample size permits, include all clinically plausible predictors and apply shrinkage (see below). This is the recommended approach by Steyerberg (2019).
+- **Penalised regression**: LASSO (L1 penalty) performs automatic variable selection by shrinking some coefficients to zero. Elastic net combines L1 and L2 penalties. These are covered in detail in later chapters.
+- **Background knowledge with data-driven fine-tuning**: start with a core set of established predictors and consider a small number of additional candidates.
+
+## Step 5: Understand and Combat Overfitting
+
+### What Is Overfitting?
+
+Overfitting occurs when a model captures not only the true underlying patterns in the data but also the **noise** --- the random variation specific to the development sample. An overfitted model performs well on the data it was trained on but poorly on new data.
+
+Clinical data is especially prone to overfitting because:
+
+- **Sample sizes are often small** relative to the number of candidate predictors.
+- **Events may be rare**, limiting the information available to estimate parameters.
+- **Complex interactions** are tempting to include but expensive in terms of degrees of freedom.
+
+### Detecting Overfitting: Optimism
+
+The **optimism** of a model is the difference between its apparent performance (on the training data) and its expected performance on new data. You can estimate optimism using internal validation techniques such as bootstrapping (covered in @sec-performance-validation).
+
+If a model shows high optimism, it is overfitted. The solution is **shrinkage**.
+
+### Shrinkage Methods
+
+**Uniform shrinkage** multiplies all regression coefficients by a factor $s$ (where $0 < s \leq 1$) estimated from the data, typically via bootstrapping. The intercept is then re-estimated to preserve the overall calibration. This pulls extreme predictions toward the average, reducing the impact of noise.
+
+**Penalised methods** incorporate shrinkage directly into the estimation process:
+
+- **Ridge regression** (L2 penalty) shrinks all coefficients toward zero but never sets any to exactly zero.
+- **LASSO** (L1 penalty) can shrink coefficients to exactly zero, performing variable selection.
+- **Elastic net** combines both penalties.
+
+The penalty strength is chosen by cross-validation.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: shrinkage-r
+#| eval: false
+
+library(glmnet)
+library(rms)
+
+# Simulate Framingham-like data
+set.seed(42)
+n <- 800
+age <- rnorm(n, 55, 10)
+male <- rbinom(n, 1, 0.5)
+sbp <- rnorm(n, 130, 20)
+chol <- rnorm(n, 220, 40)
+smoking <- rbinom(n, 1, 0.25)
+diabetes <- rbinom(n, 1, 0.10)
+
+# True model
+lp <- -6 + 0.05*age + 0.3*male + 0.01*sbp + 0.005*chol + 0.4*smoking + 0.5*diabetes
+cvd <- rbinom(n, 1, plogis(lp))
+
+df <- data.frame(age, male, sbp, chol, smoking, diabetes, cvd)
+
+# Unpenalised logistic regression
+fit_full <- glm(cvd ~ ., data = df, family = binomial)
+cat("=== Unpenalised coefficients ===\n")
+print(round(coef(fit_full), 4))
+
+# Ridge regression (alpha = 0)
+X <- model.matrix(cvd ~ ., data = df)[, -1]
+y <- df$cvd
+
+fit_ridge <- cv.glmnet(X, y, family = "binomial", alpha = 0, nfolds = 10)
+cat("\n=== Ridge coefficients (lambda.min) ===\n")
+print(round(as.vector(coef(fit_ridge, s = "lambda.min")), 4))
+
+# LASSO (alpha = 1)
+fit_lasso <- cv.glmnet(X, y, family = "binomial", alpha = 1, nfolds = 10)
+cat("\n=== LASSO coefficients (lambda.min) ===\n")
+print(round(as.vector(coef(fit_lasso, s = "lambda.min")), 4))
+
+# Compare: note how penalised coefficients are shrunk toward zero
+par(mfrow = c(1, 2))
+plot(fit_ridge, main = "Ridge: CV Error vs log(lambda)")
+plot(fit_lasso, main = "LASSO: CV Error vs log(lambda)")
+```
+
+#### Python
+
+```{python}
+#| label: shrinkage-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
+from scipy.special import expit
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+n = 800
+age = np.random.normal(55, 10, n)
+male = np.random.binomial(1, 0.5, n)
+sbp = np.random.normal(130, 20, n)
+chol = np.random.normal(220, 40, n)
+smoking = np.random.binomial(1, 0.25, n)
+diabetes = np.random.binomial(1, 0.10, n)
+
+lp = -6 + 0.05*age + 0.3*male + 0.01*sbp + 0.005*chol + 0.4*smoking + 0.5*diabetes
+cvd = np.random.binomial(1, expit(lp))
+
+X = np.column_stack([age, male, sbp, chol, smoking, diabetes])
+feature_names = ['age', 'male', 'sbp', 'chol', 'smoking', 'diabetes']
+
+# Unpenalised logistic regression
+model_full = LogisticRegression(penalty=None, max_iter=1000)
+model_full.fit(X, cvd)
+print("=== Unpenalised coefficients ===")
+for name, coef in zip(feature_names, model_full.coef_[0]):
+    print(f"  {name}: {coef:.4f}")
+
+# Ridge regression (L2)
+model_ridge = LogisticRegressionCV(penalty='l2', cv=10, max_iter=1000, random_state=42)
+model_ridge.fit(X, cvd)
+print("\n=== Ridge coefficients ===")
+for name, coef in zip(feature_names, model_ridge.coef_[0]):
+    print(f"  {name}: {coef:.4f}")
+
+# LASSO (L1)
+model_lasso = LogisticRegressionCV(penalty='l1', solver='saga', cv=10,
+                                    max_iter=5000, random_state=42)
+model_lasso.fit(X, cvd)
+print("\n=== LASSO coefficients ===")
+for name, coef in zip(feature_names, model_lasso.coef_[0]):
+    print(f"  {name}: {coef:.4f}")
+```
+
+:::
+
+## Step 6: Build the Model --- A Framingham Example
+
+Let us now walk through a complete model development process using simulated data based on the Framingham Heart Study. We will predict 10-year CVD risk using established risk factors.
+
+### Data Preparation
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: framingham-build-r
+#| eval: false
+
+library(rms)
+
+# Simulate Framingham-like cohort
+set.seed(2024)
+n <- 2000
+
+framingham <- data.frame(
+  age = round(runif(n, 30, 74)),
+  male = rbinom(n, 1, 0.48),
+  sbp = round(rnorm(n, 130, 18)),
+  total_chol = round(rnorm(n, 210, 38)),
+  hdl_chol = round(rnorm(n, 52, 15)),
+  smoking = rbinom(n, 1, 0.22),
+  diabetes = rbinom(n, 1, 0.08),
+  bp_treatment = rbinom(n, 1, 0.15)
+)
+
+# Generate outcome based on known risk factors
+lp <- with(framingham,
+  -7.5 + 0.06 * age + 0.4 * male + 0.012 * sbp +
+  0.005 * total_chol - 0.02 * hdl_chol +
+  0.5 * smoking + 0.7 * diabetes + 0.3 * bp_treatment
+)
+framingham$cvd_10yr <- rbinom(n, 1, plogis(lp))
+
+cat("Event rate:", round(mean(framingham$cvd_10yr) * 100, 1), "%\n")
+cat("Number of events:", sum(framingham$cvd_10yr), "\n")
+cat("Events per variable:", round(sum(framingham$cvd_10yr) / 8, 1), "\n")
+
+# Set up the rms environment for enhanced model building
+dd <- datadist(framingham)
+options(datadist = "dd")
+
+# Fit the model using lrm (logistic regression model from rms)
+# Allow nonlinearity for continuous variables using restricted cubic splines
+fit <- lrm(cvd_10yr ~ rcs(age, 4) + male + rcs(sbp, 3) +
+             total_chol + hdl_chol + smoking + diabetes + bp_treatment,
+           data = framingham, x = TRUE, y = TRUE)
+
+print(fit)
+
+# Check for nonlinearity
+anova(fit)
+
+# Visualise partial effects
+plot(Predict(fit, age), main = "Effect of Age on CVD Risk")
+plot(Predict(fit, sbp), main = "Effect of SBP on CVD Risk")
+```
+
+#### Python
+
+```{python}
+#| label: framingham-build-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from scipy.special import expit
+
+np.random.seed(2024)
+n = 2000
+
+framingham = pd.DataFrame({
+    'age': np.random.randint(30, 75, n),
+    'male': np.random.binomial(1, 0.48, n),
+    'sbp': np.round(np.random.normal(130, 18, n)),
+    'total_chol': np.round(np.random.normal(210, 38, n)),
+    'hdl_chol': np.round(np.random.normal(52, 15, n)),
+    'smoking': np.random.binomial(1, 0.22, n),
+    'diabetes': np.random.binomial(1, 0.08, n),
+    'bp_treatment': np.random.binomial(1, 0.15, n)
+})
+
+lp = (-7.5 + 0.06 * framingham['age'] + 0.4 * framingham['male'] +
+      0.012 * framingham['sbp'] + 0.005 * framingham['total_chol'] -
+      0.02 * framingham['hdl_chol'] + 0.5 * framingham['smoking'] +
+      0.7 * framingham['diabetes'] + 0.3 * framingham['bp_treatment'])
+
+framingham['cvd_10yr'] = np.random.binomial(1, expit(lp))
+
+print(f"Event rate: {framingham['cvd_10yr'].mean()*100:.1f}%")
+print(f"Number of events: {framingham['cvd_10yr'].sum()}")
+print(f"Events per variable: {framingham['cvd_10yr'].sum() / 8:.1f}")
+
+# Fit logistic regression
+predictors = ['age', 'male', 'sbp', 'total_chol', 'hdl_chol',
+              'smoking', 'diabetes', 'bp_treatment']
+X = sm.add_constant(framingham[predictors])
+y = framingham['cvd_10yr']
+
+model = sm.Logit(y, X)
+result = model.fit(disp=0)
+print("\n", result.summary())
+
+# Calculate predicted probabilities
+framingham['pred_prob'] = result.predict(X)
+
+# Summary of predicted risk distribution
+print("\nPredicted risk distribution:")
+print(framingham['pred_prob'].describe())
+```
+
+:::
+
+### Model Specification Decisions
+
+In the Framingham example above, several important decisions were made:
+
+1. **Pre-specified predictors**: we included the established Framingham risk factors, not variables discovered through data-dredging.
+2. **Nonlinearity**: for continuous variables like age and blood pressure, we allowed flexible functional forms using restricted cubic splines (in R's `rms` package). The relationship between age and CVD risk is not linear on the log-odds scale.
+3. **No interactions without prior evidence**: we did not fish for interactions. If clinical knowledge suggests an interaction (e.g., the effect of cholesterol might differ by sex), it should be pre-specified.
+4. **Sample size check**: with approximately 250 events and 8 predictors (plus a few extra degrees of freedom for splines), we have approximately 25 EPV, which is comfortable.
+
+## Step 7: Assess the Final Model
+
+After fitting, we need to examine the model critically:
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: model-assessment-r
+#| eval: false
+
+library(rms)
+
+# Assuming fit and framingham from above
+# 1. Check the discrimination (C-statistic)
+cat("C-statistic (AUC):", round(fit$stats["C"], 3), "\n")
+
+# 2. Predicted risk distribution
+pred_probs <- predict(fit, type = "fitted")
+hist(pred_probs, breaks = 50, col = "steelblue",
+     main = "Distribution of Predicted 10-Year CVD Risk",
+     xlab = "Predicted Probability")
+
+# 3. Predicted risks in events vs non-events
+boxplot(pred_probs ~ framingham$cvd_10yr,
+        names = c("No CVD", "CVD"),
+        main = "Predicted Risk by Outcome",
+        ylab = "Predicted Probability",
+        col = c("lightblue", "salmon"))
+
+# 4. Quick calibration check
+val <- val.prob(pred_probs, framingham$cvd_10yr)
+
+# 5. Internal validation via bootstrapping (optimism-corrected)
+set.seed(123)
+val_boot <- validate(fit, B = 200)
+print(val_boot)
+
+cat("\nOptimism-corrected C-statistic:",
+    round(0.5 * (val_boot["Dxy", "index.corrected"] + 1), 3), "\n")
+```
+
+#### Python
+
+```{python}
+#| label: model-assessment-py
+#| eval: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score
+from sklearn.calibration import calibration_curve
+
+# Assuming framingham and result from above
+pred_probs = framingham['pred_prob'].values
+y_true = framingham['cvd_10yr'].values
+
+# 1. Discrimination
+auc = roc_auc_score(y_true, pred_probs)
+print(f"C-statistic (AUC): {auc:.3f}")
+
+# 2. Predicted risk distribution
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+axes[0].hist(pred_probs, bins=50, color="steelblue", edgecolor="white")
+axes[0].set_xlabel("Predicted Probability")
+axes[0].set_ylabel("Frequency")
+axes[0].set_title("Distribution of Predicted 10-Year CVD Risk")
+
+# 3. Risk by outcome group
+axes[1].boxplot([pred_probs[y_true == 0], pred_probs[y_true == 1]],
+                labels=["No CVD", "CVD"])
+axes[1].set_ylabel("Predicted Probability")
+axes[1].set_title("Predicted Risk by Outcome")
+
+plt.tight_layout()
+plt.show()
+
+# 4. Calibration plot
+prob_true, prob_pred = calibration_curve(y_true, pred_probs, n_bins=10, strategy='quantile')
+
+plt.figure(figsize=(7, 7))
+plt.plot(prob_pred, prob_true, 's-', color="steelblue", label="Model")
+plt.plot([0, 1], [0, 1], '--', color='grey', label="Perfect calibration")
+plt.xlabel("Mean Predicted Probability")
+plt.ylabel("Observed Proportion")
+plt.title("Calibration Plot")
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## The Complete Workflow: A Summary
+
+@fig-workflow-summary outlines the complete prediction model development workflow.
+
+1. **Define** the clinical question (population, outcome, timing, intended use).
+2. **Design** the study with adequate sample size (Riley criteria).
+3. **Prepare** the data: handle missing values with multiple imputation.
+4. **Select** predictors based on clinical knowledge; avoid stepwise procedures.
+5. **Specify** the model: consider nonlinear terms for continuous predictors.
+6. **Fit** the model, applying shrinkage to combat overfitting.
+7. **Evaluate** performance: discrimination, calibration, clinical utility.
+8. **Validate** internally using bootstrapping or cross-validation.
+9. **Report** transparently following TRIPOD+AI guidelines (see @sec-reporting).
+
+::: {.callout-important}
+## The Modelling Pipeline Is Not Linear
+In practice, you will iterate. Poor calibration might send you back to model specification. Inadequate discrimination might prompt reconsidering the candidate predictors. Internal validation might reveal severe overfitting, requiring stronger shrinkage. The important thing is that each decision is documented and justified.
+:::
+
+## Common Mistakes to Avoid
+
+| Mistake | Why It Is Harmful | Better Approach |
+|---------|-------------------|-----------------|
+| Stepwise variable selection | Inflates significance, unstable | Pre-specify predictors; use penalisation |
+| Univariable screening | Ignores confounding and suppression | Include all clinically plausible variables |
+| Complete case analysis | Biases estimates, wastes data | Multiple imputation |
+| Evaluating only on training data | Overestimates performance | Internal validation (bootstrap) |
+| Dichotomising continuous predictors | Loses information, creates arbitrary groups | Model continuous variables continuously |
+| Ignoring nonlinearity | Poor fit, biased predictions | Use splines or fractional polynomials |
+| Reporting only accuracy or AUC | Incomplete picture | Report calibration, discrimination, clinical utility |
+
+: Common mistakes in clinical prediction model development. {#tbl-common-mistakes}
+
+## Exercises
+
+1. **Sample size calculation**: You are developing a model to predict pre-eclampsia (expected prevalence 4%) using 12 candidate predictors. Use `pmsampsize` to determine the minimum required sample size. How many pregnancies would you need to observe?
+
+2. **Missing data simulation**: Take the simulated Framingham dataset above and compare the regression coefficients obtained from (a) complete case analysis, (b) single mean imputation, and (c) multiple imputation. Which approach yields coefficients closest to the true values?
+
+3. **Variable selection**: Fit the Framingham model using (a) all pre-specified predictors, (b) forward stepwise selection, and (c) LASSO. Compare the selected variables and the stability of coefficients across 100 bootstrap samples.
+
+## Summary
+
+- A prediction model starts with a **clearly defined clinical question**, not with data analysis.
+- **Sample size** should be determined prospectively using the Riley et al. criteria, not just the EPV rule of thumb.
+- **Missing data** should be handled with multiple imputation, not deletion.
+- **Variable selection** should be driven by clinical knowledge. Stepwise methods are harmful.
+- **Overfitting** is the central challenge; combat it with adequate sample size and shrinkage.
+- **Penalised regression** (ridge, LASSO, elastic net) embeds shrinkage into the estimation process.
+- The final model should be **internally validated** before any claims about performance.
+
+## References and Further Reading
+
+The most comprehensive modern reference for clinical prediction model development is the textbook by Smits, van Kuijk, and Wynants (2026), which provides practical guidance grounded in decades of methodological research. Steyerberg's "Clinical Prediction Models" (2019, second edition, Springer) remains the foundational text, covering study design, missing data, variable selection, and model evaluation with exceptional rigour. For sample size calculations, Riley and colleagues published a series of papers in Statistics in Medicine (2020) establishing formal criteria that go well beyond the traditional events-per-variable rule; the `pmsampsize` R package implements these methods. Van Buuren's "Flexible Imputation of Missing Data" (2018, second edition, Chapman and Hall) is the definitive resource on multiple imputation, while the `mice` package in R provides the practical tools. Harrell's "Regression Modeling Strategies" (2015, second edition, Springer) is essential reading on variable selection, nonlinearity, and shrinkage in regression modelling. For penalised regression, Hastie, Tibshirani, and Friedman's "The Elements of Statistical Learning" (2009, second edition, Springer) provides the theoretical foundations, while the `glmnet` R package by Friedman, Hastie, and Tibshirani is the standard implementation.

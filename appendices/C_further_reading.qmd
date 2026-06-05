@@ -1,0 +1,153 @@
+---
+title: "Further Reading and Resources"
+---
+
+# Further Reading and Resources {#sec-further-reading .unnumbered}
+
+This annotated bibliography organises key references by topic. It emphasises recent (2024–2026) publications from top medical journals, along with foundational textbooks. Resources are grouped by course part for easy navigation.
+
+## Textbooks
+
+- **Smits LJM, van Kuijk SMJ, Wynants L.** *Improving Health Care with Clinical Prediction Models: From Idea to Impact.* Maastricht University Press, 2026. Open access (CC BY 4.0). Covers the complete prediction model journey from development to implementation. Ideal companion to this course.
+
+- **Steyerberg EW.** *Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating.* 2nd ed. Springer, 2019. The definitive reference on clinical prediction model methodology. Supplementary materials with R code at [clinicalpredictionmodels.org](https://www.clinicalpredictionmodels.org/).
+
+- **Harrell FE.** *Regression Modeling Strategies.* 2nd ed. Springer, 2015. Comprehensive treatment of regression modelling with emphasis on correct handling of continuous variables, splines, and validation. Free course materials at [hbiostat.org](https://hbiostat.org/).
+
+- **McElreath R.** *Statistical Rethinking: A Bayesian Course with Examples in R and Stan.* 2nd ed. CRC Press, 2020. The most accessible introduction to Bayesian statistics. Lecture videos freely available online.
+
+- **Gelman A, Carlin JB, Stern HS, et al.** *Bayesian Data Analysis.* 3rd ed. CRC Press, 2013. The comprehensive Bayesian reference. PDF freely available from the authors.
+
+- **Hernán MA, Robins JM.** *Causal Inference: What If.* Chapman & Hall/CRC, 2024. The standard text on causal inference from observational data. Freely available at [miguelhernan.org](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/).
+
+- **Boehmke B, Greenwell B.** *Hands-On Machine Learning with R.* CRC Press, 2019. Practical ML in R. Free online at [bradleyboehmke.github.io/HOML](https://bradleyboehmke.github.io/HOML/).
+
+- **Vittinghoff E, Glidden DV, Shiboski SC, McCulloch CE.** *Regression Methods in Biostatistics.* 2nd ed. Springer, 2012. Clear, practical regression modelling for biomedical researchers.
+
+## Reporting Guidelines
+
+- **Collins GS, et al.** TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods. *BMJ* 2024;385:e078378. The current standard for reporting prediction models.
+
+- **CONSORT 2025 statement.** Updated guideline for reporting randomised trials. *BMJ* 2025. The latest CONSORT update.
+
+- **TARGET reporting guideline.** For target trial emulation studies. *JAMA* 2025. 21-item checklist analogous to CONSORT.
+
+## Statistical Methods in Medicine (Key Papers 2024–2026)
+
+### Splines and Continuous Variables
+- **Lopez-Ayala P, Riley RD, Collins GS, Zimmermann T.** Dealing with continuous variables and modelling non-linear associations in healthcare data: practical guide. *BMJ* 2025;390:e082440. Essential reading on splines and fractional polynomials.
+- **Austin PC.** Graphical methods to illustrate the nature of the relation between a continuous variable and the outcome when using restricted cubic splines with a Cox proportional hazards model. *Statistical Methods in Medical Research* 2025.
+
+### Prediction Model Performance
+- **Van Calster B, et al.** Evaluation of performance measures in predictive AI models to support medical decisions: overview and guidance. *Lancet Digital Health* 2025;7:e100916. Reviews 32 performance measures across 5 domains. Essential for understanding discrimination, calibration, and clinical utility.
+- **Riley RD, et al.** Evaluation of clinical prediction models (parts 1–3). *BMJ* 2024. Three-part series on development, external validation, and sample size.
+
+### Bayesian Methods
+- **FDA.** Use of Bayesian Methodology in Clinical Trials of Drug and Biological Products: Draft Guidance for Industry. January 2026. Signals regulatory acceptance of Bayesian methods.
+- **Bürkner PC.** brms: An R Package for Bayesian Multilevel Models Using Stan. *Journal of Statistical Software* 2017;80(1). The definitive reference for the brms package.
+- **Gelman A, Vehtari A, McElreath R.** Statistical Workflow. December 2025.
+
+### Missing Data
+- **Wijesuriya R, et al.** Multiple Imputation for Longitudinal Data: A Tutorial. *Statistics in Medicine* 2025. Practical MI tutorial with R and Stata code.
+
+### Causal Inference
+- **Hernán MA.** Target trial emulation: methods and applications. *NEJM* 2024 (Perspective). Key framework paper.
+- **TARGET Reporting Guideline.** *JAMA* 2025. 21-item checklist for target trial emulation.
+- **The Causal Roadmap.** Improving the rigor and transparency of causal analyses. *Epidemiology* 2024.
+
+### Survival Analysis
+- **Austin PC.** Restricted cubic splines with Cox proportional hazards models. *Statistical Methods in Medical Research* 2025. Graphical methods for non-linear survival associations.
+
+### Decision Curve Analysis
+- **Vickers AJ, et al.** A simple, step-by-step guide to interpreting decision curve analysis. *Diagnostic and Prognostic Research* 2019. Practical tutorial on clinical utility assessment.
+- **Vickers AJ, Elkin EB.** Decision curve analysis: a novel method for evaluating prediction models. *Medical Decision Making* 2006;26(6):565–574.
+
+### Meta-Analysis
+- **Cochrane Handbook for Systematic Reviews of Interventions.** Version 6.5, 2024. The standard reference. Available at [training.cochrane.org/handbook](https://training.cochrane.org/handbook).
+- **Riley RD, et al.** Individual participant data meta-analysis of prediction model studies. Various publications covering development, validation, and updating.
+
+### Machine Learning in Medicine
+- **Boehmke B, Greenwell B.** *Hands-On Machine Learning with R.* Free online. Practical R-based ML with good coverage of tree-based methods.
+- **Lgatto.** Introduction to Machine Learning with R. Free online at [lgatto.github.io/IntroMachineLearningWithR](https://lgatto.github.io/IntroMachineLearningWithR/). Concise, exercise-driven introduction.
+
+## R Packages (Key Packages, Recently Updated)
+
+| Package | Purpose | Last Updated |
+|---------|---------|-------------|
+| `tidyverse` | Data wrangling and visualisation | 2024 |
+| `rms` | Regression modelling strategies (Harrell) | 2024 |
+| `glmnet` | Penalised regression (LASSO, ridge, elastic net) | 2024 |
+| `survival` | Survival analysis | 2024 |
+| `survminer` / `ggsurvfit` | Survival plot visualisation | 2024 |
+| `tidymodels` | Unified ML framework | 2024 |
+| `ranger` | Fast random forests | 2024 |
+| `xgboost` | Gradient boosting | 2025 |
+| `brms` | Bayesian regression with Stan | 2024 |
+| `rstanarm` | Bayesian regression (simpler interface) | 2024 |
+| `mice` | Multiple imputation by chained equations | 2024 |
+| `dcurves` | Decision curve analysis | 2024 |
+| `CalibrationCurves` | Calibration plots | 2024 |
+| `pROC` | ROC curves and AUC | 2023 |
+| `gtsummary` | Publication-ready summary tables | 2024 |
+| `gt` | Publication-quality tables | 2024 |
+| `MatchIt` | Propensity score matching | 2024 |
+| `WeightIt` | Propensity score weighting | 2024 |
+| `cobalt` | Covariate balance assessment | 2024 |
+| `meta` / `metafor` | Meta-analysis | 2024 |
+| `uwot` | UMAP in R | 2024 |
+| `Rtsne` | t-SNE in R | 2023 |
+| `cluster` | Clustering algorithms | 2023 |
+| `factoextra` | Clustering visualisation | 2023 |
+| `naniar` | Missing data visualisation | 2024 |
+| `finalfit` | Regression modelling and reporting | 2024 |
+| `marginaleffects` | Marginal effects, predictions, contrasts | 2025 |
+| `performance` | Model performance and diagnostics | 2025 |
+| `parameters` | Model parameter extraction | 2025 |
+| `easystats` | Meta-package for modern statistics | 2025 |
+
+## Python Packages (Key Packages, Recently Updated)
+
+| Package | Purpose | Last Updated |
+|---------|---------|-------------|
+| `pandas` | Data manipulation | 2025 |
+| `numpy` | Numerical computing | 2025 |
+| `scikit-learn` | Machine learning | 2025 |
+| `statsmodels` | Statistical modelling | 2024 |
+| `lifelines` | Survival analysis | 2024 |
+| `xgboost` | Gradient boosting | 2025 |
+| `lightgbm` | Gradient boosting (fast) | 2025 |
+| `pymc` | Bayesian modelling | 2025 |
+| `bambi` | Bayesian regression (brms-like) | 2025 |
+| `arviz` | Bayesian visualisation and diagnostics | 2025 |
+| `umap-learn` | UMAP | 2024 |
+| `matplotlib` | Visualisation | 2025 |
+| `seaborn` | Statistical visualisation | 2024 |
+| `plotnine` | ggplot2 for Python | 2024 |
+| `miceforest` | Multiple imputation (random forest) | 2024 |
+| `tableone` | Baseline characteristics tables | 2024 |
+| `great_tables` | Publication-quality tables | 2025 |
+| `shap` | ML model interpretation | 2024 |
+| `dowhy` | Causal inference | 2024 |
+| `pycox` | Deep learning survival analysis | 2024 |
+| `plotly` | Interactive visualisation | 2025 |
+| `patsy` | Design matrices (spline bases) | 2023 |
+| `pygam` | Generalised additive models | 2024 |
+
+## JAMA Guide to Statistics and Methods
+
+The JAMA Guide to Statistics and Methods is an ongoing essay series explaining statistical techniques in plain language for clinicians. Available at [jamanetwork.com](https://jamanetwork.com/collections/44042/jama-guide-to-statistics-and-methods). Key recent topics include:
+
+- Bayesian hierarchical models (2024)
+- Instrumental variables and heterogeneous treatment effects (2025)
+- Target trial emulation (2025)
+- Nonparametric statistical analysis (2025)
+
+## BMJ Statistics Notes
+
+The BMJ Statistics Notes series, edited by Doug Altman and Martin Bland, provides short, accessible guides on statistical topics for medical researchers. The series has been running since 1994. Full listing at [bmj.com/specialties/statistics-notes](https://www.bmj.com/specialties/statistics-notes).
+
+## Online Courses and Tutorials
+
+- **Frank Harrell's Biostatistics for Biomedical Research** — [hbiostat.org/bbr](https://hbiostat.org/bbr/). Free, comprehensive course with R code. Excellent coverage of regression, prediction, and Bayesian methods.
+- **Harrell's Regression Modeling Strategies course** — [hbiostat.org/course](https://hbiostat.org/course/). 4-day intensive course materials.
+- **Statistics in Medicine tutorials** — The journal publishes tutorial papers on a wide range of topics. Accessible from [onlinelibrary.wiley.com](https://onlinelibrary.wiley.com/page/journal/10970258/homepage/tutorials.htm).

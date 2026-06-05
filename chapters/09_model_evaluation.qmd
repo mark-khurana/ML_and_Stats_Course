@@ -1,0 +1,661 @@
+# Evaluating Models: Beyond Accuracy {#sec-model-evaluation}
+
+## Introduction
+
+You have built a model. It produces predictions. But how do you know if those predictions are any good? The answer is not as simple as asking "how often is it right?" In clinical medicine, the consequences of different types of errors are rarely symmetric, the outcomes we care about are often rare, and the population we apply a model to may look nothing like the population we trained it on. This chapter introduces the core concepts and tools for evaluating the performance of classification models, with a focus on clinical prediction.
+
+We will move beyond the seductive simplicity of "accuracy" and learn to ask better questions: Does the model separate sick from well? Are the predicted probabilities trustworthy? Would using this model actually help patients? And does it help all patients equally?
+
+## The Accuracy Trap
+
+Consider the following scenario. You are developing a model to predict a rare but serious condition --- say, pancreatic cancer --- in a primary care population. The prevalence is approximately 0.1%. You build a classifier and proudly report 99.9% accuracy. Your colleague, less impressed, points out that a model which simply predicts "no cancer" for every single patient would also achieve 99.9% accuracy. It would miss every true case, which is the entire point of the exercise, but its accuracy would be nearly perfect.
+
+This is the **accuracy paradox**: when outcomes are imbalanced, accuracy becomes meaningless because it is dominated by the majority class. In clinical medicine, outcomes are almost always imbalanced. Most people do not have the disease you are screening for. Most surgical patients do not die within 30 days. Most pregnancies do not result in pre-eclampsia. A metric that ignores the structure of errors is not useful for clinical decision-making.
+
+::: {.callout-important}
+## The Golden Rule of Model Evaluation
+Never report accuracy alone. Always examine how the model performs separately for those with and without the outcome.
+:::
+
+## Sensitivity and Specificity
+
+The most fundamental decomposition of model performance separates its behaviour in two groups: those who truly have the condition and those who do not.
+
+**Sensitivity** (also called recall or the true positive rate) answers: among everyone who truly has the disease, what proportion did the model correctly identify?
+
+$$\text{Sensitivity} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}$$
+
+**Specificity** (the true negative rate) answers: among everyone who is truly disease-free, what proportion did the model correctly identify as negative?
+
+$$\text{Specificity} = \frac{\text{True Negatives}}{\text{True Negatives} + \text{False Positives}}$$
+
+These two metrics are properties of the **test itself** and do not depend on the prevalence of the disease in the population. This makes them useful for describing a test's intrinsic discriminative ability.
+
+### Clinical Context: Screening vs Confirmation
+
+The relative importance of sensitivity and specificity depends on the clinical purpose:
+
+- **Screening tests** (e.g., mammography for breast cancer, the PHQ-2 for depression) prioritise **high sensitivity**. The goal is to catch as many true cases as possible. We accept more false positives because the next step is a confirmatory test, not treatment. Missing a case (false negative) is the costly error.
+
+- **Confirmatory tests** (e.g., biopsy for cancer, Western blot for HIV) prioritise **high specificity**. The goal is to be sure that a positive result is real, because a positive typically triggers treatment, which may carry risks. A false positive leading to unnecessary surgery or chemotherapy is the costly error.
+
+::: {.callout-tip}
+## Memory Aid
+**Sn**N**out**: a test with high **S**e**n**sitivity, when **N**egative, rules **out** the disease.
+**Sp**P**in**: a test with high **Sp**ecificity, when **P**ositive, rules **in** the disease.
+:::
+
+## Predictive Values: When Prevalence Matters
+
+While sensitivity and specificity describe the test, clinicians and patients need to answer a different question: given my test result, what is the probability I actually have the disease?
+
+**Positive Predictive Value (PPV)**: among everyone who tested positive, what proportion truly has the disease?
+
+$$\text{PPV} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}$$
+
+**Negative Predictive Value (NPV)**: among everyone who tested negative, what proportion is truly disease-free?
+
+$$\text{NPV} = \frac{\text{True Negatives}}{\text{True Negatives} + \text{False Negatives}}$$
+
+Critically, PPV and NPV depend on the **prevalence** of the disease in the population being tested. A test with 95% sensitivity and 95% specificity will have very different PPVs depending on context:
+
+| Prevalence | PPV   | NPV   |
+|------------|-------|-------|
+| 50%        | 95.0% | 95.0% |
+| 10%        | 67.9% | 99.4% |
+| 1%         | 16.1% | 99.9% |
+| 0.1%       | 1.9%  | 100%  |
+
+: PPV and NPV for a test with 95% sensitivity and 95% specificity at different prevalence levels. {#tbl-ppv-prevalence}
+
+At 0.1% prevalence, even with an excellent test, fewer than 2% of positive results are true positives. This is why mass screening for rare diseases generates so many false alarms, and why testing should be targeted to higher-risk populations whenever possible.
+
+### Exercise: Bayes' Theorem in Practice
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: ppv-calculation-r
+#| eval: false
+
+# Calculate PPV using Bayes' theorem
+# PPV = (Sensitivity * Prevalence) /
+#        (Sensitivity * Prevalence + (1 - Specificity) * (1 - Prevalence))
+
+calculate_ppv <- function(sensitivity, specificity, prevalence) {
+  numerator <- sensitivity * prevalence
+  denominator <- numerator + (1 - specificity) * (1 - prevalence)
+  return(numerator / denominator)
+}
+
+# Example: HIV rapid test (sensitivity = 99.7%, specificity = 99.5%)
+# In a general population (prevalence ~ 0.4%)
+ppv_general <- calculate_ppv(0.997, 0.995, 0.004)
+cat("PPV in general population:", round(ppv_general * 100, 1), "%\n")
+
+# In an STI clinic population (prevalence ~ 5%)
+ppv_clinic <- calculate_ppv(0.997, 0.995, 0.05)
+cat("PPV in STI clinic:", round(ppv_clinic * 100, 1), "%\n")
+
+# In a population with known exposure (prevalence ~ 30%)
+ppv_exposed <- calculate_ppv(0.997, 0.995, 0.30)
+cat("PPV with known exposure:", round(ppv_exposed * 100, 1), "%\n")
+
+# Plot PPV across a range of prevalences
+prevalences <- seq(0.001, 0.5, by = 0.001)
+ppvs <- sapply(prevalences, function(p) calculate_ppv(0.997, 0.995, p))
+
+plot(prevalences * 100, ppvs * 100,
+     type = "l", lwd = 2, col = "steelblue",
+     xlab = "Prevalence (%)", ylab = "Positive Predictive Value (%)",
+     main = "PPV depends heavily on prevalence",
+     las = 1)
+abline(h = 50, lty = 2, col = "grey50")
+```
+
+#### Python
+
+```{python}
+#| label: ppv-calculation-py
+#| eval: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def calculate_ppv(sensitivity, specificity, prevalence):
+    """Calculate PPV using Bayes' theorem."""
+    numerator = sensitivity * prevalence
+    denominator = numerator + (1 - specificity) * (1 - prevalence)
+    return numerator / denominator
+
+# Example: HIV rapid test (sensitivity = 99.7%, specificity = 99.5%)
+# In a general population (prevalence ~ 0.4%)
+ppv_general = calculate_ppv(0.997, 0.995, 0.004)
+print(f"PPV in general population: {ppv_general*100:.1f}%")
+
+# In an STI clinic population (prevalence ~ 5%)
+ppv_clinic = calculate_ppv(0.997, 0.995, 0.05)
+print(f"PPV in STI clinic: {ppv_clinic*100:.1f}%")
+
+# In a population with known exposure (prevalence ~ 30%)
+ppv_exposed = calculate_ppv(0.997, 0.995, 0.30)
+print(f"PPV with known exposure: {ppv_exposed*100:.1f}%")
+
+# Plot PPV across a range of prevalences
+prevalences = np.linspace(0.001, 0.5, 500)
+ppvs = [calculate_ppv(0.997, 0.995, p) for p in prevalences]
+
+plt.figure(figsize=(8, 5))
+plt.plot(prevalences * 100, np.array(ppvs) * 100, lw=2, color="steelblue")
+plt.axhline(y=50, linestyle="--", color="grey", alpha=0.7)
+plt.xlabel("Prevalence (%)")
+plt.ylabel("Positive Predictive Value (%)")
+plt.title("PPV depends heavily on prevalence")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## The Confusion Matrix
+
+A **confusion matrix** is the fundamental bookkeeping device for classification evaluation. For a binary outcome, it is a 2x2 table that cross-classifies predictions against truth:
+
+|                        | Condition Positive | Condition Negative |
+|------------------------|-------------------:|-------------------:|
+| **Predicted Positive** | True Positive (TP) | False Positive (FP)|
+| **Predicted Negative** | False Negative (FN)| True Negative (TN) |
+
+Every metric discussed in this chapter can be derived from this table. The crucial insight is that a single model can produce **different** confusion matrices depending on the **threshold** you choose for classifying a predicted probability as "positive" or "negative."
+
+### Building and Inspecting Confusion Matrices
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: confusion-matrix-r
+#| eval: false
+
+library(caret)
+
+# Simulate predicted probabilities and true outcomes
+set.seed(42)
+n <- 1000
+true_outcome <- rbinom(n, 1, 0.15)  # 15% prevalence
+# Simulate a moderately good model
+pred_prob <- plogis(rnorm(n, mean = -1 + 2 * true_outcome, sd = 1.2))
+
+# Confusion matrix at threshold = 0.5
+pred_class_50 <- ifelse(pred_prob >= 0.5, 1, 0)
+cm_50 <- confusionMatrix(factor(pred_class_50), factor(true_outcome), positive = "1")
+print(cm_50)
+
+# Confusion matrix at threshold = 0.2 (more sensitive)
+pred_class_20 <- ifelse(pred_prob >= 0.2, 1, 0)
+cm_20 <- confusionMatrix(factor(pred_class_20), factor(true_outcome), positive = "1")
+print(cm_20)
+
+cat("\nAt threshold 0.5:\n")
+cat("  Sensitivity:", round(cm_50$byClass["Sensitivity"], 3), "\n")
+cat("  Specificity:", round(cm_50$byClass["Specificity"], 3), "\n")
+
+cat("\nAt threshold 0.2:\n")
+cat("  Sensitivity:", round(cm_20$byClass["Sensitivity"], 3), "\n")
+cat("  Specificity:", round(cm_20$byClass["Specificity"], 3), "\n")
+```
+
+#### Python
+
+```{python}
+#| label: confusion-matrix-py
+#| eval: false
+
+import numpy as np
+from sklearn.metrics import confusion_matrix, classification_report
+from scipy.special import expit
+
+np.random.seed(42)
+n = 1000
+true_outcome = np.random.binomial(1, 0.15, n)  # 15% prevalence
+# Simulate a moderately good model
+pred_prob = expit(np.random.normal(-1 + 2 * true_outcome, 1.2))
+
+# Confusion matrix at threshold = 0.5
+pred_class_50 = (pred_prob >= 0.5).astype(int)
+print("=== Threshold = 0.5 ===")
+print(confusion_matrix(true_outcome, pred_class_50))
+print(classification_report(true_outcome, pred_class_50, target_names=["Negative", "Positive"]))
+
+# Confusion matrix at threshold = 0.2 (more sensitive)
+pred_class_20 = (pred_prob >= 0.2).astype(int)
+print("=== Threshold = 0.2 ===")
+print(confusion_matrix(true_outcome, pred_class_20))
+print(classification_report(true_outcome, pred_class_20, target_names=["Negative", "Positive"]))
+```
+
+:::
+
+## ROC Curves
+
+The **Receiver Operating Characteristic (ROC) curve** is perhaps the most widely used graphical tool for evaluating classification models. It plots sensitivity (true positive rate) on the y-axis against 1 minus specificity (false positive rate) on the x-axis, tracing out the trade-off as the classification threshold varies from 1 to 0.
+
+### How to Read an ROC Curve
+
+- The **diagonal line** from (0,0) to (1,1) represents a model with no discriminative ability --- equivalent to flipping a coin.
+- A curve that bows toward the **upper-left corner** indicates good discrimination. The model achieves high sensitivity without sacrificing too much specificity.
+- The **Area Under the ROC Curve (AUC or C-statistic)** summarises the curve in a single number. It equals the probability that, given one randomly chosen person with the disease and one without, the model assigns a higher predicted risk to the diseased person.
+
+| AUC Range   | Interpretation          |
+|-------------|-------------------------|
+| 0.90--1.00  | Excellent discrimination |
+| 0.80--0.90  | Good discrimination     |
+| 0.70--0.80  | Acceptable              |
+| 0.60--0.70  | Poor                    |
+| 0.50--0.60  | Fail (near chance)      |
+
+: Rough guide to AUC interpretation. These benchmarks are context-dependent. {#tbl-auc-benchmarks}
+
+::: {.callout-warning}
+## AUC Is Not Enough
+A model can have a high AUC but still produce poorly calibrated probabilities. Two models with the same AUC can have very different clinical utility. AUC tells you about ranking (discrimination), not about the accuracy of the predicted probabilities themselves. Always supplement AUC with calibration assessment (see @sec-performance-validation).
+:::
+
+### Plotting ROC Curves
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: roc-curve-r
+#| eval: false
+
+library(pROC)
+
+# Using the simulated data from above
+set.seed(42)
+n <- 1000
+true_outcome <- rbinom(n, 1, 0.15)
+pred_prob <- plogis(rnorm(n, mean = -1 + 2 * true_outcome, sd = 1.2))
+
+roc_obj <- roc(true_outcome, pred_prob)
+
+# Plot the ROC curve
+plot(roc_obj,
+     main = paste("ROC Curve (AUC =", round(auc(roc_obj), 3), ")"),
+     col = "steelblue", lwd = 2,
+     print.auc = TRUE, print.auc.y = 0.4,
+     legacy.axes = TRUE)  # Use 1-Specificity on x-axis
+
+# Add confidence interval for AUC
+ci_auc <- ci.auc(roc_obj)
+cat("95% CI for AUC:", round(ci_auc[1], 3), "-", round(ci_auc[3], 3), "\n")
+
+# Find the optimal threshold (Youden's J)
+coords_best <- coords(roc_obj, "best", ret = c("threshold", "sensitivity", "specificity"))
+cat("Optimal threshold (Youden):", round(coords_best$threshold, 3), "\n")
+cat("Sensitivity at optimal:", round(coords_best$sensitivity, 3), "\n")
+cat("Specificity at optimal:", round(coords_best$specificity, 3), "\n")
+```
+
+#### Python
+
+```{python}
+#| label: roc-curve-py
+#| eval: false
+
+from sklearn.metrics import roc_curve, roc_auc_score
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.special import expit
+
+np.random.seed(42)
+n = 1000
+true_outcome = np.random.binomial(1, 0.15, n)
+pred_prob = expit(np.random.normal(-1 + 2 * true_outcome, 1.2))
+
+fpr, tpr, thresholds = roc_curve(true_outcome, pred_prob)
+auc_score = roc_auc_score(true_outcome, pred_prob)
+
+plt.figure(figsize=(7, 7))
+plt.plot(fpr, tpr, color="steelblue", lw=2,
+         label=f"Model (AUC = {auc_score:.3f})")
+plt.plot([0, 1], [0, 1], color="grey", linestyle="--", label="Chance")
+plt.xlabel("False Positive Rate (1 - Specificity)")
+plt.ylabel("True Positive Rate (Sensitivity)")
+plt.title("ROC Curve")
+plt.legend(loc="lower right")
+plt.tight_layout()
+plt.show()
+
+# Youden's J statistic to find optimal threshold
+j_scores = tpr - fpr
+best_idx = np.argmax(j_scores)
+print(f"Optimal threshold (Youden): {thresholds[best_idx]:.3f}")
+print(f"Sensitivity: {tpr[best_idx]:.3f}")
+print(f"Specificity: {1 - fpr[best_idx]:.3f}")
+```
+
+:::
+
+## Precision-Recall Curves
+
+When outcomes are highly imbalanced --- as they often are in clinical prediction --- ROC curves can paint an overly optimistic picture. Because specificity is calculated over the large number of true negatives, even a substantial number of false positives barely moves the false positive rate. The **precision-recall (PR) curve** addresses this by focusing entirely on the positive class.
+
+- **Precision** (= PPV): of all predicted positives, how many are truly positive?
+- **Recall** (= sensitivity): of all true positives, how many were detected?
+
+The PR curve plots precision on the y-axis against recall on the x-axis. A good model maintains high precision even as recall increases. The baseline for a PR curve is a horizontal line at the prevalence level (not the diagonal, as for ROC).
+
+The **Area Under the Precision-Recall Curve (AUPRC)** is a useful summary, particularly for rare outcomes. While a model may boast an AUC-ROC of 0.95, its AUPRC might reveal that achieving high recall requires accepting very low precision.
+
+### Exercise: Comparing ROC and PR Curves
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: pr-curve-r
+#| eval: false
+
+library(PRROC)
+
+# Simulate an imbalanced dataset (2% prevalence)
+set.seed(123)
+n <- 5000
+true_outcome <- rbinom(n, 1, 0.02)
+pred_prob <- plogis(rnorm(n, mean = -2 + 3 * true_outcome, sd = 1.5))
+
+# PR curve
+pr <- pr.curve(scores.class0 = pred_prob[true_outcome == 1],
+               scores.class1 = pred_prob[true_outcome == 0],
+               curve = TRUE)
+plot(pr, main = paste("Precision-Recall Curve\nAUPRC =", round(pr$auc.integral, 3)))
+
+# For comparison, the ROC curve
+roc <- roc.curve(scores.class0 = pred_prob[true_outcome == 1],
+                 scores.class1 = pred_prob[true_outcome == 0],
+                 curve = TRUE)
+plot(roc, main = paste("ROC Curve\nAUROC =", round(roc$auc, 3)))
+
+cat("Notice how the AUROC looks excellent but the AUPRC reveals\n")
+cat("the difficulty of achieving high precision with rare outcomes.\n")
+```
+
+#### Python
+
+```{python}
+#| label: pr-curve-py
+#| eval: false
+
+from sklearn.metrics import (precision_recall_curve, average_precision_score,
+                              roc_curve, roc_auc_score)
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.special import expit
+
+np.random.seed(123)
+n = 5000
+true_outcome = np.random.binomial(1, 0.02, n)  # 2% prevalence
+pred_prob = expit(np.random.normal(-2 + 3 * true_outcome, 1.5))
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# ROC curve
+fpr, tpr, _ = roc_curve(true_outcome, pred_prob)
+auroc = roc_auc_score(true_outcome, pred_prob)
+axes[0].plot(fpr, tpr, color="steelblue", lw=2)
+axes[0].plot([0, 1], [0, 1], "--", color="grey")
+axes[0].set_title(f"ROC Curve (AUROC = {auroc:.3f})")
+axes[0].set_xlabel("False Positive Rate")
+axes[0].set_ylabel("True Positive Rate")
+
+# PR curve
+precision, recall, _ = precision_recall_curve(true_outcome, pred_prob)
+auprc = average_precision_score(true_outcome, pred_prob)
+prevalence = true_outcome.mean()
+axes[1].plot(recall, precision, color="darkorange", lw=2)
+axes[1].axhline(y=prevalence, linestyle="--", color="grey", label=f"Baseline (prevalence={prevalence:.2f})")
+axes[1].set_title(f"Precision-Recall Curve (AUPRC = {auprc:.3f})")
+axes[1].set_xlabel("Recall (Sensitivity)")
+axes[1].set_ylabel("Precision (PPV)")
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+print("The AUROC looks impressive, but AUPRC reveals the real challenge.")
+```
+
+:::
+
+## Choosing the Threshold: A Clinical Decision
+
+A prediction model typically outputs a probability. To make a binary decision (treat or don't treat, refer or don't refer), you must choose a **threshold**. This is fundamentally a **clinical** decision, not a statistical one.
+
+Consider a model predicting 30-day mortality after surgery:
+
+- If the intervention for high-risk patients is simply closer monitoring (low cost, minimal harm), you might choose a **low threshold** (e.g., 5%), accepting many false positives to catch as many at-risk patients as possible.
+- If the intervention is a risky re-operation, you might choose a **high threshold** (e.g., 30%), requiring strong evidence before acting.
+
+The optimal threshold depends on the **relative costs** of false positives and false negatives, which are determined by the clinical context, not by the data.
+
+::: {.callout-note}
+## Youden's Index Is Not Always Optimal
+Youden's J statistic (sensitivity + specificity - 1) finds the threshold that maximises the sum of sensitivity and specificity. This implicitly assumes equal costs for false positives and false negatives --- an assumption that is rarely true in medicine. Use Youden's index as a starting point, but always adjust based on clinical reasoning.
+:::
+
+### The Threshold-Performance Trade-off
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: threshold-tradeoff-r
+#| eval: false
+
+library(pROC)
+
+set.seed(42)
+n <- 1000
+true_outcome <- rbinom(n, 1, 0.15)
+pred_prob <- plogis(rnorm(n, mean = -1 + 2 * true_outcome, sd = 1.2))
+
+roc_obj <- roc(true_outcome, pred_prob)
+
+# Extract sensitivity and specificity at various thresholds
+thresholds <- seq(0.05, 0.95, by = 0.05)
+results <- data.frame(
+  threshold = thresholds,
+  sensitivity = sapply(thresholds, function(t) {
+    coords(roc_obj, t, input = "threshold", ret = "sensitivity")
+  }),
+  specificity = sapply(thresholds, function(t) {
+    coords(roc_obj, t, input = "threshold", ret = "specificity")
+  })
+)
+
+# Plot the trade-off
+plot(results$threshold, results$sensitivity, type = "l", lwd = 2, col = "red",
+     xlab = "Classification Threshold", ylab = "Metric Value",
+     main = "Sensitivity-Specificity Trade-off Across Thresholds",
+     ylim = c(0, 1), las = 1)
+lines(results$threshold, results$specificity, lwd = 2, col = "blue")
+legend("right", legend = c("Sensitivity", "Specificity"),
+       col = c("red", "blue"), lwd = 2)
+```
+
+#### Python
+
+```{python}
+#| label: threshold-tradeoff-py
+#| eval: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
+from scipy.special import expit
+
+np.random.seed(42)
+n = 1000
+true_outcome = np.random.binomial(1, 0.15, n)
+pred_prob = expit(np.random.normal(-1 + 2 * true_outcome, 1.2))
+
+fpr, tpr, thresholds = roc_curve(true_outcome, pred_prob)
+specificity = 1 - fpr
+
+plt.figure(figsize=(8, 5))
+plt.plot(thresholds, tpr[:-1] if len(tpr) > len(thresholds) else tpr,
+         color="red", lw=2, label="Sensitivity")
+plt.plot(thresholds, specificity[:-1] if len(specificity) > len(thresholds) else specificity,
+         color="blue", lw=2, label="Specificity")
+plt.xlabel("Classification Threshold")
+plt.ylabel("Metric Value")
+plt.title("Sensitivity-Specificity Trade-off Across Thresholds")
+plt.legend()
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Fairness: Does the Model Work for Everyone?
+
+A model that performs well on average may perform very differently across subgroups defined by age, sex, race, ethnicity, or socioeconomic status. This is not a theoretical concern --- it has been documented repeatedly in clinical prediction models.
+
+A well-known example is the pulse oximeter, which systematically overestimates blood oxygen saturation in patients with darker skin pigmentation. Prediction models trained on predominantly White populations may have lower sensitivity for detecting disease in Black or Hispanic patients, potentially widening existing health disparities.
+
+### Key Fairness Concepts
+
+- **Equal performance**: Does the model have similar sensitivity and specificity across demographic groups?
+- **Calibration fairness**: Are predicted probabilities equally well-calibrated in each group? A model might predict 20% risk for two groups, but if the actual event rate is 20% in one group and 30% in another, the model is miscalibrated for the latter.
+- **Demographic parity**: Are positive predictions made at similar rates across groups? (Note: this may conflict with calibration if true prevalence differs.)
+
+### Exercise: Evaluating Fairness
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: fairness-r
+#| eval: false
+
+library(pROC)
+
+# Simulate data with two demographic groups
+set.seed(42)
+n <- 2000
+
+group <- sample(c("A", "B"), n, replace = TRUE)
+# Group B has slightly different disease prevalence and predictor distribution
+true_outcome <- ifelse(group == "A",
+                       rbinom(n, 1, 0.10),
+                       rbinom(n, 1, 0.15))
+# Model performs slightly worse for Group B
+pred_prob <- ifelse(group == "A",
+                    plogis(rnorm(n, -1.5 + 2.5 * true_outcome, 1.0)),
+                    plogis(rnorm(n, -1.5 + 1.8 * true_outcome, 1.2)))
+
+# Calculate AUC by group
+for (g in c("A", "B")) {
+  idx <- group == g
+  roc_g <- roc(true_outcome[idx], pred_prob[idx])
+  cat(sprintf("Group %s: AUC = %.3f, Prevalence = %.1f%%\n",
+              g, auc(roc_g), mean(true_outcome[idx]) * 100))
+}
+
+# Compare sensitivity at a fixed threshold
+threshold <- 0.3
+for (g in c("A", "B")) {
+  idx <- group == g
+  pred_class <- ifelse(pred_prob[idx] >= threshold, 1, 0)
+  sens <- sum(pred_class == 1 & true_outcome[idx] == 1) / sum(true_outcome[idx] == 1)
+  spec <- sum(pred_class == 0 & true_outcome[idx] == 0) / sum(true_outcome[idx] == 0)
+  cat(sprintf("Group %s at threshold %.1f: Sensitivity = %.3f, Specificity = %.3f\n",
+              g, threshold, sens, spec))
+}
+```
+
+#### Python
+
+```{python}
+#| label: fairness-py
+#| eval: false
+
+import numpy as np
+from sklearn.metrics import roc_auc_score
+from scipy.special import expit
+
+np.random.seed(42)
+n = 2000
+
+group = np.random.choice(["A", "B"], n)
+true_outcome = np.where(group == "A",
+                        np.random.binomial(1, 0.10, n),
+                        np.random.binomial(1, 0.15, n))
+pred_prob = np.where(group == "A",
+                     expit(np.random.normal(-1.5 + 2.5 * true_outcome, 1.0)),
+                     expit(np.random.normal(-1.5 + 1.8 * true_outcome, 1.2)))
+
+# AUC by group
+for g in ["A", "B"]:
+    mask = group == g
+    auc = roc_auc_score(true_outcome[mask], pred_prob[mask])
+    prev = true_outcome[mask].mean()
+    print(f"Group {g}: AUC = {auc:.3f}, Prevalence = {prev*100:.1f}%")
+
+# Sensitivity and specificity at a fixed threshold
+threshold = 0.3
+for g in ["A", "B"]:
+    mask = group == g
+    pred_class = (pred_prob[mask] >= threshold).astype(int)
+    tp = ((pred_class == 1) & (true_outcome[mask] == 1)).sum()
+    fn = ((pred_class == 0) & (true_outcome[mask] == 1)).sum()
+    tn = ((pred_class == 0) & (true_outcome[mask] == 0)).sum()
+    fp = ((pred_class == 1) & (true_outcome[mask] == 0)).sum()
+    sens = tp / (tp + fn) if (tp + fn) > 0 else 0
+    spec = tn / (tn + fp) if (tn + fp) > 0 else 0
+    print(f"Group {g} at threshold {threshold}: Sensitivity = {sens:.3f}, Specificity = {spec:.3f}")
+```
+
+:::
+
+## Putting It All Together: A Complete Evaluation
+
+When evaluating a clinical prediction model, no single metric tells the whole story. The following checklist summarises what you should report:
+
+1. **Sample description**: How many patients? How many events? What is the prevalence?
+2. **Discrimination**: AUC-ROC with confidence interval. Consider AUPRC for rare outcomes.
+3. **Calibration**: Are predicted probabilities accurate? (Covered in detail in @sec-performance-validation.)
+4. **Confusion matrix**: At a clinically relevant threshold, not just the default 0.5.
+5. **Sensitivity, specificity, PPV, NPV**: At the chosen threshold.
+6. **Subgroup performance**: Does the model perform equitably across key demographic groups?
+7. **Clinical utility**: Would using this model lead to better decisions than the alternatives? (Covered in @sec-performance-validation.)
+
+::: {.callout-important}
+## Remember
+A model is not good or bad in isolation. It is good or bad **for a specific purpose, in a specific population, at a specific threshold**. Always evaluate with the intended clinical use in mind.
+:::
+
+## Summary
+
+- **Accuracy** is misleading for imbalanced outcomes; decompose errors into sensitivity and specificity.
+- **Sensitivity** matters most for screening; **specificity** matters most for confirmation.
+- **PPV and NPV** depend on prevalence, so a test's clinical usefulness changes with the population.
+- **ROC curves** display the sensitivity-specificity trade-off across all thresholds; **AUC** summarises discriminative ability.
+- **Precision-recall curves** are more informative than ROC for rare outcomes.
+- The **classification threshold** should be chosen based on clinical consequences, not statistical optimality.
+- **Fairness** requires checking that model performance is consistent across demographic groups.
+
+## References and Further Reading
+
+The foundational concepts of sensitivity, specificity, and predictive values are covered in every epidemiology textbook, but their application to prediction models requires additional nuance. Van Calster and colleagues provide an excellent overview of performance assessment in their 2025 paper in The Lancet Digital Health, which organises evaluation into five domains: discrimination, calibration, overall performance, classification, and clinical utility. This framework is essential reading for anyone developing or evaluating clinical prediction models. The comprehensive textbook by Smits, van Kuijk, and Wynants (2026) devotes several chapters to model evaluation and provides practical guidance on choosing appropriate metrics for different clinical contexts. For the statistical foundations of ROC analysis, the classic text by Pepe (2003), "The Statistical Evaluation of Medical Tests for Classification and Prediction," remains the definitive reference. Saito and Rehmsmeier (2015) explain why precision-recall curves are preferable to ROC curves for imbalanced datasets in their paper "The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets" in PLOS ONE. On the topic of fairness in clinical prediction, Obermeyer and colleagues published a landmark 2019 paper in Science demonstrating racial bias in a widely used healthcare algorithm, which is required reading for anyone working in this space. Vickers and Elkin (2006) introduced decision curve analysis and net benefit as tools for evaluating clinical utility, which we discuss further in the next chapter.

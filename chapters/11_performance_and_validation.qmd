@@ -1,0 +1,877 @@
+# Performance Assessment and Model Validation {#sec-performance-validation}
+
+## Introduction
+
+You have developed a clinical prediction model. Its coefficients look reasonable, the predictors make clinical sense, and the apparent performance seems promising. But how good is this model, really? And will it work on patients beyond your development dataset?
+
+This chapter addresses these questions by covering the five domains of model performance --- discrimination, calibration, overall performance, classification, and clinical utility --- and the methods for internal and external validation. The structure follows the comprehensive framework proposed by Van Calster and colleagues (2025) in The Lancet Digital Health, which we strongly recommend as a companion reading.
+
+The core message is this: **no single metric tells the full story.** A model with excellent discrimination (high AUC) can still produce dangerously miscalibrated risk predictions. A well-calibrated model might not discriminate well enough to be useful. Clinical utility must be assessed separately from statistical performance. You need the full picture.
+
+## The Five Performance Domains
+
+Van Calster et al. (2025) organise model performance assessment into five complementary domains:
+
+| Domain | Question | Key Metrics |
+|--------|----------|-------------|
+| **Discrimination** | Can the model rank patients by risk? | C-statistic, AUC |
+| **Calibration** | Are predicted probabilities accurate? | Calibration plot, O:E ratio, calibration slope |
+| **Overall performance** | How close are predictions to observed outcomes? | Brier score, Nagelkerke R-squared |
+| **Classification** | How well does the model classify at a threshold? | Sensitivity, specificity, PPV, NPV |
+| **Clinical utility** | Does using the model improve clinical decisions? | Net benefit, decision curve analysis |
+
+We will examine each in detail.
+
+## Domain 1: Discrimination
+
+### The C-Statistic / AUC
+
+Discrimination measures how well a model separates patients who experience the outcome from those who do not. The most common measure is the **concordance statistic (C-statistic)**, which for binary outcomes is equivalent to the area under the ROC curve (AUC) discussed in @sec-model-evaluation.
+
+Recall the interpretation: the C-statistic is the probability that a randomly selected patient with the outcome has a higher predicted probability than a randomly selected patient without the outcome.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: discrimination-r
+#| message: false
+
+library(rms)
+
+# Simulate clinical data: predicting 30-day mortality after stroke
+set.seed(2024)
+n <- 1500
+
+stroke_data <- data.frame(
+  age = round(rnorm(n, 72, 12)),
+  nihss = round(pmax(0, rnorm(n, 8, 6))),       # NIH Stroke Scale
+  glucose = round(rnorm(n, 140, 50)),
+  afib = rbinom(n, 1, 0.25),                      # Atrial fibrillation
+  thrombolysis = rbinom(n, 1, 0.30)
+)
+
+# True model for 30-day mortality
+lp <- -5 + 0.04 * stroke_data$age +
+  0.12 * stroke_data$nihss +
+  0.003 * stroke_data$glucose +
+  0.3 * stroke_data$afib -
+  0.5 * stroke_data$thrombolysis
+
+stroke_data$death_30d <- rbinom(n, 1, plogis(lp))
+cat("30-day mortality rate:", mean(stroke_data$death_30d), "\n")
+
+# Fit prediction model
+dd <- datadist(stroke_data)
+options(datadist = "dd")
+
+fit <- lrm(death_30d ~ age + nihss + glucose + afib + thrombolysis,
+           data = stroke_data, x = TRUE, y = TRUE)
+
+cat("C-statistic (apparent):", fit$stats["C"], "\n")
+```
+
+### Python
+
+```{python}
+#| label: discrimination-py
+
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
+from scipy.special import expit
+
+np.random.seed(2024)
+n = 1500
+
+stroke_data = pd.DataFrame({
+    "age": np.round(np.random.normal(72, 12, n)),
+    "nihss": np.round(np.maximum(0, np.random.normal(8, 6, n))),
+    "glucose": np.round(np.random.normal(140, 50, n)),
+    "afib": np.random.binomial(1, 0.25, n),
+    "thrombolysis": np.random.binomial(1, 0.30, n)
+})
+
+lp = (-5 + 0.04 * stroke_data["age"] +
+      0.12 * stroke_data["nihss"] +
+      0.003 * stroke_data["glucose"] +
+      0.3 * stroke_data["afib"] -
+      0.5 * stroke_data["thrombolysis"])
+
+stroke_data["death_30d"] = np.random.binomial(1, expit(lp))
+print(f"30-day mortality rate: {stroke_data['death_30d'].mean():.3f}")
+
+predictors = ["age", "nihss", "glucose", "afib", "thrombolysis"]
+X = stroke_data[predictors].values
+y = stroke_data["death_30d"].values
+
+model = LogisticRegression(max_iter=5000, random_state=42)
+model.fit(X, y)
+
+pred_prob = model.predict_proba(X)[:, 1]
+auc = roc_auc_score(y, pred_prob)
+print(f"C-statistic (apparent): {auc:.3f}")
+```
+
+:::
+
+### Limitations of the C-Statistic
+
+The C-statistic has important limitations that Van Calster et al. (2025) highlight:
+
+1. **Insensitive to calibration:** A model can perfectly rank patients (C = 1.0) but assign completely wrong probabilities.
+2. **Context-blind:** It weights all parts of the ROC curve equally, even clinically irrelevant regions.
+3. **Hard to improve:** In many clinical domains, the achievable C-statistic is inherently limited. Adding a new biomarker might genuinely improve predictions but barely move the C-statistic.
+4. **Misleading comparisons:** A C-statistic of 0.75 in one population is not comparable to 0.75 in another if the case-mix differs.
+
+## Domain 2: Calibration
+
+### Why Calibration Matters More Than You Think
+
+Calibration assesses whether predicted probabilities match observed outcomes. If your model says a patient has a 20% risk, do approximately 20 out of 100 such patients actually experience the outcome?
+
+This matters enormously in clinical practice. When a clinician tells a patient "your model-predicted 10-year cardiovascular risk is 15%," the patient and clinician rely on that number being accurate --- not just the patient's relative ranking. **Risk-based treatment decisions require calibrated predictions.**
+
+### Calibration-in-the-Large: The O:E Ratio
+
+The simplest calibration check is the **observed-to-expected (O:E) ratio:**
+
+$$
+\text{O:E ratio} = \frac{\text{Observed event rate}}{\text{Mean predicted probability}}
+$$
+
+An O:E ratio of 1 indicates perfect calibration-in-the-large. An O:E ratio of 1.5 means the model underestimates risk by 50%.
+
+### Calibration Slope
+
+The **calibration slope** is obtained by regressing the outcome on the linear predictor (log-odds of predictions). A calibration slope of 1 indicates perfect calibration. A slope less than 1 indicates overfitting (predictions are too extreme --- high risks are too high, low risks are too low). A slope greater than 1 suggests the opposite.
+
+### Calibration Plots
+
+The most informative way to assess calibration is visually, through a **calibration plot.** This plots predicted probabilities (x-axis) against observed proportions (y-axis). A perfectly calibrated model follows the 45-degree diagonal.
+
+Two types are common:
+
+- **Grouped calibration plot:** Patients are divided into groups (e.g., deciles) by predicted probability, and the observed proportion within each group is plotted.
+- **Smoothed calibration plot:** A smooth curve (e.g., loess or spline) is fit to the predicted vs. observed data.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: calibration-r
+#| message: false
+#| fig-cap: "Calibration plot showing observed outcomes versus predicted probabilities."
+
+library(rms)
+
+# Use the stroke model from above
+pred_prob <- predict(fit, type = "fitted")
+
+# Grouped calibration plot
+cal <- val.prob(pred_prob, stroke_data$death_30d,
+                m = 100, cex = 0.5,
+                main = "Calibration Plot: 30-Day Stroke Mortality Model")
+```
+
+```{r}
+#| label: calibration-metrics-r
+
+# Calculate calibration metrics manually
+obs_rate <- mean(stroke_data$death_30d)
+mean_pred <- mean(pred_prob)
+
+cat("Observed event rate:", round(obs_rate, 3), "\n")
+cat("Mean predicted probability:", round(mean_pred, 3), "\n")
+cat("O:E ratio:", round(obs_rate / mean_pred, 3), "\n")
+
+# Calibration slope
+cal_model <- glm(stroke_data$death_30d ~ qlogis(pred_prob),
+                 family = binomial)
+cat("Calibration slope:", round(coef(cal_model)[2], 3), "\n")
+cat("Calibration intercept:", round(coef(cal_model)[1], 3), "\n")
+
+# Brier score
+brier <- mean((pred_prob - stroke_data$death_30d)^2)
+cat("Brier score:", round(brier, 4), "\n")
+```
+
+### Python
+
+```{python}
+#| label: calibration-py
+#| fig-cap: "Calibration plot showing observed outcomes versus predicted probabilities."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.calibration import calibration_curve
+from sklearn.metrics import brier_score_loss
+
+# Use the stroke model predictions from above
+pred_prob = model.predict_proba(X)[:, 1]
+y_true = stroke_data["death_30d"].values
+
+# Grouped calibration curve
+prob_true, prob_pred = calibration_curve(y_true, pred_prob,
+                                         n_bins=10, strategy="quantile")
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# Left panel: calibration plot
+axes[0].plot(prob_pred, prob_true, "o-", color="steelblue", lw=2,
+             markersize=8, label="Model")
+axes[0].plot([0, 1], [0, 1], "--", color="grey", label="Perfect calibration")
+axes[0].set_xlabel("Mean Predicted Probability")
+axes[0].set_ylabel("Observed Proportion")
+axes[0].set_title("Calibration Plot (Decile Groups)")
+axes[0].legend()
+axes[0].set_xlim(0, max(prob_pred) * 1.1)
+axes[0].set_ylim(0, max(prob_true) * 1.1)
+
+# Right panel: distribution of predicted probabilities
+axes[1].hist(pred_prob[y_true == 0], bins=30, alpha=0.5, color="steelblue",
+             label="No event", density=True)
+axes[1].hist(pred_prob[y_true == 1], bins=30, alpha=0.5, color="coral",
+             label="Event", density=True)
+axes[1].set_xlabel("Predicted Probability")
+axes[1].set_ylabel("Density")
+axes[1].set_title("Distribution of Predicted Probabilities")
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+# Calibration metrics
+obs_rate = y_true.mean()
+mean_pred = pred_prob.mean()
+oe_ratio = obs_rate / mean_pred
+brier = brier_score_loss(y_true, pred_prob)
+
+print(f"\nCalibration metrics:")
+print(f"  Observed event rate: {obs_rate:.3f}")
+print(f"  Mean predicted probability: {mean_pred:.3f}")
+print(f"  O:E ratio: {oe_ratio:.3f}")
+print(f"  Brier score: {brier:.4f}")
+```
+
+:::
+
+### Interpreting Miscalibration
+
+Common patterns and their clinical meaning:
+
+- **O:E > 1 (underestimation):** The model systematically underestimates risk. Patients may not receive treatments they need.
+- **O:E < 1 (overestimation):** The model systematically overestimates risk. Patients may receive unnecessary treatments.
+- **Calibration slope < 1:** Predictions are too extreme. Patients at high predicted risk actually have lower risk than predicted, and patients at low predicted risk have higher risk. This is the hallmark of overfitting.
+- **Calibration slope > 1:** Predictions are too moderate. This is less common and may occur after excessive shrinkage.
+
+## Domain 3: Overall Performance
+
+The **Brier score** combines discrimination and calibration into a single measure:
+
+$$
+\text{Brier score} = \frac{1}{N} \sum_{i=1}^{N} (p_i - y_i)^2
+$$
+
+where $p_i$ is the predicted probability and $y_i$ is the observed outcome (0 or 1). The Brier score ranges from 0 (perfect) to 1 (worst). For a reference, a model that always predicts the overall event rate achieves a Brier score equal to the prevalence times (1 minus the prevalence).
+
+The **scaled Brier score** (or Brier skill score) expresses improvement over a non-informative model:
+
+$$
+\text{Scaled Brier} = 1 - \frac{\text{Brier score}}{\text{Brier}_{\text{max}}}
+$$
+
+where $\text{Brier}_{\text{max}} = \bar{y}(1 - \bar{y})$.
+
+## Domain 4: Classification
+
+Classification metrics (sensitivity, specificity, PPV, NPV) were covered in @sec-model-evaluation. The key point for model validation is that classification performance depends entirely on the chosen threshold. When reporting classification metrics, **always specify the threshold and justify its choice based on the clinical context.**
+
+## Domain 5: Clinical Utility
+
+### Net Benefit and Decision Curve Analysis
+
+A model might have good discrimination and calibration, yet using it may not actually improve clinical decisions. **Decision curve analysis (DCA)**, proposed by Vickers and Elkin (2006), addresses this by quantifying the **net benefit** of using the model compared to the default strategies of treating all patients or treating no patients.
+
+The net benefit at a given threshold probability $p_t$ is:
+
+$$
+\text{Net benefit} = \frac{TP}{N} - \frac{FP}{N} \times \frac{p_t}{1 - p_t}
+$$
+
+The term $\frac{p_t}{1 - p_t}$ represents the exchange rate between false positives and true positives, determined by the threshold probability. If the threshold is 10%, you are willing to accept up to 9 false positives for every true positive identified.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: dca-r
+#| message: false
+#| fig-cap: "Decision curve analysis comparing the prediction model to default strategies."
+
+library(dcurves)
+
+# Add predicted probabilities to the dataset
+stroke_data$pred_risk <- predict(fit, type = "fitted")
+
+# Decision curve analysis
+dca_result <- dca(death_30d ~ pred_risk,
+                  data = stroke_data,
+                  thresholds = seq(0, 0.5, by = 0.01))
+
+plot(dca_result,
+     smooth = TRUE,
+     show_ggplot_code = FALSE) +
+  ggplot2::ggtitle("Decision Curve Analysis:\n30-Day Stroke Mortality Model")
+```
+
+### Python
+
+```{python}
+#| label: dca-py
+#| fig-cap: "Decision curve analysis comparing the prediction model to default strategies."
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def net_benefit(y_true, y_pred, threshold):
+    """Calculate net benefit at a given threshold."""
+    n = len(y_true)
+    pred_pos = (y_pred >= threshold).astype(int)
+    tp = np.sum((pred_pos == 1) & (y_true == 1))
+    fp = np.sum((pred_pos == 1) & (y_true == 0))
+    nb = tp / n - fp / n * (threshold / (1 - threshold))
+    return nb
+
+thresholds = np.arange(0.01, 0.51, 0.01)
+pred_prob_model = model.predict_proba(X)[:, 1]
+y_true = stroke_data["death_30d"].values
+n_total = len(y_true)
+
+# Net benefit for model
+nb_model = [net_benefit(y_true, pred_prob_model, t) for t in thresholds]
+
+# Net benefit for "treat all" strategy
+nb_all = [(y_true.mean() - (1 - y_true.mean()) * t / (1 - t))
+          for t in thresholds]
+
+# Net benefit for "treat none" is always 0
+
+plt.figure(figsize=(9, 6))
+plt.plot(thresholds, nb_model, color="steelblue", lw=2,
+         label="Prediction Model")
+plt.plot(thresholds, nb_all, color="coral", lw=2, ls="--",
+         label="Treat All")
+plt.axhline(y=0, color="black", lw=1, label="Treat None")
+plt.xlabel("Threshold Probability")
+plt.ylabel("Net Benefit")
+plt.title("Decision Curve Analysis: 30-Day Stroke Mortality Model")
+plt.legend()
+plt.ylim(-0.05, max(max(nb_model), max(nb_all)) * 1.1)
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Interpreting the Decision Curve
+
+The decision curve shows net benefit (y-axis) across a range of threshold probabilities (x-axis). Three strategies are compared:
+
+- **Treat none** (horizontal line at 0): no patients receive the intervention.
+- **Treat all** (declining curve): all patients receive the intervention regardless of risk.
+- **Model-guided** (the model's curve): only patients above the threshold receive the intervention.
+
+The model is clinically useful at thresholds where its net benefit exceeds both the "treat all" and "treat none" lines. If the model curve is always below one of the default strategies, the model adds no value.
+
+## Internal Validation
+
+### Why Internal Validation Is Necessary
+
+As discussed in @sec-building-prediction-models, apparent performance (measured on the training data) is optimistically biased. Internal validation estimates and corrects for this optimism. It does not replace external validation, but it provides a more honest assessment of likely performance.
+
+### Bootstrap Optimism Correction
+
+The recommended approach (Steyerberg 2019, Van Calster et al. 2025) is **bootstrap optimism correction:**
+
+1. Draw a bootstrap sample (with replacement) from the original data.
+2. Develop the model in the bootstrap sample (including all modelling decisions).
+3. Measure performance in the bootstrap sample (apparent bootstrap performance).
+4. Apply the bootstrap model to the original data (test performance).
+5. Optimism = apparent bootstrap performance minus test performance.
+6. Repeat steps 1--5 many times (e.g., 200+).
+7. Average optimism across repetitions.
+8. Corrected performance = original apparent performance minus average optimism.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: bootstrap-validation-r
+#| message: false
+
+library(rms)
+
+# Using the stroke model
+fit <- lrm(death_30d ~ age + nihss + glucose + afib + thrombolysis,
+           data = stroke_data, x = TRUE, y = TRUE)
+
+# Bootstrap validation with 200 resamples
+set.seed(42)
+val <- validate(fit, B = 200)
+
+cat("Bootstrap Validation Results:\n")
+print(val)
+
+# Extract optimism-corrected C-statistic
+dxy_corrected <- val["Dxy", "index.corrected"]
+c_corrected <- (dxy_corrected + 1) / 2
+
+cat("\nApparent C-statistic:", fit$stats["C"], "\n")
+cat("Optimism:", val["Dxy", "optimism"] / 2, "\n")
+cat("Optimism-corrected C-statistic:", c_corrected, "\n")
+
+# Calibration slope from bootstrap
+cat("\nCalibration slope (optimism-corrected):",
+    val["Slope", "index.corrected"], "\n")
+```
+
+### Python
+
+```{python}
+#| label: bootstrap-validation-py
+
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score, brier_score_loss
+
+np.random.seed(42)
+
+predictors = ["age", "nihss", "glucose", "afib", "thrombolysis"]
+X = stroke_data[predictors].values
+y = stroke_data["death_30d"].values
+n = len(y)
+
+# Apparent performance
+full_model = LogisticRegression(max_iter=5000, random_state=42)
+full_model.fit(X, y)
+pred_full = full_model.predict_proba(X)[:, 1]
+apparent_auc = roc_auc_score(y, pred_full)
+apparent_brier = brier_score_loss(y, pred_full)
+
+# Bootstrap optimism correction
+n_boot = 200
+optimism_auc = []
+optimism_brier = []
+
+for b in range(n_boot):
+    boot_idx = np.random.choice(n, n, replace=True)
+    X_boot, y_boot = X[boot_idx], y[boot_idx]
+
+    boot_model = LogisticRegression(max_iter=5000, random_state=42)
+    boot_model.fit(X_boot, y_boot)
+
+    # Apparent performance on bootstrap sample
+    pred_boot = boot_model.predict_proba(X_boot)[:, 1]
+    auc_boot = roc_auc_score(y_boot, pred_boot)
+    brier_boot = brier_score_loss(y_boot, pred_boot)
+
+    # Test performance on original data
+    pred_orig = boot_model.predict_proba(X)[:, 1]
+    auc_orig = roc_auc_score(y, pred_orig)
+    brier_orig = brier_score_loss(y, pred_orig)
+
+    optimism_auc.append(auc_boot - auc_orig)
+    optimism_brier.append(brier_boot - brier_orig)
+
+mean_opt_auc = np.mean(optimism_auc)
+mean_opt_brier = np.mean(optimism_brier)
+corrected_auc = apparent_auc - mean_opt_auc
+corrected_brier = apparent_brier - mean_opt_brier
+
+print(f"Apparent AUC:              {apparent_auc:.3f}")
+print(f"Mean optimism (AUC):       {mean_opt_auc:.4f}")
+print(f"Corrected AUC:             {corrected_auc:.3f}")
+print(f"\nApparent Brier:            {apparent_brier:.4f}")
+print(f"Mean optimism (Brier):     {mean_opt_brier:.4f}")
+print(f"Corrected Brier:           {corrected_brier:.4f}")
+```
+
+:::
+
+### Cross-Validation
+
+Cross-validation (typically 10-fold) provides an alternative internal validation approach. The data is split into $k$ folds; each fold serves once as the validation set while the remaining folds are used for model development. The average performance across folds estimates the model's performance on new data.
+
+Cross-validation is computationally simpler but has limitations for prediction model development: it does not directly yield a single final model or a clear calibration slope correction. Bootstrap optimism correction is generally preferred for clinical prediction models.
+
+## External Validation
+
+### Types of External Validation
+
+Internal validation tells you how optimistic your apparent performance is. **External validation** tells you whether the model works on genuinely new data --- the real test. Van Calster et al. (2025) and Smits et al. (2026) distinguish:
+
+- **Temporal validation:** Same setting, different time period. Example: model developed on 2015--2019 data, validated on 2020--2022 data. This captures changes in clinical practice and patient populations over time.
+- **Geographical validation:** Different hospital or region, same time period. This tests transportability across settings.
+- **Domain validation:** Different clinical context entirely (e.g., model developed in a tertiary care centre, validated in primary care). This is the most stringent test.
+
+### What to Report in External Validation
+
+Following Van Calster et al. (2025), an external validation study should report at minimum:
+
+1. **C-statistic** with 95% confidence interval
+2. **Calibration plot** (both grouped and smoothed)
+3. **O:E ratio** with 95% confidence interval
+4. **Calibration slope**
+5. **Net benefit** (decision curve) at clinically relevant thresholds
+6. **Distribution of predicted probabilities** (to understand the range and spread)
+7. **Performance by subgroups** (age, sex, comorbidities, etc.)
+
+## Model Updating
+
+### When Performance Degrades
+
+External validation often reveals that a model does not perform as well in new settings as it did internally. This does not necessarily mean the model is useless. **Model updating** can adapt an existing model to a new population without developing a completely new model.
+
+### Updating Strategies
+
+From least to most complex:
+
+1. **Recalibration-in-the-large:** Adjust only the intercept. Corrects for differences in baseline risk (e.g., higher mortality rate in the new population).
+
+2. **Logistic recalibration:** Adjust the intercept and apply a correction to the calibration slope. This corrects for both level and spread of predictions.
+
+3. **Model revision:** Re-estimate some or all coefficients, or add new predictors. This requires larger sample sizes in the new population.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: recalibration-r
+#| message: false
+
+# Simulate external validation data (different setting)
+set.seed(99)
+n_ext <- 800
+
+# New population: older, sicker
+ext_data <- data.frame(
+  age = round(rnorm(n_ext, 78, 10)),   # Older
+  nihss = round(pmax(0, rnorm(n_ext, 11, 7))),  # Higher severity
+  glucose = round(rnorm(n_ext, 155, 55)),
+  afib = rbinom(n_ext, 1, 0.35),
+  thrombolysis = rbinom(n_ext, 1, 0.20)  # Less thrombolysis
+)
+
+lp_ext <- -5 + 0.04 * ext_data$age +
+  0.12 * ext_data$nihss +
+  0.003 * ext_data$glucose +
+  0.3 * ext_data$afib -
+  0.5 * ext_data$thrombolysis
+
+ext_data$death_30d <- rbinom(n_ext, 1, plogis(lp_ext))
+
+# Apply original model to external data
+ext_data$pred_original <- predict(fit, newdata = ext_data, type = "fitted")
+
+cat("External validation (before updating):\n")
+cat("  Observed mortality:", mean(ext_data$death_30d), "\n")
+cat("  Mean predicted:", mean(ext_data$pred_original), "\n")
+cat("  O:E ratio:", round(mean(ext_data$death_30d) / mean(ext_data$pred_original), 3), "\n")
+
+# Calibration slope in external data
+lp_orig <- qlogis(ext_data$pred_original)
+cal_ext <- glm(death_30d ~ lp_orig, data = ext_data, family = binomial)
+cat("  Calibration slope:", round(coef(cal_ext)[2], 3), "\n")
+cat("  Calibration intercept:", round(coef(cal_ext)[1], 3), "\n")
+
+# Recalibration: update intercept and slope
+ext_data$pred_recalibrated <- predict(cal_ext, type = "response")
+
+cat("\nAfter logistic recalibration:\n")
+cat("  Mean predicted:", round(mean(ext_data$pred_recalibrated), 3), "\n")
+cat("  O:E ratio:", round(mean(ext_data$death_30d) / mean(ext_data$pred_recalibrated), 3), "\n")
+```
+
+### Python
+
+```{python}
+#| label: recalibration-py
+
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
+
+np.random.seed(99)
+n_ext = 800
+
+ext_data = {
+    "age": np.round(np.random.normal(78, 10, n_ext)),
+    "nihss": np.round(np.maximum(0, np.random.normal(11, 7, n_ext))),
+    "glucose": np.round(np.random.normal(155, 55, n_ext)),
+    "afib": np.random.binomial(1, 0.35, n_ext),
+    "thrombolysis": np.random.binomial(1, 0.20, n_ext)
+}
+
+lp_ext = (-5 + 0.04 * ext_data["age"] +
+          0.12 * ext_data["nihss"] +
+          0.003 * ext_data["glucose"] +
+          0.3 * ext_data["afib"] -
+          0.5 * ext_data["thrombolysis"])
+
+y_ext = np.random.binomial(1, expit(lp_ext))
+
+# Apply original model
+X_ext = np.column_stack([ext_data[k] for k in predictors])
+pred_original = full_model.predict_proba(X_ext)[:, 1]
+
+obs_rate = y_ext.mean()
+mean_pred = pred_original.mean()
+print(f"External validation (before updating):")
+print(f"  Observed mortality: {obs_rate:.3f}")
+print(f"  Mean predicted: {mean_pred:.3f}")
+print(f"  O:E ratio: {obs_rate / mean_pred:.3f}")
+print(f"  AUC: {roc_auc_score(y_ext, pred_original):.3f}")
+
+# Logistic recalibration: regress outcome on logit(predictions)
+from scipy.special import logit
+lp_original = logit(np.clip(pred_original, 1e-6, 1 - 1e-6))
+
+recal_model = LogisticRegression(max_iter=5000)
+recal_model.fit(lp_original.reshape(-1, 1), y_ext)
+
+pred_recalibrated = recal_model.predict_proba(lp_original.reshape(-1, 1))[:, 1]
+
+print(f"\nAfter logistic recalibration:")
+print(f"  Mean predicted: {pred_recalibrated.mean():.3f}")
+print(f"  O:E ratio: {y_ext.mean() / pred_recalibrated.mean():.3f}")
+print(f"  Calibration slope: {recal_model.coef_[0][0]:.3f}")
+print(f"  Calibration intercept: {recal_model.intercept_[0]:.3f}")
+```
+
+:::
+
+## Recommended Reporting: The Minimum Set
+
+Based on Van Calster et al. (2025) and Smits et al. (2026), every prediction model evaluation should include at minimum:
+
+1. **AUROC (C-statistic)** with confidence interval --- for discrimination
+2. **Calibration plot** (smoothed and/or grouped) --- for calibration
+3. **Decision curve** --- for clinical utility
+4. **Risk distribution plot** --- to show the spread of predicted probabilities
+
+These four visualisations together give a comprehensive picture. A model may look excellent on one plot and problematic on another --- which is exactly why you need all four.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: four-plots-r
+#| message: false
+#| fig-height: 10
+#| fig-width: 10
+#| fig-cap: "The recommended four-panel evaluation display for clinical prediction models."
+
+library(pROC)
+
+pred_prob <- predict(fit, type = "fitted")
+y_obs <- stroke_data$death_30d
+
+par(mfrow = c(2, 2))
+
+# Panel 1: ROC curve
+roc_obj <- roc(y_obs, pred_prob, quiet = TRUE)
+plot(roc_obj, col = "steelblue", lwd = 2,
+     main = "A. Discrimination (ROC Curve)",
+     print.auc = TRUE, print.auc.y = 0.4)
+
+# Panel 2: Calibration plot
+val.prob(pred_prob, y_obs, m = 100, cex = 0.5,
+         main = "B. Calibration Plot")
+
+# Panel 3: Risk distribution
+hist(pred_prob[y_obs == 0], breaks = 30, col = rgb(0.4, 0.6, 0.8, 0.5),
+     main = "C. Risk Distribution",
+     xlab = "Predicted Probability", freq = FALSE, ylim = c(0, 12))
+hist(pred_prob[y_obs == 1], breaks = 30, col = rgb(0.9, 0.4, 0.4, 0.5),
+     add = TRUE, freq = FALSE)
+legend("topright", legend = c("No event", "Event"),
+       fill = c(rgb(0.4, 0.6, 0.8, 0.5), rgb(0.9, 0.4, 0.4, 0.5)))
+
+# Panel 4: Simplified decision curve
+thresholds <- seq(0.01, 0.5, by = 0.01)
+nb_model <- nb_all <- numeric(length(thresholds))
+n_total <- length(y_obs)
+
+for (i in seq_along(thresholds)) {
+  t <- thresholds[i]
+  pred_pos <- as.numeric(pred_prob >= t)
+  tp <- sum(pred_pos == 1 & y_obs == 1)
+  fp <- sum(pred_pos == 1 & y_obs == 0)
+  nb_model[i] <- tp / n_total - fp / n_total * (t / (1 - t))
+  nb_all[i] <- mean(y_obs) - (1 - mean(y_obs)) * (t / (1 - t))
+}
+
+plot(thresholds, nb_model, type = "l", lwd = 2, col = "steelblue",
+     main = "D. Decision Curve Analysis",
+     xlab = "Threshold Probability", ylab = "Net Benefit",
+     ylim = c(-0.05, max(nb_model, nb_all) * 1.1))
+lines(thresholds, nb_all, lwd = 2, col = "coral", lty = 2)
+abline(h = 0, col = "black")
+legend("topright", legend = c("Model", "Treat All", "Treat None"),
+       col = c("steelblue", "coral", "black"),
+       lty = c(1, 2, 1), lwd = 2, cex = 0.8)
+
+par(mfrow = c(1, 1))
+```
+
+### Python
+
+```{python}
+#| label: four-plots-py
+#| fig-height: 10
+#| fig-width: 10
+#| fig-cap: "The recommended four-panel evaluation display for clinical prediction models."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+from sklearn.calibration import calibration_curve
+
+pred_prob = full_model.predict_proba(X)[:, 1]
+y_obs = stroke_data["death_30d"].values
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# Panel A: ROC curve
+fpr, tpr, _ = roc_curve(y_obs, pred_prob)
+roc_auc = auc(fpr, tpr)
+axes[0, 0].plot(fpr, tpr, color="steelblue", lw=2,
+                label=f"AUC = {roc_auc:.3f}")
+axes[0, 0].plot([0, 1], [0, 1], "--", color="grey")
+axes[0, 0].set_xlabel("1 - Specificity")
+axes[0, 0].set_ylabel("Sensitivity")
+axes[0, 0].set_title("A. Discrimination (ROC Curve)")
+axes[0, 0].legend()
+
+# Panel B: Calibration plot
+prob_true, prob_pred = calibration_curve(y_obs, pred_prob, n_bins=10,
+                                          strategy="quantile")
+axes[0, 1].plot(prob_pred, prob_true, "o-", color="steelblue", lw=2)
+axes[0, 1].plot([0, 1], [0, 1], "--", color="grey")
+axes[0, 1].set_xlabel("Mean Predicted Probability")
+axes[0, 1].set_ylabel("Observed Proportion")
+axes[0, 1].set_title("B. Calibration Plot")
+
+# Panel C: Risk distribution
+axes[1, 0].hist(pred_prob[y_obs == 0], bins=30, alpha=0.5,
+                color="steelblue", label="No event", density=True)
+axes[1, 0].hist(pred_prob[y_obs == 1], bins=30, alpha=0.5,
+                color="coral", label="Event", density=True)
+axes[1, 0].set_xlabel("Predicted Probability")
+axes[1, 0].set_ylabel("Density")
+axes[1, 0].set_title("C. Risk Distribution")
+axes[1, 0].legend()
+
+# Panel D: Decision curve
+thresholds = np.arange(0.01, 0.51, 0.01)
+nb_model = []
+nb_all = []
+n_total = len(y_obs)
+
+for t in thresholds:
+    pred_pos = (pred_prob >= t).astype(int)
+    tp = np.sum((pred_pos == 1) & (y_obs == 1))
+    fp = np.sum((pred_pos == 1) & (y_obs == 0))
+    nb_model.append(tp / n_total - fp / n_total * (t / (1 - t)))
+    nb_all.append(y_obs.mean() - (1 - y_obs.mean()) * (t / (1 - t)))
+
+axes[1, 1].plot(thresholds, nb_model, color="steelblue", lw=2,
+                label="Model")
+axes[1, 1].plot(thresholds, nb_all, color="coral", lw=2, ls="--",
+                label="Treat All")
+axes[1, 1].axhline(y=0, color="black", lw=1, label="Treat None")
+axes[1, 1].set_xlabel("Threshold Probability")
+axes[1, 1].set_ylabel("Net Benefit")
+axes[1, 1].set_title("D. Decision Curve Analysis")
+axes[1, 1].legend(fontsize=9)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Exercises
+
+### Exercise 1: Calibration Assessment
+
+Using the stroke mortality model developed in this chapter:
+
+a. Create a calibration plot using deciles of predicted risk. Is the model well-calibrated?
+b. Calculate the O:E ratio. What does it tell you?
+c. Calculate the calibration slope. Is there evidence of overfitting?
+d. Apply bootstrap optimism correction. How much does the C-statistic decrease? How much does the calibration slope decrease?
+
+### Exercise 2: External Validation Simulation
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: ex-external-val-r
+#| eval: false
+
+# Create three external validation populations that differ from development:
+# Population A: Same demographics, 3 years later (temporal)
+# Population B: Different hospital, younger patients (geographical)
+# Population C: Primary care setting with lower severity (domain)
+
+# For each population:
+# a. Calculate C-statistic, O:E ratio, calibration slope
+# b. Create calibration plots
+# c. Determine which population shows worst calibration and explain why
+# d. Perform logistic recalibration and show the improvement
+```
+
+### Python
+
+```{python}
+#| label: ex-external-val-py
+#| eval: false
+
+# Same exercise as R tab - create three external populations
+# and assess model performance in each
+```
+
+:::
+
+### Exercise 3: Decision Curve Interpretation
+
+Consider a model for predicting preeclampsia in pregnant women. The model has an AUC of 0.82 and good calibration. You plot the decision curve.
+
+a. At what range of threshold probabilities is the model useful?
+b. A colleague argues that the model should not be used because the AUC is "only" 0.82. Using the decision curve, construct a counter-argument.
+c. How would the decision curve change if the follow-up action (closer monitoring) were very low-cost versus very high-cost?
+
+### Exercise 4: Complete Evaluation
+
+Choose a clinical prediction model from the literature (e.g., QRISK3, Wells score, APACHE II). Using published validation data:
+
+a. Report the C-statistic with confidence interval.
+b. Describe the calibration (if a calibration plot is available).
+c. Is there a decision curve analysis? If not, what threshold range would be clinically relevant?
+d. Has the model been externally validated? In what populations?
+e. Based on your assessment, would you recommend implementing this model in your setting?
+
+## References and Further Reading
+
+The primary framework for this chapter is drawn from Van Calster, McLernon, van Smeden, Worster,"; Steyerberg, and colleagues (2025) in The Lancet Digital Health, whose guide to assessing the performance of prediction models is the most comprehensive and up-to-date reference available on this topic, covering all five performance domains and providing clear recommendations for what to report. The textbook by Smits, van Kuijk, and Wynants (2026) complements this with a highly accessible treatment of internal and external validation, model updating, and practical guidance for applied researchers. Decision curve analysis was introduced by Vickers and Elkin (2006) in Medical Decision Making and is now considered an essential component of model evaluation; the `dcurves` R package and accompanying tutorials make it straightforward to implement. For calibration assessment specifically, the work of Van Calster, Nieboer, Vergouwe, De Cock, Pencina, and Steyerberg (2016) in the Journal of Clinical Epidemiology provides an excellent treatment of different calibration measures and their interpretation. Bootstrap validation methodology is thoroughly described in Steyerberg's "Clinical Prediction Models" (2019, Springer) and in Harrell's "Regression Modeling Strategies" (2015, Springer). The Brier score and its decomposition were formalised by Brier (1950) in Monthly Weather Review, and its application to clinical prediction models is discussed in Steyerberg and colleagues (2010) in Epidemiology.

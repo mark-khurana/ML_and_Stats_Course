@@ -1,0 +1,708 @@
+# Bayesian Inference: A Different Way to Think About Evidence {#sec-bayesian-inference}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(knitr)
+```
+
+## Introduction
+
+Every statistical method you have learned so far in this course has been **frequentist**. In frequentist statistics, probability refers to long-run frequencies: "if we repeated this experiment infinitely many times, the parameter would fall in our 95% confidence interval 95% of the time." That is a mathematically precise statement, but it is not the question most clinicians actually want answered. What clinicians want to know is: *given the data I have in front of me, what is the probability that this treatment works?*
+
+Bayesian inference answers that question directly. It treats probability as a measure of **uncertainty** --- a degree of belief --- rather than a long-run frequency. This chapter introduces the Bayesian framework from first principles, shows you how it works with a medical example you already understand (diagnostic testing), and then builds toward the computational machinery (MCMC) that makes modern Bayesian analysis possible.
+
+::: {.callout-note}
+## Why now?
+Bayesian methods are increasingly required in clinical research. The US FDA released updated guidance in 2026 on the use of Bayesian statistics in medical device trials, and Bayesian adaptive trial designs are now standard in oncology. Understanding this framework is no longer optional for quantitative researchers in medicine and public health.
+:::
+
+## Two Philosophies of Probability
+
+### The Frequentist View
+
+In the frequentist framework:
+
+- **Parameters are fixed** but unknown constants.
+- **Data are random** --- they vary from sample to sample.
+- **Probability** describes the long-run frequency of events across hypothetical replications.
+- A 95% confidence interval means: if we repeated this study infinitely, 95% of the resulting intervals would contain the true parameter.
+
+The frequentist approach does **not** assign a probability to the parameter itself. You cannot say "there is a 95% probability that the true effect lies in this interval" --- even though nearly everyone, including many researchers, interprets confidence intervals that way.
+
+### The Bayesian View
+
+In the Bayesian framework:
+
+- **Parameters are uncertain** and described by probability distributions.
+- **Data are fixed** --- once observed, they do not change.
+- **Probability** quantifies our degree of belief or uncertainty about unknown quantities.
+- A 95% credible interval means exactly what it sounds like: there is a 95% probability that the parameter lies in this interval, given the data and the model.
+
+| Feature | Frequentist | Bayesian |
+|---|---|---|
+| What is probability? | Long-run frequency | Degree of belief |
+| Parameters | Fixed, unknown | Random variables with distributions |
+| Data | Random (varies across replications) | Fixed (observed once) |
+| Inference | P-values, confidence intervals | Posterior distributions, credible intervals |
+| Prior information | Not formally incorporated | Formally incorporated via priors |
+
+: Comparison of frequentist and Bayesian frameworks {#tbl-freq-vs-bayes}
+
+## Bayes' Theorem: You Already Know This
+
+Bayes' theorem is the mathematical engine of Bayesian inference. You have seen it before in epidemiology, even if it was not called by that name.
+
+$$
+P(\theta \mid D) = \frac{P(D \mid \theta) \, P(\theta)}{P(D)}
+$$
+
+Where:
+
+- $P(\theta \mid D)$ is the **posterior** --- our updated belief about the parameter $\theta$ after seeing data $D$.
+- $P(D \mid \theta)$ is the **likelihood** --- how probable the observed data are under a particular value of $\theta$.
+- $P(\theta)$ is the **prior** --- our belief about $\theta$ before seeing the data.
+- $P(D)$ is the **marginal likelihood** (or evidence) --- a normalising constant that ensures the posterior integrates to 1.
+
+In words: **Posterior $\propto$ Likelihood $\times$ Prior**.
+
+### A Medical Example: COVID-19 Rapid Testing
+
+Suppose a new rapid antigen test for COVID-19 has:
+
+- **Sensitivity** = 85% (probability of a positive test given truly infected)
+- **Specificity** = 98% (probability of a negative test given truly uninfected)
+
+A patient in your emergency department tests positive. What is the probability they actually have COVID-19?
+
+This depends on the **prevalence** (the prior probability of disease). Let us work through two scenarios.
+
+**Scenario 1: High prevalence (20% --- during a winter surge)**
+
+$$
+P(\text{COVID} \mid +) = \frac{P(+ \mid \text{COVID}) \times P(\text{COVID})}{P(+)}
+$$
+
+$$
+= \frac{0.85 \times 0.20}{(0.85 \times 0.20) + (0.02 \times 0.80)} = \frac{0.17}{0.17 + 0.016} = \frac{0.17}{0.186} \approx 0.914
+$$
+
+A positive test in a high-prevalence setting gives a 91.4% posterior probability of disease.
+
+**Scenario 2: Low prevalence (1% --- summer, low community transmission)**
+
+$$
+P(\text{COVID} \mid +) = \frac{0.85 \times 0.01}{(0.85 \times 0.01) + (0.02 \times 0.99)} = \frac{0.0085}{0.0085 + 0.0198} = \frac{0.0085}{0.0283} \approx 0.300
+$$
+
+The same positive test now gives only a 30% posterior probability. The **prior matters**.
+
+This is Bayesian reasoning in its simplest form: your conclusion depends on what you knew before you saw the evidence. Every Bayesian analysis extends this logic to continuous parameters and complex models.
+
+## Prior Distributions
+
+The prior distribution encodes what we know (or do not know) about a parameter before collecting data. Choosing an appropriate prior is one of the most important --- and most debated --- steps in Bayesian analysis.
+
+### Types of Priors
+
+**Uninformative (flat) priors** assign equal probability to all values. For example, a uniform distribution over $(-\infty, +\infty)$ for a regression coefficient. These are sometimes called "objective" priors because they appear to let the data speak for themselves.
+
+- In practice, truly flat priors are improper (they do not integrate to 1) and can cause computational problems.
+- They are rarely truly uninformative --- a flat prior on a log-odds scale is not flat on the probability scale.
+
+**Weakly informative priors** gently constrain parameters to reasonable ranges without being strongly opinionated. For example, a $\text{Normal}(0, 10)$ prior on a log-odds regression coefficient says: "I think the coefficient is probably somewhere between --20 and +20 on the log-odds scale, but I am not very sure."
+
+- These are the **recommended default** for most applied work.
+- They prevent the model from exploring absurd parameter values while remaining flexible.
+- Andrew Gelman's recommendation: use priors that rule out implausible values but remain vague within the plausible range.
+
+**Informative priors** incorporate genuine prior knowledge. For example, if previous meta-analyses show that a drug reduces mortality by 10--30%, you might use a prior centred on that range.
+
+- These are especially valuable in small-sample settings (paediatric trials, rare diseases).
+- They must be justified and subjected to sensitivity analysis.
+
+### The Beta Distribution as a Conjugate Prior
+
+When estimating a proportion (e.g., a treatment response rate), the Beta distribution is a natural prior because it is **conjugate** to the binomial likelihood. This means the posterior is also a Beta distribution, which makes calculations simple.
+
+The Beta distribution is parameterised by two shape parameters, $\alpha$ and $\beta$:
+
+- $\text{Beta}(1, 1)$ --- uniform on [0, 1], an uninformative prior.
+- $\text{Beta}(2, 2)$ --- a gentle hump centred at 0.5, weakly informative.
+- $\text{Beta}(10, 30)$ --- centred at 0.25, moderately informative (e.g., prior belief that the response rate is around 25%).
+
+If the prior is $\text{Beta}(\alpha_0, \beta_0)$ and we observe $y$ successes in $n$ trials, the posterior is:
+
+$$
+\theta \mid y \sim \text{Beta}(\alpha_0 + y, \; \beta_0 + n - y)
+$$
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-beta-priors
+#| fig-cap: "Three Beta priors and their posteriors after observing 8 responses in 20 patients."
+#| fig-width: 10
+#| fig-height: 5
+
+library(tidyverse)
+
+# Observed data: 8 successes out of 20 trials
+y <- 8; n <- 20
+
+# Define three priors
+priors <- tibble(
+  prior_name = c("Uninformative: Beta(1,1)",
+                 "Weakly informative: Beta(2,2)",
+                 "Informative: Beta(10,30)"),
+  alpha0 = c(1, 2, 10),
+  beta0  = c(1, 2, 30)
+)
+
+theta <- seq(0, 1, length.out = 500)
+
+# Build plotting data
+plot_data <- priors %>%
+  rowwise() %>%
+  reframe(
+    prior_name = prior_name,
+    theta = theta,
+    Prior     = dbeta(theta, alpha0, beta0),
+    Posterior = dbeta(theta, alpha0 + y, beta0 + n - y)
+  ) %>%
+  pivot_longer(cols = c(Prior, Posterior),
+               names_to = "Distribution", values_to = "Density")
+
+ggplot(plot_data, aes(x = theta, y = Density, colour = Distribution,
+                       linetype = Distribution)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~ prior_name, scales = "free_y") +
+  scale_colour_manual(values = c("Prior" = "steelblue", "Posterior" = "firebrick")) +
+  labs(x = expression(theta ~ "(response rate)"),
+       y = "Density",
+       title = "Effect of Prior Choice on the Posterior",
+       subtitle = "Data: 8/20 patients responded") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+### Python
+
+```{python}
+#| label: fig-beta-priors-py
+#| fig-cap: "Three Beta priors and their posteriors after observing 8 responses in 20 patients."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import beta
+
+y, n = 8, 20
+theta = np.linspace(0, 1, 500)
+
+priors = [
+    ("Uninformative: Beta(1,1)", 1, 1),
+    ("Weakly informative: Beta(2,2)", 2, 2),
+    ("Informative: Beta(10,30)", 10, 30),
+]
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4), sharey=False)
+
+for ax, (name, a0, b0) in zip(axes, priors):
+    prior_density = beta.pdf(theta, a0, b0)
+    post_density  = beta.pdf(theta, a0 + y, b0 + n - y)
+    ax.plot(theta, prior_density, label="Prior", color="steelblue", linewidth=1.5)
+    ax.plot(theta, post_density, label="Posterior", color="firebrick", linewidth=1.5)
+    ax.set_title(name, fontsize=10)
+    ax.set_xlabel(r"$\theta$ (response rate)")
+    ax.set_ylabel("Density")
+    ax.legend(fontsize=9)
+
+fig.suptitle("Effect of Prior Choice on the Posterior\nData: 8/20 patients responded",
+             fontsize=12, y=1.04)
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+Notice how with enough data, the posteriors converge regardless of the prior. This is a key property: **the data overwhelm the prior** as the sample size grows. With small samples, however, the prior has real influence --- which is precisely why choosing it carefully matters.
+
+## The Likelihood
+
+The likelihood function $P(D \mid \theta)$ describes how probable the observed data are for each possible value of the parameter. It is the same quantity that appears in maximum likelihood estimation (MLE), but in the Bayesian framework it is multiplied by the prior rather than maximised alone.
+
+For our binomial example (8 responses in 20 patients):
+
+$$
+L(\theta) = \binom{20}{8} \theta^{8} (1-\theta)^{12}
+$$
+
+The likelihood peaks at $\hat{\theta}_{\text{MLE}} = 8/20 = 0.40$. The Bayesian posterior will be centred near this value but pulled slightly toward the prior --- a phenomenon called **shrinkage**.
+
+## The Posterior Distribution
+
+The posterior is the complete answer to a Bayesian analysis. It is not a single number; it is a full probability distribution over the parameter. From the posterior you can extract:
+
+- **Point estimates**: the posterior mean, median, or mode.
+- **Credible intervals**: ranges containing the parameter with a specified probability.
+- **Probabilities of hypotheses**: e.g., $P(\theta > 0.3 \mid \text{data})$.
+
+### Credible Intervals vs Confidence Intervals
+
+This distinction is critical and frequently confused.
+
+**A 95% frequentist confidence interval** means: if the experiment were repeated many times, 95% of the computed intervals would contain the true parameter. It does **not** mean there is a 95% probability the true parameter is in *this* interval.
+
+**A 95% Bayesian credible interval** means: given the data and the model, there is a 95% probability that the parameter lies in this interval.
+
+The Bayesian credible interval says what most people *think* a confidence interval says. This interpretability is one of the major practical advantages of Bayesian inference.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: credible-interval-demo
+
+# Posterior from weakly informative prior Beta(2,2) + data (8/20)
+alpha_post <- 2 + 8
+beta_post  <- 2 + 12
+
+# 95% credible interval (equal-tailed)
+ci_95 <- qbeta(c(0.025, 0.975), alpha_post, beta_post)
+cat("Posterior mean:", alpha_post / (alpha_post + beta_post), "\n")
+cat("95% credible interval:", round(ci_95, 3), "\n")
+
+# Probability that response rate exceeds 30%
+prob_gt_30 <- 1 - pbeta(0.30, alpha_post, beta_post)
+cat("P(theta > 0.30 | data):", round(prob_gt_30, 3), "\n")
+```
+
+### Python
+
+```{python}
+from scipy.stats import beta
+
+alpha_post = 2 + 8
+beta_post  = 2 + 12
+
+ci_95 = beta.ppf([0.025, 0.975], alpha_post, beta_post)
+print(f"Posterior mean: {alpha_post / (alpha_post + beta_post):.3f}")
+print(f"95% credible interval: [{ci_95[0]:.3f}, {ci_95[1]:.3f}]")
+
+prob_gt_30 = 1 - beta.cdf(0.30, alpha_post, beta_post)
+print(f"P(theta > 0.30 | data): {prob_gt_30:.3f}")
+```
+
+:::
+
+## Markov Chain Monte Carlo (MCMC)
+
+### Why We Need It
+
+The Beta-Binomial example above was analytically tractable because the Beta prior is conjugate to the binomial likelihood. In real research, models have many parameters and non-conjugate priors. The posterior cannot be written in closed form.
+
+MCMC is a family of algorithms that **draw samples from the posterior distribution** even when we cannot compute it analytically. The key idea: rather than calculating $P(\theta \mid D)$ everywhere, we construct a random walk through parameter space that, over many steps, visits regions in proportion to their posterior probability.
+
+The most widely used MCMC algorithm today is the **No-U-Turn Sampler (NUTS)**, a variant of Hamiltonian Monte Carlo (HMC). It is the default in Stan, brms, PyMC, and most modern Bayesian software.
+
+### How It Works Conceptually
+
+1. Start at some initial parameter value $\theta_0$.
+2. Propose a new value $\theta^*$ based on the current position.
+3. Evaluate the posterior density at $\theta^*$ relative to $\theta_0$.
+4. Accept or reject the proposal based on a probability rule.
+5. Repeat thousands of times.
+
+The resulting **chain** of $\theta$ values is a sample from the posterior distribution. We typically run multiple chains (e.g., 4) and discard the initial "warm-up" period.
+
+### Diagnosing Convergence
+
+MCMC is only useful if the chains have converged to the target posterior. Three key diagnostics:
+
+**Trace plots** show the sampled values over iterations. A well-behaved trace plot looks like a "hairy caterpillar" --- the chain rapidly explores the parameter space with no trends or drifts. If you see long excursions, stuck chains, or clear trends, the chain has not converged.
+
+**$\hat{R}$ (R-hat)** compares the variance within each chain to the variance between chains. If all chains are sampling from the same distribution, $\hat{R} \approx 1.0$. The standard threshold is $\hat{R} < 1.01$. Values above 1.05 indicate serious convergence problems.
+
+**Effective sample size (ESS)** estimates how many independent samples the chains are equivalent to. Autocorrelation in MCMC means that consecutive draws are correlated, so 4,000 MCMC draws might contain only the equivalent of 1,000 independent draws. For reliable posterior summaries, aim for ESS > 400 per chain for bulk statistics and ESS > 400 for tail quantiles.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-mcmc-demo
+#| fig-cap: "Simulated MCMC trace plots: a well-behaved chain (left) and a poorly-mixing chain (right)."
+#| fig-width: 10
+#| fig-height: 4
+
+set.seed(42)
+
+# Simulate a well-behaved chain (approximately normal draws)
+good_chain <- cumsum(rnorm(2000, 0, 0.1)) * 0
+good_chain[1] <- rnorm(1, 5, 1)
+for (i in 2:2000) {
+  good_chain[i] <- good_chain[i-1] + rnorm(1, 0, 0.3)
+  # Metropolis-like: pull toward mean of 5
+  good_chain[i] <- good_chain[i] + 0.1 * (5 - good_chain[i])
+}
+
+# Simulate a poorly-mixing chain (high autocorrelation)
+bad_chain <- numeric(2000)
+bad_chain[1] <- 2
+for (i in 2:2000) {
+  bad_chain[i] <- bad_chain[i-1] + rnorm(1, 0, 0.02)
+}
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+plot(good_chain, type = "l", col = "steelblue",
+     main = "Good mixing", xlab = "Iteration", ylab = expression(theta),
+     cex.main = 1.1)
+plot(bad_chain, type = "l", col = "firebrick",
+     main = "Poor mixing", xlab = "Iteration", ylab = expression(theta),
+     cex.main = 1.1)
+```
+
+### Python
+
+```{python}
+#| label: fig-mcmc-demo-py
+#| fig-cap: "Simulated MCMC trace plots: a well-behaved chain (left) and a poorly-mixing chain (right)."
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+# Good chain: rapidly mixing
+good_chain = np.zeros(2000)
+good_chain[0] = np.random.normal(5, 1)
+for i in range(1, 2000):
+    good_chain[i] = good_chain[i-1] + np.random.normal(0, 0.3)
+    good_chain[i] += 0.1 * (5 - good_chain[i])
+
+# Bad chain: high autocorrelation, slow drift
+bad_chain = np.zeros(2000)
+bad_chain[0] = 2.0
+for i in range(1, 2000):
+    bad_chain[i] = bad_chain[i-1] + np.random.normal(0, 0.02)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+axes[0].plot(good_chain, color="steelblue", linewidth=0.5)
+axes[0].set_title("Good mixing")
+axes[0].set_xlabel("Iteration")
+axes[0].set_ylabel(r"$\theta$")
+
+axes[1].plot(bad_chain, color="firebrick", linewidth=0.5)
+axes[1].set_title("Poor mixing")
+axes[1].set_xlabel("Iteration")
+axes[1].set_ylabel(r"$\theta$")
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## When Bayesian Methods Add Value
+
+Bayesian inference is not always necessary, but there are situations where it provides genuine advantages over frequentist methods:
+
+**Small samples.** When data are scarce (rare diseases, paediatric populations, early-phase trials), informative priors allow you to borrow strength from previous studies. A frequentist analysis of 12 patients yields wide confidence intervals and little power; a Bayesian analysis that incorporates prior evidence can produce more precise and clinically useful estimates.
+
+**Prior evidence is available.** If there are five previous randomised trials of a drug, it would be wasteful to ignore that evidence when analysing a sixth. Bayesian methods provide a principled framework for incorporating it.
+
+**Rare events.** When estimating the probability of a rare adverse event (e.g., 0 events in 200 patients), the frequentist MLE is zero --- clearly an underestimate. A Bayesian analysis with an appropriate prior yields a plausible non-zero estimate.
+
+**Sequential updating.** In adaptive clinical trials, data are analysed repeatedly as they accumulate. Bayesian methods handle this naturally: today's posterior becomes tomorrow's prior. Frequentist methods require complex corrections for multiple looks at the data.
+
+**Direct probability statements.** Clinicians want to know "what is the probability that this treatment is effective?" Bayesian methods answer that question directly: $P(\text{treatment effect} > 0 \mid \text{data})$.
+
+::: {.callout-important}
+## Bayesian methods are not a magic fix
+Bayesian inference does not rescue a poorly designed study, does not eliminate bias, and does not make small samples equivalent to large ones. The prior helps, but it also introduces subjectivity. Sensitivity analyses showing how results change under different priors are essential.
+:::
+
+## Practical Example: Estimating a Surgical Complication Rate
+
+A hospital performs a new minimally invasive cardiac procedure. In the first 15 cases, 2 patients experience a major complication. The national average for the traditional open procedure is approximately 12%. What can we say about this hospital's complication rate?
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-surgical-posterior
+#| fig-cap: "Posterior distribution for the complication rate of a new surgical procedure."
+#| fig-width: 8
+#| fig-height: 5
+
+# Data
+y <- 2   # complications
+n <- 15  # procedures
+
+# Prior: weakly informative, centred near the national average of 12%
+# Beta(3, 22) has mean 3/25 = 0.12 and is moderately concentrated
+alpha_prior <- 3
+beta_prior  <- 22
+
+# Posterior
+alpha_post <- alpha_prior + y
+beta_post  <- beta_prior + n - y
+
+theta <- seq(0, 0.5, length.out = 500)
+
+plot_df <- tibble(
+  theta = theta,
+  Prior     = dbeta(theta, alpha_prior, beta_prior),
+  Likelihood = dbeta(theta, y + 1, n - y + 1),  # normalised for visualisation
+  Posterior = dbeta(theta, alpha_post, beta_post)
+) %>%
+  pivot_longer(-theta, names_to = "Component", values_to = "Density")
+
+ggplot(plot_df, aes(x = theta, y = Density, colour = Component)) +
+  geom_line(linewidth = 1.2) +
+  scale_colour_manual(values = c("Prior" = "steelblue",
+                                  "Likelihood" = "grey50",
+                                  "Posterior" = "firebrick")) +
+  labs(x = "Complication rate",
+       y = "Density",
+       title = "Bayesian Estimation of Surgical Complication Rate",
+       subtitle = "2 complications in 15 procedures; Prior: Beta(3, 22)") +
+  geom_vline(xintercept = 0.12, linetype = "dashed", colour = "grey40") +
+  annotate("text", x = 0.135, y = max(dbeta(theta, alpha_post, beta_post)) * 0.9,
+           label = "National avg = 12%", size = 3.5, hjust = 0) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+
+# Posterior summaries
+cat("Posterior mean:", round(alpha_post / (alpha_post + beta_post), 3), "\n")
+cat("95% credible interval:",
+    round(qbeta(c(0.025, 0.975), alpha_post, beta_post), 3), "\n")
+cat("P(rate > 0.20 | data):",
+    round(1 - pbeta(0.20, alpha_post, beta_post), 3), "\n")
+```
+
+### Python
+
+```{python}
+#| label: fig-surgical-posterior-py
+#| fig-cap: "Posterior distribution for the complication rate of a new surgical procedure."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import beta
+
+y, n = 2, 15
+alpha_prior, beta_prior = 3, 22
+alpha_post = alpha_prior + y
+beta_post_ = beta_prior + n - y
+
+theta = np.linspace(0, 0.5, 500)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(theta, beta.pdf(theta, alpha_prior, beta_prior),
+        label="Prior", color="steelblue", linewidth=1.5)
+ax.plot(theta, beta.pdf(theta, y + 1, n - y + 1),
+        label="Likelihood (normalised)", color="grey", linewidth=1.5)
+ax.plot(theta, beta.pdf(theta, alpha_post, beta_post_),
+        label="Posterior", color="firebrick", linewidth=1.5)
+ax.axvline(0.12, linestyle="--", color="grey", linewidth=1)
+ax.text(0.135, ax.get_ylim()[1] * 0.5, "National avg = 12%", fontsize=9)
+ax.set_xlabel("Complication rate")
+ax.set_ylabel("Density")
+ax.set_title("Bayesian Estimation of Surgical Complication Rate\n"
+             "2 complications in 15 procedures; Prior: Beta(3, 22)")
+ax.legend()
+plt.tight_layout()
+plt.show()
+
+ci = beta.ppf([0.025, 0.975], alpha_post, beta_post_)
+print(f"Posterior mean: {alpha_post / (alpha_post + beta_post_):.3f}")
+print(f"95% credible interval: [{ci[0]:.3f}, {ci[1]:.3f}]")
+print(f"P(rate > 0.20 | data): {1 - beta.cdf(0.20, alpha_post, beta_post_):.3f}")
+```
+
+:::
+
+The posterior mean is pulled between the MLE (2/15 = 0.133) and the prior mean (0.12), settling near 0.125. With only 15 observations, the prior meaningfully influences the result --- and that is appropriate, because we have genuine prior information about surgical complication rates.
+
+## Exercises
+
+### Exercise 1: Diagnostic Test Updating
+
+A screening mammogram has a sensitivity of 90% and a specificity of 92%. Among women aged 50--59, the prevalence of breast cancer is approximately 2%.
+
+a. Calculate the posterior probability of breast cancer given a positive mammogram using Bayes' theorem.
+b. If the patient then receives a confirmatory ultrasound (sensitivity 95%, specificity 85%), use the posterior from (a) as the new prior and calculate the updated posterior probability after a positive ultrasound.
+c. What does this sequential updating illustrate about the Bayesian framework?
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: exercise-1-solution
+#| code-fold: true
+#| code-summary: "Show solution"
+
+# Part (a): Mammogram
+sens_mammo <- 0.90
+spec_mammo <- 0.92
+prevalence <- 0.02
+
+post_mammo <- (sens_mammo * prevalence) /
+  (sens_mammo * prevalence + (1 - spec_mammo) * (1 - prevalence))
+cat("P(cancer | positive mammogram):", round(post_mammo, 4), "\n")
+
+# Part (b): Ultrasound, using posterior from (a) as new prior
+sens_us <- 0.95
+spec_us <- 0.85
+prior_us <- post_mammo
+
+post_us <- (sens_us * prior_us) /
+  (sens_us * prior_us + (1 - spec_us) * (1 - prior_us))
+cat("P(cancer | positive mammogram AND positive ultrasound):",
+    round(post_us, 4), "\n")
+```
+
+### Python
+
+```{python}
+#| label: exercise-1-solution-py
+#| code-fold: true
+#| code-summary: "Show solution"
+
+# Part (a)
+sens_mammo, spec_mammo, prevalence = 0.90, 0.92, 0.02
+post_mammo = (sens_mammo * prevalence) / \
+    (sens_mammo * prevalence + (1 - spec_mammo) * (1 - prevalence))
+print(f"P(cancer | positive mammogram): {post_mammo:.4f}")
+
+# Part (b)
+sens_us, spec_us = 0.95, 0.85
+post_us = (sens_us * post_mammo) / \
+    (sens_us * post_mammo + (1 - spec_us) * (1 - post_mammo))
+print(f"P(cancer | pos mammo AND pos ultrasound): {post_us:.4f}")
+```
+
+:::
+
+### Exercise 2: Prior Sensitivity Analysis
+
+A Phase II trial of a new antibiotic enrols 30 patients with resistant urinary tract infections. Twenty-one patients achieve clinical cure.
+
+a. Using three different priors --- Beta(1,1), Beta(5,5), and Beta(20,10) --- compute the posterior mean and 95% credible interval for the cure rate.
+b. Plot all three posteriors on the same graph.
+c. Which prior has the most influence on the posterior? Why?
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: exercise-2-solution
+#| code-fold: true
+#| code-summary: "Show solution"
+#| fig-width: 8
+#| fig-height: 5
+
+y <- 21; n <- 30
+priors <- list(
+  list(name = "Beta(1,1)", a = 1, b = 1),
+  list(name = "Beta(5,5)", a = 5, b = 5),
+  list(name = "Beta(20,10)", a = 20, b = 10)
+)
+
+theta <- seq(0, 1, length.out = 500)
+plot_df <- tibble()
+
+for (p in priors) {
+  a_post <- p$a + y
+  b_post <- p$b + n - y
+  ci <- qbeta(c(0.025, 0.975), a_post, b_post)
+  cat(sprintf("%s -> Posterior mean: %.3f, 95%% CI: [%.3f, %.3f]\n",
+              p$name, a_post / (a_post + b_post), ci[1], ci[2]))
+  plot_df <- bind_rows(plot_df,
+    tibble(theta = theta, Density = dbeta(theta, a_post, b_post),
+           Prior = p$name))
+}
+
+ggplot(plot_df, aes(x = theta, y = Density, colour = Prior)) +
+  geom_line(linewidth = 1.2) +
+  labs(x = "Cure rate", y = "Density",
+       title = "Posterior Distributions Under Different Priors",
+       subtitle = "21/30 patients cured") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+### Python
+
+```{python}
+#| label: exercise-2-solution-py
+#| code-fold: true
+#| code-summary: "Show solution"
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import beta
+
+y, n = 21, 30
+priors = [("Beta(1,1)", 1, 1), ("Beta(5,5)", 5, 5), ("Beta(20,10)", 20, 10)]
+theta = np.linspace(0, 1, 500)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+for name, a0, b0 in priors:
+    a_post, b_post = a0 + y, b0 + n - y
+    ci = beta.ppf([0.025, 0.975], a_post, b_post)
+    mean_post = a_post / (a_post + b_post)
+    print(f"{name} -> Mean: {mean_post:.3f}, 95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]")
+    ax.plot(theta, beta.pdf(theta, a_post, b_post), label=name, linewidth=1.5)
+
+ax.set_xlabel("Cure rate")
+ax.set_ylabel("Density")
+ax.set_title("Posterior Distributions Under Different Priors\n21/30 patients cured")
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Exercise 3: Interpreting MCMC Diagnostics
+
+You fit a Bayesian logistic regression model and obtain the following diagnostics for the treatment effect parameter:
+
+- Chain 1 R-hat: 1.08
+- Chain 2 R-hat: 1.08
+- Bulk ESS: 150
+- Tail ESS: 85
+- The trace plot shows two chains that appear to be exploring different regions of the parameter space.
+
+a. Is there evidence of convergence problems? Explain which diagnostics are concerning and why.
+b. What steps would you take to fix these problems?
+c. Would you trust the posterior summaries from this model? Why or why not?
+
+## Summary
+
+Bayesian inference provides a coherent framework for updating beliefs in light of evidence. Its core components --- the prior, the likelihood, and the posterior --- are connected by Bayes' theorem. While simple conjugate models (like Beta-Binomial) can be solved analytically, most real-world models require MCMC sampling. The key practical advantages of Bayesian methods include direct probability statements, principled incorporation of prior knowledge, and natural handling of sequential data --- all of which are particularly valuable in clinical research.
+
+In the next chapter, we will move from theory to practice: fitting Bayesian regression and hierarchical models using modern software.
+
+::: {.callout-tip}
+## Key Takeaways
+1. Bayesian inference treats parameters as uncertain and data as fixed --- the reverse of frequentist thinking.
+2. The posterior is proportional to the likelihood times the prior.
+3. Credible intervals have the intuitive interpretation people mistakenly attribute to confidence intervals.
+4. MCMC allows us to sample from complex posteriors; always check convergence with trace plots, R-hat, and ESS.
+5. Bayesian methods shine when samples are small, prior evidence exists, or direct probability statements are needed.
+:::
+
+## References and Further Reading
+
+The foundational textbook for applied Bayesian analysis is McElreath's *Statistical Rethinking* (2nd edition, 2020), which teaches Bayesian inference through simulation and coding rather than mathematical derivation. It is highly recommended for students coming from a non-statistical background. For a more comprehensive and mathematically rigorous treatment, Gelman, Carlin, Stern, Dunson, Vehtari, and Rubin's *Bayesian Data Analysis* (3rd edition, 2013), commonly known as BDA3, remains the standard reference; a free PDF is available from the authors' website. Kruschke's *Doing Bayesian Data Analysis* (2nd edition, 2015) offers a gentle introduction with extensive worked examples in R.
+
+For the clinical and regulatory context, the FDA's 2010 guidance document *Guidance for the Use of Bayesian Statistics in Medical Device Clinical Trials* provides a framework for incorporating Bayesian methods in regulatory submissions, and updated guidance released in 2026 reflects the growing acceptance of Bayesian adaptive designs. Spiegelhalter, Abrams, and Myles' *Bayesian Approaches to Clinical Trials and Health-Care Evaluation* (2004) is particularly relevant for public health students, covering prior elicitation, adaptive designs, and cost-effectiveness analysis. The Stan Development Team's documentation (mc-stan.org) includes excellent case studies and practical tutorials that complement any of the above textbooks.

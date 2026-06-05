@@ -1,0 +1,876 @@
+# Decision Trees, Random Forests, and Gradient Boosting {#sec-trees-ensembles}
+
+```{r}
+#| label: setup-trees
+#| include: false
+library(tidyverse)
+library(tidymodels)
+library(rpart)
+library(rpart.plot)
+library(ranger)
+library(xgboost)
+library(vip)
+library(knitr)
+opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Decision Trees (CART)
+
+A **decision tree** is perhaps the most intuitive machine learning model. It makes predictions by asking a series of yes/no questions about the input features, splitting the data at each step into increasingly homogeneous groups. The result looks like an inverted tree — hence the name.
+
+### How Trees Split
+
+The algorithm works top-down, greedily selecting the best split at each node:
+
+1. Consider every feature and every possible split point.
+2. For each candidate split, measure how much it improves the "purity" of the resulting child nodes.
+3. Choose the split that maximizes purity improvement.
+4. Repeat recursively for each child node until a stopping criterion is met (e.g., minimum node size, maximum depth, or no further improvement).
+
+### Splitting Criteria
+
+For **classification trees**, the two most common measures of impurity are:
+
+**Gini impurity**: For a node with $K$ classes and class proportions $p_1, \ldots, p_K$:
+
+$$G = \sum_{k=1}^{K} p_k (1 - p_k) = 1 - \sum_{k=1}^{K} p_k^2$$
+
+Gini impurity is 0 when a node is pure (all one class) and maximized when classes are equally mixed. For a binary problem, the maximum Gini is 0.5 (at $p = 0.5$).
+
+**Entropy (information gain)**:
+
+$$H = -\sum_{k=1}^{K} p_k \log_2(p_k)$$
+
+Entropy is 0 when the node is pure and maximized at $\log_2(K)$ when classes are equally distributed.
+
+In practice, Gini and entropy produce very similar trees. Gini is the default in most implementations because it is slightly faster to compute (no logarithm).
+
+For **regression trees**, the splitting criterion is typically the **reduction in variance** (or equivalently, the reduction in residual sum of squares).
+
+### Clinical Example: Hospital Readmission
+
+Let us build a decision tree to predict 30-day hospital readmission — a common quality metric tied to reimbursement penalties in the United States.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: tree-data-r
+# Simulate hospital readmission data
+set.seed(42)
+n <- 1000
+
+readmit_data <- tibble(
+  age = rnorm(n, 68, 12),
+  length_of_stay = rpois(n, 5) + 1,
+  num_comorbidities = rpois(n, 3),
+  prior_admissions = rpois(n, 1),
+  discharge_hemoglobin = rnorm(n, 11, 2),
+  discharge_creatinine = rlnorm(n, 0.2, 0.5),
+  has_diabetes = rbinom(n, 1, 0.35),
+  has_chf = rbinom(n, 1, 0.25),
+  readmitted = factor(
+    rbinom(n, 1, plogis(-3 + 0.02 * (rnorm(n, 68, 12) - 68) +
+                          0.15 * rpois(n, 1) +
+                          0.1 * rpois(n, 3) +
+                          0.3 * rbinom(n, 1, 0.25) -
+                          0.1 * rnorm(n, 11, 2))),
+    labels = c("No", "Yes")
+  )
+)
+
+cat("Readmission rate:", mean(readmit_data$readmitted == "Yes"), "\n")
+cat("N =", nrow(readmit_data), "\n")
+```
+
+```{r}
+#| label: tree-fit-r
+#| fig-cap: "A classification tree for 30-day readmission. Each node shows the predicted class, probability, and percentage of observations."
+# Fit a decision tree
+tree_model <- rpart(
+  readmitted ~ age + length_of_stay + num_comorbidities +
+    prior_admissions + discharge_hemoglobin +
+    discharge_creatinine + has_diabetes + has_chf,
+  data = readmit_data,
+  method = "class",
+  control = rpart.control(cp = 0.01, maxdepth = 5, minsplit = 20)
+)
+
+# Visualize
+rpart.plot(tree_model, type = 4, extra = 106, under = TRUE,
+           box.palette = "RdYlGn", roundint = FALSE,
+           main = "Decision Tree: 30-Day Readmission")
+```
+
+#### Python
+
+```{python}
+#| label: tree-fit-python
+import numpy as np
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+n = 1000
+
+df = pd.DataFrame({
+    'age': np.random.normal(68, 12, n),
+    'length_of_stay': np.random.poisson(5, n) + 1,
+    'num_comorbidities': np.random.poisson(3, n),
+    'prior_admissions': np.random.poisson(1, n),
+    'discharge_hemoglobin': np.random.normal(11, 2, n),
+    'discharge_creatinine': np.random.lognormal(0.2, 0.5, n),
+    'has_diabetes': np.random.binomial(1, 0.35, n),
+    'has_chf': np.random.binomial(1, 0.25, n)
+})
+y = np.random.binomial(1, 0.18, n)
+
+feature_names = list(df.columns)
+
+# Fit decision tree
+tree = DecisionTreeClassifier(max_depth=5, min_samples_split=20,
+                               min_samples_leaf=10, random_state=42)
+tree.fit(df, y)
+
+fig, ax = plt.subplots(figsize=(16, 8))
+plot_tree(tree, feature_names=feature_names, class_names=['No', 'Yes'],
+          filled=True, rounded=True, ax=ax, fontsize=8, max_depth=3)
+ax.set_title("Decision Tree: 30-Day Readmission")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Reading a Decision Tree
+
+Each node in the tree displays:
+
+- The **splitting rule** (e.g., "age >= 72")
+- The **predicted class** (the majority class in that node)
+- The **class probabilities**
+- The **percentage of observations** that reach this node
+
+To classify a new patient, start at the root and follow the branches based on the patient's feature values until you reach a terminal node (leaf). The prediction is the majority class of that leaf.
+
+### Pruning: Controlling Tree Complexity
+
+An unpruned tree will grow until every leaf is pure (or nearly so), perfectly memorizing the training data — a textbook case of overfitting. **Pruning** cuts back the tree to reduce complexity.
+
+Two strategies:
+
+1. **Pre-pruning** (early stopping): Set constraints *before* growing the tree — maximum depth, minimum samples per leaf, minimum information gain to split. Simple but can stop too early.
+
+2. **Post-pruning** (cost-complexity pruning): Grow a full tree, then prune branches that provide minimal improvement. The **complexity parameter (cp)** in R's `rpart` controls this: higher cp = more pruning. Select cp via cross-validation.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: prune-r
+#| fig-cap: "Cross-validation error as a function of the complexity parameter. The optimal cp minimizes the cross-validated error."
+# View the CP table
+printcp(tree_model)
+
+# Plot CV error vs cp
+plotcp(tree_model)
+
+# Prune to optimal cp
+optimal_cp <- tree_model$cptable[which.min(tree_model$cptable[, "xerror"]), "CP"]
+pruned_tree <- prune(tree_model, cp = optimal_cp)
+
+cat("Optimal cp:", optimal_cp, "\n")
+cat("Number of terminal nodes (full):", sum(tree_model$frame$var == "<leaf>"), "\n")
+cat("Number of terminal nodes (pruned):", sum(pruned_tree$frame$var == "<leaf>"), "\n")
+```
+
+#### Python
+
+```{python}
+#| label: prune-python
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+# Compare trees of different depths
+depths = [2, 3, 5, 7, 10, 15, None]
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+results = []
+for d in depths:
+    t = DecisionTreeClassifier(max_depth=d, random_state=42)
+    scores = cross_val_score(t, df, y, cv=cv, scoring='roc_auc')
+    depth_label = str(d) if d is not None else "None (full)"
+    results.append({'max_depth': depth_label,
+                    'mean_auc': scores.mean(),
+                    'std_auc': scores.std()})
+    print(f"max_depth={depth_label:>6s}: AUC = {scores.mean():.3f} (+/- {scores.std():.3f})")
+
+best = max(results, key=lambda x: x['mean_auc'])
+print(f"\nBest: max_depth={best['max_depth']} with AUC={best['mean_auc']:.3f}")
+```
+
+:::
+
+## Why Single Trees Are Unstable
+
+Decision trees have a critical weakness: **high variance**. Small changes in the training data can produce a completely different tree. This instability means that:
+
+- Predictions are unreliable for individual trees.
+- Results may not replicate across datasets.
+- Performance on new data is often poor.
+
+The solution is to combine many trees into an **ensemble**. Two main strategies exist: **bagging** (reduce variance by averaging) and **boosting** (reduce bias by learning sequentially).
+
+## Bagging: Bootstrap Aggregating
+
+**Bagging** (Bootstrap AGGregatING), introduced by Leo Breiman in 1996, reduces variance by:
+
+1. Drawing $B$ bootstrap samples (random samples with replacement) from the training data.
+2. Fitting a separate decision tree to each bootstrap sample.
+3. Averaging predictions (regression) or taking a majority vote (classification) across all $B$ trees.
+
+By averaging many high-variance, low-bias trees, bagging dramatically reduces the overall variance without increasing bias. The key insight: the variance of an average of $B$ identically distributed random variables decreases with $B$ (provided they are not perfectly correlated).
+
+## Random Forests
+
+**Random forests** extend bagging with one additional trick: at each split, instead of considering all features, the algorithm randomly selects a **subset of features** (typically $\sqrt{p}$ for classification or $p/3$ for regression, where $p$ is the total number of features).
+
+This feature randomization **decorrelates the trees**. In bagging without feature randomization, if one feature is very strong, most trees will split on it first, making the trees correlated. Random forests force trees to consider different features, producing more diverse trees whose average is more stable.
+
+### Key Hyperparameters
+
+| Parameter | What It Controls | Typical Default |
+|-----------|-----------------|----------------|
+| `num.trees` / `n_estimators` | Number of trees in the forest | 500–2000 |
+| `mtry` / `max_features` | Features considered at each split | $\sqrt{p}$ (classification), $p/3$ (regression) |
+| `min.node.size` / `min_samples_leaf` | Minimum observations in a leaf | 1 (classification), 5 (regression) |
+| `max.depth` | Maximum tree depth | Unlimited (let trees grow fully) |
+
+### Out-of-Bag (OOB) Error
+
+Each bootstrap sample includes about 63% of the original observations (due to sampling with replacement). The remaining 37% — the **out-of-bag** observations — were not used to build that particular tree. Random forests use these OOB observations as a built-in validation set: each observation is predicted by the trees that did *not* include it in their bootstrap sample.
+
+The OOB error is a nearly unbiased estimate of the test error — no separate validation set required. This is one of the most elegant features of random forests.
+
+### Fitting a Random Forest
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: rf-r
+library(ranger)
+
+# Fit random forest
+set.seed(42)
+rf_model <- ranger(
+  readmitted ~ age + length_of_stay + num_comorbidities +
+    prior_admissions + discharge_hemoglobin +
+    discharge_creatinine + has_diabetes + has_chf,
+  data = readmit_data,
+  num.trees = 500,
+  mtry = 3,
+  min.node.size = 10,
+  importance = "impurity",
+  probability = TRUE,   # predict probabilities
+  seed = 42
+)
+
+cat("OOB prediction error:", rf_model$prediction.error, "\n")
+```
+
+```{r}
+#| label: rf-importance-r
+#| fig-cap: "Variable importance from the random forest model, measured by Gini impurity reduction."
+# Variable importance
+importance_df <- tibble(
+  Variable = names(rf_model$variable.importance),
+  Importance = rf_model$variable.importance
+) %>%
+  arrange(desc(Importance))
+
+ggplot(importance_df, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_col(fill = "#2E86AB") +
+  coord_flip() +
+  labs(x = NULL, y = "Importance (Gini impurity reduction)",
+       title = "Random Forest Variable Importance") +
+  theme_minimal(base_size = 14)
+```
+
+#### Python
+
+```{python}
+#| label: rf-python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+rf = RandomForestClassifier(
+    n_estimators=500,
+    max_features='sqrt',
+    min_samples_leaf=10,
+    oob_score=True,
+    random_state=42,
+    n_jobs=-1
+)
+rf.fit(df, y)
+
+print(f"OOB accuracy: {rf.oob_score_:.3f}")
+
+# Cross-validated AUC
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+auc_scores = cross_val_score(rf, df, y, cv=cv, scoring='roc_auc')
+print(f"CV AUC: {auc_scores.mean():.3f} (+/- {auc_scores.std():.3f})")
+```
+
+```{python}
+#| label: rf-importance-python
+#| fig-cap: "Variable importance from the random forest, measured by mean decrease in Gini impurity."
+importances = pd.Series(rf.feature_importances_, index=feature_names)
+importances = importances.sort_values(ascending=True)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+importances.plot(kind='barh', ax=ax, color='#2E86AB')
+ax.set_xlabel("Importance (Gini impurity reduction)")
+ax.set_title("Random Forest Variable Importance")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Variable Importance: Two Measures
+
+1. **Impurity-based importance** (default): Total reduction in Gini impurity (or variance) from splits on that feature, summed across all trees. Fast but can be biased toward high-cardinality features.
+
+2. **Permutation importance**: For each feature, randomly shuffle its values and measure how much the OOB (or test) error increases. More reliable but slower. This is the recommended approach for inference.
+
+::: {.callout-warning}
+## Variable Importance Is Not Causal
+A feature with high importance in a random forest is *predictive* of the outcome, not necessarily *causally* related to it. A correlated proxy (e.g., number of medications as a proxy for disease severity) may appear important even though intervening on it would have no effect. Do not confuse prediction with causation.
+:::
+
+## Gradient Boosting
+
+While bagging reduces variance by averaging independent trees, **gradient boosting** reduces bias by building trees *sequentially*, where each new tree corrects the mistakes of the previous ensemble.
+
+### The Intuition: Learning from Mistakes
+
+1. Fit a simple tree to the data.
+2. Compute the **residuals** (errors) from this tree.
+3. Fit a new tree to predict these residuals.
+4. Add this new tree to the ensemble (scaled by a learning rate).
+5. Repeat steps 2–4 for $B$ iterations.
+
+Each new tree focuses on the observations the current ensemble gets wrong. Over many iterations, the ensemble becomes increasingly accurate.
+
+### The Mathematics (Brief)
+
+Gradient boosting minimizes a loss function $L(y, \hat{y})$ by gradient descent in function space. At iteration $m$:
+
+$$\hat{f}_m(x) = \hat{f}_{m-1}(x) + \eta \cdot h_m(x)$$
+
+where $h_m(x)$ is a tree fitted to the negative gradient of the loss (the "pseudo-residuals") and $\eta$ is the **learning rate** (also called the shrinkage parameter).
+
+### Key Hyperparameters
+
+| Parameter | What It Controls | Typical Range |
+|-----------|-----------------|---------------|
+| `n_estimators` / `nrounds` | Number of boosting iterations | 100–5000 |
+| `learning_rate` / `eta` | Step size for each tree | 0.01–0.3 |
+| `max_depth` | Depth of each tree | 3–8 (shallow trees!) |
+| `subsample` | Fraction of data used per tree | 0.5–1.0 |
+| `colsample_bytree` | Fraction of features per tree | 0.5–1.0 |
+| `min_child_weight` | Minimum sum of instance weights in a leaf | 1–10 |
+| `reg_alpha` (L1) / `reg_lambda` (L2) | Regularization | 0–10 |
+
+::: {.callout-tip}
+## The Learning Rate / Number of Trees Tradeoff
+A smaller learning rate requires more trees but generally produces better results. A common strategy: set the learning rate to 0.01–0.05, then tune the number of trees via early stopping (stop when validation error stops improving).
+:::
+
+### XGBoost and LightGBM
+
+**XGBoost** (eXtreme Gradient Boosting) by Chen and Guestrin (2016) added regularization, efficient computation, and handling of missing values to gradient boosting, making it the dominant algorithm for tabular data competitions and many clinical prediction tasks.
+
+**LightGBM** by Microsoft further improves efficiency with gradient-based one-side sampling (GOSS) and exclusive feature bundling. It is often faster than XGBoost on large datasets.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: xgb-r
+library(xgboost)
+
+# Prepare data for xgboost (requires numeric matrix)
+X_train <- readmit_data %>%
+  select(age, length_of_stay, num_comorbidities, prior_admissions,
+         discharge_hemoglobin, discharge_creatinine, has_diabetes, has_chf) %>%
+  as.matrix()
+
+y_train <- as.numeric(readmit_data$readmitted == "Yes")
+
+dtrain <- xgb.DMatrix(data = X_train, label = y_train)
+
+# Fit XGBoost with cross-validation to find optimal nrounds
+set.seed(42)
+xgb_cv <- xgb.cv(
+  params = list(
+    objective = "binary:logistic",
+    eval_metric = "auc",
+    eta = 0.05,
+    max_depth = 4,
+    subsample = 0.8,
+    colsample_bytree = 0.8
+  ),
+  data = dtrain,
+  nrounds = 1000,
+  nfold = 5,
+  early_stopping_rounds = 50,
+  verbose = 0
+)
+
+cat("Best iteration:", xgb_cv$best_iteration, "\n")
+cat("Best CV AUC:", max(xgb_cv$evaluation_log$test_auc_mean), "\n")
+```
+
+```{r}
+#| label: xgb-fit-r
+# Fit final model with optimal nrounds
+xgb_model <- xgb.train(
+  params = list(
+    objective = "binary:logistic",
+    eval_metric = "auc",
+    eta = 0.05,
+    max_depth = 4,
+    subsample = 0.8,
+    colsample_bytree = 0.8
+  ),
+  data = dtrain,
+  nrounds = xgb_cv$best_iteration,
+  verbose = 0
+)
+
+# Variable importance
+importance_matrix <- xgb.importance(model = xgb_model)
+xgb.plot.importance(importance_matrix, top_n = 8,
+                     main = "XGBoost Variable Importance")
+```
+
+#### Python
+
+```{python}
+#| label: xgb-python
+import xgboost as xgb
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+import numpy as np
+
+np.random.seed(42)
+
+xgb_model = xgb.XGBClassifier(
+    n_estimators=1000,
+    learning_rate=0.05,
+    max_depth=4,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    eval_metric='auc',
+    early_stopping_rounds=50,
+    random_state=42,
+    use_label_encoder=False
+)
+
+# Cross-validation
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(
+    xgb.XGBClassifier(
+        n_estimators=500, learning_rate=0.05, max_depth=4,
+        subsample=0.8, colsample_bytree=0.8,
+        random_state=42, use_label_encoder=False, eval_metric='logloss'
+    ),
+    df, y, cv=cv, scoring='roc_auc'
+)
+print(f"XGBoost CV AUC: {scores.mean():.3f} (+/- {scores.std():.3f})")
+```
+
+```{python}
+#| label: xgb-importance-python
+#| fig-cap: "XGBoost variable importance based on the number of times each feature is used in splits (weight)."
+# Fit and plot importance
+xgb_final = xgb.XGBClassifier(
+    n_estimators=500, learning_rate=0.05, max_depth=4,
+    subsample=0.8, colsample_bytree=0.8,
+    random_state=42, use_label_encoder=False, eval_metric='logloss'
+)
+xgb_final.fit(df, y)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+xgb.plot_importance(xgb_final, ax=ax, importance_type='gain',
+                     title='XGBoost Feature Importance (Gain)')
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Hyperparameter Tuning
+
+All ensemble methods have hyperparameters that must be tuned. Two common strategies:
+
+### Grid Search
+
+Exhaustively try every combination of specified parameter values. Reliable but computationally expensive — the number of combinations grows multiplicatively.
+
+### Random Search
+
+Randomly sample hyperparameter combinations. Bergstra and Bengio (2012) showed that random search is more efficient than grid search because not all hyperparameters are equally important. Random search explores more values of the important parameters for the same computational budget.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: tune-r
+library(tidymodels)
+
+# Define the model with tunable parameters
+rf_spec <- rand_forest(
+  trees = 500,
+  mtry = tune(),
+  min_n = tune()
+) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+# Create recipe
+rf_recipe <- recipe(readmitted ~ ., data = readmit_data)
+
+# Workflow
+rf_wf <- workflow() %>%
+  add_model(rf_spec) %>%
+  add_recipe(rf_recipe)
+
+# Define tuning grid
+rf_grid <- grid_random(
+  mtry(range = c(2, 7)),
+  min_n(range = c(5, 30)),
+  size = 20
+)
+
+# Cross-validation
+set.seed(42)
+folds <- vfold_cv(readmit_data, v = 5, strata = readmitted)
+
+# Tune (this may take a moment)
+rf_tune_results <- tune_grid(
+  rf_wf,
+  resamples = folds,
+  grid = rf_grid,
+  metrics = metric_set(roc_auc)
+)
+
+# Best parameters
+show_best(rf_tune_results, metric = "roc_auc", n = 5)
+```
+
+```{r}
+#| label: tune-finalize-r
+# Select best and finalize
+best_params <- select_best(rf_tune_results, metric = "roc_auc")
+cat("Best mtry:", best_params$mtry, "\n")
+cat("Best min_n:", best_params$min_n, "\n")
+
+final_wf <- finalize_workflow(rf_wf, best_params)
+final_fit <- fit(final_wf, data = readmit_data)
+```
+
+#### Python
+
+```{python}
+#| label: tune-python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+import numpy as np
+
+np.random.seed(42)
+
+# Define parameter distributions
+param_dist = {
+    'n_estimators': [100, 200, 500],
+    'max_features': ['sqrt', 'log2', 3, 5],
+    'min_samples_leaf': [5, 10, 15, 20, 30],
+    'max_depth': [5, 10, 15, 20, None]
+}
+
+rf = RandomForestClassifier(random_state=42, n_jobs=-1)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+# Random search
+search = RandomizedSearchCV(
+    rf, param_dist, n_iter=20, cv=cv, scoring='roc_auc',
+    random_state=42, n_jobs=-1, verbose=0
+)
+search.fit(df, y)
+
+print(f"Best AUC: {search.best_score_:.3f}")
+print(f"Best parameters: {search.best_params_}")
+```
+
+:::
+
+## Comparing Methods: When to Use What
+
+| Method | Strengths | Weaknesses | Best For |
+|--------|-----------|------------|----------|
+| **Single tree** | Interpretable, handles non-linearity | Unstable, overfits | Exploration, simple rules |
+| **Random forest** | Robust, low tuning needed, OOB error | Less interpretable than single tree | General-purpose prediction |
+| **Gradient boosting** | Often highest accuracy, flexible | More tuning, can overfit, slower | Maximizing prediction accuracy |
+| **Logistic regression** | Interpretable, well-understood inference | Assumes linearity (without transforms) | Inference, small samples, reporting ORs |
+
+::: {.callout-note}
+## Practical Advice for Clinical Prediction Models
+Start with logistic regression as your baseline. If you need better prediction and have enough data (typically hundreds of events), try a random forest. If you want to squeeze out the last bit of performance and are willing to tune carefully, use XGBoost. Always compare against the logistic regression baseline — if the improvement is marginal, prefer the simpler model.
+:::
+
+## Clinical Example: Readmission Risk Stratification
+
+Let us bring everything together by comparing all three methods on the hospital readmission dataset.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: comparison-r
+library(tidymodels)
+
+set.seed(42)
+folds <- vfold_cv(readmit_data, v = 10, strata = readmitted)
+
+# Logistic regression
+lr_spec <- logistic_reg() %>% set_engine("glm")
+lr_wf <- workflow() %>%
+  add_model(lr_spec) %>%
+  add_recipe(recipe(readmitted ~ ., data = readmit_data))
+lr_res <- fit_resamples(lr_wf, resamples = folds,
+                        metrics = metric_set(roc_auc))
+
+# Random forest
+rf_spec <- rand_forest(trees = 500, mtry = 3, min_n = 10) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+rf_wf <- workflow() %>%
+  add_model(rf_spec) %>%
+  add_recipe(recipe(readmitted ~ ., data = readmit_data))
+rf_res <- fit_resamples(rf_wf, resamples = folds,
+                        metrics = metric_set(roc_auc))
+
+# Boosted trees (via xgboost engine in tidymodels)
+xgb_spec <- boost_tree(trees = 500, tree_depth = 4, learn_rate = 0.05,
+                        min_n = 10) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+xgb_wf <- workflow() %>%
+  add_model(xgb_spec) %>%
+  add_recipe(recipe(readmitted ~ ., data = readmit_data))
+xgb_res <- fit_resamples(xgb_wf, resamples = folds,
+                         metrics = metric_set(roc_auc))
+
+# Collect and compare results
+bind_rows(
+  collect_metrics(lr_res) %>% mutate(model = "Logistic Regression"),
+  collect_metrics(rf_res) %>% mutate(model = "Random Forest"),
+  collect_metrics(xgb_res) %>% mutate(model = "XGBoost")
+) %>%
+  select(model, .metric, mean, std_err) %>%
+  arrange(desc(mean))
+```
+
+#### Python
+
+```{python}
+#| label: comparison-python
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+
+models = {
+    'Logistic Regression': make_pipeline(
+        StandardScaler(), LogisticRegression(max_iter=1000)
+    ),
+    'Random Forest': RandomForestClassifier(
+        n_estimators=500, max_features='sqrt', min_samples_leaf=10,
+        random_state=42, n_jobs=-1
+    ),
+    'Gradient Boosting': GradientBoostingClassifier(
+        n_estimators=500, learning_rate=0.05, max_depth=4,
+        subsample=0.8, random_state=42
+    )
+}
+
+results = []
+for name, model in models.items():
+    scores = cross_val_score(model, df, y, cv=cv, scoring='roc_auc')
+    results.append({
+        'Model': name,
+        'Mean AUC': f"{scores.mean():.3f}",
+        'Std': f"{scores.std():.3f}"
+    })
+    print(f"{name:25s}: AUC = {scores.mean():.3f} (+/- {scores.std():.3f})")
+
+print(pd.DataFrame(results).to_string(index=False))
+```
+
+:::
+
+## Exercises
+
+### Exercise 1: Build and Prune a Classification Tree
+
+Using the readmission dataset (or a dataset of your choice):
+
+1. Fit a full, unpruned classification tree. How many terminal nodes does it have?
+2. Use cross-validation to find the optimal complexity parameter (cp in R) or maximum depth (in Python).
+3. Prune the tree and plot it. How does it compare to the full tree?
+4. What are the top 3 splitting variables? Do they make clinical sense?
+
+::: {.panel-tabset}
+
+#### R Starter Code
+
+```{r}
+#| label: ex1-tree-r
+#| eval: false
+# Fit a full tree (set cp very low to avoid early pruning)
+full_tree <- rpart(readmitted ~ ., data = readmit_data, method = "class",
+                   control = rpart.control(cp = 0.001))
+
+# Your code:
+# 1. Count terminal nodes
+# 2. Use printcp() and plotcp() to find optimal cp
+# 3. Prune and plot
+# 4. Examine variable importance: full_tree$variable.importance
+```
+
+#### Python Starter Code
+
+```{python}
+#| label: ex1-tree-python
+#| eval: false
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+
+# Your code:
+# 1. Fit trees with different max_depth values
+# 2. Cross-validate each
+# 3. Plot the optimal tree
+# 4. Examine feature_importances_
+```
+
+:::
+
+### Exercise 2: Random Forest vs XGBoost Tuning Challenge
+
+1. Split the readmission data into 80% training and 20% test sets.
+2. Using the training set with 5-fold cross-validation:
+   a. Tune a random forest (try different `mtry`/`max_features` and `min_n`/`min_samples_leaf` values).
+   b. Tune an XGBoost model (try different `learning_rate`, `max_depth`, and `n_estimators` values).
+3. Select the best hyperparameters for each model.
+4. Evaluate both models on the held-out test set. Which performs better?
+5. Create variable importance plots for both models. Do they agree on the most important features?
+
+::: {.panel-tabset}
+
+#### R Starter Code
+
+```{r}
+#| label: ex2-tune-r
+#| eval: false
+# Split data
+set.seed(42)
+split <- initial_split(readmit_data, prop = 0.8, strata = readmitted)
+train <- training(split)
+test <- testing(split)
+
+# Your code: define models with tune(), create grids, run tune_grid()
+# Finalize models, predict on test set, compare
+```
+
+#### Python Starter Code
+
+```{python}
+#| label: ex2-tune-python
+#| eval: false
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
+
+X_train, X_test, y_train, y_test = train_test_split(
+    df, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# Your code: define param_dist for RF and XGBoost
+# Run RandomizedSearchCV for each
+# Evaluate on test set with roc_auc_score
+```
+
+:::
+
+### Exercise 3: Interpreting a Clinical Prediction Model
+
+You have built a gradient-boosted model for 30-day hospital readmission. Your hospital administration asks you to present the results.
+
+1. Write a non-technical summary (3–4 sentences) explaining what the model does and how well it performs, suitable for a hospital quality committee.
+2. The model identifies "number of prior admissions" and "discharge creatinine" as the two most important predictors. Explain to a clinical audience what this means and *does not* mean (recall the caution about variable importance and causation).
+3. How would you propose to validate this model before deploying it in clinical practice? What could go wrong if you skip external validation?
+
+## Summary
+
+| Method | How It Works | Key Advantage | Key Risk |
+|--------|-------------|---------------|----------|
+| Decision tree | Sequential yes/no splits | Highly interpretable | Overfits, unstable |
+| Random forest | Average of many decorrelated trees | Robust, minimal tuning | Less interpretable |
+| Gradient boosting | Sequential trees correcting errors | Often best accuracy | Can overfit, many hyperparameters |
+
+The progression from single trees to random forests to gradient boosting follows a clear logic:
+
+- **Single trees** are interpretable but unstable and prone to overfitting.
+- **Random forests** reduce variance by averaging many decorrelated trees, with the OOB error providing a built-in validation estimate.
+- **Gradient boosting** reduces both bias and variance through sequential learning, often achieving the best predictive accuracy at the cost of more tuning.
+
+For clinical prediction models, always compare against a logistic regression baseline. Use cross-validation for honest evaluation, tune hyperparameters systematically, and remember that the most complex model is not always the best choice.
+
+## References and Further Reading
+
+The foundational paper on random forests is Breiman (2001), "Random Forests," published in *Machine Learning*. This paper introduced the algorithm, the concept of out-of-bag error estimation, and permutation-based variable importance. It remains one of the most cited papers in machine learning.
+
+For XGBoost, the key reference is Chen and Guestrin (2016), "XGBoost: A Scalable Tree Boosting System," presented at KDD 2016. This paper describes the algorithmic innovations (regularized objective, approximate split finding, sparsity-aware computation) that made XGBoost the dominant method for tabular data.
+
+Smits et al. (2026) provide an accessible treatment of tree-based methods in the context of clinical research, including practical guidance on when ensemble methods offer meaningful advantages over logistic regression and how to interpret variable importance in clinical terms.
+
+For a thorough treatment of the CART algorithm, see Breiman, Friedman, Olshen, and Stone's *Classification and Regression Trees* (1984, Wadsworth). Although the original text is somewhat dated, the core ideas remain current.
+
+Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (Springer, 2nd edition, 2009) covers bagging (Section 8.7), random forests (Chapter 15), and boosting (Chapter 10) with mathematical rigor. James et al.'s *An Introduction to Statistical Learning* (ISLR, 2nd edition, 2021) provides a gentler introduction in Chapters 8 and covers tree-based methods with R lab exercises.
+
+Boehmke and Greenwell's *Hands-On Machine Learning with R* dedicates several chapters to tree-based methods with practical tidymodels code, and is an excellent companion for the R exercises in this chapter.
+
+For the gradient boosting framework, Friedman (2001), "Greedy Function Approximation: A Gradient Boosting Machine," in *Annals of Statistics*, is the foundational statistical treatment. The paper introduced the general gradient boosting framework that XGBoost and LightGBM build upon.
+
+Regarding clinical applications and best practices, the TRIPOD statement (Collins et al., 2015) provides guidelines for reporting clinical prediction models, including those based on machine learning. Any readmission model (or similar clinical prediction tool) developed with these methods should be reported following TRIPOD guidelines and externally validated before clinical deployment.

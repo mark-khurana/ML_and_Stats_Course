@@ -1,0 +1,624 @@
+# Setting Up Your Computing Environment {#sec-setup}
+
+## Why Two Languages?
+
+Throughout this course, you will work with both **R** and **Python**. This is not an accident or an attempt to double your workload. In modern biostatistics, epidemiology, and health data science, both languages appear regularly in published research, collaborative projects, and industry applications. R has deep roots in classical statistics and has an extraordinary ecosystem of packages for survival analysis, Bayesian modeling, and clinical reporting. Python dominates in machine learning, deep learning, and large-scale data engineering. By learning both, you will be able to read and contribute to a wider range of projects, collaborate with more colleagues, and choose the best tool for each task.
+
+You do not need to be an expert programmer to succeed in this course. We will introduce code gradually and explain every line. Think of R and Python as lab instruments: you will learn to use them by doing, and we will always prioritize understanding the statistical ideas over memorizing syntax.
+
+## Installing R and RStudio
+
+### What Are R and RStudio?
+
+**R** is a programming language designed for statistical computing and graphics. It runs in a terminal or console, but working with raw R in a terminal is not the most pleasant experience. **RStudio** is an integrated development environment (IDE) that wraps around R, providing a code editor, a console, a file browser, a plot viewer, and much more in a single window. Think of R as the engine and RStudio as the dashboard and steering wheel.
+
+### Step 1: Download and Install R
+
+1. Open your web browser and navigate to the Comprehensive R Archive Network (CRAN): <https://cran.r-project.org/>
+2. You will see links for your operating system near the top of the page:
+   - **Windows**: Click "Download R for Windows," then click "base," then click the link that says something like "Download R-4.x.x for Windows." Run the downloaded `.exe` installer and accept all default settings.
+   - **macOS**: Click "Download R for macOS." Choose the appropriate version for your Mac. If you have an Apple Silicon Mac (M1, M2, M3, or M4 chip), download the `arm64` version. If you have an older Intel Mac, download the `x86_64` version. If you are unsure, click the Apple icon in the top-left corner of your screen, choose "About This Mac," and look at the "Chip" or "Processor" field. Open the downloaded `.pkg` file and follow the installation prompts.
+   - **Linux**: Click "Download R for Linux," select your distribution (Ubuntu, Fedora, etc.), and follow the instructions. On Ubuntu, you can also install R from the terminal:
+
+```{bash}
+#| eval: false
+# Ubuntu/Debian
+sudo apt update
+sudo apt install r-base r-base-dev
+```
+
+3. Verify the installation by opening a terminal (or Command Prompt on Windows) and typing:
+
+```{bash}
+#| eval: false
+R --version
+```
+
+You should see output that includes the R version number (4.4 or later is recommended).
+
+### Step 2: Download and Install RStudio
+
+1. Navigate to the Posit (formerly RStudio) download page: <https://posit.co/download/rstudio-desktop/>
+2. The page will detect your operating system and suggest the correct installer. Click the download button.
+3. Run the installer:
+   - **Windows**: Run the `.exe` file and follow the prompts.
+   - **macOS**: Open the `.dmg` file and drag RStudio to your Applications folder.
+   - **Linux**: Install the `.deb` or `.rpm` package using your package manager.
+4. Open RStudio. You should see four panels: the Source editor (top left), the Console (bottom left), the Environment/History pane (top right), and the Files/Plots/Packages/Help pane (bottom right). If R is installed correctly, you will see a welcome message in the Console that includes the R version number.
+
+### Step 3: A Quick Tour of RStudio
+
+- **Console** (bottom left): Type R commands here and press Enter to run them immediately. Good for quick exploration.
+- **Source Editor** (top left): Write and save R scripts (`.R` files) or Quarto documents (`.qmd` files). You can run lines or selections by pressing Ctrl+Enter (Cmd+Enter on Mac).
+- **Environment** (top right): Shows all variables and data objects currently in memory.
+- **Files/Plots/Packages/Help** (bottom right): Browse files on your computer, view plots, manage installed packages, and read documentation.
+
+## Installing Python and an Editor
+
+### What Are Python, JupyterLab, and VS Code?
+
+**Python** is a general-purpose programming language widely used in data science and machine learning. Unlike R, Python was not designed exclusively for statistics, but its ecosystem of scientific libraries (NumPy, pandas, scikit-learn, etc.) makes it extremely powerful for data analysis.
+
+You have two main choices for an editing environment:
+
+- **JupyterLab**: A browser-based interactive environment where you write code in "notebooks" --- documents that mix code, output, and narrative text. Jupyter notebooks (`.ipynb` files) are very popular in data science.
+- **VS Code (Visual Studio Code)**: A general-purpose code editor from Microsoft that supports Python (and R) through extensions. It can also run Jupyter notebooks directly inside the editor.
+
+We recommend **VS Code** for this course because it handles both R and Python well and is widely used in industry. However, JupyterLab is perfectly fine if you prefer it.
+
+### Step 1: Install Python via Miniforge (Recommended)
+
+We recommend installing Python through **Miniforge**, a lightweight distribution that includes the `conda` package manager. Conda makes it easy to install scientific packages and manage separate environments for different projects.
+
+1. Download Miniforge from: <https://conda-forge.org/miniforge/>
+2. Choose the installer for your operating system:
+   - **Windows**: Download and run the `.exe` installer. Check the box that says "Add Miniforge to my PATH environment variable" during installation.
+   - **macOS**: Download the `.sh` script. Open Terminal and run:
+
+```{bash}
+#| eval: false
+# Replace the filename with the one you downloaded
+bash Miniforge3-MacOSX-arm64.sh
+```
+
+   - **Linux**: Same approach as macOS --- download the `.sh` script and run it in your terminal.
+
+3. Close and reopen your terminal, then verify:
+
+```{bash}
+#| eval: false
+python --version
+conda --version
+```
+
+You should see Python 3.11 or later and a conda version number.
+
+### Alternative: Install Python from python.org
+
+If you prefer not to use conda, you can download Python directly from <https://www.python.org/downloads/>. Make sure to check the box "Add Python to PATH" during installation on Windows. You will then use `pip` instead of `conda` to install packages.
+
+### Step 2: Install VS Code
+
+1. Download VS Code from <https://code.visualstudio.com/>
+2. Install it using the standard process for your operating system.
+3. Open VS Code, click the Extensions icon in the left sidebar (it looks like four small squares), and install the following extensions:
+   - **Python** (by Microsoft) --- provides Python language support, debugging, and Jupyter notebook integration.
+   - **Jupyter** (by Microsoft) --- adds full Jupyter notebook support inside VS Code.
+   - **Quarto** (by Quarto) --- optional, but useful if you want to edit `.qmd` files in VS Code.
+   - **R** (by REditorSupport) --- optional, provides R language support in VS Code.
+
+### Alternative: Install JupyterLab
+
+If you prefer JupyterLab, install it after setting up Python:
+
+```{bash}
+#| eval: false
+conda install jupyterlab
+# or, if using pip:
+pip install jupyterlab
+```
+
+Launch it with:
+
+```{bash}
+#| eval: false
+jupyter lab
+```
+
+This will open JupyterLab in your web browser.
+
+## Installing Key R Packages
+
+R packages extend the language with specialized tools. Think of them as apps you install on your phone --- the base R system is the phone itself, and packages add new capabilities.
+
+Open RStudio and run the following command in the Console. This will take several minutes the first time because it downloads and compiles many packages:
+
+```{r}
+#| eval: false
+# Install all packages needed for this course
+install.packages(c(
+  "tidyverse",     # Data manipulation (dplyr, ggplot2, tidyr, readr, etc.)
+  "rms",           # Regression Modeling Strategies (Frank Harrell's toolkit)
+  "glmnet",        # Regularized regression (lasso, ridge, elastic net)
+  "survival",      # Survival analysis (Cox models, Kaplan-Meier)
+  "brms",          # Bayesian regression models via Stan
+  "rstanarm",      # Bayesian applied regression modeling via Stan
+  "ranger",        # Fast random forests
+  "xgboost",       # Gradient boosted trees
+  "mice",          # Multiple imputation by chained equations
+  "dcurves",       # Decision curve analysis
+  "pROC",          # ROC curve analysis
+  "uwot",          # UMAP dimensionality reduction
+  "cluster",       # Cluster analysis
+  "gtsummary",     # Publication-ready summary tables
+  "MatchIt",       # Propensity score matching
+  "tidymodels"     # Unified machine learning framework
+))
+```
+
+### What Each Package Does (Brief Overview)
+
+| Package | Purpose |
+|---------|---------|
+| `tidyverse` | A collection of packages for data wrangling and visualization. Includes `ggplot2` (plotting), `dplyr` (data manipulation), `tidyr` (reshaping), and more. |
+| `rms` | Frank Harrell's Regression Modeling Strategies package. Provides tools for fitting and validating regression models with a focus on best practices. |
+| `glmnet` | Fits penalized (regularized) generalized linear models, including lasso and ridge regression. |
+| `survival` | The foundational package for survival (time-to-event) analysis in R. |
+| `brms` | An interface to Stan for fitting Bayesian generalized linear mixed models using familiar R formula syntax. |
+| `rstanarm` | Similar to `brms` but with pre-compiled Stan models for faster startup. Great for common Bayesian regression tasks. |
+| `ranger` | A fast implementation of random forests, useful for both classification and regression. |
+| `xgboost` | Extreme gradient boosting --- one of the most powerful and popular machine learning algorithms. |
+| `mice` | Handles missing data through multiple imputation, a principled approach to dealing with incomplete datasets. |
+| `dcurves` | Implements decision curve analysis for evaluating clinical prediction models. |
+| `pROC` | Computes and displays ROC curves and calculates the area under the curve (AUC). |
+| `uwot` | Implements UMAP (Uniform Manifold Approximation and Projection) for dimensionality reduction. |
+| `cluster` | Provides methods for cluster analysis including k-medoids (PAM), hierarchical clustering, and more. |
+| `gtsummary` | Creates publication-quality summary and regression tables. |
+| `MatchIt` | Implements propensity score matching and other matching methods for causal inference. |
+| `tidymodels` | A unified framework for building, tuning, and evaluating machine learning models in R. |
+
+: Key R packages for this course {.striped}
+
+### Verifying R Package Installation
+
+After installation, verify that the key packages load without errors:
+
+```{r}
+#| eval: false
+library(tidyverse)
+library(rms)
+library(glmnet)
+library(survival)
+library(ranger)
+library(xgboost)
+```
+
+If you get an error like `there is no package called 'xyz'`, try reinstalling that specific package. If compilation errors occur (common on Linux), you may need to install system-level dependencies. RStudio will usually tell you what is missing.
+
+## Installing Key Python Packages
+
+### Using conda (Recommended)
+
+Create a dedicated environment for this course. An environment is an isolated collection of packages that will not interfere with other Python projects on your machine:
+
+```{bash}
+#| eval: false
+# Create a new environment called 'mlstats' with Python 3.12
+conda create -n mlstats python=3.12
+
+# Activate the environment
+conda activate mlstats
+
+# Install all packages
+conda install pandas numpy scikit-learn statsmodels matplotlib seaborn
+
+# Some packages are best installed via pip even when using conda
+pip install lifelines xgboost pymc bambi arviz umap-learn plotnine miceforest
+```
+
+### Using pip Only
+
+If you are not using conda:
+
+```{bash}
+#| eval: false
+# Create a virtual environment
+python -m venv mlstats_env
+
+# Activate it
+# On macOS/Linux:
+source mlstats_env/bin/activate
+# On Windows:
+mlstats_env\Scripts\activate
+
+# Install packages
+pip install pandas numpy scikit-learn statsmodels lifelines xgboost \
+    pymc bambi arviz umap-learn matplotlib seaborn plotnine miceforest
+```
+
+### What Each Python Package Does
+
+| Package | Purpose |
+|---------|---------|
+| `pandas` | The primary data manipulation library. DataFrames (tables) are the central data structure. |
+| `numpy` | Numerical computing --- arrays, linear algebra, random number generation. |
+| `scikit-learn` | The standard machine learning library. Classification, regression, clustering, preprocessing, model evaluation. |
+| `statsmodels` | Classical statistical models: linear regression, logistic regression, time series, and more. Provides p-values and confidence intervals that scikit-learn does not. |
+| `lifelines` | Survival analysis in Python: Kaplan-Meier curves, Cox proportional hazards models, and more. |
+| `xgboost` | Gradient boosted trees (same algorithm as the R version). |
+| `pymc` | Bayesian statistical modeling and probabilistic programming. |
+| `bambi` | BAyesian Model-Building Interface --- a high-level interface to PyMC using R-style formulas. |
+| `arviz` | Visualization and diagnostics for Bayesian models. |
+| `umap-learn` | UMAP dimensionality reduction for Python. |
+| `matplotlib` | The foundational plotting library for Python. |
+| `seaborn` | Statistical data visualization built on top of matplotlib. Easier to use for common statistical plots. |
+| `plotnine` | A Python implementation of R's ggplot2 grammar of graphics. If you like ggplot2, you will like plotnine. |
+| `miceforest` | Multiple imputation using random forests in Python. |
+
+: Key Python packages for this course {.striped}
+
+### Verifying Python Package Installation
+
+```{python}
+#| eval: false
+import pandas as pd
+import numpy as np
+import sklearn
+import statsmodels
+import matplotlib.pyplot as plt
+
+print(f"pandas:       {pd.__version__}")
+print(f"numpy:        {np.__version__}")
+print(f"scikit-learn: {sklearn.__version__}")
+print("All key packages loaded successfully!")
+```
+
+## Hello World: Your First Analysis
+
+Let us make sure everything works by loading a built-in dataset and creating a simple plot in both languages. We will use the classic `iris` dataset --- measurements of petal and sepal dimensions for three species of iris flowers. While not a clinical dataset, it is available in both R and Python without any downloads, making it perfect for a quick test.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| eval: false
+# Load the tidyverse (includes ggplot2 and dplyr)
+library(tidyverse)
+
+# The iris dataset is built into R
+data(iris)
+
+# Take a quick look at the first few rows
+head(iris)
+
+# Summary statistics
+summary(iris)
+
+# Create a scatter plot of Sepal Length vs. Petal Length, colored by Species
+ggplot(iris, aes(x = Sepal.Length, y = Petal.Length, color = Species)) +
+  geom_point(size = 2, alpha = 0.7) +
+  labs(
+    title = "Iris Dataset: Sepal Length vs. Petal Length",
+    x = "Sepal Length (cm)",
+    y = "Petal Length (cm)"
+  ) +
+  theme_minimal()
+```
+
+### Python
+
+```{python}
+#| eval: false
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+
+# Load the iris dataset
+iris_data = load_iris()
+iris = pd.DataFrame(
+    iris_data.data,
+    columns=iris_data.feature_names
+)
+iris["species"] = pd.Categorical.from_codes(
+    iris_data.target, iris_data.target_names
+)
+
+# Take a quick look
+print(iris.head())
+print(iris.describe())
+
+# Create a scatter plot
+plt.figure(figsize=(8, 5))
+sns.scatterplot(
+    data=iris,
+    x="sepal length (cm)",
+    y="petal length (cm)",
+    hue="species",
+    alpha=0.7,
+    s=60
+)
+plt.title("Iris Dataset: Sepal Length vs. Petal Length")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+If you see a colorful scatter plot with three clusters of points, congratulations --- your setup is working.
+
+## How to Use the Course Materials
+
+### Navigating This Book
+
+This course is delivered as a **Quarto book** --- a collection of chapters that you can read in your web browser. Each chapter builds on previous ones, so we recommend reading them in order the first time through. However, you can always jump to a specific chapter using the table of contents in the left sidebar.
+
+### Code Blocks
+
+Throughout the book, you will encounter code blocks like this:
+
+```{r}
+#| eval: false
+# This is an R code block
+x <- c(1, 2, 3, 4, 5)
+mean(x)
+```
+
+Many chapters present code in **tabbed panels** labeled "R" and "Python." Click the tab for your preferred language. We encourage you to try both, but if you are short on time, pick the one you are more comfortable with and come back to the other later.
+
+### Exercises
+
+Each chapter ends with exercises. They follow this pattern:
+
+1. A description of the task inside a colored callout box.
+2. **Starter code** that sets up the problem and leaves blanks for you to fill in.
+3. A **Solution** hidden inside a collapsible box --- try the exercise yourself before peeking!
+
+### Downloading Notebooks
+
+For hands-on practice, you can download the exercises as standalone notebooks:
+
+- **R users**: Look for `.qmd` or `.Rmd` files in the course repository that you can open in RStudio.
+- **Python users**: Look for `.ipynb` (Jupyter notebook) files in the course repository that you can open in JupyterLab or VS Code.
+
+The course repository is available on GitHub. Your instructor will provide the link.
+
+### Rendering Quarto Documents
+
+If you want to render `.qmd` files yourself (to produce HTML or PDF output), you need to install Quarto:
+
+1. Download Quarto from <https://quarto.org/docs/get-started/>
+2. Install it following the instructions for your operating system.
+3. In RStudio, you can render a `.qmd` file by clicking the "Render" button. In VS Code, use the Quarto extension's render command. From the terminal:
+
+```{bash}
+#| eval: false
+quarto render my_document.qmd
+```
+
+## Troubleshooting Common Setup Issues
+
+### R and RStudio Issues
+
+**Problem**: RStudio cannot find R.
+**Solution**: Make sure you installed R *before* installing RStudio. If you installed them in the wrong order, try reinstalling RStudio. On Windows, RStudio looks for R in standard installation locations. If you installed R to a non-standard path, go to Tools > Global Options > General and set the R version manually.
+
+**Problem**: Package installation fails with a compilation error.
+**Solution**: Some R packages need to compile C++ or Fortran code. On Windows, install [Rtools](https://cran.r-project.org/bin/windows/Rtools/). On macOS, install the Xcode Command Line Tools by running `xcode-select --install` in Terminal. On Linux, install `build-essential` and `r-base-dev`.
+
+**Problem**: `brms` or `rstanarm` fails to install.
+**Solution**: These packages depend on Stan, a probabilistic programming language that requires a C++ compiler. Follow the instructions above for installing compilation tools. On Windows, make sure Rtools is on your PATH. Installation can take 10--15 minutes --- be patient.
+
+**Problem**: Package loads but you get warnings about versions.
+**Solution**: Warnings (yellow text) are usually harmless --- they often say things like "package was built under R version X.Y.Z." Errors (red text) are the ones that prevent code from running. If you get errors, try updating the package with `install.packages("package_name")`.
+
+### Python Issues
+
+**Problem**: `python` command not found.
+**Solution**: On some systems, Python 3 is accessed via `python3` instead of `python`. Try `python3 --version`. If using conda, make sure you have activated your environment with `conda activate mlstats`.
+
+**Problem**: `ModuleNotFoundError: No module named 'xyz'`.
+**Solution**: The package is not installed in your current environment. Make sure you have activated the correct conda environment (`conda activate mlstats`) or virtual environment before installing and importing packages.
+
+**Problem**: `pip install pymc` fails with obscure errors.
+**Solution**: PyMC can be tricky to install because it depends on compiled numerical libraries. Using conda often resolves these issues: `conda install -c conda-forge pymc`. On Apple Silicon Macs, make sure you are using the ARM64 version of Miniforge.
+
+**Problem**: Jupyter notebook does not show the correct Python kernel.
+**Solution**: Install the IPython kernel in your environment: `conda install ipykernel` or `pip install ipykernel`. Then register it: `python -m ipykernel install --user --name mlstats --display-name "ML Stats Course"`.
+
+### General Tips
+
+- **Keep your software updated.** At the start of each semester, update R, RStudio, Python, and your packages.
+- **Use separate environments.** Conda environments (Python) and `renv` (R) prevent package version conflicts between projects.
+- **Read error messages carefully.** They usually tell you exactly what went wrong, even if the language is technical. Copy the last line of an error message into a search engine --- someone else has almost certainly had the same problem.
+- **Ask for help.** Post on the course discussion board with the full error message, your operating system, and what you were trying to do. Screenshots are helpful.
+
+::: {.callout-tip title="Exercise 0.1: Verify Your Setup"}
+Confirm that both R and Python are working by completing the following tasks:
+
+1. In R, load the `tidyverse` package and use `ggplot2` to create a histogram of the `Sepal.Width` column from the built-in `iris` dataset.
+2. In Python, use `seaborn` to create a histogram of the `sepal width (cm)` column from scikit-learn's iris dataset.
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+# Load tidyverse
+library(tidyverse)
+
+# Create a histogram of Sepal.Width from the iris dataset
+# YOUR CODE HERE
+```
+## Python
+```{python}
+#| eval: false
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+
+# Load iris and create a DataFrame
+iris_data = load_iris()
+iris = pd.DataFrame(iris_data.data, columns=iris_data.feature_names)
+
+# Create a histogram of sepal width
+# YOUR CODE HERE
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+library(tidyverse)
+
+ggplot(iris, aes(x = Sepal.Width)) +
+  geom_histogram(binwidth = 0.2, fill = "steelblue", color = "white") +
+  labs(
+    title = "Distribution of Sepal Width",
+    x = "Sepal Width (cm)",
+    y = "Count"
+  ) +
+  theme_minimal()
+```
+## Python
+```{python}
+#| eval: false
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+
+iris_data = load_iris()
+iris = pd.DataFrame(iris_data.data, columns=iris_data.feature_names)
+
+plt.figure(figsize=(8, 5))
+sns.histplot(iris["sepal width (cm)"], bins=15, kde=True, color="steelblue")
+plt.title("Distribution of Sepal Width")
+plt.xlabel("Sepal Width (cm)")
+plt.ylabel("Count")
+plt.tight_layout()
+plt.show()
+```
+:::
+:::
+:::
+
+::: {.callout-tip title="Exercise 0.2: Explore a Clinical Dataset"}
+Now let us work with something more relevant to health sciences. Both R and Python include the `mtcars` dataset (or we can simulate clinical-like data). In this exercise, create a scatter plot relating two variables and add a trend line.
+
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+library(tidyverse)
+
+# Let's simulate a small clinical dataset
+set.seed(42)
+n <- 200
+clinical <- tibble(
+  age = round(rnorm(n, mean = 55, sd = 12)),
+  systolic_bp = round(100 + 0.8 * age + rnorm(n, sd = 10)),
+  bmi = round(rnorm(n, mean = 27, sd = 5), 1)
+)
+
+# Create a scatter plot of age vs. systolic blood pressure with a trend line
+# Hint: use geom_point() and geom_smooth(method = "lm")
+# YOUR CODE HERE
+```
+## Python
+```{python}
+#| eval: false
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Simulate a small clinical dataset
+np.random.seed(42)
+n = 200
+clinical = pd.DataFrame({
+    "age": np.round(np.random.normal(55, 12, n)).astype(int),
+})
+clinical["systolic_bp"] = np.round(100 + 0.8 * clinical["age"] + np.random.normal(0, 10, n))
+clinical["bmi"] = np.round(np.random.normal(27, 5, n), 1)
+
+# Create a scatter plot of age vs. systolic blood pressure with a trend line
+# Hint: use sns.regplot() or sns.lmplot()
+# YOUR CODE HERE
+```
+:::
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+## R
+```{r}
+#| eval: false
+library(tidyverse)
+
+set.seed(42)
+n <- 200
+clinical <- tibble(
+  age = round(rnorm(n, mean = 55, sd = 12)),
+  systolic_bp = round(100 + 0.8 * age + rnorm(n, sd = 10)),
+  bmi = round(rnorm(n, mean = 27, sd = 5), 1)
+)
+
+ggplot(clinical, aes(x = age, y = systolic_bp)) +
+  geom_point(alpha = 0.5, color = "darkblue") +
+  geom_smooth(method = "lm", color = "firebrick", se = TRUE) +
+  labs(
+    title = "Age vs. Systolic Blood Pressure",
+    subtitle = "Simulated clinical data (n = 200)",
+    x = "Age (years)",
+    y = "Systolic Blood Pressure (mmHg)"
+  ) +
+  theme_minimal()
+```
+## Python
+```{python}
+#| eval: false
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+n = 200
+clinical = pd.DataFrame({
+    "age": np.round(np.random.normal(55, 12, n)).astype(int),
+})
+clinical["systolic_bp"] = np.round(100 + 0.8 * clinical["age"] + np.random.normal(0, 10, n))
+clinical["bmi"] = np.round(np.random.normal(27, 5, n), 1)
+
+plt.figure(figsize=(8, 5))
+sns.regplot(
+    data=clinical, x="age", y="systolic_bp",
+    scatter_kws={"alpha": 0.5, "color": "darkblue"},
+    line_kws={"color": "firebrick"}
+)
+plt.title("Age vs. Systolic Blood Pressure\nSimulated clinical data (n = 200)")
+plt.xlabel("Age (years)")
+plt.ylabel("Systolic Blood Pressure (mmHg)")
+plt.tight_layout()
+plt.show()
+```
+:::
+:::
+:::
+
+## References and Further Reading
+
+- Wickham, H., & Grolemund, G. (2017). *R for Data Science: Import, Tidy, Transform, Visualize, and Model Data*. O'Reilly Media. Freely available at <https://r4ds.had.co.nz/>. The definitive introduction to the tidyverse ecosystem in R.
+
+- VanderPlas, J. (2016). *Python Data Science Handbook: Essential Tools for Working with Data*. O'Reilly Media. Freely available at <https://jakevdp.github.io/PythonDataScienceHandbook/>. Covers NumPy, pandas, matplotlib, and scikit-learn in depth.
+
+- McKinney, W. (2022). *Python for Data Analysis: Data Wrangling with pandas, NumPy, and Jupyter* (3rd ed.). O'Reilly Media. The authoritative guide to pandas, written by the creator of the library.
+
+- Posit. (2024). *Quarto Documentation*. <https://quarto.org/docs/guide/>. The official guide to Quarto, the publishing system used for this course.
+
+- Cetinkaya-Rundel, M., & Hardin, J. (2024). *Introduction to Modern Statistics* (2nd ed.). OpenIntro. Freely available at <https://openintro-ims2.netlify.app/>. An excellent, free statistics textbook that uses R.
+
+- Harrell, F. E. (2015). *Regression Modeling Strategies: With Applications to Linear Models, Logistic and Ordinal Regression, and Survival Analysis* (2nd ed.). Springer. The companion text for the `rms` R package and a masterclass in regression modeling for health sciences.

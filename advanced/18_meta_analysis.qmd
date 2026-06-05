@@ -1,0 +1,683 @@
+# Meta-Analysis Methods for Evidence Synthesis {#sec-meta-analysis}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(meta)
+library(metafor)
+```
+
+## Introduction
+
+A single study, no matter how well designed, provides only one piece of evidence. **Meta-analysis** is the statistical method for combining results from multiple independent studies addressing the same question, producing a more precise and generalisable estimate of an effect.
+
+Meta-analysis sits at the top of the evidence hierarchy in evidence-based medicine. When done well, it can resolve conflicting findings, increase statistical power for rare outcomes, and identify sources of variation across studies. When done poorly, it can amplify biases present in the original studies --- "garbage in, garbage out."
+
+This chapter covers the statistical foundations of meta-analysis, practical implementation in R and Python, and critical appraisal of heterogeneity and publication bias.
+
+::: {.callout-note}
+## Systematic review vs meta-analysis
+A **systematic review** is the process of comprehensively searching for, selecting, and appraising studies. A **meta-analysis** is the *statistical* component --- combining the numbers. You can have a systematic review without a meta-analysis (if studies are too heterogeneous to combine), but you should never have a meta-analysis without a systematic review.
+:::
+
+## What Does a Meta-Analysis Combine?
+
+Each study contributes an **effect estimate** and a measure of its **precision** (standard error or confidence interval). The meta-analysis computes a **weighted average**, where studies with greater precision (typically larger studies) receive more weight.
+
+The general formula for a weighted average effect:
+
+$$
+\hat{\theta}_{\text{pooled}} = \frac{\sum_{i=1}^{k} w_i \hat{\theta}_i}{\sum_{i=1}^{k} w_i}
+$$
+
+where $\hat{\theta}_i$ is the effect estimate from study $i$ and $w_i$ is its weight.
+
+## Effect Measures
+
+The choice of effect measure depends on the type of outcome:
+
+### Binary outcomes
+
+| Measure | Formula | When to use |
+|---|---|---|
+| **Odds ratio (OR)** | $\frac{a/c}{b/d} = \frac{ad}{bc}$ | Case-control studies; logistic regression |
+| **Risk ratio (RR)** | $\frac{a/(a+b)}{c/(c+d)}$ | Cohort studies; more interpretable than OR |
+| **Risk difference (RD)** | $\frac{a}{a+b} - \frac{c}{c+d}$ | When absolute risk is clinically relevant |
+
+Where $a$, $b$, $c$, $d$ are the cells of a 2x2 table (treatment events, treatment non-events, control events, control non-events).
+
+ORs and RRs are typically meta-analysed on the **log scale** (because their sampling distributions are approximately normal on that scale) and then back-transformed for presentation.
+
+### Continuous outcomes
+
+| Measure | Formula | When to use |
+|---|---|---|
+| **Mean difference (MD)** | $\bar{X}_T - \bar{X}_C$ | All studies use the same measurement scale |
+| **Standardised mean difference (SMD)** | $\frac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ | Studies use different scales measuring the same construct (e.g., different depression questionnaires) |
+
+The SMD is also known as **Hedges' g** (with a small-sample correction) or **Cohen's d**.
+
+## Fixed-Effect vs Random-Effects Models
+
+### Fixed-effect model
+
+Assumes all studies estimate the **same true effect** $\theta$. Differences between study results are due solely to sampling variation.
+
+Weights are the inverse of the within-study variance:
+
+$$
+w_i^{FE} = \frac{1}{\hat{\sigma}_i^2}
+$$
+
+This model is appropriate when studies are clinically and methodologically very similar (e.g., exact replications).
+
+### Random-effects model
+
+Assumes each study estimates its **own true effect** $\theta_i$, drawn from a distribution of true effects: $\theta_i \sim N(\mu, \tau^2)$.
+
+The between-study variance $\tau^2$ is estimated from the data (commonly using the DerSimonian-Laird, REML, or Paule-Mandel methods). Weights incorporate both within-study and between-study variance:
+
+$$
+w_i^{RE} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}
+$$
+
+The random-effects model is almost always more appropriate in clinical research, because studies differ in populations, interventions, settings, and outcome definitions.
+
+::: {.callout-important}
+## The random-effects model gives more weight to small studies
+Because $\hat{\tau}^2$ is added to every study's variance, the relative weights become more equal. This means small (potentially biased or low-quality) studies have more influence in a random-effects analysis. This is a feature when heterogeneity is real, but a bug when small studies are biased (e.g., publication bias favoring small positive studies).
+:::
+
+### Prediction intervals
+
+The confidence interval for the pooled effect tells you about the *average* true effect. The **prediction interval** tells you the range within which the true effect of a *future study* is likely to fall:
+
+$$
+\hat{\mu} \pm t_{k-2, 0.975} \times \sqrt{\text{SE}(\hat{\mu})^2 + \hat{\tau}^2}
+$$
+
+Prediction intervals are often much wider than confidence intervals and provide a more honest picture of the uncertainty. A pooled effect may be statistically significant while the prediction interval includes the null --- meaning that some settings may see no benefit or even harm.
+
+## Heterogeneity
+
+### Measuring heterogeneity
+
+**Cochran's Q test**: Tests $H_0$: all studies share the same true effect.
+
+$$
+Q = \sum_{i=1}^{k} w_i^{FE} (\hat{\theta}_i - \hat{\theta}_{FE})^2
+$$
+
+Under $H_0$, $Q \sim \chi^2_{k-1}$. The test has low power when $k$ is small.
+
+**$I^2$ statistic**: The percentage of total variability due to between-study heterogeneity rather than chance.
+
+$$
+I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
+$$
+
+Rules of thumb (Higgins et al., 2003):
+
+- $I^2 \approx 25\%$: low heterogeneity
+- $I^2 \approx 50\%$: moderate heterogeneity
+- $I^2 \approx 75\%$: high heterogeneity
+
+**$\tau^2$**: The estimated between-study variance on the effect scale. Unlike $I^2$, it is not influenced by study precision and is more interpretable for clinical decision-making.
+
+### Investigating heterogeneity
+
+When heterogeneity is substantial:
+
+1. **Subgroup analysis**: Split studies by a pre-specified characteristic (e.g., drug dose, patient age group, study quality) and compare pooled effects.
+2. **Meta-regression**: Model the effect as a function of study-level covariates.
+3. **Sensitivity analysis**: Exclude outlier studies or studies at high risk of bias.
+
+::: {.callout-warning}
+## Ecological fallacy in meta-regression
+Study-level associations do not imply individual-level associations. If trials with older populations show larger treatment effects, this does NOT prove that older individuals benefit more --- the trials may also differ in other ways. This is the **ecological fallacy**, and it is a fundamental limitation of aggregate data meta-analysis.
+:::
+
+## Forest Plots
+
+The **forest plot** is the standard visualisation for meta-analysis. Each study is shown as a square (size proportional to weight) with a horizontal line (95% CI). The pooled estimate is shown as a diamond.
+
+```{r}
+#| label: fig-forest
+#| eval: false
+#| fig-cap: "Forest plot of a meta-analysis of statin therapy for secondary prevention of cardiovascular events."
+
+# Example data: RCTs of statins for secondary CV prevention
+statin_data <- data.frame(
+  study = c("4S (1994)", "CARE (1996)", "LIPID (1998)", "HPS (2002)",
+            "PROSPER (2002)", "PROVE-IT (2004)", "TNT (2005)",
+            "JUPITER (2008)", "HOPE-3 (2016)"),
+  events_treat = c(111, 212, 287, 1328, 127, 147, 334, 142, 235),
+  n_treat      = c(2221, 2081, 4512, 10269, 2891, 2099, 5006, 8901, 6361),
+  events_ctrl  = c(189, 274, 373, 1507, 143, 172, 418, 251, 260),
+  n_ctrl       = c(2223, 2078, 4502, 10267, 2913, 2063, 5006, 8901, 6344)
+)
+
+# Run random-effects meta-analysis
+m1 <- metabin(
+  event.e = events_treat, n.e = n_treat,
+  event.c = events_ctrl,  n.c = n_ctrl,
+  studlab = study,
+  data = statin_data,
+  sm = "RR",                    # Risk ratio
+  method.tau = "REML",          # Restricted maximum likelihood for tau^2
+  prediction = TRUE             # Include prediction interval
+)
+
+# Forest plot
+forest(m1,
+       sortvar = TE,
+       label.left = "Favours statins",
+       label.right = "Favours control",
+       col.diamond = "steelblue",
+       col.square = "darkblue",
+       print.tau2 = TRUE,
+       print.I2 = TRUE,
+       print.pval.Q = TRUE)
+```
+
+### Reading a forest plot
+
+Key elements to examine:
+
+1. **Individual study estimates**: Are they all on the same side of the null?
+2. **Confidence intervals**: Do they overlap?
+3. **Pooled estimate (diamond)**: Where does it fall? Does the CI cross the null?
+4. **Prediction interval**: If shown, does it cross the null?
+5. **Heterogeneity statistics**: High $I^2$? Significant Q test?
+6. **Study weights**: Are results driven by one dominant study?
+
+## Funnel Plots and Publication Bias
+
+### The problem
+
+Studies with statistically significant results are more likely to be published. This **publication bias** means the available evidence may overestimate the true effect.
+
+### Funnel plots
+
+A **funnel plot** displays each study's effect estimate (x-axis) against its precision, typically the standard error (y-axis, inverted). In the absence of bias, the plot should resemble a symmetric inverted funnel.
+
+```{r}
+#| label: fig-funnel
+#| eval: false
+#| fig-cap: "Funnel plot with asymmetry suggesting potential publication bias."
+
+funnel(m1,
+       xlab = "Risk Ratio (log scale)",
+       studlab = TRUE,
+       col = "steelblue",
+       pch = 16)
+```
+
+Asymmetry (typically an excess of small studies with large positive effects) suggests publication bias --- but also other causes like genuine heterogeneity, methodological differences in small studies, or chance.
+
+### Statistical tests for funnel plot asymmetry
+
+**Egger's test**: A weighted regression of the effect estimate on its standard error. A significant intercept suggests asymmetry.
+
+```{r}
+#| label: egger-test
+#| eval: false
+
+metabias(m1, method.bias = "Egger")
+```
+
+**Peters' test**: Preferred for binary outcomes (Egger's test can be biased with odds ratios).
+
+### Trim-and-fill method
+
+The **trim-and-fill** method estimates the number of "missing" studies, imputes them, and recalculates the pooled effect. It provides a sensitivity analysis rather than a definitive correction.
+
+```{r}
+#| label: trim-fill
+#| eval: false
+
+tf <- trimfill(m1)
+summary(tf)
+funnel(tf)
+```
+
+::: {.callout-note}
+## Publication bias is not the only explanation for asymmetry
+Small-study effects can also arise from:
+
+- Genuine heterogeneity (treatment works better in specific populations studied in smaller trials)
+- Methodological flaws in smaller studies (less rigorous protocols)
+- Chance (especially with fewer than 10 studies)
+
+Egger's test should only be applied when there are at least 10 studies.
+:::
+
+## Advanced Meta-Analysis using metafor
+
+The `metafor` package provides the most comprehensive and flexible meta-analysis framework in R.
+
+```{r}
+#| label: metafor-example
+#| eval: false
+
+library(metafor)
+
+# Compute log risk ratios and sampling variances
+statin_es <- escalc(
+  measure = "RR",
+  ai = events_treat, n1i = n_treat,
+  ci = events_ctrl,  n2i = n_ctrl,
+  data = statin_data
+)
+
+# Random-effects model with REML
+res <- rma(yi, vi, data = statin_es, method = "REML")
+summary(res)
+
+# Prediction interval
+predict(res)
+
+# Meta-regression: effect of year of publication
+statin_es$year <- c(1994, 1996, 1998, 2002, 2002, 2004, 2005, 2008, 2016)
+res_mr <- rma(yi, vi, mods = ~ year, data = statin_es, method = "REML")
+summary(res_mr)
+
+# Leave-one-out sensitivity analysis
+leave1out(res)
+
+# Influence diagnostics
+inf <- influence(res)
+plot(inf)
+```
+
+### Subgroup analysis
+
+```{r}
+#| label: subgroup-analysis
+#| eval: false
+
+# Classify as primary vs secondary prevention
+statin_es$prevention <- c("secondary", "secondary", "secondary", "secondary",
+                           "primary", "secondary", "secondary",
+                           "primary", "primary")
+
+# Subgroup analysis
+res_sub <- rma(yi, vi, mods = ~ prevention, data = statin_es, method = "REML")
+summary(res_sub)
+
+# Forest plot by subgroup using meta package
+update(m1, subgroup = statin_es$prevention, print.subgroup.name = TRUE) |>
+  forest(sortvar = TE)
+```
+
+## Network Meta-Analysis (Brief Overview)
+
+Standard pairwise meta-analysis can only compare treatments that have been directly compared in head-to-head trials. **Network meta-analysis (NMA)**, also called mixed-treatment comparison, simultaneously compares multiple treatments using both **direct evidence** (from head-to-head trials) and **indirect evidence** (inferred through a common comparator).
+
+### When is NMA useful?
+
+Consider three antihypertensive drugs: A, B, and C. If trials have compared A vs B and B vs C, but never A vs C, NMA can provide an indirect estimate for A vs C:
+
+$$
+\hat{d}_{AC} = \hat{d}_{AB} + \hat{d}_{BC}
+$$
+
+This relies on the **transitivity assumption**: the studies comparing A vs B and those comparing B vs C are similar enough that indirect comparison is valid.
+
+### Key concepts
+
+- **Network geometry**: Nodes represent treatments, edges represent direct comparisons. The network should be well connected.
+- **Consistency**: Direct and indirect evidence agree. Inconsistency suggests the transitivity assumption is violated.
+- **Ranking**: NMA can rank treatments using the surface under the cumulative ranking curve (SUCRA) or P-scores, though rankings should be interpreted cautiously.
+
+```{r}
+#| label: nma-example
+#| eval: false
+
+library(netmeta)
+
+# Example: network meta-analysis of antidepressants
+# (using built-in dataset)
+data(Senn2013)
+
+# Run NMA
+net <- netmeta(TE, seTE, treat1, treat2, studlab,
+               data = Senn2013,
+               sm = "MD",
+               random = TRUE,
+               reference.group = "plac")
+
+summary(net)
+
+# Network graph
+netgraph(net, plastic = FALSE, thickness = "w.random",
+         col = "steelblue")
+
+# Forest plot of all comparisons vs reference
+forest(net, reference.group = "plac", sortvar = TE)
+
+# League table
+netleague(net)
+```
+
+## Individual Participant Data (IPD) Meta-Analysis
+
+In standard meta-analysis, you combine **aggregate data** (summary statistics from each study). In an **IPD meta-analysis**, you obtain the raw, individual-level data from each study and analyse it directly.
+
+### Advantages of IPD meta-analysis
+
+1. **Patient-level subgroup analyses** without ecological fallacy
+2. **Standardised outcome definitions** and follow-up times
+3. **Updated analyses** with extended follow-up
+4. **Prediction model development** and validation across multiple settings
+
+### Two-stage vs one-stage approaches
+
+- **Two-stage**: Analyse each study separately, then combine study-level estimates using standard meta-analysis. Familiar and transparent.
+- **One-stage**: Fit a single model to all individual data, accounting for study clustering. More flexible, especially with sparse data.
+
+```{r}
+#| label: ipd-meta
+#| eval: false
+
+# Two-stage IPD meta-analysis example
+# Suppose we have a stacked dataset with individual data from 5 studies
+
+# Stage 1: Fit model in each study
+library(lme4)
+
+# One-stage approach (mixed model with random study effects)
+ipd_model <- glmer(
+  event ~ treatment + age + sex + (1 + treatment | study_id),
+  data = ipd_data,
+  family = binomial
+)
+
+summary(ipd_model)
+
+# The fixed effect for 'treatment' is the pooled effect
+# The random slope for 'treatment' captures between-study heterogeneity
+```
+
+### IPD meta-analysis of prediction models
+
+Riley et al. (2010, 2021) describe frameworks for developing and validating clinical prediction models across multiple studies using IPD:
+
+1. Develop the model using one-stage IPD-MA (internal-external cross-validation)
+2. Assess calibration and discrimination in each study
+3. Examine heterogeneity in model performance across settings
+4. Update model intercept or recalibrate for new settings
+
+## Implementation in Python
+
+Python's meta-analysis ecosystem is less mature than R's, but basic analyses are feasible.
+
+```{python}
+#| label: python-meta
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# Study data: log risk ratios and standard errors
+studies = pd.DataFrame({
+    'study': ['4S (1994)', 'CARE (1996)', 'LIPID (1998)', 'HPS (2002)',
+              'PROSPER (2002)', 'PROVE-IT (2004)', 'TNT (2005)',
+              'JUPITER (2008)', 'HOPE-3 (2016)'],
+    'events_t': [111, 212, 287, 1328, 127, 147, 334, 142, 235],
+    'n_t': [2221, 2081, 4512, 10269, 2891, 2099, 5006, 8901, 6361],
+    'events_c': [189, 274, 373, 1507, 143, 172, 418, 251, 260],
+    'n_c': [2223, 2078, 4502, 10267, 2913, 2063, 5006, 8901, 6344]
+})
+
+# Compute log risk ratios and variances
+studies['rr'] = (studies['events_t'] / studies['n_t']) / \
+                (studies['events_c'] / studies['n_c'])
+studies['log_rr'] = np.log(studies['rr'])
+
+# Variance of log RR
+studies['var_log_rr'] = (
+    1/studies['events_t'] - 1/studies['n_t'] +
+    1/studies['events_c'] - 1/studies['n_c']
+)
+studies['se_log_rr'] = np.sqrt(studies['var_log_rr'])
+
+# --- Fixed-effect meta-analysis (inverse variance) ---
+w_fe = 1 / studies['var_log_rr']
+pooled_fe = np.sum(w_fe * studies['log_rr']) / np.sum(w_fe)
+se_fe = np.sqrt(1 / np.sum(w_fe))
+ci_fe = (pooled_fe - 1.96*se_fe, pooled_fe + 1.96*se_fe)
+
+print(f"Fixed-effect pooled log RR: {pooled_fe:.4f}")
+print(f"Fixed-effect pooled RR: {np.exp(pooled_fe):.4f} "
+      f"(95% CI: {np.exp(ci_fe[0]):.4f} - {np.exp(ci_fe[1]):.4f})")
+
+# --- Random-effects: DerSimonian-Laird ---
+k = len(studies)
+Q = np.sum(w_fe * (studies['log_rr'] - pooled_fe)**2)
+C = np.sum(w_fe) - np.sum(w_fe**2) / np.sum(w_fe)
+tau2 = max(0, (Q - (k - 1)) / C)
+
+w_re = 1 / (studies['var_log_rr'] + tau2)
+pooled_re = np.sum(w_re * studies['log_rr']) / np.sum(w_re)
+se_re = np.sqrt(1 / np.sum(w_re))
+ci_re = (pooled_re - 1.96*se_re, pooled_re + 1.96*se_re)
+
+I2 = max(0, (Q - (k-1)) / Q) * 100
+
+print(f"\nRandom-effects pooled log RR: {pooled_re:.4f}")
+print(f"Random-effects pooled RR: {np.exp(pooled_re):.4f} "
+      f"(95% CI: {np.exp(ci_re[0]):.4f} - {np.exp(ci_re[1]):.4f})")
+print(f"tau^2: {tau2:.4f}, I^2: {I2:.1f}%")
+print(f"Q statistic: {Q:.2f}, p = {1 - stats.chi2.cdf(Q, k-1):.4f}")
+```
+
+### Forest plot in Python
+
+```{python}
+#| label: python-forest
+#| eval: false
+
+def forest_plot(studies, pooled_est, pooled_ci, weights, title="Forest Plot"):
+    """Create a basic forest plot."""
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    k = len(studies)
+    y_pos = list(range(k, 0, -1))
+
+    # Individual studies
+    for i, (_, row) in enumerate(studies.iterrows()):
+        ci_lo = row['log_rr'] - 1.96 * row['se_log_rr']
+        ci_hi = row['log_rr'] + 1.96 * row['se_log_rr']
+        ax.plot([np.exp(ci_lo), np.exp(ci_hi)], [y_pos[i], y_pos[i]],
+                'k-', linewidth=1)
+        size = weights[i] / weights.max() * 200
+        ax.scatter(np.exp(row['log_rr']), y_pos[i],
+                   s=size, c='steelblue', zorder=5, edgecolors='darkblue')
+
+    # Pooled estimate (diamond)
+    ax.axvline(x=np.exp(pooled_est), color='steelblue',
+               linestyle='--', alpha=0.5)
+    ax.axvline(x=1, color='black', linestyle='-', linewidth=0.5)
+
+    # Pooled diamond
+    diamond_y = 0
+    diamond_x = [np.exp(pooled_ci[0]), np.exp(pooled_est),
+                 np.exp(pooled_ci[1]), np.exp(pooled_est)]
+    diamond_yy = [diamond_y, diamond_y + 0.3, diamond_y, diamond_y - 0.3]
+    ax.fill(diamond_x, diamond_yy, color='steelblue', alpha=0.7)
+
+    # Labels
+    ax.set_yticks(y_pos + [0])
+    ax.set_yticklabels(list(studies['study']) + ['Pooled'])
+    ax.set_xlabel('Risk Ratio')
+    ax.set_title(title)
+    ax.set_xscale('log')
+    plt.tight_layout()
+    plt.show()
+
+forest_plot(studies, pooled_re, ci_re, w_re,
+            title="Statins for CV Prevention: Random-Effects Meta-Analysis")
+```
+
+### Using PythonMeta or PyMeta
+
+```{python}
+#| label: python-meta-pkg
+#| eval: false
+
+# For more complete meta-analysis in Python, consider the 'meta-analysis' package
+# Install: pip install meta-analysis
+
+# Alternatively, statsmodels has some capabilities
+import statsmodels.api as sm
+
+# Egger's test equivalent: weighted regression of effect on SE
+X = sm.add_constant(studies['se_log_rr'])
+model = sm.WLS(studies['log_rr'], X, weights=w_fe).fit()
+print("Egger's test (intercept):")
+print(f"  Intercept: {model.params[0]:.4f}, p = {model.pvalues[0]:.4f}")
+```
+
+## Reporting a Meta-Analysis: PRISMA 2020
+
+The **PRISMA 2020** statement (Page et al., 2021) provides an updated checklist for reporting systematic reviews and meta-analyses. Key statistical reporting requirements:
+
+1. **Describe the effect measure** and its rationale
+2. **Specify the synthesis model** (fixed/random) and estimation method
+3. **Present heterogeneity statistics** ($\tau^2$, $I^2$, prediction interval)
+4. **Report assessments of bias** (risk of bias, publication bias)
+5. **Include a forest plot** for the primary outcome
+6. **Describe sensitivity analyses** and their results
+7. **Register the protocol** (PROSPERO) and follow it
+
+## Exercises
+
+### Exercise 1: Basic meta-analysis in R
+
+The following data come from randomised trials of a hypothetical new anticoagulant vs warfarin for stroke prevention in atrial fibrillation.
+
+```{r}
+#| label: exercise-1-data
+#| eval: false
+
+af_trials <- data.frame(
+  study = c("TRAIL-1", "GUARD-AF", "SHIELD", "ORBIT-AF",
+            "VENTURE", "COMPASS-AF", "PIONEER-2", "ATLAS-AF"),
+  events_new = c(28, 45, 112, 67, 33, 89, 52, 41),
+  n_new      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100),
+  events_warf = c(42, 58, 148, 84, 29, 102, 61, 53),
+  n_warf      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100)
+)
+```
+
+a) Compute the risk ratio and 95% CI for each trial by hand (or using `escalc`).
+b) Perform a random-effects meta-analysis using the `meta` or `metafor` package.
+c) Create a forest plot. Does the pooled effect favour the new anticoagulant?
+d) Calculate and interpret $I^2$ and the prediction interval.
+e) Create a funnel plot and perform Egger's test. Is there evidence of publication bias?
+f) Perform a leave-one-out sensitivity analysis. Is the result robust?
+
+### Exercise 2: Meta-analysis from scratch in Python
+
+Using the same trial data as Exercise 1:
+
+```{python}
+#| label: exercise-2-data
+#| eval: false
+
+import pandas as pd
+import numpy as np
+
+af_trials = pd.DataFrame({
+    'study': ['TRAIL-1', 'GUARD-AF', 'SHIELD', 'ORBIT-AF',
+              'VENTURE', 'COMPASS-AF', 'PIONEER-2', 'ATLAS-AF'],
+    'events_new':  [28, 45, 112, 67, 33, 89, 52, 41],
+    'n_new':       [1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100],
+    'events_warf': [42, 58, 148, 84, 29, 102, 61, 53],
+    'n_warf':      [1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100]
+})
+```
+
+a) Compute log risk ratios and their variances for each study.
+b) Implement the fixed-effect inverse-variance method.
+c) Implement the DerSimonian-Laird random-effects method.
+d) Compute $Q$, $I^2$, and $\tau^2$.
+e) Create a forest plot using matplotlib.
+f) Create a funnel plot and implement Egger's regression test.
+
+### Exercise 3: Subgroup analysis and meta-regression in R
+
+Suppose the trials in Exercise 1 were conducted in different settings:
+
+```{r}
+#| label: exercise-3-data
+#| eval: false
+
+af_trials$region <- c("Europe", "North America", "Europe", "Asia",
+                       "North America", "Europe", "Asia", "North America")
+af_trials$mean_age <- c(72, 68, 74, 65, 70, 71, 63, 69)
+af_trials$pct_female <- c(38, 42, 35, 48, 40, 37, 52, 44)
+```
+
+a) Perform a subgroup analysis by region. Do treatment effects differ by region?
+b) Perform meta-regression with mean age as a moderator. Is there a relationship between mean age and treatment effect?
+c) Perform meta-regression with percentage female. Interpret the result, noting the ecological fallacy.
+d) Create a bubble plot showing the meta-regression of effect size on mean age.
+
+### Exercise 4: Critical appraisal (Conceptual)
+
+You are reviewing a published meta-analysis of 12 trials comparing a new surgical technique to standard care for knee osteoarthritis. The reported results are:
+
+- Pooled standardised mean difference for pain: -0.62 (95% CI: -0.89 to -0.35), p < 0.001
+- $I^2 = 78\%$, $\tau^2 = 0.15$, Q test p < 0.001
+- Prediction interval: -1.42 to 0.18
+- Egger's test: p = 0.03
+- 8 of 12 trials were single-centre with fewer than 100 participants
+
+a) Interpret the pooled effect and its clinical significance.
+b) What does the prediction interval tell you that the confidence interval does not?
+c) What are the implications of $I^2 = 78\%$?
+d) Given the Egger's test and the predominance of small trials, what concerns do you have?
+e) What additional analyses would you want to see?
+f) Would you change clinical practice based on this meta-analysis? Why or why not?
+
+## Summary
+
+| Concept | Key point |
+|---|---|
+| Fixed-effect model | Assumes one true effect; weights = $1/\sigma_i^2$ |
+| Random-effects model | Allows varying true effects; weights = $1/(\sigma_i^2 + \tau^2)$ |
+| $I^2$ | Proportion of variability due to heterogeneity (25/50/75% thresholds) |
+| Prediction interval | Range for the true effect in a future setting --- often wider than CI |
+| Forest plot | The primary visualisation; always include one |
+| Funnel plot | Checks for small-study effects / publication bias |
+| Network meta-analysis | Combines direct and indirect evidence across multiple treatments |
+| IPD meta-analysis | Uses individual data; avoids ecological fallacy |
+| PRISMA 2020 | The reporting guideline for systematic reviews |
+
+## References and Further Reading
+
+1. **Higgins JPT, Thomas J, Chandler J, et al.** (eds). *Cochrane Handbook for Systematic Reviews of Interventions.* Version 6.4, 2024. Available at [https://training.cochrane.org/handbook](https://training.cochrane.org/handbook). The authoritative guide to systematic review methodology.
+
+2. **Riley RD, Debray TPA, Collins GS, et al.** Individual participant data meta-analysis to examine interactions between treatment effect and participant-level covariates. *Statistical Methods in Medical Research.* 2020;29(12):3531--3556.
+
+3. **Riley RD, Moons KGM, Snell KIE, et al.** A guide to systematic review and meta-analysis of prognostic factor studies. *BMJ.* 2019;364:k4597.
+
+4. **Page MJ, McKenzie JE, Bossuyt PM, et al.** The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. *BMJ.* 2021;372:n71.
+
+5. **Viechtbauer W.** Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software.* 2010;36(3):1--48.
+
+6. **Schwarzer G, Carpenter JR, Rucker G.** *Meta-Analysis with R.* Springer, 2015. Comprehensive practical guide using the `meta` and `metafor` packages.
+
+7. **DerSimonian R, Laird N.** Meta-analysis in clinical trials. *Controlled Clinical Trials.* 1986;7(3):177--188.
+
+8. **Higgins JPT, Thompson SG, Deeks JJ, Altman DG.** Measuring inconsistency in meta-analyses. *BMJ.* 2003;327(7414):557--560.
+
+9. **Egger M, Davey Smith G, Schneider M, Minder C.** Bias in meta-analysis detected by a simple, graphical test. *BMJ.* 1997;315(7109):629--634.
+
+10. **Salanti G.** Indirect and mixed-treatment comparison, network, or multiple-treatments meta-analysis: many names, many benefits, many concerns for the next generation evidence synthesis tool. *Research Synthesis Methods.* 2012;3(2):80--97.
+
+11. **IntHout J, Ioannidis JPA, Rovers MM, Goeman JJ.** Plea for routinely presenting prediction intervals in meta-analysis. *BMJ Open.* 2016;6(7):e010247.

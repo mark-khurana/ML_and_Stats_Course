@@ -1,0 +1,866 @@
+# Clustering: Discovering Patient Subgroups {#sec-clustering}
+
+```{r}
+#| include: false
+library(tidyverse)
+library(knitr)
+```
+
+## Introduction
+
+Every classification method we have studied so far is **supervised**: you train a model on labelled data and use it to predict labels for new observations. Clustering is fundamentally different. It is **unsupervised** --- there are no labels. The goal is to discover natural groupings in the data that you did not know existed.
+
+In clinical research, clustering is used to identify **patient phenotypes** --- subgroups of patients who share similar clinical profiles but may not correspond to any established diagnostic category. These phenotypes can reveal heterogeneity within a disease, suggest new treatment targets, or identify patients who respond differently to therapy. Sepsis, ARDS, heart failure, and asthma have all been re-examined through clustering analyses that revealed clinically meaningful subtypes hidden within traditional diagnostic labels.
+
+This chapter covers three major clustering algorithms (K-means, hierarchical clustering, and DBSCAN), methods for choosing the number of clusters and validating results, and the integration of clustering with the dimensionality reduction methods from the previous chapter.
+
+::: {.callout-important}
+## Clusters can be artefacts
+Clustering algorithms will always produce clusters, even in completely random data. The existence of clusters in your output does not mean they are real. Validation --- both statistical and clinical --- is essential.
+:::
+
+## K-Means Clustering
+
+### The Algorithm
+
+K-means is the simplest and most widely used clustering algorithm. Given $k$ (the number of clusters), it works as follows:
+
+1. **Initialise**: randomly place $k$ cluster centroids in the feature space.
+2. **Assign**: assign each data point to the nearest centroid (using Euclidean distance).
+3. **Update**: recompute each centroid as the mean of all points assigned to it.
+4. **Repeat** steps 2--3 until assignments stop changing (convergence).
+
+K-means minimises the **within-cluster sum of squares (WCSS)**: the total squared distance from each point to its assigned centroid.
+
+$$
+\text{WCSS} = \sum_{k=1}^{K} \sum_{i \in C_k} \| x_i - \mu_k \|^2
+$$
+
+### Choosing K: Elbow Method, Silhouette Scores, Gap Statistic
+
+The most important decision in K-means is the number of clusters $k$. There is no single correct answer, but several heuristics help.
+
+**Elbow method.** Plot WCSS against $k$. As $k$ increases, WCSS always decreases (more clusters = points closer to centroids). Look for an "elbow" where the rate of decrease sharply changes. The elbow suggests that adding more clusters yields diminishing returns.
+
+**Silhouette scores.** For each point, the silhouette score measures how much closer it is to its own cluster than to the nearest other cluster. Values range from --1 (misclassified) to +1 (well clustered). The average silhouette score across all points summarises clustering quality. Higher is better; choose $k$ that maximises the average silhouette score.
+
+**Gap statistic.** Compares the WCSS of your data to the WCSS of data drawn from a reference null distribution (uniform). The gap is largest at the $k$ where your data's structure most exceeds what would be expected by chance.
+
+### Limitations of K-Means
+
+- **Assumes spherical, equally sized clusters.** K-means uses Euclidean distance, so it finds globular clusters. Elongated, ring-shaped, or irregularly shaped clusters will be poorly recovered.
+- **Sensitive to initialisation.** Different random starting points can give different results. Modern implementations (K-means++) use smart initialisation to mitigate this, and running the algorithm multiple times with different seeds is standard practice.
+- **Sensitive to outliers.** A single extreme point can pull a centroid substantially.
+- **Requires scaled data.** Features on different scales will dominate the distance calculations. Always standardise before running K-means.
+
+### Clinical Example: Patient Phenotyping from Lab Data
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-kmeans-r
+#| fig-cap: "K-means clustering of simulated patient lab data: choosing k and visualising clusters."
+#| fig-width: 14
+#| fig-height: 5
+
+library(cluster)
+
+set.seed(42)
+n <- 400
+
+# Simulate 3 patient phenotypes with distinct lab profiles
+pheno1 <- tibble(  # Metabolic syndrome phenotype
+  glucose = rnorm(n * 0.35, 140, 20),
+  crp     = rnorm(n * 0.35, 5, 2),
+  albumin = rnorm(n * 0.35, 3.5, 0.3),
+  wbc     = rnorm(n * 0.35, 8, 2)
+)
+pheno2 <- tibble(  # Inflammatory phenotype
+  glucose = rnorm(n * 0.35, 100, 15),
+  crp     = rnorm(n * 0.35, 15, 4),
+  albumin = rnorm(n * 0.35, 3.0, 0.4),
+  wbc     = rnorm(n * 0.35, 14, 3)
+)
+pheno3 <- tibble(  # Healthy-ish phenotype
+  glucose = rnorm(n * 0.30, 90, 10),
+  crp     = rnorm(n * 0.30, 2, 1),
+  albumin = rnorm(n * 0.30, 4.2, 0.2),
+  wbc     = rnorm(n * 0.30, 7, 1.5)
+)
+
+lab_data <- bind_rows(pheno1, pheno2, pheno3)
+lab_scaled <- scale(lab_data)
+
+# Elbow and silhouette plots
+wcss <- numeric(10)
+sil_avg <- numeric(10)
+for (k in 2:10) {
+  km <- kmeans(lab_scaled, centers = k, nstart = 25)
+  wcss[k] <- km$tot.withinss
+  sil_avg[k] <- mean(silhouette(km$cluster, dist(lab_scaled))[, 3])
+}
+
+par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
+
+# Elbow plot
+plot(2:10, wcss[2:10], type = "b", pch = 16, col = "steelblue",
+     xlab = "Number of clusters (k)", ylab = "Within-cluster SS",
+     main = "Elbow Method")
+
+# Silhouette plot
+plot(2:10, sil_avg[2:10], type = "b", pch = 16, col = "firebrick",
+     xlab = "Number of clusters (k)", ylab = "Average silhouette",
+     main = "Silhouette Scores")
+
+# K-means with k=3, visualise on first 2 PCs
+km3 <- kmeans(lab_scaled, centers = 3, nstart = 25)
+pca2 <- prcomp(lab_scaled)$x[, 1:2]
+plot(pca2, col = c("steelblue", "firebrick", "forestgreen")[km3$cluster],
+     pch = 16, cex = 0.7,
+     main = "K-means (k=3) on PCA", xlab = "PC1", ylab = "PC2")
+```
+
+### Python
+
+```{python}
+#| label: fig-kmeans-py
+#| fig-cap: "K-means clustering: elbow method, silhouette scores, and cluster visualisation."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from sklearn.decomposition import PCA
+
+np.random.seed(42)
+
+# Simulate phenotypes
+g1 = np.column_stack([np.random.normal(140, 20, 140),
+                       np.random.normal(5, 2, 140),
+                       np.random.normal(3.5, 0.3, 140),
+                       np.random.normal(8, 2, 140)])
+g2 = np.column_stack([np.random.normal(100, 15, 140),
+                       np.random.normal(15, 4, 140),
+                       np.random.normal(3.0, 0.4, 140),
+                       np.random.normal(14, 3, 140)])
+g3 = np.column_stack([np.random.normal(90, 10, 120),
+                       np.random.normal(2, 1, 120),
+                       np.random.normal(4.2, 0.2, 120),
+                       np.random.normal(7, 1.5, 120)])
+
+X = np.vstack([g1, g2, g3])
+X_scaled = StandardScaler().fit_transform(X)
+
+ks = range(2, 11)
+wcss = []
+sils = []
+for k in ks:
+    km = KMeans(n_clusters=k, n_init=25, random_state=42)
+    km.fit(X_scaled)
+    wcss.append(km.inertia_)
+    sils.append(silhouette_score(X_scaled, km.labels_))
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+axes[0].plot(list(ks), wcss, "o-", color="steelblue")
+axes[0].set_xlabel("Number of clusters (k)")
+axes[0].set_ylabel("Within-cluster SS")
+axes[0].set_title("Elbow Method")
+
+axes[1].plot(list(ks), sils, "o-", color="firebrick")
+axes[1].set_xlabel("Number of clusters (k)")
+axes[1].set_ylabel("Average silhouette")
+axes[1].set_title("Silhouette Scores")
+
+km3 = KMeans(n_clusters=3, n_init=25, random_state=42).fit(X_scaled)
+pca2 = PCA(n_components=2).fit_transform(X_scaled)
+colors = ["steelblue", "firebrick", "forestgreen"]
+for c in range(3):
+    mask = km3.labels_ == c
+    axes[2].scatter(pca2[mask, 0], pca2[mask, 1], c=colors[c],
+                    s=12, alpha=0.6, label=f"Cluster {c+1}")
+axes[2].set_xlabel("PC1")
+axes[2].set_ylabel("PC2")
+axes[2].set_title("K-means (k=3) on PCA")
+axes[2].legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+Both the elbow and silhouette plots suggest $k = 3$ --- consistent with our simulation of three phenotypes. In practice, the signal is rarely this clean, and multiple values of $k$ may appear reasonable. Domain knowledge should guide the final choice.
+
+## Hierarchical Clustering
+
+### Agglomerative (Bottom-Up) Clustering
+
+Hierarchical clustering does not require specifying $k$ in advance. The **agglomerative** approach starts with each observation as its own cluster and iteratively merges the closest pair of clusters until all observations belong to a single cluster.
+
+The result is a **dendrogram** --- a tree-like diagram that shows the merging history. You choose the number of clusters by "cutting" the dendrogram at a height that produces a meaningful number of groups.
+
+### Linkage Methods
+
+The key decision is how to define the distance between two clusters (each containing multiple points):
+
+**Single linkage.** Distance = minimum distance between any two points in the two clusters. Tends to produce long, chain-like clusters. Sensitive to outliers and noise.
+
+**Complete linkage.** Distance = maximum distance between any two points. Produces compact, roughly equal-sized clusters but can be distorted by outliers.
+
+**Average linkage.** Distance = average of all pairwise distances. A compromise between single and complete.
+
+**Ward's method.** Merges the pair of clusters that causes the smallest increase in total WCSS. Tends to produce compact, spherical clusters of similar size. **This is usually the best default choice.**
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-dendrogram-r
+#| fig-cap: "Dendrogram from hierarchical clustering (Ward's method) with 3 clusters highlighted."
+#| fig-width: 10
+#| fig-height: 6
+
+# Use a smaller subset for readable dendrogram
+set.seed(42)
+idx <- sample(nrow(lab_scaled), 80)
+hc <- hclust(dist(lab_scaled[idx, ]), method = "ward.D2")
+
+# Plot dendrogram
+plot(hc, labels = FALSE, main = "Hierarchical Clustering (Ward's Method)",
+     xlab = "", sub = "", hang = -1, cex = 0.6)
+rect.hclust(hc, k = 3, border = c("steelblue", "firebrick", "forestgreen"))
+```
+
+```{r}
+#| label: fig-linkage-comparison-r
+#| fig-cap: "Comparison of linkage methods on the same dataset."
+#| fig-width: 14
+#| fig-height: 4
+
+par(mfrow = c(1, 4), mar = c(2, 2, 3, 1))
+methods <- c("single", "complete", "average", "ward.D2")
+titles  <- c("Single", "Complete", "Average", "Ward's")
+
+for (i in seq_along(methods)) {
+  hc_i <- hclust(dist(lab_scaled[idx, ]), method = methods[i])
+  plot(hc_i, labels = FALSE, main = titles[i], xlab = "", sub = "",
+       hang = -1, cex = 0.5)
+  rect.hclust(hc_i, k = 3, border = "firebrick")
+}
+```
+
+### Python
+
+```{python}
+#| label: fig-dendrogram-py
+#| fig-cap: "Dendrogram from hierarchical clustering (Ward's method)."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
+
+np.random.seed(42)
+idx = np.random.choice(len(X_scaled), 80, replace=False)
+X_sub = X_scaled[idx]
+
+Z = linkage(X_sub, method='ward')
+
+fig, ax = plt.subplots(figsize=(12, 5))
+dendrogram(Z, ax=ax, no_labels=True, color_threshold=Z[-3, 2])
+ax.set_title("Hierarchical Clustering (Ward's Method)")
+ax.set_xlabel("Patients")
+ax.set_ylabel("Distance")
+ax.axhline(y=Z[-3, 2], color='firebrick', linestyle='--', linewidth=1)
+ax.text(5, Z[-3, 2] + 0.5, "Cut for k=3", color="firebrick", fontsize=10)
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: fig-linkage-comparison-py
+#| fig-cap: "Comparison of linkage methods."
+
+fig, axes = plt.subplots(1, 4, figsize=(18, 4))
+methods = ['single', 'complete', 'average', 'ward']
+titles = ['Single', 'Complete', 'Average', "Ward's"]
+
+for ax, method, title in zip(axes, methods, titles):
+    Z_i = linkage(X_sub, method=method)
+    dendrogram(Z_i, ax=ax, no_labels=True, color_threshold=0)
+    ax.set_title(title)
+    ax.set_xlabel("")
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### Reading a Dendrogram
+
+The dendrogram encodes the full merging history:
+
+- The **height** of each horizontal line represents the distance at which two clusters were merged.
+- **Long vertical lines** before a merge indicate well-separated clusters.
+- **Short vertical lines** indicate merges of similar clusters --- less clear separation.
+
+Cutting the dendrogram at different heights gives different numbers of clusters. A large "gap" between merging heights (a long vertical line) suggests a natural number of clusters.
+
+## DBSCAN: Density-Based Clustering
+
+### When K-Means Fails
+
+K-means assumes clusters are spherical and roughly equal in size. In clinical data, clusters may be irregularly shaped, overlap, or contain noise (outlier patients who do not belong to any group). **DBSCAN** (Density-Based Spatial Clustering of Applications with Noise) addresses these limitations.
+
+### How It Works
+
+DBSCAN defines clusters as dense regions separated by sparse regions. Two parameters control its behaviour:
+
+- **eps ($\varepsilon$)**: the radius of the neighbourhood around each point.
+- **min_samples**: the minimum number of points required within radius $\varepsilon$ to form a dense region.
+
+The algorithm classifies each point as:
+
+1. **Core point**: has at least `min_samples` neighbours within radius $\varepsilon$.
+2. **Border point**: within $\varepsilon$ of a core point but does not have enough neighbours to be core itself.
+3. **Noise point**: neither core nor border. These are **outliers** --- DBSCAN explicitly identifies them.
+
+Clusters are formed by connecting core points that are within $\varepsilon$ of each other.
+
+### Advantages and Limitations
+
+**Advantages:**
+
+- Does not require specifying $k$ in advance.
+- Can find arbitrarily shaped clusters.
+- Identifies outliers explicitly.
+
+**Limitations:**
+
+- Sensitive to the choice of $\varepsilon$ and `min_samples`.
+- Struggles when clusters have very different densities.
+- Not ideal for very high-dimensional data (use after dimensionality reduction).
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-dbscan-r
+#| fig-cap: "DBSCAN identifies irregularly shaped clusters and noise points."
+#| fig-width: 10
+#| fig-height: 5
+
+library(dbscan)
+
+set.seed(42)
+
+# Create data with two crescent-shaped clusters + noise
+n_each <- 150
+theta1 <- seq(0, pi, length.out = n_each)
+theta2 <- seq(0, pi, length.out = n_each)
+
+x1 <- cos(theta1) + rnorm(n_each, 0, 0.08)
+y1 <- sin(theta1) + rnorm(n_each, 0, 0.08)
+x2 <- 1 - cos(theta2) + rnorm(n_each, 0, 0.08)
+y2 <- 1 - sin(theta2) - 0.5 + rnorm(n_each, 0, 0.08)
+
+# Add noise
+x_noise <- runif(30, -0.5, 2)
+y_noise <- runif(30, -1, 1.5)
+
+crescent_data <- rbind(
+  cbind(x1, y1),
+  cbind(x2, y2),
+  cbind(x_noise, y_noise)
+)
+
+# Compare K-means and DBSCAN
+km_crescents <- kmeans(crescent_data, centers = 2, nstart = 25)
+db_crescents <- dbscan(crescent_data, eps = 0.15, minPts = 5)
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+cols_km <- c("steelblue", "firebrick")[km_crescents$cluster]
+plot(crescent_data, col = cols_km, pch = 16, cex = 0.7,
+     main = "K-means (k=2)", xlab = "x", ylab = "y")
+
+# DBSCAN: cluster 0 = noise (grey), others = colours
+db_cols <- c("grey50", "steelblue", "firebrick", "forestgreen")
+plot(crescent_data,
+     col = db_cols[db_crescents$cluster + 1],
+     pch = ifelse(db_crescents$cluster == 0, 4, 16),
+     cex = 0.7,
+     main = "DBSCAN (eps=0.15)", xlab = "x", ylab = "y")
+legend("topright", c("Noise", "Cluster 1", "Cluster 2"),
+       col = db_cols[1:3], pch = c(4, 16, 16), cex = 0.8)
+```
+
+### Python
+
+```{python}
+#| label: fig-dbscan-py
+#| fig-cap: "DBSCAN correctly identifies crescent-shaped clusters that K-means cannot handle."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans, DBSCAN
+
+np.random.seed(42)
+n_each = 150
+
+theta1 = np.linspace(0, np.pi, n_each)
+theta2 = np.linspace(0, np.pi, n_each)
+
+x1 = np.cos(theta1) + np.random.normal(0, 0.08, n_each)
+y1 = np.sin(theta1) + np.random.normal(0, 0.08, n_each)
+x2 = 1 - np.cos(theta2) + np.random.normal(0, 0.08, n_each)
+y2 = 1 - np.sin(theta2) - 0.5 + np.random.normal(0, 0.08, n_each)
+
+x_noise = np.random.uniform(-0.5, 2, 30)
+y_noise = np.random.uniform(-1, 1.5, 30)
+
+X_crescent = np.vstack([
+    np.column_stack([x1, y1]),
+    np.column_stack([x2, y2]),
+    np.column_stack([x_noise, y_noise])
+])
+
+km = KMeans(n_clusters=2, n_init=25, random_state=42).fit(X_crescent)
+db = DBSCAN(eps=0.15, min_samples=5).fit(X_crescent)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+colors_km = ["steelblue" if c == 0 else "firebrick" for c in km.labels_]
+axes[0].scatter(X_crescent[:, 0], X_crescent[:, 1], c=colors_km, s=10)
+axes[0].set_title("K-means (k=2)")
+
+color_map = {-1: "grey", 0: "steelblue", 1: "firebrick"}
+colors_db = [color_map.get(c, "forestgreen") for c in db.labels_]
+markers = ["x" if c == -1 else "o" for c in db.labels_]
+for c_val in set(db.labels_):
+    mask = db.labels_ == c_val
+    m = "x" if c_val == -1 else "o"
+    label = "Noise" if c_val == -1 else f"Cluster {c_val+1}"
+    axes[1].scatter(X_crescent[mask, 0], X_crescent[mask, 1],
+                    c=color_map.get(c_val, "forestgreen"),
+                    marker=m, s=15, label=label)
+axes[1].set_title("DBSCAN (eps=0.15)")
+axes[1].legend(fontsize=9)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+The figure shows a classic example: K-means splits the crescent-shaped clusters incorrectly, while DBSCAN identifies them perfectly and correctly labels the noise points.
+
+## Cluster Validation
+
+### Internal Metrics
+
+Internal metrics evaluate clustering quality using only the data itself (no external labels).
+
+**Silhouette score.** For each point $i$, define $a(i)$ as the mean distance to other points in the same cluster and $b(i)$ as the mean distance to points in the nearest other cluster. The silhouette score is:
+
+$$
+s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
+$$
+
+Values range from --1 to +1. A high average silhouette score indicates well-separated, compact clusters.
+
+**Calinski-Harabasz index.** The ratio of between-cluster variance to within-cluster variance (higher is better). It favours compact, well-separated clusters.
+
+### Stability-Based Validation
+
+Internal metrics can be misleading --- they can be high even for meaningless clusters. **Bootstrap stability** provides a stronger test:
+
+1. Resample the data with replacement many times.
+2. Re-run the clustering on each bootstrap sample.
+3. Measure how often the same points end up in the same cluster.
+
+If clusters are stable across resamples, they likely reflect real structure. If membership changes dramatically, the clusters may be artefacts.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-silhouette-r
+#| fig-cap: "Silhouette plot for K-means with k=3 on the lab data."
+#| fig-width: 8
+#| fig-height: 5
+
+library(cluster)
+
+km3 <- kmeans(lab_scaled, centers = 3, nstart = 25)
+sil <- silhouette(km3$cluster, dist(lab_scaled))
+
+plot(sil, col = c("steelblue", "firebrick", "forestgreen"),
+     main = "Silhouette Plot (k = 3)",
+     border = NA)
+cat("Average silhouette width:", round(mean(sil[, 3]), 3), "\n")
+```
+
+### Python
+
+```{python}
+#| label: fig-silhouette-py
+#| fig-cap: "Silhouette scores by cluster for K-means with k=3."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import silhouette_score, silhouette_samples
+
+km3 = KMeans(n_clusters=3, n_init=25, random_state=42).fit(X_scaled)
+sil_vals = silhouette_samples(X_scaled, km3.labels_)
+avg_sil = silhouette_score(X_scaled, km3.labels_)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+y_lower = 0
+colors = ["steelblue", "firebrick", "forestgreen"]
+for c in range(3):
+    c_sil = np.sort(sil_vals[km3.labels_ == c])
+    y_upper = y_lower + len(c_sil)
+    ax.barh(range(y_lower, y_upper), c_sil, height=1.0,
+            color=colors[c], edgecolor="none")
+    y_lower = y_upper + 5
+
+ax.axvline(avg_sil, color="black", linestyle="--",
+           label=f"Average: {avg_sil:.3f}")
+ax.set_xlabel("Silhouette Coefficient")
+ax.set_ylabel("Patients (sorted within cluster)")
+ax.set_title("Silhouette Plot (k=3)")
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## Clinical Applications
+
+### Patient Phenotyping
+
+The most impactful use of clustering in clinical research is identifying disease subtypes that were previously unrecognised. Notable examples:
+
+- **ARDS phenotypes.** Calfee et al. (2014) applied latent class analysis to two ARDS clinical trial datasets and identified two phenotypes --- "hyperinflammatory" and "hypoinflammatory" --- with different mortality rates and different responses to treatment. The hyperinflammatory phenotype had higher IL-6, higher vasopressor use, and worse outcomes.
+
+- **Sepsis endotypes.** Seymour et al. (2019) used K-means clustering on EHR data from over 20,000 sepsis patients and identified four phenotypes (alpha, beta, gamma, delta) with distinct organ dysfunction patterns and 28-day mortality rates ranging from 5% to 40%.
+
+- **Heart failure subtypes.** Shah et al. (2015) applied hierarchical clustering to echocardiographic and clinical data from HFpEF patients and identified three phenotypes with different pathophysiology and prognosis.
+
+### Disease Subtyping from Lab Panels
+
+A practical workflow for phenotyping:
+
+1. Select clinically relevant variables (labs, vitals, demographics).
+2. Handle missing data (imputation or exclusion).
+3. Standardise all variables.
+4. Reduce dimensionality (PCA to 10--20 components if many variables).
+5. Apply multiple clustering algorithms (K-means, hierarchical) and compare.
+6. Validate: silhouette scores, stability analysis, and --- most importantly --- clinical interpretation.
+7. Compare clusters on outcomes (mortality, length of stay, treatment response).
+
+## Integrating Clustering with PCA/UMAP
+
+The standard workflow for high-dimensional clinical data combines dimensionality reduction and clustering:
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-cluster-umap-r
+#| fig-cap: "The complete workflow: scale, PCA, cluster, visualise with UMAP."
+#| fig-width: 10
+#| fig-height: 5
+
+library(uwot)
+library(cluster)
+
+set.seed(42)
+
+# High-dimensional data: 500 patients, 50 features, 4 subtypes
+n <- 500; p <- 50
+true_subtype <- sample(1:4, n, replace = TRUE, prob = c(0.3, 0.3, 0.25, 0.15))
+X_hd <- matrix(rnorm(n * p), ncol = p)
+
+# Add subtype-specific signals
+for (s in 1:4) {
+  feature_start <- (s - 1) * 8 + 1
+  feature_end   <- min(s * 8, p)
+  X_hd[true_subtype == s, feature_start:feature_end] <-
+    X_hd[true_subtype == s, feature_start:feature_end] + 2.5
+}
+
+# Step 1: Scale
+X_s <- scale(X_hd)
+
+# Step 2: PCA to 15 components
+pca_15 <- prcomp(X_s)$x[, 1:15]
+
+# Step 3: K-means on PCA scores
+km4 <- kmeans(pca_15, centers = 4, nstart = 50)
+
+# Step 4: UMAP for visualisation
+umap_2d <- umap(pca_15, n_neighbors = 15, min_dist = 0.1, verbose = FALSE)
+
+plot_df <- tibble(
+  UMAP1 = umap_2d[, 1],
+  UMAP2 = umap_2d[, 2],
+  Cluster = factor(km4$cluster),
+  True_subtype = factor(true_subtype)
+)
+
+p1 <- ggplot(plot_df, aes(x = UMAP1, y = UMAP2, colour = Cluster)) +
+  geom_point(alpha = 0.6, size = 1.2) +
+  scale_colour_manual(values = c("steelblue", "firebrick",
+                                  "forestgreen", "goldenrod")) +
+  labs(title = "K-means Clusters on UMAP") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+
+p2 <- ggplot(plot_df, aes(x = UMAP1, y = UMAP2, colour = True_subtype)) +
+  geom_point(alpha = 0.6, size = 1.2) +
+  scale_colour_manual(values = c("steelblue", "firebrick",
+                                  "forestgreen", "goldenrod")) +
+  labs(title = "True Subtypes on UMAP", colour = "Subtype") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+
+library(patchwork)
+p1 + p2
+```
+
+### Python
+
+```{python}
+#| label: fig-cluster-umap-py
+#| fig-cap: "The complete workflow: scale, PCA, cluster, visualise with UMAP."
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from umap import UMAP
+
+np.random.seed(42)
+n, p = 500, 50
+true_sub = np.random.choice(4, n, p=[0.3, 0.3, 0.25, 0.15])
+X_hd = np.random.normal(0, 1, (n, p))
+
+for s in range(4):
+    start = s * 8
+    end = min((s + 1) * 8, p)
+    X_hd[true_sub == s, start:end] += 2.5
+
+X_s = StandardScaler().fit_transform(X_hd)
+pca_15 = PCA(n_components=15).fit_transform(X_s)
+km4 = KMeans(n_clusters=4, n_init=50, random_state=42).fit(pca_15)
+umap_2d = UMAP(n_neighbors=15, min_dist=0.1, random_state=42).fit_transform(pca_15)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+colors_4 = ["steelblue", "firebrick", "forestgreen", "goldenrod"]
+
+for c in range(4):
+    mask = km4.labels_ == c
+    axes[0].scatter(umap_2d[mask, 0], umap_2d[mask, 1],
+                    c=colors_4[c], s=10, alpha=0.6, label=f"Cluster {c+1}")
+axes[0].set_title("K-means Clusters on UMAP")
+axes[0].legend(fontsize=8)
+
+for s in range(4):
+    mask = true_sub == s
+    axes[1].scatter(umap_2d[mask, 0], umap_2d[mask, 1],
+                    c=colors_4[s], s=10, alpha=0.6, label=f"Subtype {s+1}")
+axes[1].set_title("True Subtypes on UMAP")
+axes[1].legend(fontsize=8)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+Comparing the two panels lets you assess how well the clustering algorithm recovered the true subtypes. In practice you do not know the true subtypes --- the comparison would instead be against clinical outcomes, treatment response, or other external validation.
+
+## Cautionary Notes
+
+::: {.callout-warning}
+## Clusters are hypotheses, not facts
+Finding three clusters in your ICU dataset does not mean there are three types of ICU patients. It means that your data, with your chosen features, using your chosen algorithm, with your chosen parameters, can be partitioned into three groups. Whether those groups are biologically meaningful requires external validation.
+:::
+
+**Always validate clinically.** Clusters should differ on outcomes, biomarkers, or treatment response --- not just on the features used to create them. Clustering on lab values and then showing that the clusters differ on lab values is circular reasoning.
+
+**Try multiple algorithms.** If K-means, hierarchical clustering, and DBSCAN all find the same groups, you have more confidence that the structure is real. If they disagree, the structure may be fragile.
+
+**Report negative results.** Many clustering analyses find no meaningful structure. This is a legitimate finding --- it means the disease population is more homogeneous than expected.
+
+**Beware of overfitting to noise.** With enough features, clustering will always find patterns. Use stability analysis and, if possible, validate clusters in an independent dataset.
+
+## Exercises
+
+### Exercise 1: K-Means on Simulated Patient Data
+
+Simulate a dataset of 600 patients with 6 clinical variables (heart rate, respiratory rate, temperature, systolic BP, creatinine, lactate) drawn from 3 underlying phenotypes.
+
+a. Scale the data and apply K-means for $k = 2, 3, 4, 5, 6$.
+b. Create elbow and silhouette plots. Which $k$ appears optimal?
+c. Visualise the $k = 3$ solution using PCA.
+d. Profile the clusters: compute the mean of each variable within each cluster. Do the profiles make clinical sense?
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: exercise-1-solution
+#| code-fold: true
+#| code-summary: "Show solution"
+#| fig-width: 10
+#| fig-height: 5
+
+set.seed(42)
+n <- 600
+
+# Phenotype 1: Septic shock (high HR, RR, lactate, low SBP)
+p1 <- tibble(hr = rnorm(200, 115, 12), rr = rnorm(200, 28, 5),
+             temp = rnorm(200, 38.5, 0.8), sbp = rnorm(200, 80, 12),
+             creat = rnorm(200, 2.5, 0.8), lactate = rnorm(200, 5, 2))
+# Phenotype 2: Stable critical (moderate vitals)
+p2 <- tibble(hr = rnorm(200, 90, 10), rr = rnorm(200, 20, 3),
+             temp = rnorm(200, 37.2, 0.5), sbp = rnorm(200, 110, 15),
+             creat = rnorm(200, 1.2, 0.3), lactate = rnorm(200, 1.5, 0.5))
+# Phenotype 3: Febrile, preserved hemodynamics
+p3 <- tibble(hr = rnorm(200, 100, 10), rr = rnorm(200, 22, 4),
+             temp = rnorm(200, 39.2, 0.7), sbp = rnorm(200, 120, 10),
+             creat = rnorm(200, 1.0, 0.2), lactate = rnorm(200, 2.0, 0.8))
+
+dat <- bind_rows(p1, p2, p3)
+dat_scaled <- scale(dat)
+
+# Elbow + silhouette
+library(cluster)
+wcss <- sil <- numeric(6)
+for (k in 2:6) {
+  km <- kmeans(dat_scaled, k, nstart = 25)
+  wcss[k] <- km$tot.withinss
+  sil[k] <- mean(silhouette(km$cluster, dist(dat_scaled))[, 3])
+}
+
+par(mfrow = c(1, 2))
+plot(2:6, wcss[2:6], type = "b", pch = 16, col = "steelblue",
+     xlab = "k", ylab = "WCSS", main = "Elbow Method")
+plot(2:6, sil[2:6], type = "b", pch = 16, col = "firebrick",
+     xlab = "k", ylab = "Avg Silhouette", main = "Silhouette")
+
+# Profile clusters
+km3 <- kmeans(dat_scaled, 3, nstart = 25)
+dat$cluster <- km3$cluster
+cat("\nCluster profiles (original scale):\n")
+dat %>%
+  group_by(cluster) %>%
+  summarise(across(hr:lactate, mean), .groups = "drop") %>%
+  print()
+```
+
+### Python
+
+```{python}
+#| label: exercise-1-solution-py
+#| code-fold: true
+#| code-summary: "Show solution"
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+np.random.seed(42)
+
+p1 = np.column_stack([np.random.normal(115,12,200), np.random.normal(28,5,200),
+                       np.random.normal(38.5,0.8,200), np.random.normal(80,12,200),
+                       np.random.normal(2.5,0.8,200), np.random.normal(5,2,200)])
+p2 = np.column_stack([np.random.normal(90,10,200), np.random.normal(20,3,200),
+                       np.random.normal(37.2,0.5,200), np.random.normal(110,15,200),
+                       np.random.normal(1.2,0.3,200), np.random.normal(1.5,0.5,200)])
+p3 = np.column_stack([np.random.normal(100,10,200), np.random.normal(22,4,200),
+                       np.random.normal(39.2,0.7,200), np.random.normal(120,10,200),
+                       np.random.normal(1.0,0.2,200), np.random.normal(2.0,0.8,200)])
+
+X = np.vstack([p1, p2, p3])
+cols = ['hr', 'rr', 'temp', 'sbp', 'creat', 'lactate']
+df = pd.DataFrame(X, columns=cols)
+X_s = StandardScaler().fit_transform(X)
+
+for k in range(2, 7):
+    km = KMeans(n_clusters=k, n_init=25, random_state=42).fit(X_s)
+    sil = silhouette_score(X_s, km.labels_)
+    print(f"k={k}: WCSS={km.inertia_:.0f}, Silhouette={sil:.3f}")
+
+km3 = KMeans(n_clusters=3, n_init=25, random_state=42).fit(X_s)
+df['cluster'] = km3.labels_
+print("\nCluster profiles:")
+print(df.groupby('cluster')[cols].mean().round(2))
+```
+
+:::
+
+### Exercise 2: Hierarchical Clustering with Different Linkage Methods
+
+Using the same dataset from Exercise 1:
+
+a. Apply hierarchical clustering with single, complete, average, and Ward's linkage.
+b. Cut each dendrogram at $k = 3$ and compare the resulting cluster assignments.
+c. Which linkage method produces clusters most similar to the K-means solution? Use the adjusted Rand index (ARI) to quantify agreement.
+d. Which linkage method would you recommend for clinical data and why?
+
+### Exercise 3: DBSCAN for Outlier Detection
+
+Add 30 "outlier" patients to the Exercise 1 dataset: patients with extreme values across multiple variables (e.g., HR = 180, lactate = 15, creatinine = 8).
+
+a. Run K-means with $k = 3$. Where do the outliers end up?
+b. Run DBSCAN with appropriate eps and min_samples. How many outliers does it identify?
+c. Compare the cluster assignments for non-outlier patients between K-means and DBSCAN.
+d. In a clinical phenotyping study, which approach would you prefer for handling outliers?
+
+### Exercise 4: Full Pipeline --- PCA + Clustering + UMAP Visualisation
+
+Simulate a dataset of 800 patients with 30 clinical variables and 4 underlying subtypes.
+
+a. Standardise the data and apply PCA. Use a scree plot to choose the number of components.
+b. Run K-means ($k = 2, 3, 4, 5$) on the PCA scores. Use silhouette scores to choose $k$.
+c. Visualise the chosen clustering on a UMAP embedding.
+d. Profile the clusters: compute mean values for each variable and present in a table.
+e. Discuss: how would you validate these clusters in a real clinical study?
+
+## Summary
+
+Clustering is a powerful tool for discovering patient subgroups, but it requires careful application and sceptical interpretation. K-means is simple and effective for spherical clusters but requires specifying $k$ and is sensitive to outliers. Hierarchical clustering provides a dendrogram that reveals the full structure of merging and does not require pre-specifying $k$. DBSCAN handles irregular cluster shapes and identifies outliers. No single method is best for all situations; using multiple methods and checking for consistency is good practice. Above all, clusters are statistical constructs --- they must be validated against clinical outcomes and replicated in independent datasets before they can inform patient care.
+
+::: {.callout-tip}
+## Key Takeaways
+1. Always scale your data before clustering.
+2. K-means is fast and effective but assumes spherical clusters and requires choosing $k$.
+3. Hierarchical clustering (Ward's method) is a solid default that does not require pre-specifying $k$.
+4. DBSCAN excels when clusters are irregularly shaped or when outlier detection matters.
+5. Validate clusters with internal metrics (silhouette), stability analysis, and --- most importantly --- clinical outcomes.
+6. Clustering will always find groups, even in random data. The burden of proof is on you to show the groups are meaningful.
+:::
+
+## References and Further Reading
+
+The most clinically impactful clustering study in recent critical care literature is Seymour et al.'s 2019 paper "Derivation, Validation, and Potential Treatment Implications of Novel Clinical Phenotypes for Sepsis" in *JAMA*, which identified four sepsis phenotypes using K-means clustering on electronic health record data. Calfee et al.'s 2014 paper "Subphenotypes in Acute Respiratory Distress Syndrome: Latent Class Analysis of Data From Two Randomised Controlled Trials" in *The Lancet Respiratory Medicine* applied a related method (latent class analysis) to identify ARDS subtypes with differential treatment response. Shah et al.'s 2015 paper in *Circulation* demonstrated the use of hierarchical clustering for heart failure with preserved ejection fraction phenotyping.
+
+For the statistical foundations, Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (2nd edition, 2009) provides comprehensive coverage of K-means, hierarchical clustering, and spectral methods. James, Witten, Hastie, and Tibshirani's *An Introduction to Statistical Learning* (2nd edition, 2021) offers a more accessible treatment suitable for students. The original DBSCAN paper by Ester et al. (1996) is surprisingly readable and remains the standard reference for the algorithm.
+
+For practical guidance, a 2024 review by Rodriguez et al. in *Critical Care Medicine* synthesises the rapidly growing literature on clustering-based phenotyping in critical illness, covering methodological best practices and the gap between statistical clusters and actionable clinical subtypes. Hennig et al.'s *Handbook of Cluster Analysis* (2016) is the most comprehensive reference, covering both methodology and applications. For validation, the clValid R package and its accompanying paper by Brock et al. (2008) in the *Journal of Statistical Software* provide tools for comparing clustering algorithms using internal, stability-based, and biological metrics.
