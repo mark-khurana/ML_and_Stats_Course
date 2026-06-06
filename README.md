@@ -6,7 +6,7 @@
 
 <p align="center">
   <em>A practical course for health researchers</em><br/><br/>
-  <a href="https://mark-khurana.github.io/ML_and_Stats_Course/"><strong>Read the book online</strong></a><br/><br/>
+  <a href="https://bxc331.github.io/ML_and_Stats_Course/"><strong>Read the book online</strong></a><br/><br/>
   <img src="https://img.shields.io/badge/licence-CC%20BY%204.0-blue" alt="CC BY 4.0"/>
   <img src="https://img.shields.io/badge/code-R%20%2B%20Python-green" alt="R + Python"/>
   <img src="https://img.shields.io/badge/Quarto-book-orange" alt="Quarto Book"/>
@@ -49,7 +49,7 @@ If you use this course in your teaching or research, please cite:
 @online{statML2026,
   title = {Advanced Statistics and Machine Learning for Health Research},
   year = {2026},
-  url = {https://mark-khurana.github.io/ML_and_Stats_Course/},
+  url = {https://bxc331.github.io/ML_and_Stats_Course/},
   note = {Online course, CC BY 4.0}
 }
 ```
