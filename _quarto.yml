@@ -5,6 +5,7 @@ project:
 book:
   title: "Advanced Statistics and Machine Learning for Health Research"
   subtitle: "A Practical Course for Health Researchers"
+  author: "Mark Khurana"
   date: last-modified
   date-format: "MMMM D, YYYY"
   repo-url: https://github.com/mark-khurana/ML_and_Stats_Course

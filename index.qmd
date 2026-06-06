@@ -6,7 +6,7 @@ title: "Advanced Statistics and Machine Learning for Health Research"
 
 This course teaches advanced statistics and machine learning to people who work in health research. It assumes you know the basics --- means, standard deviations, maybe a t-test --- and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.
 
-Everything uses **clinical data**. Every exercise works in **R and Python**. Pick one or try both.
+Everything uses **clinical data**. Every exercise works in **R and Python**. Pick one or try both. Solutions for all exercises are in the [Appendix](appendices/D_exercise_solutions.qmd).
 
 ## What you will learn
 
@@ -20,15 +20,15 @@ By the end of this course, you will be able to:
 
 ## Structure
 
-| Part | What it covers | Time |
-|------|---------------|------|
-| **Pre-Course** | Probability, inference, regression refresher | ~8 hrs self-study |
-| **I** | Splines, penalised regression, survival analysis | 1.5 days |
-| **II** | Bayesian inference and hierarchical models | 1 day |
-| **III** | PCA, UMAP, clustering | 0.5 days |
-| **IV** | ML foundations, trees, ensembles, deep learning, model evaluation | 2 days |
-| **V** | Clinical prediction models, validation, reporting | 1.5 days |
-| **Advanced Toolkit** | Causal inference, meta-analysis, journal-ready analysis | Reference material |
+| Part | What it covers |
+|------|---------------|
+| **Pre-Course** | Probability, inference, regression refresher |
+| **I** | Splines, penalised regression, survival analysis |
+| **II** | Bayesian inference and hierarchical models |
+| **III** | PCA, UMAP, clustering |
+| **IV** | ML foundations, trees, ensembles, deep learning, model evaluation |
+| **V** | Clinical prediction models, validation, reporting |
+| **Advanced Toolkit** | Causal inference, meta-analysis, journal-ready analysis |
 
 The **Pre-Course** material should be completed before Day 1 if you are taking this in person. If you are self-studying, work through everything in order.
 

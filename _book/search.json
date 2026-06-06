@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Advanced Statistics and Machine Learning for Health Research",
     "section": "",
-    "text": "Welcome\nThis course teaches advanced statistics and machine learning to people who work in health research. It assumes you know the basics — means, standard deviations, maybe a t-test — and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.\nEverything uses clinical data. Every exercise works in R and Python. Pick one or try both.",
+    "text": "Welcome\nThis course teaches advanced statistics and machine learning to people who work in health research. It assumes you know the basics — means, standard deviations, maybe a t-test — and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.\nEverything uses clinical data. Every exercise works in R and Python. Pick one or try both. Solutions for all exercises are in the Appendix.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Advanced Statistics and Machine Learning for Health Research</span>"
     ]
@@ -24,7 +24,7 @@
     "href": "index.html#structure",
     "title": "Advanced Statistics and Machine Learning for Health Research",
     "section": "0.2 Structure",
-    "text": "0.2 Structure\n\n\n\n\n\n\n\n\nPart\nWhat it covers\nTime\n\n\n\n\nPre-Course\nProbability, inference, regression refresher\n~8 hrs self-study\n\n\nI\nSplines, penalised regression, survival analysis\n1.5 days\n\n\nII\nBayesian inference and hierarchical models\n1 day\n\n\nIII\nPCA, UMAP, clustering\n0.5 days\n\n\nIV\nML foundations, trees, ensembles, deep learning, model evaluation\n2 days\n\n\nV\nClinical prediction models, validation, reporting\n1.5 days\n\n\nAdvanced Toolkit\nCausal inference, meta-analysis, journal-ready analysis\nReference material\n\n\n\nThe Pre-Course material should be completed before Day 1 if you are taking this in person. If you are self-studying, work through everything in order.\nThe Advanced Research Toolkit is for after the course — use it when you are doing your own research and need guidance on causal inference, meta-analysis, or producing a journal-ready manuscript.",
+    "text": "0.2 Structure\n\n\n\n\n\n\n\nPart\nWhat it covers\n\n\n\n\nPre-Course\nProbability, inference, regression refresher\n\n\nI\nSplines, penalised regression, survival analysis\n\n\nII\nBayesian inference and hierarchical models\n\n\nIII\nPCA, UMAP, clustering\n\n\nIV\nML foundations, trees, ensembles, deep learning, model evaluation\n\n\nV\nClinical prediction models, validation, reporting\n\n\nAdvanced Toolkit\nCausal inference, meta-analysis, journal-ready analysis\n\n\n\nThe Pre-Course material should be completed before Day 1 if you are taking this in person. If you are self-studying, work through everything in order.\nThe Advanced Research Toolkit is for after the course — use it when you are doing your own research and need guidance on causal inference, meta-analysis, or producing a journal-ready manuscript.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Advanced Statistics and Machine Learning for Health Research</span>"
     ]

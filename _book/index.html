@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Mark Khurana">
 <meta name="dcterms.date" content="2026-06-06">
 
 <title>Advanced Statistics and Machine Learning for Health Research</title>
@@ -469,6 +470,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mark Khurana </p>
+          </div>
+  </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
@@ -488,7 +495,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="welcome" class="level1 unnumbered">
 <h1 class="unnumbered">Welcome</h1>
 <p>This course teaches advanced statistics and machine learning to people who work in health research. It assumes you know the basics — means, standard deviations, maybe a t-test — and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.</p>
-<p>Everything uses <strong>clinical data</strong>. Every exercise works in <strong>R and Python</strong>. Pick one or try both.</p>
+<p>Everything uses <strong>clinical data</strong>. Every exercise works in <strong>R and Python</strong>. Pick one or try both. Solutions for all exercises are in the <a href="./appendices/D_exercise_solutions.html">Appendix</a>.</p>
 <section id="what-you-will-learn" class="level2" data-number="0.1">
 <h2 data-number="0.1" class="anchored" data-anchor-id="what-you-will-learn"><span class="header-section-number">0.1</span> What you will learn</h2>
 <p>By the end of this course, you will be able to:</p>
@@ -504,52 +511,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="0.2" class="anchored" data-anchor-id="structure"><span class="header-section-number">0.2</span> Structure</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 22%">
-<col style="width: 55%">
-<col style="width: 22%">
+<col style="width: 28%">
+<col style="width: 71%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Part</th>
 <th>What it covers</th>
-<th>Time</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><strong>Pre-Course</strong></td>
 <td>Probability, inference, regression refresher</td>
-<td>~8 hrs self-study</td>
 </tr>
 <tr class="even">
 <td><strong>I</strong></td>
 <td>Splines, penalised regression, survival analysis</td>
-<td>1.5 days</td>
 </tr>
 <tr class="odd">
 <td><strong>II</strong></td>
 <td>Bayesian inference and hierarchical models</td>
-<td>1 day</td>
 </tr>
 <tr class="even">
 <td><strong>III</strong></td>
 <td>PCA, UMAP, clustering</td>
-<td>0.5 days</td>
 </tr>
 <tr class="odd">
 <td><strong>IV</strong></td>
 <td>ML foundations, trees, ensembles, deep learning, model evaluation</td>
-<td>2 days</td>
 </tr>
 <tr class="even">
 <td><strong>V</strong></td>
 <td>Clinical prediction models, validation, reporting</td>
-<td>1.5 days</td>
 </tr>
 <tr class="odd">
 <td><strong>Advanced Toolkit</strong></td>
 <td>Causal inference, meta-analysis, journal-ready analysis</td>
-<td>Reference material</td>
 </tr>
 </tbody>
 </table>
@@ -1166,7 +1164,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-6"><a href="#cb1-6"></a></span>
 <span id="cb1-7"><a href="#cb1-7"></a>This course teaches advanced statistics and machine learning to people who work in health research. It assumes you know the basics --- means, standard deviations, maybe a t-test --- and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.</span>
 <span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a>Everything uses **clinical data**. Every exercise works in **R and Python**. Pick one or try both.</span>
+<span id="cb1-9"><a href="#cb1-9"></a>Everything uses **clinical data**. Every exercise works in **R and Python**. Pick one or try both. Solutions for all exercises are in the <span class="co">[</span><span class="ot">Appendix</span><span class="co">](appendices/D_exercise_solutions.qmd)</span>.</span>
 <span id="cb1-10"><a href="#cb1-10"></a></span>
 <span id="cb1-11"><a href="#cb1-11"></a><span class="fu">## What you will learn</span></span>
 <span id="cb1-12"><a href="#cb1-12"></a></span>
@@ -1180,15 +1178,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-20"><a href="#cb1-20"></a></span>
 <span id="cb1-21"><a href="#cb1-21"></a><span class="fu">## Structure</span></span>
 <span id="cb1-22"><a href="#cb1-22"></a></span>
-<span id="cb1-23"><a href="#cb1-23"></a><span class="pp">|</span> Part <span class="pp">|</span> What it covers <span class="pp">|</span> Time <span class="pp">|</span></span>
-<span id="cb1-24"><a href="#cb1-24"></a><span class="pp">|------|---------------|------|</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a><span class="pp">|</span> **Pre-Course** <span class="pp">|</span> Probability, inference, regression refresher <span class="pp">|</span> ~8 hrs self-study <span class="pp">|</span></span>
-<span id="cb1-26"><a href="#cb1-26"></a><span class="pp">|</span> **I** <span class="pp">|</span> Splines, penalised regression, survival analysis <span class="pp">|</span> 1.5 days <span class="pp">|</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a><span class="pp">|</span> **II** <span class="pp">|</span> Bayesian inference and hierarchical models <span class="pp">|</span> 1 day <span class="pp">|</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a><span class="pp">|</span> **III** <span class="pp">|</span> PCA, UMAP, clustering <span class="pp">|</span> 0.5 days <span class="pp">|</span></span>
-<span id="cb1-29"><a href="#cb1-29"></a><span class="pp">|</span> **IV** <span class="pp">|</span> ML foundations, trees, ensembles, deep learning, model evaluation <span class="pp">|</span> 2 days <span class="pp">|</span></span>
-<span id="cb1-30"><a href="#cb1-30"></a><span class="pp">|</span> **V** <span class="pp">|</span> Clinical prediction models, validation, reporting <span class="pp">|</span> 1.5 days <span class="pp">|</span></span>
-<span id="cb1-31"><a href="#cb1-31"></a><span class="pp">|</span> **Advanced Toolkit** <span class="pp">|</span> Causal inference, meta-analysis, journal-ready analysis <span class="pp">|</span> Reference material <span class="pp">|</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="pp">|</span> Part <span class="pp">|</span> What it covers <span class="pp">|</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a><span class="pp">|------|---------------|</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a><span class="pp">|</span> **Pre-Course** <span class="pp">|</span> Probability, inference, regression refresher <span class="pp">|</span></span>
+<span id="cb1-26"><a href="#cb1-26"></a><span class="pp">|</span> **I** <span class="pp">|</span> Splines, penalised regression, survival analysis <span class="pp">|</span></span>
+<span id="cb1-27"><a href="#cb1-27"></a><span class="pp">|</span> **II** <span class="pp">|</span> Bayesian inference and hierarchical models <span class="pp">|</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a><span class="pp">|</span> **III** <span class="pp">|</span> PCA, UMAP, clustering <span class="pp">|</span></span>
+<span id="cb1-29"><a href="#cb1-29"></a><span class="pp">|</span> **IV** <span class="pp">|</span> ML foundations, trees, ensembles, deep learning, model evaluation <span class="pp">|</span></span>
+<span id="cb1-30"><a href="#cb1-30"></a><span class="pp">|</span> **V** <span class="pp">|</span> Clinical prediction models, validation, reporting <span class="pp">|</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a><span class="pp">|</span> **Advanced Toolkit** <span class="pp">|</span> Causal inference, meta-analysis, journal-ready analysis <span class="pp">|</span></span>
 <span id="cb1-32"><a href="#cb1-32"></a></span>
 <span id="cb1-33"><a href="#cb1-33"></a>The **Pre-Course** material should be completed before Day 1 if you are taking this in person. If you are self-studying, work through everything in order.</span>
 <span id="cb1-34"><a href="#cb1-34"></a></span>
