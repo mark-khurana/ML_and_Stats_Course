@@ -1,5 +1,5 @@
 _book/
-_freeze/
+# _freeze/ is tracked so CI doesn't re-execute R code
 .quarto/
 *.html
 .Rproj.user
@@ -14,3 +14,5 @@ renv/
 .env
 
 /.quarto/
+
+**/*.quarto_ipynb
