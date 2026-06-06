@@ -7,7 +7,7 @@ book:
   subtitle: "A Practical Course for Health Researchers"
   date: last-modified
   date-format: "MMMM D, YYYY"
-  repo-url: https://github.com/bxc331/ML_and_Stats_Course
+  repo-url: https://github.com/mark-khurana/ML_and_Stats_Course
   repo-actions: [edit, issue, source]
   repo-branch: main
   search: true
