@@ -41,6 +41,7 @@ jobs:
             any::mice
             any::pROC
             any::gtsummary
+            any::reticulate
 
       - name: Render Book
         uses: quarto-dev/quarto-actions/render@v2
