@@ -5,7 +5,9 @@ project:
 book:
   title: "Advanced Statistics and Machine Learning for Health Research"
   subtitle: "A Practical Course for Health Researchers"
-  author: "Mark Khurana"
+  author:
+    - "Mark Khurana"
+    - "Neil Scheidwasser"
   date: last-modified
   date-format: "MMMM D, YYYY"
   repo-url: https://github.com/mark-khurana/ML_and_Stats_Course
@@ -46,17 +48,17 @@ book:
         - chapters/13_bayesian_inference.qmd
         - chapters/14_applied_bayesian_modeling.qmd
 
-    - part: "Dimensionality Reduction and Unsupervised Learning"
-      chapters:
-        - chapters/15_dimensionality_reduction.qmd
-        - chapters/16_clustering.qmd
-
     - part: "Introduction to Machine Learning"
       chapters:
         - chapters/07_ml_foundations.qmd
         - chapters/08_trees_and_ensembles.qmd
         - chapters/08b_introduction_to_deep_learning.qmd
         - chapters/09_model_evaluation.qmd
+
+    - part: "Dimensionality Reduction and Unsupervised Learning"
+      chapters:
+        - chapters/15_dimensionality_reduction.qmd
+        - chapters/16_clustering.qmd
 
     - part: "Clinical Prediction Models"
       chapters:

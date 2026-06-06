@@ -7,6 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Mark Khurana">
+<meta name="author" content="Neil Scheidwasser">
 <meta name="dcterms.date" content="2026-06-06">
 
 <title>Advanced Statistics and Machine Learning for Health Research</title>
@@ -281,7 +282,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
- <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
+ <span class="menu-text">Introduction to Machine Learning</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -289,14 +290,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
+  <a href="./chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
+  <a href="./chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Introduction to Neural Networks</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
   </div>
 </li>
       </ul>
@@ -304,7 +317,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
- <span class="menu-text">Introduction to Machine Learning</span></a>
+ <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -312,26 +325,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
+  <a href="./chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
+  <a href="./chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
   </div>
 </li>
       </ul>
@@ -471,9 +472,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-title-meta">
 
     <div>
-    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-heading">Authors</div>
     <div class="quarto-title-meta-contents">
              <p>Mark Khurana </p>
+             <p>Neil Scheidwasser </p>
           </div>
   </div>
     
@@ -535,11 +537,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td><strong>III</strong></td>
-<td>PCA, UMAP, clustering</td>
+<td>ML foundations, trees, ensembles, neural networks, ROC curves, calibration, decision curves</td>
 </tr>
 <tr class="odd">
 <td><strong>IV</strong></td>
-<td>ML foundations, trees, ensembles, deep learning, model evaluation</td>
+<td>PCA, UMAP, clustering</td>
 </tr>
 <tr class="even">
 <td><strong>V</strong></td>
@@ -613,16 +615,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>3-4 hrs</td>
 </tr>
 <tr class="even">
-<td>15</td>
-<td>Dimensionality reduction</td>
-<td>2-3 hrs</td>
-</tr>
-<tr class="odd">
-<td>16</td>
-<td>Clustering</td>
-<td>2-3 hrs</td>
-</tr>
-<tr class="even">
 <td>7</td>
 <td>ML foundations</td>
 <td>2-3 hrs</td>
@@ -634,12 +626,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>8b</td>
-<td>Introduction to deep learning</td>
+<td>Introduction to neural networks</td>
 <td>2-3 hrs</td>
 </tr>
 <tr class="odd">
 <td>9</td>
 <td>Model evaluation</td>
+<td>2-3 hrs</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td>Dimensionality reduction</td>
+<td>2-3 hrs</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>Clustering</td>
 <td>2-3 hrs</td>
 </tr>
 <tr class="even">
@@ -1183,8 +1185,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-25"><a href="#cb1-25"></a><span class="pp">|</span> **Pre-Course** <span class="pp">|</span> Probability, inference, regression refresher <span class="pp">|</span></span>
 <span id="cb1-26"><a href="#cb1-26"></a><span class="pp">|</span> **I** <span class="pp">|</span> Splines, penalised regression, survival analysis <span class="pp">|</span></span>
 <span id="cb1-27"><a href="#cb1-27"></a><span class="pp">|</span> **II** <span class="pp">|</span> Bayesian inference and hierarchical models <span class="pp">|</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a><span class="pp">|</span> **III** <span class="pp">|</span> PCA, UMAP, clustering <span class="pp">|</span></span>
-<span id="cb1-29"><a href="#cb1-29"></a><span class="pp">|</span> **IV** <span class="pp">|</span> ML foundations, trees, ensembles, deep learning, model evaluation <span class="pp">|</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a><span class="pp">|</span> **III** <span class="pp">|</span> ML foundations, trees, ensembles, neural networks, ROC curves, calibration, decision curves <span class="pp">|</span></span>
+<span id="cb1-29"><a href="#cb1-29"></a><span class="pp">|</span> **IV** <span class="pp">|</span> PCA, UMAP, clustering <span class="pp">|</span></span>
 <span id="cb1-30"><a href="#cb1-30"></a><span class="pp">|</span> **V** <span class="pp">|</span> Clinical prediction models, validation, reporting <span class="pp">|</span></span>
 <span id="cb1-31"><a href="#cb1-31"></a><span class="pp">|</span> **Advanced Toolkit** <span class="pp">|</span> Causal inference, meta-analysis, journal-ready analysis <span class="pp">|</span></span>
 <span id="cb1-32"><a href="#cb1-32"></a></span>
@@ -1209,12 +1211,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-51"><a href="#cb1-51"></a><span class="pp">|</span> 6 <span class="pp">|</span> Survival analysis <span class="pp">|</span> 3-4 hrs <span class="pp">|</span></span>
 <span id="cb1-52"><a href="#cb1-52"></a><span class="pp">|</span> 13 <span class="pp">|</span> Bayesian inference <span class="pp">|</span> 3-4 hrs <span class="pp">|</span></span>
 <span id="cb1-53"><a href="#cb1-53"></a><span class="pp">|</span> 14 <span class="pp">|</span> Applied Bayesian modelling <span class="pp">|</span> 3-4 hrs <span class="pp">|</span></span>
-<span id="cb1-54"><a href="#cb1-54"></a><span class="pp">|</span> 15 <span class="pp">|</span> Dimensionality reduction <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
-<span id="cb1-55"><a href="#cb1-55"></a><span class="pp">|</span> 16 <span class="pp">|</span> Clustering <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
-<span id="cb1-56"><a href="#cb1-56"></a><span class="pp">|</span> 7 <span class="pp">|</span> ML foundations <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
-<span id="cb1-57"><a href="#cb1-57"></a><span class="pp">|</span> 8 <span class="pp">|</span> Trees and ensembles <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
-<span id="cb1-58"><a href="#cb1-58"></a><span class="pp">|</span> 8b <span class="pp">|</span> Introduction to deep learning <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
-<span id="cb1-59"><a href="#cb1-59"></a><span class="pp">|</span> 9 <span class="pp">|</span> Model evaluation <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
+<span id="cb1-54"><a href="#cb1-54"></a><span class="pp">|</span> 7 <span class="pp">|</span> ML foundations <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
+<span id="cb1-55"><a href="#cb1-55"></a><span class="pp">|</span> 8 <span class="pp">|</span> Trees and ensembles <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
+<span id="cb1-56"><a href="#cb1-56"></a><span class="pp">|</span> 8b <span class="pp">|</span> Introduction to neural networks <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
+<span id="cb1-57"><a href="#cb1-57"></a><span class="pp">|</span> 9 <span class="pp">|</span> Model evaluation <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
+<span id="cb1-58"><a href="#cb1-58"></a><span class="pp">|</span> 15 <span class="pp">|</span> Dimensionality reduction <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
+<span id="cb1-59"><a href="#cb1-59"></a><span class="pp">|</span> 16 <span class="pp">|</span> Clustering <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>
 <span id="cb1-60"><a href="#cb1-60"></a><span class="pp">|</span> 10 <span class="pp">|</span> Building prediction models <span class="pp">|</span> 3-4 hrs <span class="pp">|</span></span>
 <span id="cb1-61"><a href="#cb1-61"></a><span class="pp">|</span> 11 <span class="pp">|</span> Performance and validation <span class="pp">|</span> 3-4 hrs <span class="pp">|</span></span>
 <span id="cb1-62"><a href="#cb1-62"></a><span class="pp">|</span> 12 <span class="pp">|</span> Reporting and TRIPOD+AI <span class="pp">|</span> 2-3 hrs <span class="pp">|</span></span>

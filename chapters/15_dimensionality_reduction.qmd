@@ -8,6 +8,8 @@ library(knitr)
 
 ## Introduction
 
+The previous chapters covered supervised learning --- methods that predict an outcome from labelled data. In this part, we turn to **unsupervised** methods that explore and summarize data without a specific outcome in mind.
+
 A single patient encounter can generate hundreds of variables: vital signs, lab results, imaging features, medication lists, genomic markers, clinical notes. When the number of features ($p$) is large relative to the number of observations ($n$), standard statistical methods break down. Regression models become unstable, distances between data points become uninformative, and visualisation is impossible.
 
 **Dimensionality reduction** addresses this by projecting high-dimensional data into a lower-dimensional space while preserving as much meaningful structure as possible. This chapter covers three complementary methods: **PCA** (principal component analysis), **t-SNE** (t-distributed stochastic neighbour embedding), and **UMAP** (uniform manifold approximation and projection). Each serves a different purpose, and understanding when to use which is a core skill in modern data analysis.

@@ -25,8 +25,8 @@ By the end of this course, you will be able to:
 | **Pre-Course** | Probability, inference, regression refresher |
 | **I** | Splines, penalised regression, survival analysis |
 | **II** | Bayesian inference and hierarchical models |
-| **III** | PCA, UMAP, clustering |
-| **IV** | ML foundations, trees, ensembles, deep learning, model evaluation |
+| **III** | ML foundations, trees, ensembles, neural networks, ROC curves, calibration, decision curves |
+| **IV** | PCA, UMAP, clustering |
 | **V** | Clinical prediction models, validation, reporting |
 | **Advanced Toolkit** | Causal inference, meta-analysis, journal-ready analysis |
 
@@ -51,12 +51,12 @@ Rough time estimates per chapter:
 | 6 | Survival analysis | 3-4 hrs |
 | 13 | Bayesian inference | 3-4 hrs |
 | 14 | Applied Bayesian modelling | 3-4 hrs |
-| 15 | Dimensionality reduction | 2-3 hrs |
-| 16 | Clustering | 2-3 hrs |
 | 7 | ML foundations | 2-3 hrs |
 | 8 | Trees and ensembles | 2-3 hrs |
-| 8b | Introduction to deep learning | 2-3 hrs |
+| 8b | Introduction to neural networks | 2-3 hrs |
 | 9 | Model evaluation | 2-3 hrs |
+| 15 | Dimensionality reduction | 2-3 hrs |
+| 16 | Clustering | 2-3 hrs |
 | 10 | Building prediction models | 3-4 hrs |
 | 11 | Performance and validation | 3-4 hrs |
 | 12 | Reporting and TRIPOD+AI | 2-3 hrs |

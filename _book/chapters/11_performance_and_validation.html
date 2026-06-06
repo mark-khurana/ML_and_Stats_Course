@@ -309,7 +309,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
- <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
+ <span class="menu-text">Introduction to Machine Learning</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -317,14 +317,26 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
+  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
+  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Introduction to Neural Networks</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
   </div>
 </li>
       </ul>
@@ -332,7 +344,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
- <span class="menu-text">Introduction to Machine Learning</span></a>
+ <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -340,26 +352,14 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
+  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
+  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
   </div>
 </li>
       </ul>
@@ -601,7 +601,7 @@ window.Quarto = {
 <h2 data-number="18.3" class="anchored" data-anchor-id="domain-1-discrimination"><span class="header-section-number">18.3</span> Domain 1: Discrimination</h2>
 <section id="the-c-statistic-auc" class="level3" data-number="18.3.1">
 <h3 data-number="18.3.1" class="anchored" data-anchor-id="the-c-statistic-auc"><span class="header-section-number">18.3.1</span> The C-Statistic / AUC</h3>
-<p>Discrimination measures how well a model separates patients who experience the outcome from those who do not. The most common measure is the <strong>concordance statistic (C-statistic)</strong>, which for binary outcomes is equivalent to the area under the ROC curve (AUC) discussed in <a href="09_model_evaluation.html" class="quarto-xref"><span>Chapter 16</span></a>.</p>
+<p>Discrimination measures how well a model separates patients who experience the outcome from those who do not. The most common measure is the <strong>concordance statistic (C-statistic)</strong>, which for binary outcomes is equivalent to the area under the ROC curve (AUC) discussed in <a href="09_model_evaluation.html" class="quarto-xref"><span>Chapter 14</span></a>.</p>
 <p>Recall the interpretation: the C-statistic is the probability that a randomly selected patient with the outcome has a higher predicted probability than a randomly selected patient without the outcome.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="" aria-current="page">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Python</a></li></ul>
@@ -856,7 +856,7 @@ window.Quarto = {
 </section>
 <section id="domain-4-classification" class="level2" data-number="18.6">
 <h2 data-number="18.6" class="anchored" data-anchor-id="domain-4-classification"><span class="header-section-number">18.6</span> Domain 4: Classification</h2>
-<p>Classification metrics (sensitivity, specificity, PPV, NPV) were covered in <a href="09_model_evaluation.html" class="quarto-xref"><span>Chapter 16</span></a>. The key point for model validation is that classification performance depends entirely on the chosen threshold. When reporting classification metrics, <strong>always specify the threshold and justify its choice based on the clinical context.</strong></p>
+<p>Classification metrics (sensitivity, specificity, PPV, NPV) were covered in <a href="09_model_evaluation.html" class="quarto-xref"><span>Chapter 14</span></a>. The key point for model validation is that classification performance depends entirely on the chosen threshold. When reporting classification metrics, <strong>always specify the threshold and justify its choice based on the clinical context.</strong></p>
 </section>
 <section id="domain-5-clinical-utility" class="level2" data-number="18.7">
 <h2 data-number="18.7" class="anchored" data-anchor-id="domain-5-clinical-utility"><span class="header-section-number">18.7</span> Domain 5: Clinical Utility</h2>

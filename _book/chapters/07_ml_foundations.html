@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>13&nbsp; What Is Machine Learning? Core Concepts for Clinical Researchers – Advanced Statistics and Machine Learning for Health Research</title>
+<title>11&nbsp; What Is Machine Learning? Core Concepts for Clinical Researchers – Advanced Statistics and Machine Learning for Health Research</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -69,7 +69,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
 <link href="../chapters/08_trees_and_ensembles.html" rel="next">
-<link href="../chapters/16_clustering.html" rel="prev">
+<link href="../chapters/14_applied_bayesian_modeling.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -139,11 +139,11 @@ window.Quarto = {
 };
 </script>
 
-<meta property="og:title" content="13&nbsp; What Is Machine Learning? Core Concepts for Clinical Researchers – Advanced Statistics and Machine Learning for Health Research">
+<meta property="og:title" content="11&nbsp; What Is Machine Learning? Core Concepts for Clinical Researchers – Advanced Statistics and Machine Learning for Health Research">
 <meta property="og:description" content="">
 <meta property="og:image" content="assets/social-preview.png">
 <meta property="og:site_name" content="Advanced Statistics and Machine Learning for Health Research">
-<meta name="twitter:title" content="13&nbsp; What Is Machine Learning? Core Concepts for Clinical Researchers – Advanced Statistics and Machine Learning for Health Research">
+<meta name="twitter:title" content="11&nbsp; What Is Machine Learning? Core Concepts for Clinical Researchers – Advanced Statistics and Machine Learning for Health Research">
 <meta name="twitter:description" content="">
 <meta name="twitter:image" content="assets/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -158,7 +158,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -308,58 +308,58 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
- <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction to Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
+  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
+  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Introduction to Neural Networks</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Introduction to Machine Learning</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
+  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
+  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
   </div>
 </li>
       </ul>
@@ -473,64 +473,64 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#what-machine-learning-is-and-is-not" id="toc-what-machine-learning-is-and-is-not" class="nav-link active" data-scroll-target="#what-machine-learning-is-and-is-not"><span class="header-section-number">13.1</span> What Machine Learning Is (and Is Not)</a>
+  <li><a href="#what-machine-learning-is-and-is-not" id="toc-what-machine-learning-is-and-is-not" class="nav-link active" data-scroll-target="#what-machine-learning-is-and-is-not"><span class="header-section-number">11.1</span> What Machine Learning Is (and Is Not)</a>
   <ul class="collapse">
-  <li><a href="#common-misconceptions" id="toc-common-misconceptions" class="nav-link" data-scroll-target="#common-misconceptions"><span class="header-section-number">13.1.1</span> Common Misconceptions</a></li>
-  <li><a href="#how-is-ml-different-from-what-i-already-know" id="toc-how-is-ml-different-from-what-i-already-know" class="nav-link" data-scroll-target="#how-is-ml-different-from-what-i-already-know"><span class="header-section-number">13.1.2</span> How is ML different from what I already know?</a></li>
+  <li><a href="#common-misconceptions" id="toc-common-misconceptions" class="nav-link" data-scroll-target="#common-misconceptions"><span class="header-section-number">11.1.1</span> Common Misconceptions</a></li>
+  <li><a href="#how-is-ml-different-from-what-i-already-know" id="toc-how-is-ml-different-from-what-i-already-know" class="nav-link" data-scroll-target="#how-is-ml-different-from-what-i-already-know"><span class="header-section-number">11.1.2</span> How is ML different from what I already know?</a></li>
   </ul></li>
-  <li><a href="#supervised-vs-unsupervised-vs-reinforcement-learning" id="toc-supervised-vs-unsupervised-vs-reinforcement-learning" class="nav-link" data-scroll-target="#supervised-vs-unsupervised-vs-reinforcement-learning"><span class="header-section-number">13.2</span> Supervised vs Unsupervised vs Reinforcement Learning</a>
+  <li><a href="#supervised-vs-unsupervised-vs-reinforcement-learning" id="toc-supervised-vs-unsupervised-vs-reinforcement-learning" class="nav-link" data-scroll-target="#supervised-vs-unsupervised-vs-reinforcement-learning"><span class="header-section-number">11.2</span> Supervised vs Unsupervised vs Reinforcement Learning</a>
   <ul class="collapse">
-  <li><a href="#supervised-learning" id="toc-supervised-learning" class="nav-link" data-scroll-target="#supervised-learning"><span class="header-section-number">13.2.1</span> Supervised Learning</a></li>
-  <li><a href="#unsupervised-learning" id="toc-unsupervised-learning" class="nav-link" data-scroll-target="#unsupervised-learning"><span class="header-section-number">13.2.2</span> Unsupervised Learning</a></li>
-  <li><a href="#reinforcement-learning" id="toc-reinforcement-learning" class="nav-link" data-scroll-target="#reinforcement-learning"><span class="header-section-number">13.2.3</span> Reinforcement Learning</a></li>
+  <li><a href="#supervised-learning" id="toc-supervised-learning" class="nav-link" data-scroll-target="#supervised-learning"><span class="header-section-number">11.2.1</span> Supervised Learning</a></li>
+  <li><a href="#unsupervised-learning" id="toc-unsupervised-learning" class="nav-link" data-scroll-target="#unsupervised-learning"><span class="header-section-number">11.2.2</span> Unsupervised Learning</a></li>
+  <li><a href="#reinforcement-learning" id="toc-reinforcement-learning" class="nav-link" data-scroll-target="#reinforcement-learning"><span class="header-section-number">11.2.3</span> Reinforcement Learning</a></li>
   </ul></li>
-  <li><a href="#the-bias-variance-tradeoff" id="toc-the-bias-variance-tradeoff" class="nav-link" data-scroll-target="#the-bias-variance-tradeoff"><span class="header-section-number">13.3</span> The Bias-Variance Tradeoff</a>
+  <li><a href="#the-bias-variance-tradeoff" id="toc-the-bias-variance-tradeoff" class="nav-link" data-scroll-target="#the-bias-variance-tradeoff"><span class="header-section-number">11.3</span> The Bias-Variance Tradeoff</a>
   <ul class="collapse">
-  <li><a href="#a-clinical-analogy" id="toc-a-clinical-analogy" class="nav-link" data-scroll-target="#a-clinical-analogy"><span class="header-section-number">13.3.1</span> A Clinical Analogy</a></li>
-  <li><a href="#visualizing-the-tradeoff" id="toc-visualizing-the-tradeoff" class="nav-link" data-scroll-target="#visualizing-the-tradeoff"><span class="header-section-number">13.3.2</span> Visualizing the Tradeoff</a></li>
+  <li><a href="#a-clinical-analogy" id="toc-a-clinical-analogy" class="nav-link" data-scroll-target="#a-clinical-analogy"><span class="header-section-number">11.3.1</span> A Clinical Analogy</a></li>
+  <li><a href="#visualizing-the-tradeoff" id="toc-visualizing-the-tradeoff" class="nav-link" data-scroll-target="#visualizing-the-tradeoff"><span class="header-section-number">11.3.2</span> Visualizing the Tradeoff</a></li>
   </ul></li>
-  <li><a href="#training-validation-and-test-sets" id="toc-training-validation-and-test-sets" class="nav-link" data-scroll-target="#training-validation-and-test-sets"><span class="header-section-number">13.4</span> Training, Validation, and Test Sets</a>
+  <li><a href="#training-validation-and-test-sets" id="toc-training-validation-and-test-sets" class="nav-link" data-scroll-target="#training-validation-and-test-sets"><span class="header-section-number">11.4</span> Training, Validation, and Test Sets</a>
   <ul class="collapse">
-  <li><a href="#the-three-way-split" id="toc-the-three-way-split" class="nav-link" data-scroll-target="#the-three-way-split"><span class="header-section-number">13.4.1</span> The Three-Way Split</a></li>
-  <li><a href="#when-data-is-limited" id="toc-when-data-is-limited" class="nav-link" data-scroll-target="#when-data-is-limited"><span class="header-section-number">13.4.2</span> When Data Is Limited</a></li>
+  <li><a href="#the-three-way-split" id="toc-the-three-way-split" class="nav-link" data-scroll-target="#the-three-way-split"><span class="header-section-number">11.4.1</span> The Three-Way Split</a></li>
+  <li><a href="#when-data-is-limited" id="toc-when-data-is-limited" class="nav-link" data-scroll-target="#when-data-is-limited"><span class="header-section-number">11.4.2</span> When Data Is Limited</a></li>
   </ul></li>
-  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">13.5</span> Cross-Validation</a>
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">11.5</span> Cross-Validation</a>
   <ul class="collapse">
-  <li><a href="#k-fold-cross-validation" id="toc-k-fold-cross-validation" class="nav-link" data-scroll-target="#k-fold-cross-validation"><span class="header-section-number">13.5.1</span> k-Fold Cross-Validation</a></li>
-  <li><a href="#variants" id="toc-variants" class="nav-link" data-scroll-target="#variants"><span class="header-section-number">13.5.2</span> Variants</a></li>
+  <li><a href="#k-fold-cross-validation" id="toc-k-fold-cross-validation" class="nav-link" data-scroll-target="#k-fold-cross-validation"><span class="header-section-number">11.5.1</span> k-Fold Cross-Validation</a></li>
+  <li><a href="#variants" id="toc-variants" class="nav-link" data-scroll-target="#variants"><span class="header-section-number">11.5.2</span> Variants</a></li>
   </ul></li>
-  <li><a href="#feature-engineering-in-clinical-data" id="toc-feature-engineering-in-clinical-data" class="nav-link" data-scroll-target="#feature-engineering-in-clinical-data"><span class="header-section-number">13.6</span> Feature Engineering in Clinical Data</a>
+  <li><a href="#feature-engineering-in-clinical-data" id="toc-feature-engineering-in-clinical-data" class="nav-link" data-scroll-target="#feature-engineering-in-clinical-data"><span class="header-section-number">11.6</span> Feature Engineering in Clinical Data</a>
   <ul class="collapse">
-  <li><a href="#examples-of-clinical-feature-engineering" id="toc-examples-of-clinical-feature-engineering" class="nav-link" data-scroll-target="#examples-of-clinical-feature-engineering"><span class="header-section-number">13.6.1</span> Examples of Clinical Feature Engineering</a></li>
+  <li><a href="#examples-of-clinical-feature-engineering" id="toc-examples-of-clinical-feature-engineering" class="nav-link" data-scroll-target="#examples-of-clinical-feature-engineering"><span class="header-section-number">11.6.1</span> Examples of Clinical Feature Engineering</a></li>
   </ul></li>
-  <li><a href="#feature-selection" id="toc-feature-selection" class="nav-link" data-scroll-target="#feature-selection"><span class="header-section-number">13.7</span> Feature Selection</a>
+  <li><a href="#feature-selection" id="toc-feature-selection" class="nav-link" data-scroll-target="#feature-selection"><span class="header-section-number">11.7</span> Feature Selection</a>
   <ul class="collapse">
-  <li><a href="#three-approaches" id="toc-three-approaches" class="nav-link" data-scroll-target="#three-approaches"><span class="header-section-number">13.7.1</span> Three Approaches</a></li>
+  <li><a href="#three-approaches" id="toc-three-approaches" class="nav-link" data-scroll-target="#three-approaches"><span class="header-section-number">11.7.1</span> Three Approaches</a></li>
   </ul></li>
-  <li><a href="#support-vector-machines" id="toc-support-vector-machines" class="nav-link" data-scroll-target="#support-vector-machines"><span class="header-section-number">13.8</span> Support Vector Machines</a>
+  <li><a href="#support-vector-machines" id="toc-support-vector-machines" class="nav-link" data-scroll-target="#support-vector-machines"><span class="header-section-number">11.8</span> Support Vector Machines</a>
   <ul class="collapse">
-  <li><a href="#the-intuition-maximum-margin" id="toc-the-intuition-maximum-margin" class="nav-link" data-scroll-target="#the-intuition-maximum-margin"><span class="header-section-number">13.8.1</span> The Intuition: Maximum Margin</a></li>
-  <li><a href="#the-kernel-trick" id="toc-the-kernel-trick" class="nav-link" data-scroll-target="#the-kernel-trick"><span class="header-section-number">13.8.2</span> The Kernel Trick</a></li>
-  <li><a href="#when-svms-are-useful" id="toc-when-svms-are-useful" class="nav-link" data-scroll-target="#when-svms-are-useful"><span class="header-section-number">13.8.3</span> When SVMs Are Useful</a></li>
+  <li><a href="#the-intuition-maximum-margin" id="toc-the-intuition-maximum-margin" class="nav-link" data-scroll-target="#the-intuition-maximum-margin"><span class="header-section-number">11.8.1</span> The Intuition: Maximum Margin</a></li>
+  <li><a href="#the-kernel-trick" id="toc-the-kernel-trick" class="nav-link" data-scroll-target="#the-kernel-trick"><span class="header-section-number">11.8.2</span> The Kernel Trick</a></li>
+  <li><a href="#when-svms-are-useful" id="toc-when-svms-are-useful" class="nav-link" data-scroll-target="#when-svms-are-useful"><span class="header-section-number">11.8.3</span> When SVMs Are Useful</a></li>
   </ul></li>
-  <li><a href="#ml-vs-traditional-statistics-what-is-actually-different" id="toc-ml-vs-traditional-statistics-what-is-actually-different" class="nav-link" data-scroll-target="#ml-vs-traditional-statistics-what-is-actually-different"><span class="header-section-number">13.9</span> ML vs Traditional Statistics: What Is Actually Different?</a></li>
-  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">13.10</span> Exercises</a>
+  <li><a href="#ml-vs-traditional-statistics-what-is-actually-different" id="toc-ml-vs-traditional-statistics-what-is-actually-different" class="nav-link" data-scroll-target="#ml-vs-traditional-statistics-what-is-actually-different"><span class="header-section-number">11.9</span> ML vs Traditional Statistics: What Is Actually Different?</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">11.10</span> Exercises</a>
   <ul class="collapse">
-  <li><a href="#exercise-1-cross-validation-experiment" id="toc-exercise-1-cross-validation-experiment" class="nav-link" data-scroll-target="#exercise-1-cross-validation-experiment"><span class="header-section-number">13.10.1</span> Exercise 1: Cross-Validation Experiment</a></li>
-  <li><a href="#exercise-2-feature-engineering-challenge" id="toc-exercise-2-feature-engineering-challenge" class="nav-link" data-scroll-target="#exercise-2-feature-engineering-challenge"><span class="header-section-number">13.10.2</span> Exercise 2: Feature Engineering Challenge</a></li>
-  <li><a href="#exercise-3-the-bias-variance-tradeoff-in-practice" id="toc-exercise-3-the-bias-variance-tradeoff-in-practice" class="nav-link" data-scroll-target="#exercise-3-the-bias-variance-tradeoff-in-practice"><span class="header-section-number">13.10.3</span> Exercise 3: The Bias-Variance Tradeoff in Practice</a></li>
+  <li><a href="#exercise-1-cross-validation-experiment" id="toc-exercise-1-cross-validation-experiment" class="nav-link" data-scroll-target="#exercise-1-cross-validation-experiment"><span class="header-section-number">11.10.1</span> Exercise 1: Cross-Validation Experiment</a></li>
+  <li><a href="#exercise-2-feature-engineering-challenge" id="toc-exercise-2-feature-engineering-challenge" class="nav-link" data-scroll-target="#exercise-2-feature-engineering-challenge"><span class="header-section-number">11.10.2</span> Exercise 2: Feature Engineering Challenge</a></li>
+  <li><a href="#exercise-3-the-bias-variance-tradeoff-in-practice" id="toc-exercise-3-the-bias-variance-tradeoff-in-practice" class="nav-link" data-scroll-target="#exercise-3-the-bias-variance-tradeoff-in-practice"><span class="header-section-number">11.10.3</span> Exercise 3: The Bias-Variance Tradeoff in Practice</a></li>
   </ul></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">13.11</span> Summary</a></li>
-  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">13.12</span> References and Further Reading</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">11.11</span> Summary</a></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">11.12</span> References and Further Reading</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/edit/main/chapters/07_ml_foundations.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/blob/main/chapters/07_ml_foundations.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></a></li></ol></nav>
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title"><span id="sec-ml-foundations" class="quarto-section-identifier"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-ml-foundations" class="quarto-section-identifier"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 </div>
 
 
@@ -547,13 +547,13 @@ window.Quarto = {
 </header>
 
 
-<section id="what-machine-learning-is-and-is-not" class="level2" data-number="13.1">
-<h2 data-number="13.1" class="anchored" data-anchor-id="what-machine-learning-is-and-is-not"><span class="header-section-number">13.1</span> What Machine Learning Is (and Is Not)</h2>
+<section id="what-machine-learning-is-and-is-not" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="what-machine-learning-is-and-is-not"><span class="header-section-number">11.1</span> What Machine Learning Is (and Is Not)</h2>
 <p>You have already done machine learning — you just did not call it that. The dimensionality reduction (PCA, t-SNE, UMAP) and clustering (K-means, hierarchical, DBSCAN) methods from the previous chapters are forms of <strong>unsupervised</strong> machine learning. This part of the course focuses on <strong>supervised</strong> machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.</p>
 <p>Machine learning (ML) is a collection of algorithms that learn patterns from data to make predictions or discover structure — without being explicitly programmed with rules. That is the textbook definition. Here is a more practical one for clinical researchers:</p>
 <p><strong>Machine learning is pattern recognition at scale.</strong> Given enough examples of inputs and outputs, an ML algorithm finds the mapping between them. A logistic regression that predicts 30-day readmission from 5 clinical variables is, technically, machine learning. An algorithm that reads chest X-rays and flags pneumonia is also machine learning. The difference is one of complexity and scale, not of kind.</p>
-<section id="common-misconceptions" class="level3" data-number="13.1.1">
-<h3 data-number="13.1.1" class="anchored" data-anchor-id="common-misconceptions"><span class="header-section-number">13.1.1</span> Common Misconceptions</h3>
+<section id="common-misconceptions" class="level3" data-number="11.1.1">
+<h3 data-number="11.1.1" class="anchored" data-anchor-id="common-misconceptions"><span class="header-section-number">11.1.1</span> Common Misconceptions</h3>
 <p>Let us address several misconceptions head-on:</p>
 <ol type="1">
 <li><p><strong>“ML is always better than regression.”</strong> False. For many clinical prediction tasks with modest sample sizes and well-understood relationships, logistic or Cox regression performs just as well as or better than complex ML models — and is far more interpretable. A 2019 systematic review by Christodoulou et al.&nbsp;in the <em>Journal of Clinical Epidemiology</em> found that ML models did not consistently outperform logistic regression for clinical prediction.</p></li>
@@ -563,8 +563,8 @@ window.Quarto = {
 <li><p><strong>“Deep learning is always the best approach.”</strong> False. For tabular clinical data (the kind in most EHR studies), gradient-boosted trees often outperform deep learning. Deep learning excels with images, text, and time series.</p></li>
 </ol>
 </section>
-<section id="how-is-ml-different-from-what-i-already-know" class="level3" data-number="13.1.2">
-<h3 data-number="13.1.2" class="anchored" data-anchor-id="how-is-ml-different-from-what-i-already-know"><span class="header-section-number">13.1.2</span> How is ML different from what I already know?</h3>
+<section id="how-is-ml-different-from-what-i-already-know" class="level3" data-number="11.1.2">
+<h3 data-number="11.1.2" class="anchored" data-anchor-id="how-is-ml-different-from-what-i-already-know"><span class="header-section-number">11.1.2</span> How is ML different from what I already know?</h3>
 <p>If you have worked through the regression chapters, you already know machine learning — you just did not call it that. Logistic regression is a machine learning algorithm. The difference is mainly one of emphasis:</p>
 <ul>
 <li><strong>Traditional statistics</strong> focuses on understanding relationships (what is the effect of smoking on lung cancer risk, adjusted for age?).</li>
@@ -573,10 +573,10 @@ window.Quarto = {
 <p>The tools overlap substantially. The new concepts in this chapter — cross-validation, regularisation, ensemble methods — are techniques for improving prediction performance when you have many variables and complex relationships.</p>
 </section>
 </section>
-<section id="supervised-vs-unsupervised-vs-reinforcement-learning" class="level2" data-number="13.2">
-<h2 data-number="13.2" class="anchored" data-anchor-id="supervised-vs-unsupervised-vs-reinforcement-learning"><span class="header-section-number">13.2</span> Supervised vs Unsupervised vs Reinforcement Learning</h2>
-<section id="supervised-learning" class="level3" data-number="13.2.1">
-<h3 data-number="13.2.1" class="anchored" data-anchor-id="supervised-learning"><span class="header-section-number">13.2.1</span> Supervised Learning</h3>
+<section id="supervised-vs-unsupervised-vs-reinforcement-learning" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="supervised-vs-unsupervised-vs-reinforcement-learning"><span class="header-section-number">11.2</span> Supervised vs Unsupervised vs Reinforcement Learning</h2>
+<section id="supervised-learning" class="level3" data-number="11.2.1">
+<h3 data-number="11.2.1" class="anchored" data-anchor-id="supervised-learning"><span class="header-section-number">11.2.1</span> Supervised Learning</h3>
 <p>In <strong>supervised learning</strong>, the algorithm learns from labeled examples: input-output pairs where the “right answer” is known.</p>
 <ul>
 <li><strong>Classification</strong>: The output is a category. <em>Is this skin lesion malignant or benign? Will this patient be readmitted within 30 days?</em></li>
@@ -584,18 +584,18 @@ window.Quarto = {
 </ul>
 <p>Most clinical prediction models — logistic regression, random forests, neural networks for diagnosis — are supervised learning.</p>
 </section>
-<section id="unsupervised-learning" class="level3" data-number="13.2.2">
-<h3 data-number="13.2.2" class="anchored" data-anchor-id="unsupervised-learning"><span class="header-section-number">13.2.2</span> Unsupervised Learning</h3>
+<section id="unsupervised-learning" class="level3" data-number="11.2.2">
+<h3 data-number="11.2.2" class="anchored" data-anchor-id="unsupervised-learning"><span class="header-section-number">11.2.2</span> Unsupervised Learning</h3>
 <p>In <strong>unsupervised learning</strong>, there are no labels. The algorithm discovers structure in the data on its own. You have already encountered the two most important families of unsupervised methods in earlier chapters:</p>
 <ul>
-<li><strong>Dimensionality reduction</strong> (PCA, t-SNE, UMAP): Compress high-dimensional data into fewer dimensions for visualization or preprocessing. You covered these in <a href="15_dimensionality_reduction.html" class="quarto-xref"><span>Chapter 11</span></a>.</li>
-<li><strong>Clustering</strong> (K-means, hierarchical, DBSCAN): Group patients into subgroups based on similarity. You covered these in <a href="16_clustering.html" class="quarto-xref"><span>Chapter 12</span></a>.</li>
+<li><strong>Dimensionality reduction</strong> (PCA, t-SNE, UMAP): Compress high-dimensional data into fewer dimensions for visualization or preprocessing. You covered these in <a href="15_dimensionality_reduction.html" class="quarto-xref"><span>Chapter 15</span></a>.</li>
+<li><strong>Clustering</strong> (K-means, hierarchical, DBSCAN): Group patients into subgroups based on similarity. You covered these in <a href="16_clustering.html" class="quarto-xref"><span>Chapter 16</span></a>.</li>
 <li><strong>Anomaly detection</strong>: Identify unusual observations. <em>Which patients have lab value patterns that are outliers?</em></li>
 </ul>
 <p>This part of the course focuses on <strong>supervised learning</strong> — the prediction-oriented methods that build on the regression foundations you already know.</p>
 </section>
-<section id="reinforcement-learning" class="level3" data-number="13.2.3">
-<h3 data-number="13.2.3" class="anchored" data-anchor-id="reinforcement-learning"><span class="header-section-number">13.2.3</span> Reinforcement Learning</h3>
+<section id="reinforcement-learning" class="level3" data-number="11.2.3">
+<h3 data-number="11.2.3" class="anchored" data-anchor-id="reinforcement-learning"><span class="header-section-number">11.2.3</span> Reinforcement Learning</h3>
 <p>In <strong>reinforcement learning (RL)</strong>, an agent learns by trial and error, receiving rewards or penalties for actions. While RL has exciting potential in medicine (e.g., optimizing treatment policies for sepsis management or dynamic treatment regimes), it requires large amounts of interaction data and is rarely used in standard clinical research. We mention it for completeness but will not cover it further in this course.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -612,8 +612,8 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="the-bias-variance-tradeoff" class="level2" data-number="13.3">
-<h2 data-number="13.3" class="anchored" data-anchor-id="the-bias-variance-tradeoff"><span class="header-section-number">13.3</span> The Bias-Variance Tradeoff</h2>
+<section id="the-bias-variance-tradeoff" class="level2" data-number="11.3">
+<h2 data-number="11.3" class="anchored" data-anchor-id="the-bias-variance-tradeoff"><span class="header-section-number">11.3</span> The Bias-Variance Tradeoff</h2>
 <p>This is arguably the single most important concept in machine learning. Every predictive model navigates a tension between two sources of error:</p>
 <ul>
 <li><strong>Bias</strong>: Error from oversimplifying the model. A model with high bias misses important patterns. It <em>underfits</em> the data.</li>
@@ -621,8 +621,8 @@ window.Quarto = {
 </ul>
 <p>The total prediction error can be decomposed as:</p>
 <p><span class="math display">\[\text{Expected Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise}\]</span></p>
-<section id="a-clinical-analogy" class="level3" data-number="13.3.1">
-<h3 data-number="13.3.1" class="anchored" data-anchor-id="a-clinical-analogy"><span class="header-section-number">13.3.1</span> A Clinical Analogy</h3>
+<section id="a-clinical-analogy" class="level3" data-number="11.3.1">
+<h3 data-number="11.3.1" class="anchored" data-anchor-id="a-clinical-analogy"><span class="header-section-number">11.3.1</span> A Clinical Analogy</h3>
 <p>Think of a diagnostic criterion:</p>
 <ul>
 <li><strong>Too specific</strong> (high bias, low variance): A criterion that requires 5 out of 5 symptoms to diagnose a disease. It misses many true cases (underfitting — the rule is too rigid) but rarely triggers a false alarm.</li>
@@ -630,8 +630,8 @@ window.Quarto = {
 </ul>
 <p>The optimal diagnostic criterion balances sensitivity and specificity. Similarly, the optimal ML model balances bias and variance.</p>
 </section>
-<section id="visualizing-the-tradeoff" class="level3" data-number="13.3.2">
-<h3 data-number="13.3.2" class="anchored" data-anchor-id="visualizing-the-tradeoff"><span class="header-section-number">13.3.2</span> Visualizing the Tradeoff</h3>
+<section id="visualizing-the-tradeoff" class="level3" data-number="11.3.2">
+<h3 data-number="11.3.2" class="anchored" data-anchor-id="visualizing-the-tradeoff"><span class="header-section-number">11.3.2</span> Visualizing the Tradeoff</h3>
 <div class="callout callout-style-default callout-tip callout-titled" title="You have already seen bias and variance">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -648,11 +648,11 @@ window.Quarto = {
 <p>In practice, we cannot directly observe bias and variance separately. We detect the tradeoff by comparing <strong>training error</strong> (how well the model fits the data it learned from) and <strong>test error</strong> (how well it performs on new data). When training error is low but test error is high, the model is overfitting.</p>
 </section>
 </section>
-<section id="training-validation-and-test-sets" class="level2" data-number="13.4">
-<h2 data-number="13.4" class="anchored" data-anchor-id="training-validation-and-test-sets"><span class="header-section-number">13.4</span> Training, Validation, and Test Sets</h2>
+<section id="training-validation-and-test-sets" class="level2" data-number="11.4">
+<h2 data-number="11.4" class="anchored" data-anchor-id="training-validation-and-test-sets"><span class="header-section-number">11.4</span> Training, Validation, and Test Sets</h2>
 <p>To evaluate how well a model will perform on new, unseen patients, we <strong>must</strong> evaluate it on data it has never seen during training. This is the most important methodological principle in ML.</p>
-<section id="the-three-way-split" class="level3" data-number="13.4.1">
-<h3 data-number="13.4.1" class="anchored" data-anchor-id="the-three-way-split"><span class="header-section-number">13.4.1</span> The Three-Way Split</h3>
+<section id="the-three-way-split" class="level3" data-number="11.4.1">
+<h3 data-number="11.4.1" class="anchored" data-anchor-id="the-three-way-split"><span class="header-section-number">11.4.1</span> The Three-Way Split</h3>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 18%">
@@ -699,16 +699,16 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="when-data-is-limited" class="level3" data-number="13.4.2">
-<h3 data-number="13.4.2" class="anchored" data-anchor-id="when-data-is-limited"><span class="header-section-number">13.4.2</span> When Data Is Limited</h3>
+<section id="when-data-is-limited" class="level3" data-number="11.4.2">
+<h3 data-number="11.4.2" class="anchored" data-anchor-id="when-data-is-limited"><span class="header-section-number">11.4.2</span> When Data Is Limited</h3>
 <p>In clinical research, we often have hundreds (not millions) of patients. A single 70/15/15 split wastes data and produces unstable estimates. The solution is <strong>cross-validation</strong>.</p>
 </section>
 </section>
-<section id="cross-validation" class="level2" data-number="13.5">
-<h2 data-number="13.5" class="anchored" data-anchor-id="cross-validation"><span class="header-section-number">13.5</span> Cross-Validation</h2>
+<section id="cross-validation" class="level2" data-number="11.5">
+<h2 data-number="11.5" class="anchored" data-anchor-id="cross-validation"><span class="header-section-number">11.5</span> Cross-Validation</h2>
 <p><strong>Cross-validation (CV)</strong> is a resampling strategy that uses all the data for both training and validation, by rotating which portion is held out.</p>
-<section id="k-fold-cross-validation" class="level3" data-number="13.5.1">
-<h3 data-number="13.5.1" class="anchored" data-anchor-id="k-fold-cross-validation"><span class="header-section-number">13.5.1</span> k-Fold Cross-Validation</h3>
+<section id="k-fold-cross-validation" class="level3" data-number="11.5.1">
+<h3 data-number="11.5.1" class="anchored" data-anchor-id="k-fold-cross-validation"><span class="header-section-number">11.5.1</span> k-Fold Cross-Validation</h3>
 <p>The most common approach:</p>
 <ol type="1">
 <li>Randomly split the data into <span class="math inline">\(k\)</span> equally sized <strong>folds</strong> (typically <span class="math inline">\(k = 5\)</span> or <span class="math inline">\(k = 10\)</span>).</li>
@@ -721,8 +721,8 @@ window.Quarto = {
 </ol>
 <p>This gives a more stable and less biased estimate of performance than a single train/test split.</p>
 </section>
-<section id="variants" class="level3" data-number="13.5.2">
-<h3 data-number="13.5.2" class="anchored" data-anchor-id="variants"><span class="header-section-number">13.5.2</span> Variants</h3>
+<section id="variants" class="level3" data-number="11.5.2">
+<h3 data-number="11.5.2" class="anchored" data-anchor-id="variants"><span class="header-section-number">11.5.2</span> Variants</h3>
 <ul>
 <li><strong>Stratified k-fold</strong>: Ensures each fold has the same proportion of events/classes. Essential when the outcome is rare (e.g., 5% readmission rate).</li>
 <li><strong>Repeated k-fold</strong>: Repeat the entire k-fold procedure <span class="math inline">\(m\)</span> times with different random splits, then average. Reduces variance of the estimate. A common choice is 10-fold CV repeated 5 times.</li>
@@ -814,11 +814,11 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="feature-engineering-in-clinical-data" class="level2" data-number="13.6">
-<h2 data-number="13.6" class="anchored" data-anchor-id="feature-engineering-in-clinical-data"><span class="header-section-number">13.6</span> Feature Engineering in Clinical Data</h2>
+<section id="feature-engineering-in-clinical-data" class="level2" data-number="11.6">
+<h2 data-number="11.6" class="anchored" data-anchor-id="feature-engineering-in-clinical-data"><span class="header-section-number">11.6</span> Feature Engineering in Clinical Data</h2>
 <p><strong>Feature engineering</strong> is the process of transforming raw variables into features that are more useful for modeling. In clinical ML, this often means incorporating domain knowledge.</p>
-<section id="examples-of-clinical-feature-engineering" class="level3" data-number="13.6.1">
-<h3 data-number="13.6.1" class="anchored" data-anchor-id="examples-of-clinical-feature-engineering"><span class="header-section-number">13.6.1</span> Examples of Clinical Feature Engineering</h3>
+<section id="examples-of-clinical-feature-engineering" class="level3" data-number="11.6.1">
+<h3 data-number="11.6.1" class="anchored" data-anchor-id="examples-of-clinical-feature-engineering"><span class="header-section-number">11.6.1</span> Examples of Clinical Feature Engineering</h3>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -885,11 +885,11 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="feature-selection" class="level2" data-number="13.7">
-<h2 data-number="13.7" class="anchored" data-anchor-id="feature-selection"><span class="header-section-number">13.7</span> Feature Selection</h2>
+<section id="feature-selection" class="level2" data-number="11.7">
+<h2 data-number="11.7" class="anchored" data-anchor-id="feature-selection"><span class="header-section-number">11.7</span> Feature Selection</h2>
 <p>With electronic health record data, you might have hundreds or thousands of candidate features. Including all of them risks overfitting and reduces interpretability. <strong>Feature selection</strong> identifies the most informative subset.</p>
-<section id="three-approaches" class="level3" data-number="13.7.1">
-<h3 data-number="13.7.1" class="anchored" data-anchor-id="three-approaches"><span class="header-section-number">13.7.1</span> Three Approaches</h3>
+<section id="three-approaches" class="level3" data-number="11.7.1">
+<h3 data-number="11.7.1" class="anchored" data-anchor-id="three-approaches"><span class="header-section-number">11.7.1</span> Three Approaches</h3>
 <p><strong>1. Filter methods</strong>: Rank features by some statistical criterion (correlation with outcome, mutual information, chi-squared test) <em>before</em> fitting any model. Fast but ignores feature interactions.</p>
 <p><strong>2. Wrapper methods</strong>: Iteratively fit models with different feature subsets and select the best-performing set. Examples: forward selection, backward elimination, recursive feature elimination (RFE). More accurate but computationally expensive.</p>
 <p><strong>3. Embedded methods</strong>: Feature selection happens as part of model fitting. Examples: LASSO regression (L1 penalty shrinks some coefficients to zero), random forest variable importance, elastic net. Often the best practical choice.</p>
@@ -990,16 +990,16 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="support-vector-machines" class="level2" data-number="13.8">
-<h2 data-number="13.8" class="anchored" data-anchor-id="support-vector-machines"><span class="header-section-number">13.8</span> Support Vector Machines</h2>
+<section id="support-vector-machines" class="level2" data-number="11.8">
+<h2 data-number="11.8" class="anchored" data-anchor-id="support-vector-machines"><span class="header-section-number">11.8</span> Support Vector Machines</h2>
 <p><strong>Support vector machines (SVMs)</strong> are a supervised learning method that finds the optimal decision boundary between classes.</p>
-<section id="the-intuition-maximum-margin" class="level3" data-number="13.8.1">
-<h3 data-number="13.8.1" class="anchored" data-anchor-id="the-intuition-maximum-margin"><span class="header-section-number">13.8.1</span> The Intuition: Maximum Margin</h3>
+<section id="the-intuition-maximum-margin" class="level3" data-number="11.8.1">
+<h3 data-number="11.8.1" class="anchored" data-anchor-id="the-intuition-maximum-margin"><span class="header-section-number">11.8.1</span> The Intuition: Maximum Margin</h3>
 <p>Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that <strong>maximizes the margin</strong> — the distance between the boundary and the nearest points from each class.</p>
 <p>The nearest points are called <strong>support vectors</strong> — they “support” (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary.</p>
 </section>
-<section id="the-kernel-trick" class="level3" data-number="13.8.2">
-<h3 data-number="13.8.2" class="anchored" data-anchor-id="the-kernel-trick"><span class="header-section-number">13.8.2</span> The Kernel Trick</h3>
+<section id="the-kernel-trick" class="level3" data-number="11.8.2">
+<h3 data-number="11.8.2" class="anchored" data-anchor-id="the-kernel-trick"><span class="header-section-number">11.8.2</span> The Kernel Trick</h3>
 <p>What if the classes are not linearly separable? The <strong>kernel trick</strong> maps the data into a higher-dimensional space where a linear boundary <em>can</em> separate the classes. Common kernels include:</p>
 <ul>
 <li><strong>Linear</strong>: No transformation (works when data is linearly separable).</li>
@@ -1008,8 +1008,8 @@ window.Quarto = {
 </ul>
 <p>You do not need to understand the mathematics of kernels to use SVMs effectively. The practical implication is: if a linear SVM does not work well, try an RBF kernel.</p>
 </section>
-<section id="when-svms-are-useful" class="level3" data-number="13.8.3">
-<h3 data-number="13.8.3" class="anchored" data-anchor-id="when-svms-are-useful"><span class="header-section-number">13.8.3</span> When SVMs Are Useful</h3>
+<section id="when-svms-are-useful" class="level3" data-number="11.8.3">
+<h3 data-number="11.8.3" class="anchored" data-anchor-id="when-svms-are-useful"><span class="header-section-number">11.8.3</span> When SVMs Are Useful</h3>
 <p>SVMs work well for:</p>
 <ul>
 <li>Binary classification with moderate sample sizes</li>
@@ -1097,8 +1097,8 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="ml-vs-traditional-statistics-what-is-actually-different" class="level2" data-number="13.9">
-<h2 data-number="13.9" class="anchored" data-anchor-id="ml-vs-traditional-statistics-what-is-actually-different"><span class="header-section-number">13.9</span> ML vs Traditional Statistics: What Is Actually Different?</h2>
+<section id="ml-vs-traditional-statistics-what-is-actually-different" class="level2" data-number="11.9">
+<h2 data-number="11.9" class="anchored" data-anchor-id="ml-vs-traditional-statistics-what-is-actually-different"><span class="header-section-number">11.9</span> ML vs Traditional Statistics: What Is Actually Different?</h2>
 <p>This is a question clinical researchers often ask, and the honest answer is: less than you think.</p>
 <table class="caption-top table">
 <colgroup>
@@ -1154,10 +1154,10 @@ window.Quarto = {
 <p>The biggest practical difference is in <strong>workflow</strong>. Statistical modeling typically follows a hypothesis-driven process: specify a model based on theory, fit it, check assumptions, interpret coefficients. ML follows a more empirical process: try many models, tune them, evaluate on held-out data, pick the best performer.</p>
 <p>Neither approach is inherently superior. For a clinical trial with 200 patients and 5 pre-specified predictors, logistic regression is perfectly appropriate and more interpretable than a random forest. For a hospital system with 500,000 patient records, 1,000 candidate features, and the goal of predicting ICU transfer, a gradient-boosted tree with cross-validated tuning may outperform logistic regression.</p>
 </section>
-<section id="exercises" class="level2" data-number="13.10">
-<h2 data-number="13.10" class="anchored" data-anchor-id="exercises"><span class="header-section-number">13.10</span> Exercises</h2>
-<section id="exercise-1-cross-validation-experiment" class="level3" data-number="13.10.1">
-<h3 data-number="13.10.1" class="anchored" data-anchor-id="exercise-1-cross-validation-experiment"><span class="header-section-number">13.10.1</span> Exercise 1: Cross-Validation Experiment</h3>
+<section id="exercises" class="level2" data-number="11.10">
+<h2 data-number="11.10" class="anchored" data-anchor-id="exercises"><span class="header-section-number">11.10</span> Exercises</h2>
+<section id="exercise-1-cross-validation-experiment" class="level3" data-number="11.10.1">
+<h3 data-number="11.10.1" class="anchored" data-anchor-id="exercise-1-cross-validation-experiment"><span class="header-section-number">11.10.1</span> Exercise 1: Cross-Validation Experiment</h3>
 <p>Using the simulated clinical dataset below, compare logistic regression and SVM (RBF kernel) using 10-fold stratified cross-validation. Report AUC for both models. Which performs better? Why?</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">R Starter Code</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">Python Starter Code</a></li></ul>
@@ -1206,8 +1206,8 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="exercise-2-feature-engineering-challenge" class="level3" data-number="13.10.2">
-<h3 data-number="13.10.2" class="anchored" data-anchor-id="exercise-2-feature-engineering-challenge"><span class="header-section-number">13.10.2</span> Exercise 2: Feature Engineering Challenge</h3>
+<section id="exercise-2-feature-engineering-challenge" class="level3" data-number="11.10.2">
+<h3 data-number="11.10.2" class="anchored" data-anchor-id="exercise-2-feature-engineering-challenge"><span class="header-section-number">11.10.2</span> Exercise 2: Feature Engineering Challenge</h3>
 <p>You have the following raw variables for a diabetes prediction model:</p>
 <ul>
 <li><code>height_cm</code>, <code>weight_kg</code></li>
@@ -1223,8 +1223,8 @@ window.Quarto = {
 <li>Discuss which original features might become redundant after engineering.</li>
 </ol>
 </section>
-<section id="exercise-3-the-bias-variance-tradeoff-in-practice" class="level3" data-number="13.10.3">
-<h3 data-number="13.10.3" class="anchored" data-anchor-id="exercise-3-the-bias-variance-tradeoff-in-practice"><span class="header-section-number">13.10.3</span> Exercise 3: The Bias-Variance Tradeoff in Practice</h3>
+<section id="exercise-3-the-bias-variance-tradeoff-in-practice" class="level3" data-number="11.10.3">
+<h3 data-number="11.10.3" class="anchored" data-anchor-id="exercise-3-the-bias-variance-tradeoff-in-practice"><span class="header-section-number">11.10.3</span> Exercise 3: The Bias-Variance Tradeoff in Practice</h3>
 <p>Using polynomial regression on a simulated dataset:</p>
 <ol type="1">
 <li>Fit polynomials of degree 1, 3, 5, 10, and 20 to a training set.</li>
@@ -1276,8 +1276,8 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="summary" class="level2" data-number="13.11">
-<h2 data-number="13.11" class="anchored" data-anchor-id="summary"><span class="header-section-number">13.11</span> Summary</h2>
+<section id="summary" class="level2" data-number="11.11">
+<h2 data-number="11.11" class="anchored" data-anchor-id="summary"><span class="header-section-number">11.11</span> Summary</h2>
 <p>This chapter introduced the foundational concepts of machine learning that every clinical researcher should understand before applying ML methods:</p>
 <ul>
 <li><strong>ML is pattern recognition</strong>, not magic. It requires careful validation and domain knowledge.</li>
@@ -1290,8 +1290,8 @@ window.Quarto = {
 <li><strong>ML and statistics are complementary</strong>, not competing. The best clinical researchers use both.</li>
 </ul>
 </section>
-<section id="references-and-further-reading" class="level2" data-number="13.12">
-<h2 data-number="13.12" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">13.12</span> References and Further Reading</h2>
+<section id="references-and-further-reading" class="level2" data-number="11.12">
+<h2 data-number="11.12" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">11.12</span> References and Further Reading</h2>
 <p>For an integrated treatment of machine learning and statistical methods tailored to clinical and public health researchers, see Smits et al.&nbsp;(2026), particularly Chapter 9, which covers the supervised learning concepts and cross-validation approaches discussed here with additional worked medical examples.</p>
 <p>Boehmke and Greenwell’s <em>Hands-On Machine Learning with R</em> (HOML) provides an excellent practical introduction to ML methods in R, using the tidymodels framework. It covers the bias-variance tradeoff, cross-validation, and feature engineering with clear code examples and is freely available online.</p>
 <p>Lgatto’s <em>Introduction to Machine Learning</em> (IntroML) is a concise, well-organized online resource that covers the core concepts without excessive mathematical detail, making it a good supplement for students new to the field.</p>
@@ -1758,13 +1758,13 @@ window.Quarto = {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../chapters/16_clustering.html" class="pagination-link" aria-label="Clustering: Discovering Patient Subgroups">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span>
+      <a href="../chapters/14_applied_bayesian_modeling.html" class="pagination-link" aria-label="Applied Bayesian Modelling: Regression, Hierarchical Models, and Clinical Applications">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Applied Bayesian Modelling: Regression, Hierarchical Models, and Clinical Applications</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="../chapters/08_trees_and_ensembles.html" class="pagination-link" aria-label="Decision Trees, Random Forests, and Gradient Boosting">
-        <span class="nav-page-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -1781,7 +1781,7 @@ window.Quarto = {
 <span id="cb11-13"><a href="#cb11-13"></a></span>
 <span id="cb11-14"><a href="#cb11-14"></a><span class="fu">## What Machine Learning Is (and Is Not)</span></span>
 <span id="cb11-15"><a href="#cb11-15"></a></span>
-<span id="cb11-16"><a href="#cb11-16"></a>You have already done machine learning --- you just did not call it that. The dimensionality reduction (PCA, t-SNE, UMAP) and clustering (K-means, hierarchical, DBSCAN) methods from the previous chapters are forms of **unsupervised** machine learning. This part of the course focuses on **supervised** machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.</span>
+<span id="cb11-16"><a href="#cb11-16"></a>If you have worked through the regression and Bayesian chapters, you already understand the core of machine learning --- you just did not call it that. This part of the course focuses on **supervised** machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.</span>
 <span id="cb11-17"><a href="#cb11-17"></a></span>
 <span id="cb11-18"><a href="#cb11-18"></a>Machine learning (ML) is a collection of algorithms that learn patterns from data to make predictions or discover structure --- without being explicitly programmed with rules. That is the textbook definition. Here is a more practical one for clinical researchers:</span>
 <span id="cb11-19"><a href="#cb11-19"></a></span>
@@ -1823,13 +1823,13 @@ window.Quarto = {
 <span id="cb11-55"><a href="#cb11-55"></a></span>
 <span id="cb11-56"><a href="#cb11-56"></a><span class="fu">### Unsupervised Learning</span></span>
 <span id="cb11-57"><a href="#cb11-57"></a></span>
-<span id="cb11-58"><a href="#cb11-58"></a>In **unsupervised learning**, there are no labels. The algorithm discovers structure in the data on its own. You have already encountered the two most important families of unsupervised methods in earlier chapters:</span>
+<span id="cb11-58"><a href="#cb11-58"></a>In **unsupervised learning**, there are no labels. The algorithm discovers structure in the data on its own.</span>
 <span id="cb11-59"><a href="#cb11-59"></a></span>
-<span id="cb11-60"><a href="#cb11-60"></a><span class="ss">- </span>**Dimensionality reduction** (PCA, t-SNE, UMAP): Compress high-dimensional data into fewer dimensions for visualization or preprocessing. You covered these in @sec-dimensionality-reduction.</span>
-<span id="cb11-61"><a href="#cb11-61"></a><span class="ss">- </span>**Clustering** (K-means, hierarchical, DBSCAN): Group patients into subgroups based on similarity. You covered these in @sec-clustering.</span>
+<span id="cb11-60"><a href="#cb11-60"></a><span class="ss">- </span>**Clustering**: Group patients into subgroups based on similarity. *Are there distinct phenotypes of sepsis patients?*</span>
+<span id="cb11-61"><a href="#cb11-61"></a><span class="ss">- </span>**Dimensionality reduction**: Compress high-dimensional data into fewer dimensions for visualization or preprocessing. *Can we summarize 50 lab values into a few meaningful components?*</span>
 <span id="cb11-62"><a href="#cb11-62"></a><span class="ss">- </span>**Anomaly detection**: Identify unusual observations. *Which patients have lab value patterns that are outliers?*</span>
 <span id="cb11-63"><a href="#cb11-63"></a></span>
-<span id="cb11-64"><a href="#cb11-64"></a>This part of the course focuses on **supervised learning** --- the prediction-oriented methods that build on the regression foundations you already know.</span>
+<span id="cb11-64"><a href="#cb11-64"></a>We cover dimensionality reduction and clustering in detail later in the course. This part focuses on **supervised learning** --- the prediction-oriented methods that build on the regression foundations you already know.</span>
 <span id="cb11-65"><a href="#cb11-65"></a></span>
 <span id="cb11-66"><a href="#cb11-66"></a><span class="fu">### Reinforcement Learning</span></span>
 <span id="cb11-67"><a href="#cb11-67"></a></span>

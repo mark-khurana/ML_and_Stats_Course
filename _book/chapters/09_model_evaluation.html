@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>16&nbsp; Evaluating Models: Beyond Accuracy – Advanced Statistics and Machine Learning for Health Research</title>
+<title>14&nbsp; Evaluating Models: Beyond Accuracy – Advanced Statistics and Machine Learning for Health Research</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../chapters/10_building_prediction_models.html" rel="next">
+<link href="../chapters/15_dimensionality_reduction.html" rel="next">
 <link href="../chapters/08b_introduction_to_deep_learning.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -139,11 +139,11 @@ window.Quarto = {
 };
 </script>
 
-<meta property="og:title" content="16&nbsp; Evaluating Models: Beyond Accuracy – Advanced Statistics and Machine Learning for Health Research">
+<meta property="og:title" content="14&nbsp; Evaluating Models: Beyond Accuracy – Advanced Statistics and Machine Learning for Health Research">
 <meta property="og:description" content="">
 <meta property="og:image" content="assets/social-preview.png">
 <meta property="og:site_name" content="Advanced Statistics and Machine Learning for Health Research">
-<meta name="twitter:title" content="16&nbsp; Evaluating Models: Beyond Accuracy – Advanced Statistics and Machine Learning for Health Research">
+<meta name="twitter:title" content="14&nbsp; Evaluating Models: Beyond Accuracy – Advanced Statistics and Machine Learning for Health Research">
 <meta name="twitter:description" content="">
 <meta name="twitter:image" content="assets/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -158,7 +158,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/09_model_evaluation.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/09_model_evaluation.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -308,58 +308,58 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
- <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Introduction to Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
+  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
+  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Introduction to Neural Networks</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Introduction to Machine Learning</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
+  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
+  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
   </div>
 </li>
       </ul>
@@ -473,50 +473,50 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">16.1</span> Introduction</a></li>
-  <li><a href="#the-accuracy-trap" id="toc-the-accuracy-trap" class="nav-link" data-scroll-target="#the-accuracy-trap"><span class="header-section-number">16.2</span> The Accuracy Trap</a></li>
-  <li><a href="#sensitivity-and-specificity" id="toc-sensitivity-and-specificity" class="nav-link" data-scroll-target="#sensitivity-and-specificity"><span class="header-section-number">16.3</span> Sensitivity and Specificity</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">14.1</span> Introduction</a></li>
+  <li><a href="#the-accuracy-trap" id="toc-the-accuracy-trap" class="nav-link" data-scroll-target="#the-accuracy-trap"><span class="header-section-number">14.2</span> The Accuracy Trap</a></li>
+  <li><a href="#sensitivity-and-specificity" id="toc-sensitivity-and-specificity" class="nav-link" data-scroll-target="#sensitivity-and-specificity"><span class="header-section-number">14.3</span> Sensitivity and Specificity</a>
   <ul class="collapse">
-  <li><a href="#clinical-context-screening-vs-confirmation" id="toc-clinical-context-screening-vs-confirmation" class="nav-link" data-scroll-target="#clinical-context-screening-vs-confirmation"><span class="header-section-number">16.3.1</span> Clinical Context: Screening vs Confirmation</a></li>
+  <li><a href="#clinical-context-screening-vs-confirmation" id="toc-clinical-context-screening-vs-confirmation" class="nav-link" data-scroll-target="#clinical-context-screening-vs-confirmation"><span class="header-section-number">14.3.1</span> Clinical Context: Screening vs Confirmation</a></li>
   </ul></li>
-  <li><a href="#predictive-values-when-prevalence-matters" id="toc-predictive-values-when-prevalence-matters" class="nav-link" data-scroll-target="#predictive-values-when-prevalence-matters"><span class="header-section-number">16.4</span> Predictive Values: When Prevalence Matters</a>
+  <li><a href="#predictive-values-when-prevalence-matters" id="toc-predictive-values-when-prevalence-matters" class="nav-link" data-scroll-target="#predictive-values-when-prevalence-matters"><span class="header-section-number">14.4</span> Predictive Values: When Prevalence Matters</a>
   <ul class="collapse">
-  <li><a href="#exercise-bayes-theorem-in-practice" id="toc-exercise-bayes-theorem-in-practice" class="nav-link" data-scroll-target="#exercise-bayes-theorem-in-practice"><span class="header-section-number">16.4.1</span> Exercise: Bayes’ Theorem in Practice</a></li>
+  <li><a href="#exercise-bayes-theorem-in-practice" id="toc-exercise-bayes-theorem-in-practice" class="nav-link" data-scroll-target="#exercise-bayes-theorem-in-practice"><span class="header-section-number">14.4.1</span> Exercise: Bayes’ Theorem in Practice</a></li>
   </ul></li>
-  <li><a href="#the-confusion-matrix" id="toc-the-confusion-matrix" class="nav-link" data-scroll-target="#the-confusion-matrix"><span class="header-section-number">16.5</span> The Confusion Matrix</a>
+  <li><a href="#the-confusion-matrix" id="toc-the-confusion-matrix" class="nav-link" data-scroll-target="#the-confusion-matrix"><span class="header-section-number">14.5</span> The Confusion Matrix</a>
   <ul class="collapse">
-  <li><a href="#building-and-inspecting-confusion-matrices" id="toc-building-and-inspecting-confusion-matrices" class="nav-link" data-scroll-target="#building-and-inspecting-confusion-matrices"><span class="header-section-number">16.5.1</span> Building and Inspecting Confusion Matrices</a></li>
+  <li><a href="#building-and-inspecting-confusion-matrices" id="toc-building-and-inspecting-confusion-matrices" class="nav-link" data-scroll-target="#building-and-inspecting-confusion-matrices"><span class="header-section-number">14.5.1</span> Building and Inspecting Confusion Matrices</a></li>
   </ul></li>
-  <li><a href="#roc-curves" id="toc-roc-curves" class="nav-link" data-scroll-target="#roc-curves"><span class="header-section-number">16.6</span> ROC Curves</a>
+  <li><a href="#roc-curves" id="toc-roc-curves" class="nav-link" data-scroll-target="#roc-curves"><span class="header-section-number">14.6</span> ROC Curves</a>
   <ul class="collapse">
-  <li><a href="#how-to-read-an-roc-curve" id="toc-how-to-read-an-roc-curve" class="nav-link" data-scroll-target="#how-to-read-an-roc-curve"><span class="header-section-number">16.6.1</span> How to Read an ROC Curve</a></li>
-  <li><a href="#plotting-roc-curves" id="toc-plotting-roc-curves" class="nav-link" data-scroll-target="#plotting-roc-curves"><span class="header-section-number">16.6.2</span> Plotting ROC Curves</a></li>
+  <li><a href="#how-to-read-an-roc-curve" id="toc-how-to-read-an-roc-curve" class="nav-link" data-scroll-target="#how-to-read-an-roc-curve"><span class="header-section-number">14.6.1</span> How to Read an ROC Curve</a></li>
+  <li><a href="#plotting-roc-curves" id="toc-plotting-roc-curves" class="nav-link" data-scroll-target="#plotting-roc-curves"><span class="header-section-number">14.6.2</span> Plotting ROC Curves</a></li>
   </ul></li>
-  <li><a href="#precision-recall-curves" id="toc-precision-recall-curves" class="nav-link" data-scroll-target="#precision-recall-curves"><span class="header-section-number">16.7</span> Precision-Recall Curves</a>
+  <li><a href="#precision-recall-curves" id="toc-precision-recall-curves" class="nav-link" data-scroll-target="#precision-recall-curves"><span class="header-section-number">14.7</span> Precision-Recall Curves</a>
   <ul class="collapse">
-  <li><a href="#exercise-comparing-roc-and-pr-curves" id="toc-exercise-comparing-roc-and-pr-curves" class="nav-link" data-scroll-target="#exercise-comparing-roc-and-pr-curves"><span class="header-section-number">16.7.1</span> Exercise: Comparing ROC and PR Curves</a></li>
+  <li><a href="#exercise-comparing-roc-and-pr-curves" id="toc-exercise-comparing-roc-and-pr-curves" class="nav-link" data-scroll-target="#exercise-comparing-roc-and-pr-curves"><span class="header-section-number">14.7.1</span> Exercise: Comparing ROC and PR Curves</a></li>
   </ul></li>
-  <li><a href="#choosing-the-threshold-a-clinical-decision" id="toc-choosing-the-threshold-a-clinical-decision" class="nav-link" data-scroll-target="#choosing-the-threshold-a-clinical-decision"><span class="header-section-number">16.8</span> Choosing the Threshold: A Clinical Decision</a>
+  <li><a href="#choosing-the-threshold-a-clinical-decision" id="toc-choosing-the-threshold-a-clinical-decision" class="nav-link" data-scroll-target="#choosing-the-threshold-a-clinical-decision"><span class="header-section-number">14.8</span> Choosing the Threshold: A Clinical Decision</a>
   <ul class="collapse">
-  <li><a href="#the-threshold-performance-trade-off" id="toc-the-threshold-performance-trade-off" class="nav-link" data-scroll-target="#the-threshold-performance-trade-off"><span class="header-section-number">16.8.1</span> The Threshold-Performance Trade-off</a></li>
+  <li><a href="#the-threshold-performance-trade-off" id="toc-the-threshold-performance-trade-off" class="nav-link" data-scroll-target="#the-threshold-performance-trade-off"><span class="header-section-number">14.8.1</span> The Threshold-Performance Trade-off</a></li>
   </ul></li>
-  <li><a href="#fairness-does-the-model-work-for-everyone" id="toc-fairness-does-the-model-work-for-everyone" class="nav-link" data-scroll-target="#fairness-does-the-model-work-for-everyone"><span class="header-section-number">16.9</span> Fairness: Does the Model Work for Everyone?</a>
+  <li><a href="#fairness-does-the-model-work-for-everyone" id="toc-fairness-does-the-model-work-for-everyone" class="nav-link" data-scroll-target="#fairness-does-the-model-work-for-everyone"><span class="header-section-number">14.9</span> Fairness: Does the Model Work for Everyone?</a>
   <ul class="collapse">
-  <li><a href="#key-fairness-concepts" id="toc-key-fairness-concepts" class="nav-link" data-scroll-target="#key-fairness-concepts"><span class="header-section-number">16.9.1</span> Key Fairness Concepts</a></li>
-  <li><a href="#exercise-evaluating-fairness" id="toc-exercise-evaluating-fairness" class="nav-link" data-scroll-target="#exercise-evaluating-fairness"><span class="header-section-number">16.9.2</span> Exercise: Evaluating Fairness</a></li>
+  <li><a href="#key-fairness-concepts" id="toc-key-fairness-concepts" class="nav-link" data-scroll-target="#key-fairness-concepts"><span class="header-section-number">14.9.1</span> Key Fairness Concepts</a></li>
+  <li><a href="#exercise-evaluating-fairness" id="toc-exercise-evaluating-fairness" class="nav-link" data-scroll-target="#exercise-evaluating-fairness"><span class="header-section-number">14.9.2</span> Exercise: Evaluating Fairness</a></li>
   </ul></li>
-  <li><a href="#putting-it-all-together-a-complete-evaluation" id="toc-putting-it-all-together-a-complete-evaluation" class="nav-link" data-scroll-target="#putting-it-all-together-a-complete-evaluation"><span class="header-section-number">16.10</span> Putting It All Together: A Complete Evaluation</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">16.11</span> Summary</a></li>
-  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">16.12</span> References and Further Reading</a></li>
+  <li><a href="#putting-it-all-together-a-complete-evaluation" id="toc-putting-it-all-together-a-complete-evaluation" class="nav-link" data-scroll-target="#putting-it-all-together-a-complete-evaluation"><span class="header-section-number">14.10</span> Putting It All Together: A Complete Evaluation</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">14.11</span> Summary</a></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">14.12</span> References and Further Reading</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/edit/main/chapters/09_model_evaluation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/blob/main/chapters/09_model_evaluation.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/09_model_evaluation.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/07_ml_foundations.html">Introduction to Machine Learning</a></li><li class="breadcrumb-item"><a href="../chapters/09_model_evaluation.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></a></li></ol></nav>
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title"><span id="sec-model-evaluation" class="quarto-section-identifier"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-model-evaluation" class="quarto-section-identifier"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 </div>
 
 
@@ -533,13 +533,13 @@ window.Quarto = {
 </header>
 
 
-<section id="introduction" class="level2" data-number="16.1">
-<h2 data-number="16.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">16.1</span> Introduction</h2>
+<section id="introduction" class="level2" data-number="14.1">
+<h2 data-number="14.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">14.1</span> Introduction</h2>
 <p>You have built a model. It produces predictions. But how do you know if those predictions are any good? The answer is not as simple as asking “how often is it right?” In clinical medicine, the consequences of different types of errors are rarely symmetric, the outcomes we care about are often rare, and the population we apply a model to may look nothing like the population we trained it on. This chapter introduces the core concepts and tools for evaluating the performance of classification models, with a focus on clinical prediction.</p>
 <p>We will move beyond the seductive simplicity of “accuracy” and learn to ask better questions: Does the model separate sick from well? Are the predicted probabilities trustworthy? Would using this model actually help patients? And does it help all patients equally?</p>
 </section>
-<section id="the-accuracy-trap" class="level2" data-number="16.2">
-<h2 data-number="16.2" class="anchored" data-anchor-id="the-accuracy-trap"><span class="header-section-number">16.2</span> The Accuracy Trap</h2>
+<section id="the-accuracy-trap" class="level2" data-number="14.2">
+<h2 data-number="14.2" class="anchored" data-anchor-id="the-accuracy-trap"><span class="header-section-number">14.2</span> The Accuracy Trap</h2>
 <p>Consider the following scenario. You are developing a model to predict a rare but serious condition — say, pancreatic cancer — in a primary care population. The prevalence is approximately 0.1%. You build a classifier and proudly report 99.9% accuracy. Your colleague, less impressed, points out that a model which simply predicts “no cancer” for every single patient would also achieve 99.9% accuracy. It would miss every true case, which is the entire point of the exercise, but its accuracy would be nearly perfect.</p>
 <p>This is the <strong>accuracy paradox</strong>: when outcomes are imbalanced, accuracy becomes meaningless because it is dominated by the majority class. In clinical medicine, outcomes are almost always imbalanced. Most people do not have the disease you are screening for. Most surgical patients do not die within 30 days. Most pregnancies do not result in pre-eclampsia. A metric that ignores the structure of errors is not useful for clinical decision-making.</p>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -556,16 +556,16 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="sensitivity-and-specificity" class="level2" data-number="16.3">
-<h2 data-number="16.3" class="anchored" data-anchor-id="sensitivity-and-specificity"><span class="header-section-number">16.3</span> Sensitivity and Specificity</h2>
+<section id="sensitivity-and-specificity" class="level2" data-number="14.3">
+<h2 data-number="14.3" class="anchored" data-anchor-id="sensitivity-and-specificity"><span class="header-section-number">14.3</span> Sensitivity and Specificity</h2>
 <p>The most fundamental decomposition of model performance separates its behaviour in two groups: those who truly have the condition and those who do not.</p>
 <p><strong>Sensitivity</strong> (also called recall or the true positive rate) answers: among everyone who truly has the disease, what proportion did the model correctly identify?</p>
 <p><span class="math display">\[\text{Sensitivity} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}\]</span></p>
 <p><strong>Specificity</strong> (the true negative rate) answers: among everyone who is truly disease-free, what proportion did the model correctly identify as negative?</p>
 <p><span class="math display">\[\text{Specificity} = \frac{\text{True Negatives}}{\text{True Negatives} + \text{False Positives}}\]</span></p>
 <p>These two metrics are properties of the <strong>test itself</strong> and do not depend on the prevalence of the disease in the population. This makes them useful for describing a test’s intrinsic discriminative ability.</p>
-<section id="clinical-context-screening-vs-confirmation" class="level3" data-number="16.3.1">
-<h3 data-number="16.3.1" class="anchored" data-anchor-id="clinical-context-screening-vs-confirmation"><span class="header-section-number">16.3.1</span> Clinical Context: Screening vs Confirmation</h3>
+<section id="clinical-context-screening-vs-confirmation" class="level3" data-number="14.3.1">
+<h3 data-number="14.3.1" class="anchored" data-anchor-id="clinical-context-screening-vs-confirmation"><span class="header-section-number">14.3.1</span> Clinical Context: Screening vs Confirmation</h3>
 <p>The relative importance of sensitivity and specificity depends on the clinical purpose:</p>
 <ul>
 <li><p><strong>Screening tests</strong> (e.g., mammography for breast cancer, the PHQ-2 for depression) prioritise <strong>high sensitivity</strong>. The goal is to catch as many true cases as possible. We accept more false positives because the next step is a confirmatory test, not treatment. Missing a case (false negative) is the costly error.</p></li>
@@ -586,8 +586,8 @@ window.Quarto = {
 </div>
 </section>
 </section>
-<section id="predictive-values-when-prevalence-matters" class="level2" data-number="16.4">
-<h2 data-number="16.4" class="anchored" data-anchor-id="predictive-values-when-prevalence-matters"><span class="header-section-number">16.4</span> Predictive Values: When Prevalence Matters</h2>
+<section id="predictive-values-when-prevalence-matters" class="level2" data-number="14.4">
+<h2 data-number="14.4" class="anchored" data-anchor-id="predictive-values-when-prevalence-matters"><span class="header-section-number">14.4</span> Predictive Values: When Prevalence Matters</h2>
 <p>While sensitivity and specificity describe the test, clinicians and patients need to answer a different question: given my test result, what is the probability I actually have the disease?</p>
 <p><strong>Positive Predictive Value (PPV)</strong>: among everyone who tested positive, what proportion truly has the disease?</p>
 <p><span class="math display">\[\text{PPV} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}\]</span></p>
@@ -597,7 +597,7 @@ window.Quarto = {
 <div id="tbl-ppv-prevalence" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppv-prevalence-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;16.1: PPV and NPV for a test with 95% sensitivity and 95% specificity at different prevalence levels.
+Table&nbsp;14.1: PPV and NPV for a test with 95% sensitivity and 95% specificity at different prevalence levels.
 </figcaption>
 <div aria-describedby="tbl-ppv-prevalence-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -635,8 +635,8 @@ Table&nbsp;16.1: PPV and NPV for a test with 95% sensitivity and 95% specificity
 </figure>
 </div>
 <p>At 0.1% prevalence, even with an excellent test, fewer than 2% of positive results are true positives. This is why mass screening for rare diseases generates so many false alarms, and why testing should be targeted to higher-risk populations whenever possible.</p>
-<section id="exercise-bayes-theorem-in-practice" class="level3" data-number="16.4.1">
-<h3 data-number="16.4.1" class="anchored" data-anchor-id="exercise-bayes-theorem-in-practice"><span class="header-section-number">16.4.1</span> Exercise: Bayes’ Theorem in Practice</h3>
+<section id="exercise-bayes-theorem-in-practice" class="level3" data-number="14.4.1">
+<h3 data-number="14.4.1" class="anchored" data-anchor-id="exercise-bayes-theorem-in-practice"><span class="header-section-number">14.4.1</span> Exercise: Bayes’ Theorem in Practice</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="" aria-current="page">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -725,8 +725,8 @@ Table&nbsp;16.1: PPV and NPV for a test with 95% sensitivity and 95% specificity
 </div>
 </section>
 </section>
-<section id="the-confusion-matrix" class="level2" data-number="16.5">
-<h2 data-number="16.5" class="anchored" data-anchor-id="the-confusion-matrix"><span class="header-section-number">16.5</span> The Confusion Matrix</h2>
+<section id="the-confusion-matrix" class="level2" data-number="14.5">
+<h2 data-number="14.5" class="anchored" data-anchor-id="the-confusion-matrix"><span class="header-section-number">14.5</span> The Confusion Matrix</h2>
 <p>A <strong>confusion matrix</strong> is the fundamental bookkeeping device for classification evaluation. For a binary outcome, it is a 2x2 table that cross-classifies predictions against truth:</p>
 <table class="caption-top table">
 <thead>
@@ -750,8 +750,8 @@ Table&nbsp;16.1: PPV and NPV for a test with 95% sensitivity and 95% specificity
 </tbody>
 </table>
 <p>Every metric discussed in this chapter can be derived from this table. The crucial insight is that a single model can produce <strong>different</strong> confusion matrices depending on the <strong>threshold</strong> you choose for classifying a predicted probability as “positive” or “negative.”</p>
-<section id="building-and-inspecting-confusion-matrices" class="level3" data-number="16.5.1">
-<h3 data-number="16.5.1" class="anchored" data-anchor-id="building-and-inspecting-confusion-matrices"><span class="header-section-number">16.5.1</span> Building and Inspecting Confusion Matrices</h3>
+<section id="building-and-inspecting-confusion-matrices" class="level3" data-number="14.5.1">
+<h3 data-number="14.5.1" class="anchored" data-anchor-id="building-and-inspecting-confusion-matrices"><span class="header-section-number">14.5.1</span> Building and Inspecting Confusion Matrices</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -820,11 +820,11 @@ Table&nbsp;16.1: PPV and NPV for a test with 95% sensitivity and 95% specificity
 </div>
 </section>
 </section>
-<section id="roc-curves" class="level2" data-number="16.6">
-<h2 data-number="16.6" class="anchored" data-anchor-id="roc-curves"><span class="header-section-number">16.6</span> ROC Curves</h2>
+<section id="roc-curves" class="level2" data-number="14.6">
+<h2 data-number="14.6" class="anchored" data-anchor-id="roc-curves"><span class="header-section-number">14.6</span> ROC Curves</h2>
 <p>The <strong>Receiver Operating Characteristic (ROC) curve</strong> is perhaps the most widely used graphical tool for evaluating classification models. It plots sensitivity (true positive rate) on the y-axis against 1 minus specificity (false positive rate) on the x-axis, tracing out the trade-off as the classification threshold varies from 1 to 0.</p>
-<section id="how-to-read-an-roc-curve" class="level3" data-number="16.6.1">
-<h3 data-number="16.6.1" class="anchored" data-anchor-id="how-to-read-an-roc-curve"><span class="header-section-number">16.6.1</span> How to Read an ROC Curve</h3>
+<section id="how-to-read-an-roc-curve" class="level3" data-number="14.6.1">
+<h3 data-number="14.6.1" class="anchored" data-anchor-id="how-to-read-an-roc-curve"><span class="header-section-number">14.6.1</span> How to Read an ROC Curve</h3>
 <ul>
 <li>The <strong>diagonal line</strong> from (0,0) to (1,1) represents a model with no discriminative ability — equivalent to flipping a coin.</li>
 <li>A curve that bows toward the <strong>upper-left corner</strong> indicates good discrimination. The model achieves high sensitivity without sacrificing too much specificity.</li>
@@ -833,7 +833,7 @@ Table&nbsp;16.1: PPV and NPV for a test with 95% sensitivity and 95% specificity
 <div id="tbl-auc-benchmarks" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-auc-benchmarks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context-dependent.
+Table&nbsp;14.2: Rough guide to AUC interpretation. These benchmarks are context-dependent.
 </figcaption>
 <div aria-describedby="tbl-auc-benchmarks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -883,8 +883,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </div>
 </div>
 </section>
-<section id="plotting-roc-curves" class="level3" data-number="16.6.2">
-<h3 data-number="16.6.2" class="anchored" data-anchor-id="plotting-roc-curves"><span class="header-section-number">16.6.2</span> Plotting ROC Curves</h3>
+<section id="plotting-roc-curves" class="level3" data-number="14.6.2">
+<h3 data-number="14.6.2" class="anchored" data-anchor-id="plotting-roc-curves"><span class="header-section-number">14.6.2</span> Plotting ROC Curves</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -962,8 +962,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </div>
 </section>
 </section>
-<section id="precision-recall-curves" class="level2" data-number="16.7">
-<h2 data-number="16.7" class="anchored" data-anchor-id="precision-recall-curves"><span class="header-section-number">16.7</span> Precision-Recall Curves</h2>
+<section id="precision-recall-curves" class="level2" data-number="14.7">
+<h2 data-number="14.7" class="anchored" data-anchor-id="precision-recall-curves"><span class="header-section-number">14.7</span> Precision-Recall Curves</h2>
 <p>When outcomes are highly imbalanced — as they often are in clinical prediction — ROC curves can paint an overly optimistic picture. Because specificity is calculated over the large number of true negatives, even a substantial number of false positives barely moves the false positive rate. The <strong>precision-recall (PR) curve</strong> addresses this by focusing entirely on the positive class.</p>
 <ul>
 <li><strong>Precision</strong> (= PPV): of all predicted positives, how many are truly positive?</li>
@@ -971,8 +971,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </ul>
 <p>The PR curve plots precision on the y-axis against recall on the x-axis. A good model maintains high precision even as recall increases. The baseline for a PR curve is a horizontal line at the prevalence level (not the diagonal, as for ROC).</p>
 <p>The <strong>Area Under the Precision-Recall Curve (AUPRC)</strong> is a useful summary, particularly for rare outcomes. While a model may boast an AUC-ROC of 0.95, its AUPRC might reveal that achieving high recall requires accepting very low precision.</p>
-<section id="exercise-comparing-roc-and-pr-curves" class="level3" data-number="16.7.1">
-<h3 data-number="16.7.1" class="anchored" data-anchor-id="exercise-comparing-roc-and-pr-curves"><span class="header-section-number">16.7.1</span> Exercise: Comparing ROC and PR Curves</h3>
+<section id="exercise-comparing-roc-and-pr-curves" class="level3" data-number="14.7.1">
+<h3 data-number="14.7.1" class="anchored" data-anchor-id="exercise-comparing-roc-and-pr-curves"><span class="header-section-number">14.7.1</span> Exercise: Comparing ROC and PR Curves</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -1053,8 +1053,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </div>
 </section>
 </section>
-<section id="choosing-the-threshold-a-clinical-decision" class="level2" data-number="16.8">
-<h2 data-number="16.8" class="anchored" data-anchor-id="choosing-the-threshold-a-clinical-decision"><span class="header-section-number">16.8</span> Choosing the Threshold: A Clinical Decision</h2>
+<section id="choosing-the-threshold-a-clinical-decision" class="level2" data-number="14.8">
+<h2 data-number="14.8" class="anchored" data-anchor-id="choosing-the-threshold-a-clinical-decision"><span class="header-section-number">14.8</span> Choosing the Threshold: A Clinical Decision</h2>
 <p>A prediction model typically outputs a probability. To make a binary decision (treat or don’t treat, refer or don’t refer), you must choose a <strong>threshold</strong>. This is fundamentally a <strong>clinical</strong> decision, not a statistical one.</p>
 <p>Consider a model predicting 30-day mortality after surgery:</p>
 <ul>
@@ -1075,8 +1075,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 <p>Youden’s J statistic (sensitivity + specificity - 1) finds the threshold that maximises the sum of sensitivity and specificity. This implicitly assumes equal costs for false positives and false negatives — an assumption that is rarely true in medicine. Use Youden’s index as a starting point, but always adjust based on clinical reasoning.</p>
 </div>
 </div>
-<section id="the-threshold-performance-trade-off" class="level3" data-number="16.8.1">
-<h3 data-number="16.8.1" class="anchored" data-anchor-id="the-threshold-performance-trade-off"><span class="header-section-number">16.8.1</span> The Threshold-Performance Trade-off</h3>
+<section id="the-threshold-performance-trade-off" class="level3" data-number="14.8.1">
+<h3 data-number="14.8.1" class="anchored" data-anchor-id="the-threshold-performance-trade-off"><span class="header-section-number">14.8.1</span> The Threshold-Performance Trade-off</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -1153,20 +1153,20 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </div>
 </section>
 </section>
-<section id="fairness-does-the-model-work-for-everyone" class="level2" data-number="16.9">
-<h2 data-number="16.9" class="anchored" data-anchor-id="fairness-does-the-model-work-for-everyone"><span class="header-section-number">16.9</span> Fairness: Does the Model Work for Everyone?</h2>
+<section id="fairness-does-the-model-work-for-everyone" class="level2" data-number="14.9">
+<h2 data-number="14.9" class="anchored" data-anchor-id="fairness-does-the-model-work-for-everyone"><span class="header-section-number">14.9</span> Fairness: Does the Model Work for Everyone?</h2>
 <p>A model that performs well on average may perform very differently across subgroups defined by age, sex, race, ethnicity, or socioeconomic status. This is not a theoretical concern — it has been documented repeatedly in clinical prediction models.</p>
 <p>A well-known example is the pulse oximeter, which systematically overestimates blood oxygen saturation in patients with darker skin pigmentation. Prediction models trained on predominantly White populations may have lower sensitivity for detecting disease in Black or Hispanic patients, potentially widening existing health disparities.</p>
-<section id="key-fairness-concepts" class="level3" data-number="16.9.1">
-<h3 data-number="16.9.1" class="anchored" data-anchor-id="key-fairness-concepts"><span class="header-section-number">16.9.1</span> Key Fairness Concepts</h3>
+<section id="key-fairness-concepts" class="level3" data-number="14.9.1">
+<h3 data-number="14.9.1" class="anchored" data-anchor-id="key-fairness-concepts"><span class="header-section-number">14.9.1</span> Key Fairness Concepts</h3>
 <ul>
 <li><strong>Equal performance</strong>: Does the model have similar sensitivity and specificity across demographic groups?</li>
 <li><strong>Calibration fairness</strong>: Are predicted probabilities equally well-calibrated in each group? A model might predict 20% risk for two groups, but if the actual event rate is 20% in one group and 30% in another, the model is miscalibrated for the latter.</li>
 <li><strong>Demographic parity</strong>: Are positive predictions made at similar rates across groups? (Note: this may conflict with calibration if true prevalence differs.)</li>
 </ul>
 </section>
-<section id="exercise-evaluating-fairness" class="level3" data-number="16.9.2">
-<h3 data-number="16.9.2" class="anchored" data-anchor-id="exercise-evaluating-fairness"><span class="header-section-number">16.9.2</span> Exercise: Evaluating Fairness</h3>
+<section id="exercise-evaluating-fairness" class="level3" data-number="14.9.2">
+<h3 data-number="14.9.2" class="anchored" data-anchor-id="exercise-evaluating-fairness"><span class="header-section-number">14.9.2</span> Exercise: Evaluating Fairness</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -1256,8 +1256,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </div>
 </section>
 </section>
-<section id="putting-it-all-together-a-complete-evaluation" class="level2" data-number="16.10">
-<h2 data-number="16.10" class="anchored" data-anchor-id="putting-it-all-together-a-complete-evaluation"><span class="header-section-number">16.10</span> Putting It All Together: A Complete Evaluation</h2>
+<section id="putting-it-all-together-a-complete-evaluation" class="level2" data-number="14.10">
+<h2 data-number="14.10" class="anchored" data-anchor-id="putting-it-all-together-a-complete-evaluation"><span class="header-section-number">14.10</span> Putting It All Together: A Complete Evaluation</h2>
 <p>When evaluating a clinical prediction model, no single metric tells the whole story. The following checklist summarises what you should report:</p>
 <ol type="1">
 <li><strong>Sample description</strong>: How many patients? How many events? What is the prevalence?</li>
@@ -1282,8 +1282,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 </div>
 </div>
 </section>
-<section id="summary" class="level2" data-number="16.11">
-<h2 data-number="16.11" class="anchored" data-anchor-id="summary"><span class="header-section-number">16.11</span> Summary</h2>
+<section id="summary" class="level2" data-number="14.11">
+<h2 data-number="14.11" class="anchored" data-anchor-id="summary"><span class="header-section-number">14.11</span> Summary</h2>
 <ul>
 <li><strong>Accuracy</strong> is misleading for imbalanced outcomes; decompose errors into sensitivity and specificity.</li>
 <li><strong>Sensitivity</strong> matters most for screening; <strong>specificity</strong> matters most for confirmation.</li>
@@ -1294,8 +1294,8 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
 <li><strong>Fairness</strong> requires checking that model performance is consistent across demographic groups.</li>
 </ul>
 </section>
-<section id="references-and-further-reading" class="level2" data-number="16.12">
-<h2 data-number="16.12" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">16.12</span> References and Further Reading</h2>
+<section id="references-and-further-reading" class="level2" data-number="14.12">
+<h2 data-number="14.12" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">14.12</span> References and Further Reading</h2>
 <p>The foundational concepts of sensitivity, specificity, and predictive values are covered in every epidemiology textbook, but their application to prediction models requires additional nuance. Van Calster and colleagues provide an excellent overview of performance assessment in their 2025 paper in The Lancet Digital Health, which organises evaluation into five domains: discrimination, calibration, overall performance, classification, and clinical utility. This framework is essential reading for anyone developing or evaluating clinical prediction models. The comprehensive textbook by Smits, van Kuijk, and Wynants (2026) devotes several chapters to model evaluation and provides practical guidance on choosing appropriate metrics for different clinical contexts. For the statistical foundations of ROC analysis, the classic text by Pepe (2003), “The Statistical Evaluation of Medical Tests for Classification and Prediction,” remains the definitive reference. Saito and Rehmsmeier (2015) explain why precision-recall curves are preferable to ROC curves for imbalanced datasets in their paper “The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets” in PLOS ONE. On the topic of fairness in clinical prediction, Obermeyer and colleagues published a landmark 2019 paper in Science demonstrating racial bias in a widely used healthcare algorithm, which is required reading for anyone working in this space. Vickers and Elkin (2006) introduced decision curve analysis and net benefit as tools for evaluating clinical utility, which we discuss further in the next chapter.</p>
 
 
@@ -1757,13 +1757,13 @@ Table&nbsp;16.2: Rough guide to AUC interpretation. These benchmarks are context
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../chapters/08b_introduction_to_deep_learning.html" class="pagination-link" aria-label="Introduction to Deep Learning for Health Research">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span>
+      <a href="../chapters/08b_introduction_to_deep_learning.html" class="pagination-link" aria-label="Introduction to Neural Networks">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Introduction to Neural Networks</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../chapters/10_building_prediction_models.html" class="pagination-link" aria-label="Developing Clinical Prediction Models: A Complete Workflow">
-        <span class="nav-page-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Developing Clinical Prediction Models: A Complete Workflow</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../chapters/15_dimensionality_reduction.html" class="pagination-link" aria-label="PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data">
+        <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">

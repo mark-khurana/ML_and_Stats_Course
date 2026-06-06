@@ -6,6 +6,11 @@ library(tidyverse)
 library(knitr)
 ```
 
+::: {.callout-tip}
+## Prerequisites
+This chapter assumes you are comfortable with: (1) probability and Bayes' theorem from Chapter 1, (2) basic R or Python programming from Chapter 0, and (3) the regression concepts from Chapters 3--5. If Bayes' theorem feels unfamiliar, review Section 1.4 before continuing.
+:::
+
 ## Introduction
 
 You have now completed the core statistical methods that form the backbone of most clinical research: regression, splines, penalised regression, and survival analysis. All of these methods share a common philosophical framework --- they are **frequentist**. In this part of the course, we step back to explore a fundamentally different way of thinking about evidence.

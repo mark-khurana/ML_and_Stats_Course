@@ -1,4 +1,4 @@
-# Introduction to Deep Learning for Health Research {#sec-deep-learning}
+# Introduction to Neural Networks {#sec-deep-learning}
 
 ```{r}
 #| label: setup-dl

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>12&nbsp; Clustering: Discovering Patient Subgroups – Advanced Statistics and Machine Learning for Health Research</title>
+<title>16&nbsp; Clustering: Discovering Patient Subgroups – Advanced Statistics and Machine Learning for Health Research</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../chapters/07_ml_foundations.html" rel="next">
+<link href="../chapters/10_building_prediction_models.html" rel="next">
 <link href="../chapters/15_dimensionality_reduction.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -139,11 +139,11 @@ window.Quarto = {
 };
 </script>
 
-<meta property="og:title" content="12&nbsp; Clustering: Discovering Patient Subgroups – Advanced Statistics and Machine Learning for Health Research">
+<meta property="og:title" content="16&nbsp; Clustering: Discovering Patient Subgroups – Advanced Statistics and Machine Learning for Health Research">
 <meta property="og:description" content="">
 <meta property="og:image" content="assets/social-preview.png">
 <meta property="og:site_name" content="Advanced Statistics and Machine Learning for Health Research">
-<meta name="twitter:title" content="12&nbsp; Clustering: Discovering Patient Subgroups – Advanced Statistics and Machine Learning for Health Research">
+<meta name="twitter:title" content="16&nbsp; Clustering: Discovering Patient Subgroups – Advanced Statistics and Machine Learning for Health Research">
 <meta name="twitter:description" content="">
 <meta name="twitter:image" content="assets/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -158,7 +158,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/15_dimensionality_reduction.html">Dimensionality Reduction and Unsupervised Learning</a></li><li class="breadcrumb-item"><a href="../chapters/16_clustering.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/15_dimensionality_reduction.html">Dimensionality Reduction and Unsupervised Learning</a></li><li class="breadcrumb-item"><a href="../chapters/16_clustering.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -308,58 +308,58 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
- <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Introduction to Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
+  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
+  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Introduction to Neural Networks</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
- <span class="menu-text">Introduction to Machine Learning</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
+  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
+  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
   </div>
 </li>
       </ul>
@@ -473,56 +473,56 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">12.1</span> Introduction</a></li>
-  <li><a href="#k-means-clustering" id="toc-k-means-clustering" class="nav-link" data-scroll-target="#k-means-clustering"><span class="header-section-number">12.2</span> K-Means Clustering</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">16.1</span> Introduction</a></li>
+  <li><a href="#k-means-clustering" id="toc-k-means-clustering" class="nav-link" data-scroll-target="#k-means-clustering"><span class="header-section-number">16.2</span> K-Means Clustering</a>
   <ul class="collapse">
-  <li><a href="#the-algorithm" id="toc-the-algorithm" class="nav-link" data-scroll-target="#the-algorithm"><span class="header-section-number">12.2.1</span> The Algorithm</a></li>
-  <li><a href="#choosing-k-elbow-method-silhouette-scores-gap-statistic" id="toc-choosing-k-elbow-method-silhouette-scores-gap-statistic" class="nav-link" data-scroll-target="#choosing-k-elbow-method-silhouette-scores-gap-statistic"><span class="header-section-number">12.2.2</span> Choosing K: Elbow Method, Silhouette Scores, Gap Statistic</a></li>
-  <li><a href="#limitations-of-k-means" id="toc-limitations-of-k-means" class="nav-link" data-scroll-target="#limitations-of-k-means"><span class="header-section-number">12.2.3</span> Limitations of K-Means</a></li>
-  <li><a href="#clinical-example-patient-phenotyping-from-lab-data" id="toc-clinical-example-patient-phenotyping-from-lab-data" class="nav-link" data-scroll-target="#clinical-example-patient-phenotyping-from-lab-data"><span class="header-section-number">12.2.4</span> Clinical Example: Patient Phenotyping from Lab Data</a></li>
+  <li><a href="#the-algorithm" id="toc-the-algorithm" class="nav-link" data-scroll-target="#the-algorithm"><span class="header-section-number">16.2.1</span> The Algorithm</a></li>
+  <li><a href="#choosing-k-elbow-method-silhouette-scores-gap-statistic" id="toc-choosing-k-elbow-method-silhouette-scores-gap-statistic" class="nav-link" data-scroll-target="#choosing-k-elbow-method-silhouette-scores-gap-statistic"><span class="header-section-number">16.2.2</span> Choosing K: Elbow Method, Silhouette Scores, Gap Statistic</a></li>
+  <li><a href="#limitations-of-k-means" id="toc-limitations-of-k-means" class="nav-link" data-scroll-target="#limitations-of-k-means"><span class="header-section-number">16.2.3</span> Limitations of K-Means</a></li>
+  <li><a href="#clinical-example-patient-phenotyping-from-lab-data" id="toc-clinical-example-patient-phenotyping-from-lab-data" class="nav-link" data-scroll-target="#clinical-example-patient-phenotyping-from-lab-data"><span class="header-section-number">16.2.4</span> Clinical Example: Patient Phenotyping from Lab Data</a></li>
   </ul></li>
-  <li><a href="#hierarchical-clustering" id="toc-hierarchical-clustering" class="nav-link" data-scroll-target="#hierarchical-clustering"><span class="header-section-number">12.3</span> Hierarchical Clustering</a>
+  <li><a href="#hierarchical-clustering" id="toc-hierarchical-clustering" class="nav-link" data-scroll-target="#hierarchical-clustering"><span class="header-section-number">16.3</span> Hierarchical Clustering</a>
   <ul class="collapse">
-  <li><a href="#agglomerative-bottom-up-clustering" id="toc-agglomerative-bottom-up-clustering" class="nav-link" data-scroll-target="#agglomerative-bottom-up-clustering"><span class="header-section-number">12.3.1</span> Agglomerative (Bottom-Up) Clustering</a></li>
-  <li><a href="#linkage-methods" id="toc-linkage-methods" class="nav-link" data-scroll-target="#linkage-methods"><span class="header-section-number">12.3.2</span> Linkage Methods</a></li>
-  <li><a href="#reading-a-dendrogram" id="toc-reading-a-dendrogram" class="nav-link" data-scroll-target="#reading-a-dendrogram"><span class="header-section-number">12.3.3</span> Reading a Dendrogram</a></li>
+  <li><a href="#agglomerative-bottom-up-clustering" id="toc-agglomerative-bottom-up-clustering" class="nav-link" data-scroll-target="#agglomerative-bottom-up-clustering"><span class="header-section-number">16.3.1</span> Agglomerative (Bottom-Up) Clustering</a></li>
+  <li><a href="#linkage-methods" id="toc-linkage-methods" class="nav-link" data-scroll-target="#linkage-methods"><span class="header-section-number">16.3.2</span> Linkage Methods</a></li>
+  <li><a href="#reading-a-dendrogram" id="toc-reading-a-dendrogram" class="nav-link" data-scroll-target="#reading-a-dendrogram"><span class="header-section-number">16.3.3</span> Reading a Dendrogram</a></li>
   </ul></li>
-  <li><a href="#dbscan-density-based-clustering" id="toc-dbscan-density-based-clustering" class="nav-link" data-scroll-target="#dbscan-density-based-clustering"><span class="header-section-number">12.4</span> DBSCAN: Density-Based Clustering</a>
+  <li><a href="#dbscan-density-based-clustering" id="toc-dbscan-density-based-clustering" class="nav-link" data-scroll-target="#dbscan-density-based-clustering"><span class="header-section-number">16.4</span> DBSCAN: Density-Based Clustering</a>
   <ul class="collapse">
-  <li><a href="#when-k-means-fails" id="toc-when-k-means-fails" class="nav-link" data-scroll-target="#when-k-means-fails"><span class="header-section-number">12.4.1</span> When K-Means Fails</a></li>
-  <li><a href="#how-it-works" id="toc-how-it-works" class="nav-link" data-scroll-target="#how-it-works"><span class="header-section-number">12.4.2</span> How It Works</a></li>
-  <li><a href="#advantages-and-limitations" id="toc-advantages-and-limitations" class="nav-link" data-scroll-target="#advantages-and-limitations"><span class="header-section-number">12.4.3</span> Advantages and Limitations</a></li>
+  <li><a href="#when-k-means-fails" id="toc-when-k-means-fails" class="nav-link" data-scroll-target="#when-k-means-fails"><span class="header-section-number">16.4.1</span> When K-Means Fails</a></li>
+  <li><a href="#how-it-works" id="toc-how-it-works" class="nav-link" data-scroll-target="#how-it-works"><span class="header-section-number">16.4.2</span> How It Works</a></li>
+  <li><a href="#advantages-and-limitations" id="toc-advantages-and-limitations" class="nav-link" data-scroll-target="#advantages-and-limitations"><span class="header-section-number">16.4.3</span> Advantages and Limitations</a></li>
   </ul></li>
-  <li><a href="#cluster-validation" id="toc-cluster-validation" class="nav-link" data-scroll-target="#cluster-validation"><span class="header-section-number">12.5</span> Cluster Validation</a>
+  <li><a href="#cluster-validation" id="toc-cluster-validation" class="nav-link" data-scroll-target="#cluster-validation"><span class="header-section-number">16.5</span> Cluster Validation</a>
   <ul class="collapse">
-  <li><a href="#internal-metrics" id="toc-internal-metrics" class="nav-link" data-scroll-target="#internal-metrics"><span class="header-section-number">12.5.1</span> Internal Metrics</a></li>
-  <li><a href="#stability-based-validation" id="toc-stability-based-validation" class="nav-link" data-scroll-target="#stability-based-validation"><span class="header-section-number">12.5.2</span> Stability-Based Validation</a></li>
+  <li><a href="#internal-metrics" id="toc-internal-metrics" class="nav-link" data-scroll-target="#internal-metrics"><span class="header-section-number">16.5.1</span> Internal Metrics</a></li>
+  <li><a href="#stability-based-validation" id="toc-stability-based-validation" class="nav-link" data-scroll-target="#stability-based-validation"><span class="header-section-number">16.5.2</span> Stability-Based Validation</a></li>
   </ul></li>
-  <li><a href="#clinical-applications" id="toc-clinical-applications" class="nav-link" data-scroll-target="#clinical-applications"><span class="header-section-number">12.6</span> Clinical Applications</a>
+  <li><a href="#clinical-applications" id="toc-clinical-applications" class="nav-link" data-scroll-target="#clinical-applications"><span class="header-section-number">16.6</span> Clinical Applications</a>
   <ul class="collapse">
-  <li><a href="#patient-phenotyping" id="toc-patient-phenotyping" class="nav-link" data-scroll-target="#patient-phenotyping"><span class="header-section-number">12.6.1</span> Patient Phenotyping</a></li>
-  <li><a href="#disease-subtyping-from-lab-panels" id="toc-disease-subtyping-from-lab-panels" class="nav-link" data-scroll-target="#disease-subtyping-from-lab-panels"><span class="header-section-number">12.6.2</span> Disease Subtyping from Lab Panels</a></li>
+  <li><a href="#patient-phenotyping" id="toc-patient-phenotyping" class="nav-link" data-scroll-target="#patient-phenotyping"><span class="header-section-number">16.6.1</span> Patient Phenotyping</a></li>
+  <li><a href="#disease-subtyping-from-lab-panels" id="toc-disease-subtyping-from-lab-panels" class="nav-link" data-scroll-target="#disease-subtyping-from-lab-panels"><span class="header-section-number">16.6.2</span> Disease Subtyping from Lab Panels</a></li>
   </ul></li>
-  <li><a href="#integrating-clustering-with-pcaumap" id="toc-integrating-clustering-with-pcaumap" class="nav-link" data-scroll-target="#integrating-clustering-with-pcaumap"><span class="header-section-number">12.7</span> Integrating Clustering with PCA/UMAP</a></li>
-  <li><a href="#cautionary-notes" id="toc-cautionary-notes" class="nav-link" data-scroll-target="#cautionary-notes"><span class="header-section-number">12.8</span> Cautionary Notes</a></li>
-  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">12.9</span> Exercises</a>
+  <li><a href="#integrating-clustering-with-pcaumap" id="toc-integrating-clustering-with-pcaumap" class="nav-link" data-scroll-target="#integrating-clustering-with-pcaumap"><span class="header-section-number">16.7</span> Integrating Clustering with PCA/UMAP</a></li>
+  <li><a href="#cautionary-notes" id="toc-cautionary-notes" class="nav-link" data-scroll-target="#cautionary-notes"><span class="header-section-number">16.8</span> Cautionary Notes</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">16.9</span> Exercises</a>
   <ul class="collapse">
-  <li><a href="#exercise-1-k-means-on-simulated-patient-data" id="toc-exercise-1-k-means-on-simulated-patient-data" class="nav-link" data-scroll-target="#exercise-1-k-means-on-simulated-patient-data"><span class="header-section-number">12.9.1</span> Exercise 1: K-Means on Simulated Patient Data</a></li>
-  <li><a href="#exercise-2-hierarchical-clustering-with-different-linkage-methods" id="toc-exercise-2-hierarchical-clustering-with-different-linkage-methods" class="nav-link" data-scroll-target="#exercise-2-hierarchical-clustering-with-different-linkage-methods"><span class="header-section-number">12.9.2</span> Exercise 2: Hierarchical Clustering with Different Linkage Methods</a></li>
-  <li><a href="#exercise-3-dbscan-for-outlier-detection" id="toc-exercise-3-dbscan-for-outlier-detection" class="nav-link" data-scroll-target="#exercise-3-dbscan-for-outlier-detection"><span class="header-section-number">12.9.3</span> Exercise 3: DBSCAN for Outlier Detection</a></li>
-  <li><a href="#exercise-4-full-pipeline-pca-clustering-umap-visualisation" id="toc-exercise-4-full-pipeline-pca-clustering-umap-visualisation" class="nav-link" data-scroll-target="#exercise-4-full-pipeline-pca-clustering-umap-visualisation"><span class="header-section-number">12.9.4</span> Exercise 4: Full Pipeline — PCA + Clustering + UMAP Visualisation</a></li>
+  <li><a href="#exercise-1-k-means-on-simulated-patient-data" id="toc-exercise-1-k-means-on-simulated-patient-data" class="nav-link" data-scroll-target="#exercise-1-k-means-on-simulated-patient-data"><span class="header-section-number">16.9.1</span> Exercise 1: K-Means on Simulated Patient Data</a></li>
+  <li><a href="#exercise-2-hierarchical-clustering-with-different-linkage-methods" id="toc-exercise-2-hierarchical-clustering-with-different-linkage-methods" class="nav-link" data-scroll-target="#exercise-2-hierarchical-clustering-with-different-linkage-methods"><span class="header-section-number">16.9.2</span> Exercise 2: Hierarchical Clustering with Different Linkage Methods</a></li>
+  <li><a href="#exercise-3-dbscan-for-outlier-detection" id="toc-exercise-3-dbscan-for-outlier-detection" class="nav-link" data-scroll-target="#exercise-3-dbscan-for-outlier-detection"><span class="header-section-number">16.9.3</span> Exercise 3: DBSCAN for Outlier Detection</a></li>
+  <li><a href="#exercise-4-full-pipeline-pca-clustering-umap-visualisation" id="toc-exercise-4-full-pipeline-pca-clustering-umap-visualisation" class="nav-link" data-scroll-target="#exercise-4-full-pipeline-pca-clustering-umap-visualisation"><span class="header-section-number">16.9.4</span> Exercise 4: Full Pipeline — PCA + Clustering + UMAP Visualisation</a></li>
   </ul></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">12.10</span> Summary</a></li>
-  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">12.11</span> References and Further Reading</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">16.10</span> Summary</a></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">16.11</span> References and Further Reading</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/edit/main/chapters/16_clustering.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/blob/main/chapters/16_clustering.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/15_dimensionality_reduction.html">Dimensionality Reduction and Unsupervised Learning</a></li><li class="breadcrumb-item"><a href="../chapters/16_clustering.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/15_dimensionality_reduction.html">Dimensionality Reduction and Unsupervised Learning</a></li><li class="breadcrumb-item"><a href="../chapters/16_clustering.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></a></li></ol></nav>
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title"><span id="sec-clustering" class="quarto-section-identifier"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-clustering" class="quarto-section-identifier"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 </div>
 
 
@@ -539,8 +539,8 @@ window.Quarto = {
 </header>
 
 
-<section id="introduction" class="level2" data-number="12.1">
-<h2 data-number="12.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">12.1</span> Introduction</h2>
+<section id="introduction" class="level2" data-number="16.1">
+<h2 data-number="16.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">16.1</span> Introduction</h2>
 <p>Every classification method we have studied so far is <strong>supervised</strong>: you train a model on labelled data and use it to predict labels for new observations. Clustering is fundamentally different. It is <strong>unsupervised</strong> — there are no labels. The goal is to discover natural groupings in the data that you did not know existed.</p>
 <p>In clinical research, clustering is used to identify <strong>patient phenotypes</strong> — subgroups of patients who share similar clinical profiles but may not correspond to any established diagnostic category. These phenotypes can reveal heterogeneity within a disease, suggest new treatment targets, or identify patients who respond differently to therapy. Sepsis, ARDS, heart failure, and asthma have all been re-examined through clustering analyses that revealed clinically meaningful subtypes hidden within traditional diagnostic labels.</p>
 <p>This chapter covers three major clustering algorithms (K-means, hierarchical clustering, and DBSCAN), methods for choosing the number of clusters and validating results, and the integration of clustering with the dimensionality reduction methods from the previous chapter.</p>
@@ -558,10 +558,10 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="k-means-clustering" class="level2" data-number="12.2">
-<h2 data-number="12.2" class="anchored" data-anchor-id="k-means-clustering"><span class="header-section-number">12.2</span> K-Means Clustering</h2>
-<section id="the-algorithm" class="level3" data-number="12.2.1">
-<h3 data-number="12.2.1" class="anchored" data-anchor-id="the-algorithm"><span class="header-section-number">12.2.1</span> The Algorithm</h3>
+<section id="k-means-clustering" class="level2" data-number="16.2">
+<h2 data-number="16.2" class="anchored" data-anchor-id="k-means-clustering"><span class="header-section-number">16.2</span> K-Means Clustering</h2>
+<section id="the-algorithm" class="level3" data-number="16.2.1">
+<h3 data-number="16.2.1" class="anchored" data-anchor-id="the-algorithm"><span class="header-section-number">16.2.1</span> The Algorithm</h3>
 <p>K-means is the simplest and most widely used clustering algorithm. Given <span class="math inline">\(k\)</span> (the number of clusters), it works as follows:</p>
 <ol type="1">
 <li><strong>Initialise</strong>: randomly place <span class="math inline">\(k\)</span> cluster centroids in the feature space.</li>
@@ -574,15 +574,15 @@ window.Quarto = {
 \text{WCSS} = \sum_{k=1}^{K} \sum_{i \in C_k} \| x_i - \mu_k \|^2
 \]</span></p>
 </section>
-<section id="choosing-k-elbow-method-silhouette-scores-gap-statistic" class="level3" data-number="12.2.2">
-<h3 data-number="12.2.2" class="anchored" data-anchor-id="choosing-k-elbow-method-silhouette-scores-gap-statistic"><span class="header-section-number">12.2.2</span> Choosing K: Elbow Method, Silhouette Scores, Gap Statistic</h3>
+<section id="choosing-k-elbow-method-silhouette-scores-gap-statistic" class="level3" data-number="16.2.2">
+<h3 data-number="16.2.2" class="anchored" data-anchor-id="choosing-k-elbow-method-silhouette-scores-gap-statistic"><span class="header-section-number">16.2.2</span> Choosing K: Elbow Method, Silhouette Scores, Gap Statistic</h3>
 <p>The most important decision in K-means is the number of clusters <span class="math inline">\(k\)</span>. There is no single correct answer, but several heuristics help.</p>
 <p><strong>Elbow method.</strong> Plot WCSS against <span class="math inline">\(k\)</span>. As <span class="math inline">\(k\)</span> increases, WCSS always decreases (more clusters = points closer to centroids). Look for an “elbow” where the rate of decrease sharply changes. The elbow suggests that adding more clusters yields diminishing returns.</p>
 <p><strong>Silhouette scores.</strong> For each point, the silhouette score measures how much closer it is to its own cluster than to the nearest other cluster. Values range from –1 (misclassified) to +1 (well clustered). The average silhouette score across all points summarises clustering quality. Higher is better; choose <span class="math inline">\(k\)</span> that maximises the average silhouette score.</p>
 <p><strong>Gap statistic.</strong> Compares the WCSS of your data to the WCSS of data drawn from a reference null distribution (uniform). The gap is largest at the <span class="math inline">\(k\)</span> where your data’s structure most exceeds what would be expected by chance.</p>
 </section>
-<section id="limitations-of-k-means" class="level3" data-number="12.2.3">
-<h3 data-number="12.2.3" class="anchored" data-anchor-id="limitations-of-k-means"><span class="header-section-number">12.2.3</span> Limitations of K-Means</h3>
+<section id="limitations-of-k-means" class="level3" data-number="16.2.3">
+<h3 data-number="16.2.3" class="anchored" data-anchor-id="limitations-of-k-means"><span class="header-section-number">16.2.3</span> Limitations of K-Means</h3>
 <ul>
 <li><strong>Assumes spherical, equally sized clusters.</strong> K-means uses Euclidean distance, so it finds globular clusters. Elongated, ring-shaped, or irregularly shaped clusters will be poorly recovered.</li>
 <li><strong>Sensitive to initialisation.</strong> Different random starting points can give different results. Modern implementations (K-means++) use smart initialisation to mitigate this, and running the algorithm multiple times with different seeds is standard practice.</li>
@@ -590,8 +590,8 @@ window.Quarto = {
 <li><strong>Requires scaled data.</strong> Features on different scales will dominate the distance calculations. Always standardise before running K-means.</li>
 </ul>
 </section>
-<section id="clinical-example-patient-phenotyping-from-lab-data" class="level3" data-number="12.2.4">
-<h3 data-number="12.2.4" class="anchored" data-anchor-id="clinical-example-patient-phenotyping-from-lab-data"><span class="header-section-number">12.2.4</span> Clinical Example: Patient Phenotyping from Lab Data</h3>
+<section id="clinical-example-patient-phenotyping-from-lab-data" class="level3" data-number="16.2.4">
+<h3 data-number="16.2.4" class="anchored" data-anchor-id="clinical-example-patient-phenotyping-from-lab-data"><span class="header-section-number">16.2.4</span> Clinical Example: Patient Phenotyping from Lab Data</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="" aria-current="page">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
@@ -730,15 +730,15 @@ window.Quarto = {
 <p>Both the elbow and silhouette plots suggest <span class="math inline">\(k = 3\)</span> — consistent with our simulation of three phenotypes. In practice, the signal is rarely this clean, and multiple values of <span class="math inline">\(k\)</span> may appear reasonable. Domain knowledge should guide the final choice.</p>
 </section>
 </section>
-<section id="hierarchical-clustering" class="level2" data-number="12.3">
-<h2 data-number="12.3" class="anchored" data-anchor-id="hierarchical-clustering"><span class="header-section-number">12.3</span> Hierarchical Clustering</h2>
-<section id="agglomerative-bottom-up-clustering" class="level3" data-number="12.3.1">
-<h3 data-number="12.3.1" class="anchored" data-anchor-id="agglomerative-bottom-up-clustering"><span class="header-section-number">12.3.1</span> Agglomerative (Bottom-Up) Clustering</h3>
+<section id="hierarchical-clustering" class="level2" data-number="16.3">
+<h2 data-number="16.3" class="anchored" data-anchor-id="hierarchical-clustering"><span class="header-section-number">16.3</span> Hierarchical Clustering</h2>
+<section id="agglomerative-bottom-up-clustering" class="level3" data-number="16.3.1">
+<h3 data-number="16.3.1" class="anchored" data-anchor-id="agglomerative-bottom-up-clustering"><span class="header-section-number">16.3.1</span> Agglomerative (Bottom-Up) Clustering</h3>
 <p>Hierarchical clustering does not require specifying <span class="math inline">\(k\)</span> in advance. The <strong>agglomerative</strong> approach starts with each observation as its own cluster and iteratively merges the closest pair of clusters until all observations belong to a single cluster.</p>
 <p>The result is a <strong>dendrogram</strong> — a tree-like diagram that shows the merging history. You choose the number of clusters by “cutting” the dendrogram at a height that produces a meaningful number of groups.</p>
 </section>
-<section id="linkage-methods" class="level3" data-number="12.3.2">
-<h3 data-number="12.3.2" class="anchored" data-anchor-id="linkage-methods"><span class="header-section-number">12.3.2</span> Linkage Methods</h3>
+<section id="linkage-methods" class="level3" data-number="16.3.2">
+<h3 data-number="16.3.2" class="anchored" data-anchor-id="linkage-methods"><span class="header-section-number">16.3.2</span> Linkage Methods</h3>
 <p>The key decision is how to define the distance between two clusters (each containing multiple points):</p>
 <p><strong>Single linkage.</strong> Distance = minimum distance between any two points in the two clusters. Tends to produce long, chain-like clusters. Sensitive to outliers and noise.</p>
 <p><strong>Complete linkage.</strong> Distance = maximum distance between any two points. Produces compact, roughly equal-sized clusters but can be distorted by outliers.</p>
@@ -824,8 +824,8 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="reading-a-dendrogram" class="level3" data-number="12.3.3">
-<h3 data-number="12.3.3" class="anchored" data-anchor-id="reading-a-dendrogram"><span class="header-section-number">12.3.3</span> Reading a Dendrogram</h3>
+<section id="reading-a-dendrogram" class="level3" data-number="16.3.3">
+<h3 data-number="16.3.3" class="anchored" data-anchor-id="reading-a-dendrogram"><span class="header-section-number">16.3.3</span> Reading a Dendrogram</h3>
 <p>The dendrogram encodes the full merging history:</p>
 <ul>
 <li>The <strong>height</strong> of each horizontal line represents the distance at which two clusters were merged.</li>
@@ -835,14 +835,14 @@ window.Quarto = {
 <p>Cutting the dendrogram at different heights gives different numbers of clusters. A large “gap” between merging heights (a long vertical line) suggests a natural number of clusters.</p>
 </section>
 </section>
-<section id="dbscan-density-based-clustering" class="level2" data-number="12.4">
-<h2 data-number="12.4" class="anchored" data-anchor-id="dbscan-density-based-clustering"><span class="header-section-number">12.4</span> DBSCAN: Density-Based Clustering</h2>
-<section id="when-k-means-fails" class="level3" data-number="12.4.1">
-<h3 data-number="12.4.1" class="anchored" data-anchor-id="when-k-means-fails"><span class="header-section-number">12.4.1</span> When K-Means Fails</h3>
+<section id="dbscan-density-based-clustering" class="level2" data-number="16.4">
+<h2 data-number="16.4" class="anchored" data-anchor-id="dbscan-density-based-clustering"><span class="header-section-number">16.4</span> DBSCAN: Density-Based Clustering</h2>
+<section id="when-k-means-fails" class="level3" data-number="16.4.1">
+<h3 data-number="16.4.1" class="anchored" data-anchor-id="when-k-means-fails"><span class="header-section-number">16.4.1</span> When K-Means Fails</h3>
 <p>K-means assumes clusters are spherical and roughly equal in size. In clinical data, clusters may be irregularly shaped, overlap, or contain noise (outlier patients who do not belong to any group). <strong>DBSCAN</strong> (Density-Based Spatial Clustering of Applications with Noise) addresses these limitations.</p>
 </section>
-<section id="how-it-works" class="level3" data-number="12.4.2">
-<h3 data-number="12.4.2" class="anchored" data-anchor-id="how-it-works"><span class="header-section-number">12.4.2</span> How It Works</h3>
+<section id="how-it-works" class="level3" data-number="16.4.2">
+<h3 data-number="16.4.2" class="anchored" data-anchor-id="how-it-works"><span class="header-section-number">16.4.2</span> How It Works</h3>
 <p>DBSCAN defines clusters as dense regions separated by sparse regions. Two parameters control its behaviour:</p>
 <ul>
 <li><strong>eps (<span class="math inline">\(\varepsilon\)</span>)</strong>: the radius of the neighbourhood around each point.</li>
@@ -856,8 +856,8 @@ window.Quarto = {
 </ol>
 <p>Clusters are formed by connecting core points that are within <span class="math inline">\(\varepsilon\)</span> of each other.</p>
 </section>
-<section id="advantages-and-limitations" class="level3" data-number="12.4.3">
-<h3 data-number="12.4.3" class="anchored" data-anchor-id="advantages-and-limitations"><span class="header-section-number">12.4.3</span> Advantages and Limitations</h3>
+<section id="advantages-and-limitations" class="level3" data-number="16.4.3">
+<h3 data-number="16.4.3" class="anchored" data-anchor-id="advantages-and-limitations"><span class="header-section-number">16.4.3</span> Advantages and Limitations</h3>
 <p><strong>Advantages:</strong></p>
 <ul>
 <li>Does not require specifying <span class="math inline">\(k\)</span> in advance.</li>
@@ -982,10 +982,10 @@ window.Quarto = {
 <p>The figure shows a classic example: K-means splits the crescent-shaped clusters incorrectly, while DBSCAN identifies them perfectly and correctly labels the noise points.</p>
 </section>
 </section>
-<section id="cluster-validation" class="level2" data-number="12.5">
-<h2 data-number="12.5" class="anchored" data-anchor-id="cluster-validation"><span class="header-section-number">12.5</span> Cluster Validation</h2>
-<section id="internal-metrics" class="level3" data-number="12.5.1">
-<h3 data-number="12.5.1" class="anchored" data-anchor-id="internal-metrics"><span class="header-section-number">12.5.1</span> Internal Metrics</h3>
+<section id="cluster-validation" class="level2" data-number="16.5">
+<h2 data-number="16.5" class="anchored" data-anchor-id="cluster-validation"><span class="header-section-number">16.5</span> Cluster Validation</h2>
+<section id="internal-metrics" class="level3" data-number="16.5.1">
+<h3 data-number="16.5.1" class="anchored" data-anchor-id="internal-metrics"><span class="header-section-number">16.5.1</span> Internal Metrics</h3>
 <p>Internal metrics evaluate clustering quality using only the data itself (no external labels).</p>
 <p><strong>Silhouette score.</strong> For each point <span class="math inline">\(i\)</span>, define <span class="math inline">\(a(i)\)</span> as the mean distance to other points in the same cluster and <span class="math inline">\(b(i)\)</span> as the mean distance to points in the nearest other cluster. The silhouette score is:</p>
 <p><span class="math display">\[
@@ -994,8 +994,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 <p>Values range from –1 to +1. A high average silhouette score indicates well-separated, compact clusters.</p>
 <p><strong>Calinski-Harabasz index.</strong> The ratio of between-cluster variance to within-cluster variance (higher is better). It favours compact, well-separated clusters.</p>
 </section>
-<section id="stability-based-validation" class="level3" data-number="12.5.2">
-<h3 data-number="12.5.2" class="anchored" data-anchor-id="stability-based-validation"><span class="header-section-number">12.5.2</span> Stability-Based Validation</h3>
+<section id="stability-based-validation" class="level3" data-number="16.5.2">
+<h3 data-number="16.5.2" class="anchored" data-anchor-id="stability-based-validation"><span class="header-section-number">16.5.2</span> Stability-Based Validation</h3>
 <p>Internal metrics can be misleading — they can be high even for meaningless clusters. <strong>Bootstrap stability</strong> provides a stronger test:</p>
 <ol type="1">
 <li>Resample the data with replacement many times.</li>
@@ -1059,10 +1059,10 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 </div>
 </section>
 </section>
-<section id="clinical-applications" class="level2" data-number="12.6">
-<h2 data-number="12.6" class="anchored" data-anchor-id="clinical-applications"><span class="header-section-number">12.6</span> Clinical Applications</h2>
-<section id="patient-phenotyping" class="level3" data-number="12.6.1">
-<h3 data-number="12.6.1" class="anchored" data-anchor-id="patient-phenotyping"><span class="header-section-number">12.6.1</span> Patient Phenotyping</h3>
+<section id="clinical-applications" class="level2" data-number="16.6">
+<h2 data-number="16.6" class="anchored" data-anchor-id="clinical-applications"><span class="header-section-number">16.6</span> Clinical Applications</h2>
+<section id="patient-phenotyping" class="level3" data-number="16.6.1">
+<h3 data-number="16.6.1" class="anchored" data-anchor-id="patient-phenotyping"><span class="header-section-number">16.6.1</span> Patient Phenotyping</h3>
 <p>The most impactful use of clustering in clinical research is identifying disease subtypes that were previously unrecognised. Notable examples:</p>
 <ul>
 <li><p><strong>ARDS phenotypes.</strong> Calfee et al.&nbsp;(2014) applied latent class analysis to two ARDS clinical trial datasets and identified two phenotypes — “hyperinflammatory” and “hypoinflammatory” — with different mortality rates and different responses to treatment. The hyperinflammatory phenotype had higher IL-6, higher vasopressor use, and worse outcomes.</p></li>
@@ -1070,8 +1070,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 <li><p><strong>Heart failure subtypes.</strong> Shah et al.&nbsp;(2015) applied hierarchical clustering to echocardiographic and clinical data from HFpEF patients and identified three phenotypes with different pathophysiology and prognosis.</p></li>
 </ul>
 </section>
-<section id="disease-subtyping-from-lab-panels" class="level3" data-number="12.6.2">
-<h3 data-number="12.6.2" class="anchored" data-anchor-id="disease-subtyping-from-lab-panels"><span class="header-section-number">12.6.2</span> Disease Subtyping from Lab Panels</h3>
+<section id="disease-subtyping-from-lab-panels" class="level3" data-number="16.6.2">
+<h3 data-number="16.6.2" class="anchored" data-anchor-id="disease-subtyping-from-lab-panels"><span class="header-section-number">16.6.2</span> Disease Subtyping from Lab Panels</h3>
 <p>A practical workflow for phenotyping:</p>
 <ol type="1">
 <li>Select clinically relevant variables (labs, vitals, demographics).</li>
@@ -1084,8 +1084,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 </ol>
 </section>
 </section>
-<section id="integrating-clustering-with-pcaumap" class="level2" data-number="12.7">
-<h2 data-number="12.7" class="anchored" data-anchor-id="integrating-clustering-with-pcaumap"><span class="header-section-number">12.7</span> Integrating Clustering with PCA/UMAP</h2>
+<section id="integrating-clustering-with-pcaumap" class="level2" data-number="16.7">
+<h2 data-number="16.7" class="anchored" data-anchor-id="integrating-clustering-with-pcaumap"><span class="header-section-number">16.7</span> Integrating Clustering with PCA/UMAP</h2>
 <p>The standard workflow for high-dimensional clinical data combines dimensionality reduction and clustering:</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false" href="">Python</a></li></ul>
@@ -1204,8 +1204,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 </div>
 <p>Comparing the two panels lets you assess how well the clustering algorithm recovered the true subtypes. In practice you do not know the true subtypes — the comparison would instead be against clinical outcomes, treatment response, or other external validation.</p>
 </section>
-<section id="cautionary-notes" class="level2" data-number="12.8">
-<h2 data-number="12.8" class="anchored" data-anchor-id="cautionary-notes"><span class="header-section-number">12.8</span> Cautionary Notes</h2>
+<section id="cautionary-notes" class="level2" data-number="16.8">
+<h2 data-number="16.8" class="anchored" data-anchor-id="cautionary-notes"><span class="header-section-number">16.8</span> Cautionary Notes</h2>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1224,10 +1224,10 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 <p><strong>Report negative results.</strong> Many clustering analyses find no meaningful structure. This is a legitimate finding — it means the disease population is more homogeneous than expected.</p>
 <p><strong>Beware of overfitting to noise.</strong> With enough features, clustering will always find patterns. Use stability analysis and, if possible, validate clusters in an independent dataset.</p>
 </section>
-<section id="exercises" class="level2" data-number="12.9">
-<h2 data-number="12.9" class="anchored" data-anchor-id="exercises"><span class="header-section-number">12.9</span> Exercises</h2>
-<section id="exercise-1-k-means-on-simulated-patient-data" class="level3" data-number="12.9.1">
-<h3 data-number="12.9.1" class="anchored" data-anchor-id="exercise-1-k-means-on-simulated-patient-data"><span class="header-section-number">12.9.1</span> Exercise 1: K-Means on Simulated Patient Data</h3>
+<section id="exercises" class="level2" data-number="16.9">
+<h2 data-number="16.9" class="anchored" data-anchor-id="exercises"><span class="header-section-number">16.9</span> Exercises</h2>
+<section id="exercise-1-k-means-on-simulated-patient-data" class="level3" data-number="16.9.1">
+<h3 data-number="16.9.1" class="anchored" data-anchor-id="exercise-1-k-means-on-simulated-patient-data"><span class="header-section-number">16.9.1</span> Exercise 1: K-Means on Simulated Patient Data</h3>
 <p>Simulate a dataset of 600 patients with 6 clinical variables (heart rate, respiratory rate, temperature, systolic BP, creatinine, lactate) drawn from 3 underlying phenotypes.</p>
 <ol type="a">
 <li>Scale the data and apply K-means for <span class="math inline">\(k = 2, 3, 4, 5, 6\)</span>.</li>
@@ -1329,8 +1329,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 </div>
 </div>
 </section>
-<section id="exercise-2-hierarchical-clustering-with-different-linkage-methods" class="level3" data-number="12.9.2">
-<h3 data-number="12.9.2" class="anchored" data-anchor-id="exercise-2-hierarchical-clustering-with-different-linkage-methods"><span class="header-section-number">12.9.2</span> Exercise 2: Hierarchical Clustering with Different Linkage Methods</h3>
+<section id="exercise-2-hierarchical-clustering-with-different-linkage-methods" class="level3" data-number="16.9.2">
+<h3 data-number="16.9.2" class="anchored" data-anchor-id="exercise-2-hierarchical-clustering-with-different-linkage-methods"><span class="header-section-number">16.9.2</span> Exercise 2: Hierarchical Clustering with Different Linkage Methods</h3>
 <p>Using the same dataset from Exercise 1:</p>
 <ol type="a">
 <li>Apply hierarchical clustering with single, complete, average, and Ward’s linkage.</li>
@@ -1339,8 +1339,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 <li>Which linkage method would you recommend for clinical data and why?</li>
 </ol>
 </section>
-<section id="exercise-3-dbscan-for-outlier-detection" class="level3" data-number="12.9.3">
-<h3 data-number="12.9.3" class="anchored" data-anchor-id="exercise-3-dbscan-for-outlier-detection"><span class="header-section-number">12.9.3</span> Exercise 3: DBSCAN for Outlier Detection</h3>
+<section id="exercise-3-dbscan-for-outlier-detection" class="level3" data-number="16.9.3">
+<h3 data-number="16.9.3" class="anchored" data-anchor-id="exercise-3-dbscan-for-outlier-detection"><span class="header-section-number">16.9.3</span> Exercise 3: DBSCAN for Outlier Detection</h3>
 <p>Add 30 “outlier” patients to the Exercise 1 dataset: patients with extreme values across multiple variables (e.g., HR = 180, lactate = 15, creatinine = 8).</p>
 <ol type="a">
 <li>Run K-means with <span class="math inline">\(k = 3\)</span>. Where do the outliers end up?</li>
@@ -1349,8 +1349,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 <li>In a clinical phenotyping study, which approach would you prefer for handling outliers?</li>
 </ol>
 </section>
-<section id="exercise-4-full-pipeline-pca-clustering-umap-visualisation" class="level3" data-number="12.9.4">
-<h3 data-number="12.9.4" class="anchored" data-anchor-id="exercise-4-full-pipeline-pca-clustering-umap-visualisation"><span class="header-section-number">12.9.4</span> Exercise 4: Full Pipeline — PCA + Clustering + UMAP Visualisation</h3>
+<section id="exercise-4-full-pipeline-pca-clustering-umap-visualisation" class="level3" data-number="16.9.4">
+<h3 data-number="16.9.4" class="anchored" data-anchor-id="exercise-4-full-pipeline-pca-clustering-umap-visualisation"><span class="header-section-number">16.9.4</span> Exercise 4: Full Pipeline — PCA + Clustering + UMAP Visualisation</h3>
 <p>Simulate a dataset of 800 patients with 30 clinical variables and 4 underlying subtypes.</p>
 <ol type="a">
 <li>Standardise the data and apply PCA. Use a scree plot to choose the number of components.</li>
@@ -1361,8 +1361,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 </ol>
 </section>
 </section>
-<section id="summary" class="level2" data-number="12.10">
-<h2 data-number="12.10" class="anchored" data-anchor-id="summary"><span class="header-section-number">12.10</span> Summary</h2>
+<section id="summary" class="level2" data-number="16.10">
+<h2 data-number="16.10" class="anchored" data-anchor-id="summary"><span class="header-section-number">16.10</span> Summary</h2>
 <p>Clustering is a powerful tool for discovering patient subgroups, but it requires careful application and sceptical interpretation. K-means is simple and effective for spherical clusters but requires specifying <span class="math inline">\(k\)</span> and is sensitive to outliers. Hierarchical clustering provides a dendrogram that reveals the full structure of merging and does not require pre-specifying <span class="math inline">\(k\)</span>. DBSCAN handles irregular cluster shapes and identifies outliers. No single method is best for all situations; using multiple methods and checking for consistency is good practice. Above all, clusters are statistical constructs — they must be validated against clinical outcomes and replicated in independent datasets before they can inform patient care.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1385,8 +1385,8 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 </div>
 </div>
 </section>
-<section id="references-and-further-reading" class="level2" data-number="12.11">
-<h2 data-number="12.11" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">12.11</span> References and Further Reading</h2>
+<section id="references-and-further-reading" class="level2" data-number="16.11">
+<h2 data-number="16.11" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">16.11</span> References and Further Reading</h2>
 <p>The most clinically impactful clustering study in recent critical care literature is Seymour et al.’s 2019 paper “Derivation, Validation, and Potential Treatment Implications of Novel Clinical Phenotypes for Sepsis” in <em>JAMA</em>, which identified four sepsis phenotypes using K-means clustering on electronic health record data. Calfee et al.’s 2014 paper “Subphenotypes in Acute Respiratory Distress Syndrome: Latent Class Analysis of Data From Two Randomised Controlled Trials” in <em>The Lancet Respiratory Medicine</em> applied a related method (latent class analysis) to identify ARDS subtypes with differential treatment response. Shah et al.’s 2015 paper in <em>Circulation</em> demonstrated the use of hierarchical clustering for heart failure with preserved ejection fraction phenotyping.</p>
 <p>For the statistical foundations, Hastie, Tibshirani, and Friedman’s <em>The Elements of Statistical Learning</em> (2nd edition, 2009) provides comprehensive coverage of K-means, hierarchical clustering, and spectral methods. James, Witten, Hastie, and Tibshirani’s <em>An Introduction to Statistical Learning</em> (2nd edition, 2021) offers a more accessible treatment suitable for students. The original DBSCAN paper by Ester et al.&nbsp;(1996) is surprisingly readable and remains the standard reference for the algorithm.</p>
 <p>For practical guidance, a 2024 review by Rodriguez et al.&nbsp;in <em>Critical Care Medicine</em> synthesises the rapidly growing literature on clustering-based phenotyping in critical illness, covering methodological best practices and the gap between statistical clusters and actionable clinical subtypes. Hennig et al.’s <em>Handbook of Cluster Analysis</em> (2016) is the most comprehensive reference, covering both methodology and applications. For validation, the clValid R package and its accompanying paper by Brock et al.&nbsp;(2008) in the <em>Journal of Statistical Software</em> provide tools for comparing clustering algorithms using internal, stability-based, and biological metrics.</p>
@@ -1851,12 +1851,12 @@ s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
       <a href="../chapters/15_dimensionality_reduction.html" class="pagination-link" aria-label="PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../chapters/07_ml_foundations.html" class="pagination-link" aria-label="What Is Machine Learning? Core Concepts for Clinical Researchers">
-        <span class="nav-page-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../chapters/10_building_prediction_models.html" class="pagination-link" aria-label="Developing Clinical Prediction Models: A Complete Workflow">
+        <span class="nav-page-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Developing Clinical Prediction Models: A Complete Workflow</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
