@@ -95,6 +95,7 @@ format:
     fig-responsive: true
     linestretch: 1.6
     smooth-scroll: true
+    include-after-body: _includes/goatcounter.html
 
   pdf:
     documentclass: scrbook
