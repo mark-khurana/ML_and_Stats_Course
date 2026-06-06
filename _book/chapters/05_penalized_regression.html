@@ -630,7 +630,7 @@ window.Quarto = {
 <section id="what-happens-with-too-many-predictors" class="level3" data-number="7.2.1">
 <h3 data-number="7.2.1" class="anchored" data-anchor-id="what-happens-with-too-many-predictors"><span class="header-section-number">7.2.1</span> What Happens with Too Many Predictors</h3>
 <p>Consider a logistic regression model for predicting 30-day mortality after cardiac surgery. You have 200 patients (40 deaths) and want to use 50 candidate predictors (age, comorbidities, lab values, surgical variables, etc.).</p>
-<p>With standard logistic regression, this model is in serious trouble. A common rule of thumb (events per variable, or EPV) suggests you need at least 10–20 events per predictor <span class="citation" data-cites="steyerberg2019">(<a href="04_continuous_variables_and_splines.html#ref-steyerberg2019" role="doc-biblioref"><strong>steyerberg2019?</strong></a>)</span>. With 40 events and 50 predictors, your EPV is 0.8 — far below the minimum.</p>
+<p>With standard logistic regression, this model is in serious trouble. A common rule of thumb (events per variable, or EPV) suggests you need at least 10–20 events per predictor <span class="citation" data-cites="steyerberg2019">(<a href="04_continuous_variables_and_splines.html#ref-steyerberg2019" role="doc-biblioref">Steyerberg 2019</a>)</span>. With 40 events and 50 predictors, your EPV is 0.8 — far below the minimum.</p>
 <p>What goes wrong?</p>
 <ol type="1">
 <li><p><strong>Overfitting.</strong> The model fits the training data very well — perhaps perfectly — but performs terribly on new patients. It has memorised the noise in the training data rather than learning the true signal.</p></li>
@@ -955,7 +955,7 @@ window.Quarto = {
 </div>
 <div class="callout-body-container callout-body">
 <p>In clinical prediction modelling, <code>lambda.min</code> is often preferred when predictive accuracy is the primary goal. In biomarker discovery or variable selection, <code>lambda.1se</code> is often preferred because it gives a more parsimonious model with fewer selected variables.</p>
-<p>Steyerberg <span class="citation" data-cites="steyerberg2019">(<a href="04_continuous_variables_and_splines.html#ref-steyerberg2019" role="doc-biblioref"><strong>steyerberg2019?</strong></a>)</span> recommends reporting results for both and discussing the trade-off between parsimony and performance.</p>
+<p>Steyerberg <span class="citation" data-cites="steyerberg2019">(<a href="04_continuous_variables_and_splines.html#ref-steyerberg2019" role="doc-biblioref">2019</a>)</span> recommends reporting results for both and discussing the trade-off between parsimony and performance.</p>
 </div>
 </div>
 <div class="cell" data-layout-align="center">
@@ -1368,7 +1368,7 @@ Table&nbsp;7.1: When to use Ridge, LASSO, or Elastic Net
 <ol type="1">
 <li><p><strong>Shrinkage corrects for optimism.</strong> Prediction models developed on finite samples are always overfitted to some degree. The apparent performance (e.g., C-statistic, calibration) is too optimistic. Penalisation provides a principled way to shrink coefficients, correcting for this optimism <em>during</em> model development rather than <em>after</em>.</p></li>
 <li><p><strong>Alternative to backward selection.</strong> Traditional backward stepwise selection is known to inflate Type I error rates, produce unstable models, and overestimate effect sizes. LASSO and Elastic Net provide a more principled approach to variable selection with better statistical properties.</p></li>
-<li><p><strong>Uniform shrinkage vs differential shrinkage.</strong> A simple post-hoc shrinkage factor (as recommended by Steyerberg <span class="citation" data-cites="steyerberg2019">(<a href="04_continuous_variables_and_splines.html#ref-steyerberg2019" role="doc-biblioref"><strong>steyerberg2019?</strong></a>)</span>) applies the same shrinkage to all coefficients. Penalised regression allows <em>differential</em> shrinkage — strong effects are shrunk less than weak effects — which is more efficient.</p></li>
+<li><p><strong>Uniform shrinkage vs differential shrinkage.</strong> A simple post-hoc shrinkage factor (as recommended by Steyerberg <span class="citation" data-cites="steyerberg2019">(<a href="04_continuous_variables_and_splines.html#ref-steyerberg2019" role="doc-biblioref">2019</a>)</span>) applies the same shrinkage to all coefficients. Penalised regression allows <em>differential</em> shrinkage — strong effects are shrunk less than weak effects — which is more efficient.</p></li>
 </ol>
 </section>
 <section id="exercises" class="level2" data-number="7.15">
@@ -1710,8 +1710,10 @@ Table&nbsp;7.1: When to use Ridge, LASSO, or Elastic Net
 </section>
 <section id="references" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
-<div id="refs" role="list" style="display: none">
-
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-steyerberg2019" class="csl-entry" role="listitem">
+Steyerberg, Ewout W. 2019. <em>Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating</em>. 2nd ed. Springer.
+</div>
 </div>
 <!-- Reference list (for use with a .bib file) -->
 <!--

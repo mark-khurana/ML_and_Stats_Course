@@ -608,7 +608,7 @@ window.Quarto = {
 <p>If you are like most researchers in clinical medicine, you probably split BMI into categories: underweight (&lt;18.5), normal (18.5–24.9), overweight (25–29.9), and obese (30+). You then include these categories as dummy variables in your regression model. This approach feels natural — it mirrors how we think clinically, and the results are easy to present in a table.</p>
 <p><strong>This is almost always the wrong approach.</strong></p>
 <p>Categorising continuous variables is one of the most common and most damaging analytic practices in clinical research. It throws away information, introduces bias, reduces statistical power, and can lead to completely wrong conclusions about the shape of relationships between predictors and outcomes.</p>
-<p>This chapter draws heavily on a landmark tutorial by Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span>, published in the <em>BMJ</em> in 2025, which provides a comprehensive guide to modelling continuous variables correctly. We will follow their framework closely, supplementing it with additional clinical examples and implementation guidance.</p>
+<p>This chapter draws heavily on a landmark tutorial by Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span>, published in the <em>BMJ</em> in 2025, which provides a comprehensive guide to modelling continuous variables correctly. We will follow their framework closely, supplementing it with additional clinical examples and implementation guidance.</p>
 </section>
 <section id="the-problem-with-categorising-continuous-variables" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="the-problem-with-categorising-continuous-variables"><span class="header-section-number">6.2</span> The Problem with Categorising Continuous Variables</h2>
@@ -624,9 +624,9 @@ window.Quarto = {
 </section>
 <section id="the-consequences-are-serious" class="level3" data-number="6.2.2">
 <h3 data-number="6.2.2" class="anchored" data-anchor-id="the-consequences-are-serious"><span class="header-section-number">6.2.2</span> The Consequences Are Serious</h3>
-<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span> enumerate several consequences of categorisation:</p>
+<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span> enumerate several consequences of categorisation:</p>
 <ul>
-<li><p><strong>Loss of statistical power.</strong> Categorising a continuous variable into two groups is equivalent to discarding roughly one-third of your data <span class="citation" data-cites="royston2006">(<a href="04_continuous_variables_and_splines.html#ref-royston2006" role="doc-biblioref"><strong>royston2006?</strong></a>)</span>. Even with more categories, substantial information is lost.</p></li>
+<li><p><strong>Loss of statistical power.</strong> Categorising a continuous variable into two groups is equivalent to discarding roughly one-third of your data <span class="citation" data-cites="royston2006">(<a href="04_continuous_variables_and_splines.html#ref-royston2006" role="doc-biblioref">Royston et al. 2006</a>)</span>. Even with more categories, substantial information is lost.</p></li>
 <li><p><strong>Biased effect estimates.</strong> Because the relationship within each category is forced to be flat, the estimated effects are systematically wrong. The direction and magnitude of the bias depend on where you place the cut-points.</p></li>
 <li><p><strong>Residual confounding.</strong> When a categorised variable is used as a confounder in an adjusted model, the adjustment is incomplete. The true confounding effect varies smoothly, but your model only adjusts in crude steps. This is sometimes called <em>residual confounding due to categorisation</em>.</p></li>
 <li><p><strong>Arbitrary cut-points change conclusions.</strong> Different choices of cut-points can lead to different — even contradictory — conclusions from the same data. This is a form of researcher degrees of freedom that inflates false positive rates.</p></li>
@@ -715,7 +715,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>As Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span> recommend: when in doubt, use a non-linear term. The cost of modelling a truly linear relationship with a spline is minimal (you lose very little power), but the cost of forcing a non-linear relationship into a linear term can be severe (biased estimates, wrong conclusions).</p>
+<p>As Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span> recommend: when in doubt, use a non-linear term. The cost of modelling a truly linear relationship with a spline is minimal (you lose very little power), but the cost of forcing a non-linear relationship into a linear term can be severe (biased estimates, wrong conclusions).</p>
 </div>
 </div>
 </section>
@@ -724,7 +724,7 @@ window.Quarto = {
 <h2 data-number="6.4" class="anchored" data-anchor-id="fractional-polynomials"><span class="header-section-number">6.4</span> Fractional Polynomials</h2>
 <section id="the-idea" class="level3" data-number="6.4.1">
 <h3 data-number="6.4.1" class="anchored" data-anchor-id="the-idea"><span class="header-section-number">6.4.1</span> The Idea</h3>
-<p>Fractional polynomials (FPs), developed by Royston and Altman <span class="citation" data-cites="royston1994">(<a href="04_continuous_variables_and_splines.html#ref-royston1994" role="doc-biblioref"><strong>royston1994?</strong></a>)</span>, extend conventional polynomials by allowing <em>fractional</em> and <em>negative</em> powers. Instead of being restricted to <span class="math inline">\(x, x^2, x^3, \ldots\)</span>, fractional polynomials choose from the set of powers:</p>
+<p>Fractional polynomials (FPs), developed by Royston and Altman <span class="citation" data-cites="royston1994">(<a href="04_continuous_variables_and_splines.html#ref-royston1994" role="doc-biblioref">1994</a>)</span>, extend conventional polynomials by allowing <em>fractional</em> and <em>negative</em> powers. Instead of being restricted to <span class="math inline">\(x, x^2, x^3, \ldots\)</span>, fractional polynomials choose from the set of powers:</p>
 <p><span class="math display">\[\{-2, -1, -0.5, 0, 0.5, 1, 2, 3\}\]</span></p>
 <p>where <span class="math inline">\(x^0\)</span> is defined as <span class="math inline">\(\log(x)\)</span>.</p>
 <p>A <strong>first-degree fractional polynomial</strong> (FP1) has the form:</p>
@@ -753,7 +753,7 @@ window.Quarto = {
 <li>Cannot capture complex local features (e.g., a bump in the middle of the range)</li>
 <li>The set of allowed shapes, while broad, is still constrained</li>
 </ul>
-<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span> note that fractional polynomials and splines are <em>complementary</em> approaches, and in many cases they give similar results. However, for most applications in clinical research, <strong>restricted cubic splines have become the recommended default</strong> due to their greater flexibility and better behaviour at the boundaries.</p>
+<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span> note that fractional polynomials and splines are <em>complementary</em> approaches, and in many cases they give similar results. However, for most applications in clinical research, <strong>restricted cubic splines have become the recommended default</strong> due to their greater flexibility and better behaviour at the boundaries.</p>
 </section>
 </section>
 <section id="splines-the-recommended-approach" class="level2" data-number="6.5">
@@ -776,7 +776,7 @@ window.Quarto = {
 <li><strong>Fewer knots</strong> = smoother, more constrained curve</li>
 </ul>
 <p><strong>How to choose knot locations:</strong></p>
-<p>The standard recommendation, following Harrell <span class="citation" data-cites="harrell2015">(<a href="04_continuous_variables_and_splines.html#ref-harrell2015" role="doc-biblioref"><strong>harrell2015?</strong></a>)</span>, is to place knots at <strong>fixed percentiles</strong> of the predictor’s distribution:</p>
+<p>The standard recommendation, following Harrell <span class="citation" data-cites="harrell2015">(<a href="04_continuous_variables_and_splines.html#ref-harrell2015" role="doc-biblioref">2015</a>)</span>, is to place knots at <strong>fixed percentiles</strong> of the predictor’s distribution:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -825,7 +825,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span> and Harrell <span class="citation" data-cites="harrell2015">(<a href="04_continuous_variables_and_splines.html#ref-harrell2015" role="doc-biblioref"><strong>harrell2015?</strong></a>)</span> recommend <strong>restricted cubic splines with 3 to 5 knots</strong> as the default approach for modelling continuous predictors. With 4 knots (3 degrees of freedom), you can capture the vast majority of biologically plausible curve shapes. Use 5 knots (4 df) if you suspect a particularly complex relationship and have adequate sample size.</p>
+<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span> and Harrell <span class="citation" data-cites="harrell2015">(<a href="04_continuous_variables_and_splines.html#ref-harrell2015" role="doc-biblioref">2015</a>)</span> recommend <strong>restricted cubic splines with 3 to 5 knots</strong> as the default approach for modelling continuous predictors. With 4 knots (3 degrees of freedom), you can capture the vast majority of biologically plausible curve shapes. Use 5 knots (4 df) if you suspect a particularly complex relationship and have adequate sample size.</p>
 <p>An RCS with 3 knots (2 df) can capture monotone and simple U/J-shaped curves. This is a good starting point when sample size is limited or when you do not expect a complex relationship.</p>
 </div>
 </div>
@@ -890,7 +890,7 @@ window.Quarto = {
 </section>
 <section id="clinical-example-csf-glucose-and-bacterial-meningitis" class="level2" data-number="6.6">
 <h2 data-number="6.6" class="anchored" data-anchor-id="clinical-example-csf-glucose-and-bacterial-meningitis"><span class="header-section-number">6.6</span> Clinical Example: CSF Glucose and Bacterial Meningitis</h2>
-<p>This example is adapted from Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span>, who use it to illustrate the full workflow for modelling a continuous predictor.</p>
+<p>This example is adapted from Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span>, who use it to illustrate the full workflow for modelling a continuous predictor.</p>
 <section id="the-clinical-question" class="level3" data-number="6.6.1">
 <h3 data-number="6.6.1" class="anchored" data-anchor-id="the-clinical-question"><span class="header-section-number">6.6.1</span> The Clinical Question</h3>
 <p>In patients presenting with suspected meningitis, cerebrospinal fluid (CSF) glucose is one of several laboratory values used to distinguish bacterial from viral meningitis. Low CSF glucose is a hallmark of bacterial infection, as bacteria consume glucose. But what is the precise shape of this relationship? And is it appropriate to use a simple cut-point (e.g., CSF glucose &lt; 2.2 mmol/L)?</p>
@@ -1024,7 +1024,7 @@ window.Quarto = {
 </section>
 <section id="practical-recommendations" class="level2" data-number="6.7">
 <h2 data-number="6.7" class="anchored" data-anchor-id="practical-recommendations"><span class="header-section-number">6.7</span> Practical Recommendations</h2>
-<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref"><strong>lopezayala2025?</strong></a>)</span> provide a practical framework (their Box 2) that we adapt here:</p>
+<p>Lopez-Ayala et al. <span class="citation" data-cites="lopezayala2025">(<a href="04_continuous_variables_and_splines.html#ref-lopezayala2025" role="doc-biblioref">2025</a>)</span> provide a practical framework (their Box 2) that we adapt here:</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1504,8 +1504,35 @@ Table&nbsp;6.1: Comparison of approaches for modelling continuous variables
 </section>
 <section id="references" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
-
-
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-harrell2015" class="csl-entry" role="listitem">
+Harrell, Frank E. 2015. <em>Regression Modeling Strategies: With
+Applications to Linear Models, Logistic and Ordinal Regression, and
+Survival Analysis</em>. 2nd ed. Springer.
+</div>
+<div id="ref-lopezayala2025" class="csl-entry" role="listitem">
+Lopez-Ayala, Pedro, Richard D Riley, Gary S Collins, and Tobias
+Zimmermann. 2025. <span>“Dealing with Continuous Variables and Modelling
+Non-Linear Associations in Healthcare Data: Practical Guide.”</span>
+<em>BMJ</em> 390: e082440. <a href="https://doi.org/10.1136/bmj-2024-082440">https://doi.org/10.1136/bmj-2024-082440</a>.
+</div>
+<div id="ref-royston1994" class="csl-entry" role="listitem">
+Royston, Patrick, and Douglas G Altman. 1994. <span>“Regression Using
+Fractional Polynomials of Continuous Covariates: Parsimonious Parametric
+Modelling.”</span> <em>Journal of the Royal Statistical Society: Series
+C</em> 43 (3): 429–67.
+</div>
+<div id="ref-royston2006" class="csl-entry" role="listitem">
+Royston, Patrick, Douglas G Altman, and Willi Sauerbrei. 2006.
+<span>“Dichotomizing Continuous Predictors in Multiple Regression: A Bad
+Idea.”</span> <em>Statistics in Medicine</em> 25 (1): 127–41. <a href="https://doi.org/10.1002/sim.2331">https://doi.org/10.1002/sim.2331</a>.
+</div>
+<div id="ref-steyerberg2019" class="csl-entry" role="listitem">
+Steyerberg, Ewout W. 2019. <em>Clinical Prediction Models: A Practical
+Approach to Development, Validation, and Updating</em>. 2nd ed.
+Springer.
+</div>
+</div>
 <!-- Reference list (for use with a .bib file) -->
 <!--
 @article{lopezayala2025,
