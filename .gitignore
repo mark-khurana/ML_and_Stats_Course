@@ -1,7 +1,8 @@
 # _book/ is tracked so CI can deploy without rendering
 # _freeze/ is tracked so CI doesn't re-execute R code
 .quarto/
-*.html
+# HTML files in root (but not _book/)
+/*.html
 .Rproj.user
 .Rhistory
 .RData

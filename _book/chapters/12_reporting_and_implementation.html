@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>19&nbsp; Reporting Standards, TRIPOD+AI, and Clinical Impact – Advanced Statistics and Machine Learning for Health Research</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../advanced/17_causal_inference.html" rel="next">
+<link href="../chapters/11_performance_and_validation.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-13e09b5f419ac379ead81d3ae1cb17c0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-75e29a02c283d88b4659fef212c99c51.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+<meta property="og:title" content="19&nbsp; Reporting Standards, TRIPOD+AI, and Clinical Impact – Advanced Statistics and Machine Learning for Health Research">
+<meta property="og:image" content="assets/social-preview.png">
+<meta property="og:site_name" content="Advanced Statistics and Machine Learning for Health Research">
+<meta name="twitter:title" content="19&nbsp; Reporting Standards, TRIPOD+AI, and Clinical Impact – Advanced Statistics and Machine Learning for Health Research">
+<meta name="twitter:image" content="assets/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/10_building_prediction_models.html">Clinical Prediction Models</a></li><li class="breadcrumb-item"><a href="../chapters/12_reporting_and_implementation.html"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Reporting Standards, TRIPOD+AI, and Clinical Impact</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/hex-logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/hex-logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Advanced Statistics and Machine Learning for Health Research</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/mark-khurana/ML_and_Stats_Course" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="../Advanced-Statistics-and-Machine-Learning-for-Health-Research.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+    <div class="dropdown">
+      <a href="" title="Share" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="Share"><i class="bi bi-share"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://twitter.com/intent/tweet?url=|url|">
+              <i class="bi bi-twitter pe-1"></i>
+            Twitter
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://www.linkedin.com/sharing/share-offsite/?url=|url|">
+              <i class="bi bi-linkedin pe-1"></i>
+            LinkedIn
+            </a>
+          </li>
+      </ul>
+    </div>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Advanced Statistics and Machine Learning for Health Research</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Pre-Course: Foundations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/00_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Setting Up Your Computing Environment</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01_probability_and_distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Probability, Distributions, and the Language of Uncertainty</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02_inference_and_estimation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Statistical Inference: What We Can and Cannot Conclude</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03_regression_foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Regression: The Workhorse of Clinical Research</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Advanced Statistical Methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04_continuous_variables_and_splines.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Modelling Non-Linear Relationships: Splines, Fractional Polynomials, and Why Categorisation Fails</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05_penalized_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Penalised Regression: Ridge, LASSO, and Elastic Net</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/06_survival_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Survival Analysis: Time-to-Event Data in Medicine</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Bayesian Methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13_bayesian_inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Bayesian Inference: A Different Way to Think About Evidence</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14_applied_bayesian_modeling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Applied Bayesian Modelling: Regression, Hierarchical Models, and Clinical Applications</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Dimensionality Reduction and Unsupervised Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15_dimensionality_reduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">PCA, t-SNE, and UMAP: Making Sense of High-Dimensional Data</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/16_clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Clustering: Discovering Patient Subgroups</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Introduction to Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/07_ml_foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">What Is Machine Learning? Core Concepts for Clinical Researchers</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08_trees_and_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Decision Trees, Random Forests, and Gradient Boosting</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/08b_introduction_to_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Introduction to Deep Learning for Health Research</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/09_model_evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Evaluating Models: Beyond Accuracy</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Clinical Prediction Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10_building_prediction_models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Developing Clinical Prediction Models: A Complete Workflow</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11_performance_and_validation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Performance Assessment and Model Validation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12_reporting_and_implementation.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Reporting Standards, TRIPOD+AI, and Clinical Impact</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Advanced Research Toolkit</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../advanced/17_causal_inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Causal Inference for Observational Health Data</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../advanced/18_meta_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Meta-Analysis Methods for Evidence Synthesis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../advanced/19_journal_ready_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Producing Journal-Ready Statistical Analyses</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/A_dataset_codebook.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Dataset Codebook</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/B_math_notation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Mathematical Notation Reference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/C_further_reading.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Further Reading and Resources</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">References</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-reporting" id="toc-sec-reporting" class="nav-link active" data-scroll-target="#sec-reporting"><span class="header-section-number">20</span> Reporting Standards, TRIPOD+AI, and Clinical Impact</a>
+  <ul class="collapse">
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">20.1</span> Introduction</a></li>
+  <li><a href="#why-reporting-standards-matter" id="toc-why-reporting-standards-matter" class="nav-link" data-scroll-target="#why-reporting-standards-matter"><span class="header-section-number">20.2</span> Why reporting standards matter</a></li>
+  <li><a href="#the-tripodai-statement" id="toc-the-tripodai-statement" class="nav-link" data-scroll-target="#the-tripodai-statement"><span class="header-section-number">20.3</span> The TRIPOD+AI statement</a>
+  <ul class="collapse">
+  <li><a href="#key-tripodai-items" id="toc-key-tripodai-items" class="nav-link" data-scroll-target="#key-tripodai-items"><span class="header-section-number">20.3.1</span> Key TRIPOD+AI items</a></li>
+  </ul></li>
+  <li><a href="#from-model-to-bedside-the-implementation-gap" id="toc-from-model-to-bedside-the-implementation-gap" class="nav-link" data-scroll-target="#from-model-to-bedside-the-implementation-gap"><span class="header-section-number">20.4</span> From model to bedside: the implementation gap</a>
+  <ul class="collapse">
+  <li><a href="#key-barriers-to-implementation" id="toc-key-barriers-to-implementation" class="nav-link" data-scroll-target="#key-barriers-to-implementation"><span class="header-section-number">20.4.1</span> Key barriers to implementation</a></li>
+  <li><a href="#the-prediction-model-based-innovation-pmbi-framework" id="toc-the-prediction-model-based-innovation-pmbi-framework" class="nav-link" data-scroll-target="#the-prediction-model-based-innovation-pmbi-framework"><span class="header-section-number">20.4.2</span> The prediction model-based innovation (PMBI) framework</a></li>
+  </ul></li>
+  <li><a href="#risk-communication" id="toc-risk-communication" class="nav-link" data-scroll-target="#risk-communication"><span class="header-section-number">20.5</span> Risk communication</a>
+  <ul class="collapse">
+  <li><a href="#presenting-results-to-different-audiences" id="toc-presenting-results-to-different-audiences" class="nav-link" data-scroll-target="#presenting-results-to-different-audiences"><span class="header-section-number">20.5.1</span> Presenting results to different audiences</a></li>
+  </ul></li>
+  <li><a href="#ethical-considerations" id="toc-ethical-considerations" class="nav-link" data-scroll-target="#ethical-considerations"><span class="header-section-number">20.6</span> Ethical considerations</a>
+  <ul class="collapse">
+  <li><a href="#algorithmic-bias" id="toc-algorithmic-bias" class="nav-link" data-scroll-target="#algorithmic-bias"><span class="header-section-number">20.6.1</span> Algorithmic bias</a></li>
+  <li><a href="#informed-consent-and-transparency" id="toc-informed-consent-and-transparency" class="nav-link" data-scroll-target="#informed-consent-and-transparency"><span class="header-section-number">20.6.2</span> Informed consent and transparency</a></li>
+  <li><a href="#the-eu-ai-act-and-regulatory-considerations" id="toc-the-eu-ai-act-and-regulatory-considerations" class="nav-link" data-scroll-target="#the-eu-ai-act-and-regulatory-considerations"><span class="header-section-number">20.6.3</span> The EU AI Act and regulatory considerations</a></li>
+  </ul></li>
+  <li><a href="#writing-a-statistical-methods-section" id="toc-writing-a-statistical-methods-section" class="nav-link" data-scroll-target="#writing-a-statistical-methods-section"><span class="header-section-number">20.7</span> Writing a statistical methods section</a></li>
+  <li><a href="#the-future-of-clinical-prediction" id="toc-the-future-of-clinical-prediction" class="nav-link" data-scroll-target="#the-future-of-clinical-prediction"><span class="header-section-number">20.8</span> The future of clinical prediction</a></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">20.9</span> References and further reading</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/edit/main/chapters/12_reporting_and_implementation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/blob/main/chapters/12_reporting_and_implementation.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/10_building_prediction_models.html">Clinical Prediction Models</a></li><li class="breadcrumb-item"><a href="../chapters/12_reporting_and_implementation.html"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Reporting Standards, TRIPOD+AI, and Clinical Impact</span></a></li></ol></nav>
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Reporting Standards, TRIPOD+AI, and Clinical Impact</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="sec-reporting" class="level1" data-number="20">
+<h1 data-number="20"><span class="header-section-number">20</span> Reporting Standards, TRIPOD+AI, and Clinical Impact</h1>
+<section id="introduction" class="level2" data-number="20.1">
+<h2 data-number="20.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">20.1</span> Introduction</h2>
+<p>Thousands of clinical prediction models are published every year. Yet only a small fraction are ever validated externally, and fewer still make it into clinical practice. One of the major reasons is poor reporting: papers that omit critical methodological details, overstate performance, or fail to describe the model in enough detail for anyone to reproduce or implement it. In 2024, the TRIPOD+AI statement was published to address this problem head-on.</p>
+<p>This chapter walks you through the current reporting standards for clinical prediction models, explains why they matter, and gives you the tools to produce work that meets the expectations of top medical journals.</p>
+</section>
+<section id="why-reporting-standards-matter" class="level2" data-number="20.2">
+<h2 data-number="20.2" class="anchored" data-anchor-id="why-reporting-standards-matter"><span class="header-section-number">20.2</span> Why reporting standards matter</h2>
+<p>Consider trying to use a published prediction model in your own clinical setting. You would need to know:</p>
+<ul>
+<li>What predictors are included, and exactly how they were measured</li>
+<li>What outcome was predicted, and at what time horizon</li>
+<li>How missing data were handled</li>
+<li>How the model was validated, and on what population</li>
+<li>The model’s calibration, not just its discrimination</li>
+<li>Whether the model would be feasible to use in your context</li>
+</ul>
+<p>Remarkably, many published prediction model studies omit several of these details. A systematic review by Collins et al.&nbsp;found that reporting quality was poor across most published prediction model studies, motivating the development of formal reporting guidelines.</p>
+</section>
+<section id="the-tripodai-statement" class="level2" data-number="20.3">
+<h2 data-number="20.3" class="anchored" data-anchor-id="the-tripodai-statement"><span class="header-section-number">20.3</span> The TRIPOD+AI statement</h2>
+<p>The <strong>Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis</strong> (TRIPOD) guideline was first published in 2015. In 2024, it was updated as <strong>TRIPOD+AI</strong> to address machine learning and AI-based models.</p>
+<p>TRIPOD+AI applies to studies that develop, validate, or update a prediction model, whether based on regression, machine learning, or deep learning. The key additions in the +AI version include:</p>
+<ul>
+<li><strong>Fairness evaluation</strong>: assessing whether the model performs equitably across demographic groups</li>
+<li><strong>Open science</strong>: sharing code, data (where possible), and the model itself</li>
+<li><strong>Handling of AI-specific issues</strong>: hyperparameter tuning, computational requirements, software dependencies</li>
+</ul>
+<section id="key-tripodai-items" class="level3" data-number="20.3.1">
+<h3 data-number="20.3.1" class="anchored" data-anchor-id="key-tripodai-items"><span class="header-section-number">20.3.1</span> Key TRIPOD+AI items</h3>
+<p>The full checklist contains items across title, abstract, introduction, methods, results, and discussion. Here are some of the most commonly missed items:</p>
+<p><strong>Study design and participants:</strong></p>
+<ul>
+<li>Describe the study design (e.g., cohort, case-control, registry)</li>
+<li>Specify the eligibility criteria clearly</li>
+<li>Report dates of recruitment and follow-up</li>
+</ul>
+<p><strong>Predictors and outcome:</strong></p>
+<ul>
+<li>List all candidate predictors, how they were defined, and when they were measured</li>
+<li>Define the outcome precisely, including the time horizon for prognostic models</li>
+</ul>
+<p><strong>Missing data:</strong></p>
+<ul>
+<li>Report the amount of missing data for each variable</li>
+<li>Describe the method used to handle missing data (complete case analysis, imputation)</li>
+<li>If multiple imputation was used, report the number of imputations and imputation model</li>
+</ul>
+<p><strong>Model development:</strong></p>
+<ul>
+<li>Describe the modelling approach (logistic regression, random forest, etc.)</li>
+<li>Report how continuous predictors were handled (linear terms, splines, categorised)</li>
+<li>For ML models: report hyperparameter tuning strategy, software, and random seeds</li>
+</ul>
+<p><strong>Model performance:</strong></p>
+<ul>
+<li>Report discrimination (e.g., C-statistic) with confidence intervals</li>
+<li>Report calibration (calibration plot, calibration slope and intercept)</li>
+<li>Report clinical utility (decision curve analysis or net benefit) where relevant</li>
+</ul>
+<p><strong>Validation:</strong></p>
+<ul>
+<li>Describe the validation approach (internal, external, temporal)</li>
+<li>Report performance in the validation data, not just the development data</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled" title="Exercise 12.1: TRIPOD+AI audit">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 12.1: TRIPOD+AI audit
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Find a recently published clinical prediction model paper (try searching PubMed for “prediction model” in your area of interest). Using the TRIPOD+AI checklist, evaluate how many items the paper reports adequately.</p>
+<p>Focus on:</p>
+<ol type="1">
+<li>Is the outcome clearly defined with a time horizon?</li>
+<li>Is calibration reported, or only discrimination?</li>
+<li>How was missing data handled?</li>
+<li>Were continuous predictors appropriately modelled (splines) or just categorised?</li>
+<li>Is the model available for others to use (coefficients, code, web calculator)?</li>
+</ol>
+<p>Write a brief (one paragraph) critical appraisal.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="from-model-to-bedside-the-implementation-gap" class="level2" data-number="20.4">
+<h2 data-number="20.4" class="anchored" data-anchor-id="from-model-to-bedside-the-implementation-gap"><span class="header-section-number">20.4</span> From model to bedside: the implementation gap</h2>
+<p>Even well-developed, well-validated models face an uphill battle to clinical implementation. Smits, van Kuijk &amp; Wynants (2026) dedicate five chapters of their book to this topic, covering the journey from model selection through innovation development, impact evaluation, and implementation.</p>
+<section id="key-barriers-to-implementation" class="level3" data-number="20.4.1">
+<h3 data-number="20.4.1" class="anchored" data-anchor-id="key-barriers-to-implementation"><span class="header-section-number">20.4.1</span> Key barriers to implementation</h3>
+<ol type="1">
+<li><p><strong>The model doesn’t address a real clinical need.</strong> Models built for academic interest rather than to solve a genuine decision problem rarely get implemented.</p></li>
+<li><p><strong>The model isn’t embedded in clinical workflow.</strong> A model that requires a clinician to manually enter 15 variables into a spreadsheet will not be used, regardless of how accurate it is.</p></li>
+<li><p><strong>Performance hasn’t been demonstrated in the target population.</strong> External validation in the specific setting where the model will be used is essential.</p></li>
+<li><p><strong>Clinicians don’t trust the model.</strong> Transparency, explainability, and evidence of clinical utility (not just statistical performance) build trust.</p></li>
+<li><p><strong>There is no plan for maintenance.</strong> Models can degrade over time as populations and practices change. A plan for monitoring and updating is essential.</p></li>
+</ol>
+</section>
+<section id="the-prediction-model-based-innovation-pmbi-framework" class="level3" data-number="20.4.2">
+<h3 data-number="20.4.2" class="anchored" data-anchor-id="the-prediction-model-based-innovation-pmbi-framework"><span class="header-section-number">20.4.2</span> The prediction model-based innovation (PMBI) framework</h3>
+<p>Smits et al.&nbsp;(2026) introduce the concept of a PMBI: the complete clinical tool that wraps around a prediction model, including:</p>
+<ul>
+<li>The user interface (how predictions are displayed)</li>
+<li>Decision support (what actions are recommended at different risk levels)</li>
+<li>Integration with electronic health records</li>
+<li>Training materials for end users</li>
+<li>A monitoring and updating plan</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Key insight:</strong> Building a good prediction model is necessary but not sufficient for clinical impact. The model must be embedded in a workable clinical tool, validated in the target setting, and demonstrated to improve patient outcomes.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="risk-communication" class="level2" data-number="20.5">
+<h2 data-number="20.5" class="anchored" data-anchor-id="risk-communication"><span class="header-section-number">20.5</span> Risk communication</h2>
+<p>Presenting predicted probabilities to patients and clinicians is not straightforward. Research in health literacy shows that:</p>
+<ul>
+<li><strong>Frequencies are easier to understand than probabilities.</strong> “3 out of 100 patients like you” is clearer than “3% probability.”</li>
+<li><strong>Visual aids help.</strong> Icon arrays (showing 100 faces with 3 highlighted) are effective.</li>
+<li><strong>Framing matters.</strong> “97% chance of survival” feels different from “3% chance of death” — both are true.</li>
+<li><strong>Uncertainty should be communicated.</strong> Presenting a point estimate without a confidence interval overstates precision.</li>
+</ul>
+<section id="presenting-results-to-different-audiences" class="level3" data-number="20.5.1">
+<h3 data-number="20.5.1" class="anchored" data-anchor-id="presenting-results-to-different-audiences"><span class="header-section-number">20.5.1</span> Presenting results to different audiences</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Audience</th>
+<th>Recommended format</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Patients</td>
+<td>Frequencies, icon arrays, plain language</td>
+</tr>
+<tr class="even">
+<td>Clinicians</td>
+<td>Risk categories with action thresholds, decision curves</td>
+</tr>
+<tr class="odd">
+<td>Researchers</td>
+<td>Full performance metrics, calibration plots, code</td>
+</tr>
+<tr class="even">
+<td>Policymakers</td>
+<td>Population-level impact, cost-effectiveness</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="ethical-considerations" class="level2" data-number="20.6">
+<h2 data-number="20.6" class="anchored" data-anchor-id="ethical-considerations"><span class="header-section-number">20.6</span> Ethical considerations</h2>
+<section id="algorithmic-bias" class="level3" data-number="20.6.1">
+<h3 data-number="20.6.1" class="anchored" data-anchor-id="algorithmic-bias"><span class="header-section-number">20.6.1</span> Algorithmic bias</h3>
+<p>Prediction models can perpetuate or amplify existing health disparities if:</p>
+<ul>
+<li>Training data underrepresents certain populations</li>
+<li>Predictors serve as proxies for protected characteristics (e.g., postcode as proxy for race/ethnicity)</li>
+<li>Performance is not evaluated across subgroups</li>
+</ul>
+<p>TRIPOD+AI specifically requires fairness evaluation: reporting model performance stratified by relevant demographic groups.</p>
+</section>
+<section id="informed-consent-and-transparency" class="level3" data-number="20.6.2">
+<h3 data-number="20.6.2" class="anchored" data-anchor-id="informed-consent-and-transparency"><span class="header-section-number">20.6.2</span> Informed consent and transparency</h3>
+<p>Patients have a right to know when a prediction model is being used in their care, what data it uses, and how its output influences clinical decisions. This is particularly important for models that inform treatment decisions or resource allocation.</p>
+</section>
+<section id="the-eu-ai-act-and-regulatory-considerations" class="level3" data-number="20.6.3">
+<h3 data-number="20.6.3" class="anchored" data-anchor-id="the-eu-ai-act-and-regulatory-considerations"><span class="header-section-number">20.6.3</span> The EU AI Act and regulatory considerations</h3>
+<p>The European Union’s AI Act (2024) classifies medical AI applications as “high risk” and imposes requirements for transparency, human oversight, and documentation. Clinical prediction models that qualify as medical devices may need regulatory approval (e.g., CE marking in the EU, FDA clearance in the US).</p>
+</section>
+</section>
+<section id="writing-a-statistical-methods-section" class="level2" data-number="20.7">
+<h2 data-number="20.7" class="anchored" data-anchor-id="writing-a-statistical-methods-section"><span class="header-section-number">20.7</span> Writing a statistical methods section</h2>
+<p>A well-written methods section for a prediction model study should include:</p>
+<ol type="1">
+<li><strong>Study design and setting</strong> (one paragraph)</li>
+<li><strong>Participants</strong> — eligibility criteria, dates, sample size (one paragraph)</li>
+<li><strong>Predictors</strong> — list, definitions, measurement timing (one paragraph)</li>
+<li><strong>Outcome</strong> — definition, ascertainment, time horizon (one paragraph)</li>
+<li><strong>Missing data</strong> — amount, mechanism assumed, handling method (one paragraph)</li>
+<li><strong>Model development</strong> — method, how continuous variables were handled, variable selection approach (one paragraph)</li>
+<li><strong>Model performance</strong> — discrimination, calibration, clinical utility measures (one paragraph)</li>
+<li><strong>Validation</strong> — internal and/or external validation approach (one paragraph)</li>
+<li><strong>Software</strong> — R/Python version, key packages, random seed (one sentence)</li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled" title="Exercise 12.2: Write a methods section">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 12.2: Write a methods section
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Using the prediction model you developed in earlier chapters (or a hypothetical one), write a complete statistical methods section following the structure above. Aim for approximately 500 words.</p>
+<p>Check your methods section against the TRIPOD+AI checklist. Are all key items covered?</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Example methods section">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Example methods section
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><em>Study design and setting.</em> We conducted a retrospective cohort study using data from the Framingham Heart Study (original cohort, examinations 1–10). Participants were adults aged 30–74 years free of cardiovascular disease at baseline.</p>
+<p><em>Outcome.</em> The primary outcome was incident coronary heart disease (CHD) within 10 years of baseline examination, defined as myocardial infarction, coronary insufficiency, or CHD death.</p>
+<p><em>Predictors.</em> Candidate predictors were age, sex, systolic blood pressure (modelled with restricted cubic splines, 4 knots), total cholesterol (restricted cubic splines, 4 knots), HDL cholesterol, current smoking status, diabetes status, and use of antihypertensive medication.</p>
+<p><em>Missing data.</em> Missing data ranged from 0% (age, sex) to 8% (HDL cholesterol). We used multiple imputation by chained equations (MICE, 20 imputations) assuming data were missing at random.</p>
+<p><em>Model development.</em> We fitted a logistic regression model. Continuous predictors were modelled with restricted cubic splines to allow for non-linear associations. No automated variable selection was performed; all pre-specified predictors were retained. The model was fitted on the full imputed dataset using Rubin’s rules.</p>
+<p><em>Model performance.</em> Discrimination was quantified using the C-statistic with 95% confidence intervals. Calibration was assessed using calibration plots (loess smoother) and the calibration slope and intercept. Clinical utility was evaluated using decision curve analysis, reporting net benefit across decision thresholds from 5% to 40%.</p>
+<p><em>Validation.</em> Internal validation was performed using bootstrap resampling (500 samples) to estimate optimism-corrected performance.</p>
+<p><em>Software.</em> All analyses were performed in R 4.4.1 using the rms, mice, and dcurves packages.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="the-future-of-clinical-prediction" class="level2" data-number="20.8">
+<h2 data-number="20.8" class="anchored" data-anchor-id="the-future-of-clinical-prediction"><span class="header-section-number">20.8</span> The future of clinical prediction</h2>
+<p>Several trends are shaping the next decade of clinical prediction modelling:</p>
+<ul>
+<li><strong>Dynamic prediction models</strong> that update as new patient data become available (e.g., during a hospital stay)</li>
+<li><strong>Federated learning</strong> that trains models across institutions without sharing patient data</li>
+<li><strong>Foundation models</strong> adapted for clinical tasks (large language models, multimodal models)</li>
+<li><strong>Continuous model monitoring</strong> with automated detection of performance degradation</li>
+<li><strong>Patient-facing prediction tools</strong> integrated into health apps and patient portals</li>
+</ul>
+<p>Regardless of the technology, the fundamentals covered in this course — proper validation, calibration assessment, clinical utility evaluation, and transparent reporting — will remain essential.</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Exercise 12.3: Critical appraisal">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 12.3: Critical appraisal
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Find a prediction model paper from 2024 or 2025 in a journal relevant to your field. Answer the following:</p>
+<ol type="1">
+<li>What clinical question does the model address?</li>
+<li>Was the model developed with regression, ML, or both?</li>
+<li>Was calibration reported? If so, was it assessed using a calibration plot?</li>
+<li>Was clinical utility (decision curve analysis) reported?</li>
+<li>Could you implement this model in your own setting with the information provided?</li>
+<li>Does the paper comply with TRIPOD+AI?</li>
+</ol>
+<p>Discuss your findings with a colleague or in the course discussion forum.</p>
+</div>
+</div>
+</section>
+<section id="references-and-further-reading" class="level2" data-number="20.9">
+<h2 data-number="20.9" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">20.9</span> References and further reading</h2>
+<ul>
+<li><p>Collins GS, Moons KGM, Dhiman P, et al.&nbsp;<strong>TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods.</strong> <em>BMJ</em> 2024;385:e078378. The definitive reporting guideline for prediction models.</p></li>
+<li><p>Smits LJM, van Kuijk SMJ, Wynants L. <strong>Improving Health Care with Clinical Prediction Models: From Idea to Impact.</strong> Maastricht University Press, 2026. Chapters 10–15 cover model selection for impact, innovation development, research question formulation, impact evaluation (decision modelling and empirical), and implementation.</p></li>
+<li><p>Van Calster B, Collins GS, Vickers AJ, et al.&nbsp;<strong>Evaluation of performance measures in predictive artificial intelligence models to support medical decisions: overview and guidance.</strong> <em>Lancet Digital Health</em> 2025;7:e100916. Comprehensive guide to choosing appropriate performance measures.</p></li>
+<li><p>Steyerberg EW. <strong>Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating.</strong> Springer, 2019. Chapter 23 covers implementation.</p></li>
+<li><p>Vickers AJ, van Calster B, Steyerberg EW. <strong>A simple, step-by-step guide to interpreting decision curve analysis.</strong> <em>Diagnostic and Prognostic Research</em> 2019;3:18.</p></li>
+<li><p><strong>EU AI Act</strong> (Regulation 2024/1689). Official text available at eur-lex.europa.eu.</p></li>
+<li><p>Gigerenzer G, Edwards A. <strong>Simple tools for understanding risks: from innumeracy to insight.</strong> <em>BMJ</em> 2003;327:741–744. Classic paper on risk communication.</p></li>
+</ul>
+
+
+<!-- -->
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/11_performance_and_validation.html" class="pagination-link" aria-label="Performance Assessment and Model Validation">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Performance Assessment and Model Validation</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../advanced/17_causal_inference.html" class="pagination-link" aria-label="Causal Inference for Observational Health Data">
+        <span class="nav-page-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Causal Inference for Observational Health Data</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="an">title:</span><span class="co"> "Reporting Standards, TRIPOD+AI, and Clinical Impact"</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co">---</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu"># Reporting Standards, TRIPOD+AI, and Clinical Impact {#sec-reporting}</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="fu">## Introduction</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a></span>
+<span id="cb1-9"><a href="#cb1-9"></a>Thousands of clinical prediction models are published every year. Yet only a small fraction are ever validated externally, and fewer still make it into clinical practice. One of the major reasons is poor reporting: papers that omit critical methodological details, overstate performance, or fail to describe the model in enough detail for anyone to reproduce or implement it. In 2024, the TRIPOD+AI statement was published to address this problem head-on.</span>
+<span id="cb1-10"><a href="#cb1-10"></a></span>
+<span id="cb1-11"><a href="#cb1-11"></a>This chapter walks you through the current reporting standards for clinical prediction models, explains why they matter, and gives you the tools to produce work that meets the expectations of top medical journals.</span>
+<span id="cb1-12"><a href="#cb1-12"></a></span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="fu">## Why reporting standards matter</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a></span>
+<span id="cb1-15"><a href="#cb1-15"></a>Consider trying to use a published prediction model in your own clinical setting. You would need to know:</span>
+<span id="cb1-16"><a href="#cb1-16"></a></span>
+<span id="cb1-17"><a href="#cb1-17"></a><span class="ss">- </span>What predictors are included, and exactly how they were measured</span>
+<span id="cb1-18"><a href="#cb1-18"></a><span class="ss">- </span>What outcome was predicted, and at what time horizon</span>
+<span id="cb1-19"><a href="#cb1-19"></a><span class="ss">- </span>How missing data were handled</span>
+<span id="cb1-20"><a href="#cb1-20"></a><span class="ss">- </span>How the model was validated, and on what population</span>
+<span id="cb1-21"><a href="#cb1-21"></a><span class="ss">- </span>The model's calibration, not just its discrimination</span>
+<span id="cb1-22"><a href="#cb1-22"></a><span class="ss">- </span>Whether the model would be feasible to use in your context</span>
+<span id="cb1-23"><a href="#cb1-23"></a></span>
+<span id="cb1-24"><a href="#cb1-24"></a>Remarkably, many published prediction model studies omit several of these details. A systematic review by Collins et al. found that reporting quality was poor across most published prediction model studies, motivating the development of formal reporting guidelines.</span>
+<span id="cb1-25"><a href="#cb1-25"></a></span>
+<span id="cb1-26"><a href="#cb1-26"></a><span class="fu">## The TRIPOD+AI statement</span></span>
+<span id="cb1-27"><a href="#cb1-27"></a></span>
+<span id="cb1-28"><a href="#cb1-28"></a>The **Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis** (TRIPOD) guideline was first published in 2015. In 2024, it was updated as **TRIPOD+AI** to address machine learning and AI-based models.</span>
+<span id="cb1-29"><a href="#cb1-29"></a></span>
+<span id="cb1-30"><a href="#cb1-30"></a>TRIPOD+AI applies to studies that develop, validate, or update a prediction model, whether based on regression, machine learning, or deep learning. The key additions in the +AI version include:</span>
+<span id="cb1-31"><a href="#cb1-31"></a></span>
+<span id="cb1-32"><a href="#cb1-32"></a><span class="ss">- </span>**Fairness evaluation**: assessing whether the model performs equitably across demographic groups</span>
+<span id="cb1-33"><a href="#cb1-33"></a><span class="ss">- </span>**Open science**: sharing code, data (where possible), and the model itself</span>
+<span id="cb1-34"><a href="#cb1-34"></a><span class="ss">- </span>**Handling of AI-specific issues**: hyperparameter tuning, computational requirements, software dependencies</span>
+<span id="cb1-35"><a href="#cb1-35"></a></span>
+<span id="cb1-36"><a href="#cb1-36"></a><span class="fu">### Key TRIPOD+AI items</span></span>
+<span id="cb1-37"><a href="#cb1-37"></a></span>
+<span id="cb1-38"><a href="#cb1-38"></a>The full checklist contains items across title, abstract, introduction, methods, results, and discussion. Here are some of the most commonly missed items:</span>
+<span id="cb1-39"><a href="#cb1-39"></a></span>
+<span id="cb1-40"><a href="#cb1-40"></a>**Study design and participants:**</span>
+<span id="cb1-41"><a href="#cb1-41"></a></span>
+<span id="cb1-42"><a href="#cb1-42"></a><span class="ss">- </span>Describe the study design (e.g., cohort, case-control, registry)</span>
+<span id="cb1-43"><a href="#cb1-43"></a><span class="ss">- </span>Specify the eligibility criteria clearly</span>
+<span id="cb1-44"><a href="#cb1-44"></a><span class="ss">- </span>Report dates of recruitment and follow-up</span>
+<span id="cb1-45"><a href="#cb1-45"></a></span>
+<span id="cb1-46"><a href="#cb1-46"></a>**Predictors and outcome:**</span>
+<span id="cb1-47"><a href="#cb1-47"></a></span>
+<span id="cb1-48"><a href="#cb1-48"></a><span class="ss">- </span>List all candidate predictors, how they were defined, and when they were measured</span>
+<span id="cb1-49"><a href="#cb1-49"></a><span class="ss">- </span>Define the outcome precisely, including the time horizon for prognostic models</span>
+<span id="cb1-50"><a href="#cb1-50"></a></span>
+<span id="cb1-51"><a href="#cb1-51"></a>**Missing data:**</span>
+<span id="cb1-52"><a href="#cb1-52"></a></span>
+<span id="cb1-53"><a href="#cb1-53"></a><span class="ss">- </span>Report the amount of missing data for each variable</span>
+<span id="cb1-54"><a href="#cb1-54"></a><span class="ss">- </span>Describe the method used to handle missing data (complete case analysis, imputation)</span>
+<span id="cb1-55"><a href="#cb1-55"></a><span class="ss">- </span>If multiple imputation was used, report the number of imputations and imputation model</span>
+<span id="cb1-56"><a href="#cb1-56"></a></span>
+<span id="cb1-57"><a href="#cb1-57"></a>**Model development:**</span>
+<span id="cb1-58"><a href="#cb1-58"></a></span>
+<span id="cb1-59"><a href="#cb1-59"></a><span class="ss">- </span>Describe the modelling approach (logistic regression, random forest, etc.)</span>
+<span id="cb1-60"><a href="#cb1-60"></a><span class="ss">- </span>Report how continuous predictors were handled (linear terms, splines, categorised)</span>
+<span id="cb1-61"><a href="#cb1-61"></a><span class="ss">- </span>For ML models: report hyperparameter tuning strategy, software, and random seeds</span>
+<span id="cb1-62"><a href="#cb1-62"></a></span>
+<span id="cb1-63"><a href="#cb1-63"></a>**Model performance:**</span>
+<span id="cb1-64"><a href="#cb1-64"></a></span>
+<span id="cb1-65"><a href="#cb1-65"></a><span class="ss">- </span>Report discrimination (e.g., C-statistic) with confidence intervals</span>
+<span id="cb1-66"><a href="#cb1-66"></a><span class="ss">- </span>Report calibration (calibration plot, calibration slope and intercept)</span>
+<span id="cb1-67"><a href="#cb1-67"></a><span class="ss">- </span>Report clinical utility (decision curve analysis or net benefit) where relevant</span>
+<span id="cb1-68"><a href="#cb1-68"></a></span>
+<span id="cb1-69"><a href="#cb1-69"></a>**Validation:**</span>
+<span id="cb1-70"><a href="#cb1-70"></a></span>
+<span id="cb1-71"><a href="#cb1-71"></a><span class="ss">- </span>Describe the validation approach (internal, external, temporal)</span>
+<span id="cb1-72"><a href="#cb1-72"></a><span class="ss">- </span>Report performance in the validation data, not just the development data</span>
+<span id="cb1-73"><a href="#cb1-73"></a></span>
+<span id="cb1-74"><a href="#cb1-74"></a>::: {.callout-tip title="Exercise 12.1: TRIPOD+AI audit"}</span>
+<span id="cb1-75"><a href="#cb1-75"></a>Find a recently published clinical prediction model paper (try searching PubMed for "prediction model" in your area of interest). Using the TRIPOD+AI checklist, evaluate how many items the paper reports adequately.</span>
+<span id="cb1-76"><a href="#cb1-76"></a></span>
+<span id="cb1-77"><a href="#cb1-77"></a>Focus on:</span>
+<span id="cb1-78"><a href="#cb1-78"></a></span>
+<span id="cb1-79"><a href="#cb1-79"></a><span class="ss">1. </span>Is the outcome clearly defined with a time horizon?</span>
+<span id="cb1-80"><a href="#cb1-80"></a><span class="ss">2. </span>Is calibration reported, or only discrimination?</span>
+<span id="cb1-81"><a href="#cb1-81"></a><span class="ss">3. </span>How was missing data handled?</span>
+<span id="cb1-82"><a href="#cb1-82"></a><span class="ss">4. </span>Were continuous predictors appropriately modelled (splines) or just categorised?</span>
+<span id="cb1-83"><a href="#cb1-83"></a><span class="ss">5. </span>Is the model available for others to use (coefficients, code, web calculator)?</span>
+<span id="cb1-84"><a href="#cb1-84"></a></span>
+<span id="cb1-85"><a href="#cb1-85"></a>Write a brief (one paragraph) critical appraisal.</span>
+<span id="cb1-86"><a href="#cb1-86"></a>:::</span>
+<span id="cb1-87"><a href="#cb1-87"></a></span>
+<span id="cb1-88"><a href="#cb1-88"></a><span class="fu">## From model to bedside: the implementation gap</span></span>
+<span id="cb1-89"><a href="#cb1-89"></a></span>
+<span id="cb1-90"><a href="#cb1-90"></a>Even well-developed, well-validated models face an uphill battle to clinical implementation. Smits, van Kuijk &amp; Wynants (2026) dedicate five chapters of their book to this topic, covering the journey from model selection through innovation development, impact evaluation, and implementation.</span>
+<span id="cb1-91"><a href="#cb1-91"></a></span>
+<span id="cb1-92"><a href="#cb1-92"></a><span class="fu">### Key barriers to implementation</span></span>
+<span id="cb1-93"><a href="#cb1-93"></a></span>
+<span id="cb1-94"><a href="#cb1-94"></a><span class="ss">1. </span>**The model doesn't address a real clinical need.** Models built for academic interest rather than to solve a genuine decision problem rarely get implemented.</span>
+<span id="cb1-95"><a href="#cb1-95"></a></span>
+<span id="cb1-96"><a href="#cb1-96"></a><span class="ss">2. </span>**The model isn't embedded in clinical workflow.** A model that requires a clinician to manually enter 15 variables into a spreadsheet will not be used, regardless of how accurate it is.</span>
+<span id="cb1-97"><a href="#cb1-97"></a></span>
+<span id="cb1-98"><a href="#cb1-98"></a><span class="ss">3. </span>**Performance hasn't been demonstrated in the target population.** External validation in the specific setting where the model will be used is essential.</span>
+<span id="cb1-99"><a href="#cb1-99"></a></span>
+<span id="cb1-100"><a href="#cb1-100"></a><span class="ss">4. </span>**Clinicians don't trust the model.** Transparency, explainability, and evidence of clinical utility (not just statistical performance) build trust.</span>
+<span id="cb1-101"><a href="#cb1-101"></a></span>
+<span id="cb1-102"><a href="#cb1-102"></a><span class="ss">5. </span>**There is no plan for maintenance.** Models can degrade over time as populations and practices change. A plan for monitoring and updating is essential.</span>
+<span id="cb1-103"><a href="#cb1-103"></a></span>
+<span id="cb1-104"><a href="#cb1-104"></a><span class="fu">### The prediction model-based innovation (PMBI) framework</span></span>
+<span id="cb1-105"><a href="#cb1-105"></a></span>
+<span id="cb1-106"><a href="#cb1-106"></a>Smits et al. (2026) introduce the concept of a PMBI: the complete clinical tool that wraps around a prediction model, including:</span>
+<span id="cb1-107"><a href="#cb1-107"></a></span>
+<span id="cb1-108"><a href="#cb1-108"></a><span class="ss">- </span>The user interface (how predictions are displayed)</span>
+<span id="cb1-109"><a href="#cb1-109"></a><span class="ss">- </span>Decision support (what actions are recommended at different risk levels)</span>
+<span id="cb1-110"><a href="#cb1-110"></a><span class="ss">- </span>Integration with electronic health records</span>
+<span id="cb1-111"><a href="#cb1-111"></a><span class="ss">- </span>Training materials for end users</span>
+<span id="cb1-112"><a href="#cb1-112"></a><span class="ss">- </span>A monitoring and updating plan</span>
+<span id="cb1-113"><a href="#cb1-113"></a></span>
+<span id="cb1-114"><a href="#cb1-114"></a>::: {.callout-note}</span>
+<span id="cb1-115"><a href="#cb1-115"></a>**Key insight:** Building a good prediction model is necessary but not sufficient for clinical impact. The model must be embedded in a workable clinical tool, validated in the target setting, and demonstrated to improve patient outcomes.</span>
+<span id="cb1-116"><a href="#cb1-116"></a>:::</span>
+<span id="cb1-117"><a href="#cb1-117"></a></span>
+<span id="cb1-118"><a href="#cb1-118"></a><span class="fu">## Risk communication</span></span>
+<span id="cb1-119"><a href="#cb1-119"></a></span>
+<span id="cb1-120"><a href="#cb1-120"></a>Presenting predicted probabilities to patients and clinicians is not straightforward. Research in health literacy shows that:</span>
+<span id="cb1-121"><a href="#cb1-121"></a></span>
+<span id="cb1-122"><a href="#cb1-122"></a><span class="ss">- </span>**Frequencies are easier to understand than probabilities.** "3 out of 100 patients like you" is clearer than "3% probability."</span>
+<span id="cb1-123"><a href="#cb1-123"></a><span class="ss">- </span>**Visual aids help.** Icon arrays (showing 100 faces with 3 highlighted) are effective.</span>
+<span id="cb1-124"><a href="#cb1-124"></a><span class="ss">- </span>**Framing matters.** "97% chance of survival" feels different from "3% chance of death" — both are true.</span>
+<span id="cb1-125"><a href="#cb1-125"></a><span class="ss">- </span>**Uncertainty should be communicated.** Presenting a point estimate without a confidence interval overstates precision.</span>
+<span id="cb1-126"><a href="#cb1-126"></a></span>
+<span id="cb1-127"><a href="#cb1-127"></a><span class="fu">### Presenting results to different audiences</span></span>
+<span id="cb1-128"><a href="#cb1-128"></a></span>
+<span id="cb1-129"><a href="#cb1-129"></a><span class="pp">|</span> Audience <span class="pp">|</span> Recommended format <span class="pp">|</span></span>
+<span id="cb1-130"><a href="#cb1-130"></a><span class="pp">|----------|-------------------|</span></span>
+<span id="cb1-131"><a href="#cb1-131"></a><span class="pp">|</span> Patients <span class="pp">|</span> Frequencies, icon arrays, plain language <span class="pp">|</span></span>
+<span id="cb1-132"><a href="#cb1-132"></a><span class="pp">|</span> Clinicians <span class="pp">|</span> Risk categories with action thresholds, decision curves <span class="pp">|</span></span>
+<span id="cb1-133"><a href="#cb1-133"></a><span class="pp">|</span> Researchers <span class="pp">|</span> Full performance metrics, calibration plots, code <span class="pp">|</span></span>
+<span id="cb1-134"><a href="#cb1-134"></a><span class="pp">|</span> Policymakers <span class="pp">|</span> Population-level impact, cost-effectiveness <span class="pp">|</span></span>
+<span id="cb1-135"><a href="#cb1-135"></a></span>
+<span id="cb1-136"><a href="#cb1-136"></a><span class="fu">## Ethical considerations</span></span>
+<span id="cb1-137"><a href="#cb1-137"></a></span>
+<span id="cb1-138"><a href="#cb1-138"></a><span class="fu">### Algorithmic bias</span></span>
+<span id="cb1-139"><a href="#cb1-139"></a></span>
+<span id="cb1-140"><a href="#cb1-140"></a>Prediction models can perpetuate or amplify existing health disparities if:</span>
+<span id="cb1-141"><a href="#cb1-141"></a></span>
+<span id="cb1-142"><a href="#cb1-142"></a><span class="ss">- </span>Training data underrepresents certain populations</span>
+<span id="cb1-143"><a href="#cb1-143"></a><span class="ss">- </span>Predictors serve as proxies for protected characteristics (e.g., postcode as proxy for race/ethnicity)</span>
+<span id="cb1-144"><a href="#cb1-144"></a><span class="ss">- </span>Performance is not evaluated across subgroups</span>
+<span id="cb1-145"><a href="#cb1-145"></a></span>
+<span id="cb1-146"><a href="#cb1-146"></a>TRIPOD+AI specifically requires fairness evaluation: reporting model performance stratified by relevant demographic groups.</span>
+<span id="cb1-147"><a href="#cb1-147"></a></span>
+<span id="cb1-148"><a href="#cb1-148"></a><span class="fu">### Informed consent and transparency</span></span>
+<span id="cb1-149"><a href="#cb1-149"></a></span>
+<span id="cb1-150"><a href="#cb1-150"></a>Patients have a right to know when a prediction model is being used in their care, what data it uses, and how its output influences clinical decisions. This is particularly important for models that inform treatment decisions or resource allocation.</span>
+<span id="cb1-151"><a href="#cb1-151"></a></span>
+<span id="cb1-152"><a href="#cb1-152"></a><span class="fu">### The EU AI Act and regulatory considerations</span></span>
+<span id="cb1-153"><a href="#cb1-153"></a></span>
+<span id="cb1-154"><a href="#cb1-154"></a>The European Union's AI Act (2024) classifies medical AI applications as "high risk" and imposes requirements for transparency, human oversight, and documentation. Clinical prediction models that qualify as medical devices may need regulatory approval (e.g., CE marking in the EU, FDA clearance in the US).</span>
+<span id="cb1-155"><a href="#cb1-155"></a></span>
+<span id="cb1-156"><a href="#cb1-156"></a><span class="fu">## Writing a statistical methods section</span></span>
+<span id="cb1-157"><a href="#cb1-157"></a></span>
+<span id="cb1-158"><a href="#cb1-158"></a>A well-written methods section for a prediction model study should include:</span>
+<span id="cb1-159"><a href="#cb1-159"></a></span>
+<span id="cb1-160"><a href="#cb1-160"></a><span class="ss">1. </span>**Study design and setting** (one paragraph)</span>
+<span id="cb1-161"><a href="#cb1-161"></a><span class="ss">2. </span>**Participants** — eligibility criteria, dates, sample size (one paragraph)</span>
+<span id="cb1-162"><a href="#cb1-162"></a><span class="ss">3. </span>**Predictors** — list, definitions, measurement timing (one paragraph)</span>
+<span id="cb1-163"><a href="#cb1-163"></a><span class="ss">4. </span>**Outcome** — definition, ascertainment, time horizon (one paragraph)</span>
+<span id="cb1-164"><a href="#cb1-164"></a><span class="ss">5. </span>**Missing data** — amount, mechanism assumed, handling method (one paragraph)</span>
+<span id="cb1-165"><a href="#cb1-165"></a><span class="ss">6. </span>**Model development** — method, how continuous variables were handled, variable selection approach (one paragraph)</span>
+<span id="cb1-166"><a href="#cb1-166"></a><span class="ss">7. </span>**Model performance** — discrimination, calibration, clinical utility measures (one paragraph)</span>
+<span id="cb1-167"><a href="#cb1-167"></a><span class="ss">8. </span>**Validation** — internal and/or external validation approach (one paragraph)</span>
+<span id="cb1-168"><a href="#cb1-168"></a><span class="ss">9. </span>**Software** — R/Python version, key packages, random seed (one sentence)</span>
+<span id="cb1-169"><a href="#cb1-169"></a></span>
+<span id="cb1-170"><a href="#cb1-170"></a>::: {.callout-tip title="Exercise 12.2: Write a methods section"}</span>
+<span id="cb1-171"><a href="#cb1-171"></a>Using the prediction model you developed in earlier chapters (or a hypothetical one), write a complete statistical methods section following the structure above. Aim for approximately 500 words.</span>
+<span id="cb1-172"><a href="#cb1-172"></a></span>
+<span id="cb1-173"><a href="#cb1-173"></a>Check your methods section against the TRIPOD+AI checklist. Are all key items covered?</span>
+<span id="cb1-174"><a href="#cb1-174"></a></span>
+<span id="cb1-175"><a href="#cb1-175"></a>::: {.callout-note collapse="true" title="Example methods section"}</span>
+<span id="cb1-176"><a href="#cb1-176"></a>*Study design and setting.* We conducted a retrospective cohort study using data from the Framingham Heart Study (original cohort, examinations 1–10). Participants were adults aged 30–74 years free of cardiovascular disease at baseline.</span>
+<span id="cb1-177"><a href="#cb1-177"></a></span>
+<span id="cb1-178"><a href="#cb1-178"></a>*Outcome.* The primary outcome was incident coronary heart disease (CHD) within 10 years of baseline examination, defined as myocardial infarction, coronary insufficiency, or CHD death.</span>
+<span id="cb1-179"><a href="#cb1-179"></a></span>
+<span id="cb1-180"><a href="#cb1-180"></a>*Predictors.* Candidate predictors were age, sex, systolic blood pressure (modelled with restricted cubic splines, 4 knots), total cholesterol (restricted cubic splines, 4 knots), HDL cholesterol, current smoking status, diabetes status, and use of antihypertensive medication.</span>
+<span id="cb1-181"><a href="#cb1-181"></a></span>
+<span id="cb1-182"><a href="#cb1-182"></a>*Missing data.* Missing data ranged from 0% (age, sex) to 8% (HDL cholesterol). We used multiple imputation by chained equations (MICE, 20 imputations) assuming data were missing at random.</span>
+<span id="cb1-183"><a href="#cb1-183"></a></span>
+<span id="cb1-184"><a href="#cb1-184"></a>*Model development.* We fitted a logistic regression model. Continuous predictors were modelled with restricted cubic splines to allow for non-linear associations. No automated variable selection was performed; all pre-specified predictors were retained. The model was fitted on the full imputed dataset using Rubin's rules.</span>
+<span id="cb1-185"><a href="#cb1-185"></a></span>
+<span id="cb1-186"><a href="#cb1-186"></a>*Model performance.* Discrimination was quantified using the C-statistic with 95% confidence intervals. Calibration was assessed using calibration plots (loess smoother) and the calibration slope and intercept. Clinical utility was evaluated using decision curve analysis, reporting net benefit across decision thresholds from 5% to 40%.</span>
+<span id="cb1-187"><a href="#cb1-187"></a></span>
+<span id="cb1-188"><a href="#cb1-188"></a>*Validation.* Internal validation was performed using bootstrap resampling (500 samples) to estimate optimism-corrected performance.</span>
+<span id="cb1-189"><a href="#cb1-189"></a></span>
+<span id="cb1-190"><a href="#cb1-190"></a>*Software.* All analyses were performed in R 4.4.1 using the rms, mice, and dcurves packages.</span>
+<span id="cb1-191"><a href="#cb1-191"></a>:::</span>
+<span id="cb1-192"><a href="#cb1-192"></a>:::</span>
+<span id="cb1-193"><a href="#cb1-193"></a></span>
+<span id="cb1-194"><a href="#cb1-194"></a><span class="fu">## The future of clinical prediction</span></span>
+<span id="cb1-195"><a href="#cb1-195"></a></span>
+<span id="cb1-196"><a href="#cb1-196"></a>Several trends are shaping the next decade of clinical prediction modelling:</span>
+<span id="cb1-197"><a href="#cb1-197"></a></span>
+<span id="cb1-198"><a href="#cb1-198"></a><span class="ss">- </span>**Dynamic prediction models** that update as new patient data become available (e.g., during a hospital stay)</span>
+<span id="cb1-199"><a href="#cb1-199"></a><span class="ss">- </span>**Federated learning** that trains models across institutions without sharing patient data</span>
+<span id="cb1-200"><a href="#cb1-200"></a><span class="ss">- </span>**Foundation models** adapted for clinical tasks (large language models, multimodal models)</span>
+<span id="cb1-201"><a href="#cb1-201"></a><span class="ss">- </span>**Continuous model monitoring** with automated detection of performance degradation</span>
+<span id="cb1-202"><a href="#cb1-202"></a><span class="ss">- </span>**Patient-facing prediction tools** integrated into health apps and patient portals</span>
+<span id="cb1-203"><a href="#cb1-203"></a></span>
+<span id="cb1-204"><a href="#cb1-204"></a>Regardless of the technology, the fundamentals covered in this course — proper validation, calibration assessment, clinical utility evaluation, and transparent reporting — will remain essential.</span>
+<span id="cb1-205"><a href="#cb1-205"></a></span>
+<span id="cb1-206"><a href="#cb1-206"></a>::: {.callout-tip title="Exercise 12.3: Critical appraisal"}</span>
+<span id="cb1-207"><a href="#cb1-207"></a>Find a prediction model paper from 2024 or 2025 in a journal relevant to your field. Answer the following:</span>
+<span id="cb1-208"><a href="#cb1-208"></a></span>
+<span id="cb1-209"><a href="#cb1-209"></a><span class="ss">1. </span>What clinical question does the model address?</span>
+<span id="cb1-210"><a href="#cb1-210"></a><span class="ss">2. </span>Was the model developed with regression, ML, or both?</span>
+<span id="cb1-211"><a href="#cb1-211"></a><span class="ss">3. </span>Was calibration reported? If so, was it assessed using a calibration plot?</span>
+<span id="cb1-212"><a href="#cb1-212"></a><span class="ss">4. </span>Was clinical utility (decision curve analysis) reported?</span>
+<span id="cb1-213"><a href="#cb1-213"></a><span class="ss">5. </span>Could you implement this model in your own setting with the information provided?</span>
+<span id="cb1-214"><a href="#cb1-214"></a><span class="ss">6. </span>Does the paper comply with TRIPOD+AI?</span>
+<span id="cb1-215"><a href="#cb1-215"></a></span>
+<span id="cb1-216"><a href="#cb1-216"></a>Discuss your findings with a colleague or in the course discussion forum.</span>
+<span id="cb1-217"><a href="#cb1-217"></a>:::</span>
+<span id="cb1-218"><a href="#cb1-218"></a></span>
+<span id="cb1-219"><a href="#cb1-219"></a><span class="fu">## References and further reading</span></span>
+<span id="cb1-220"><a href="#cb1-220"></a></span>
+<span id="cb1-221"><a href="#cb1-221"></a><span class="ss">- </span>Collins GS, Moons KGM, Dhiman P, et al. **TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods.** *BMJ* 2024;385:e078378. The definitive reporting guideline for prediction models.</span>
+<span id="cb1-222"><a href="#cb1-222"></a></span>
+<span id="cb1-223"><a href="#cb1-223"></a><span class="ss">- </span>Smits LJM, van Kuijk SMJ, Wynants L. **Improving Health Care with Clinical Prediction Models: From Idea to Impact.** Maastricht University Press, 2026. Chapters 10–15 cover model selection for impact, innovation development, research question formulation, impact evaluation (decision modelling and empirical), and implementation.</span>
+<span id="cb1-224"><a href="#cb1-224"></a></span>
+<span id="cb1-225"><a href="#cb1-225"></a><span class="ss">- </span>Van Calster B, Collins GS, Vickers AJ, et al. **Evaluation of performance measures in predictive artificial intelligence models to support medical decisions: overview and guidance.** *Lancet Digital Health* 2025;7:e100916. Comprehensive guide to choosing appropriate performance measures.</span>
+<span id="cb1-226"><a href="#cb1-226"></a></span>
+<span id="cb1-227"><a href="#cb1-227"></a><span class="ss">- </span>Steyerberg EW. **Clinical Prediction Models: A Practical Approach to Development, Validation, and Updating.** Springer, 2019. Chapter 23 covers implementation.</span>
+<span id="cb1-228"><a href="#cb1-228"></a></span>
+<span id="cb1-229"><a href="#cb1-229"></a><span class="ss">- </span>Vickers AJ, van Calster B, Steyerberg EW. **A simple, step-by-step guide to interpreting decision curve analysis.** *Diagnostic and Prognostic Research* 2019;3:18.</span>
+<span id="cb1-230"><a href="#cb1-230"></a></span>
+<span id="cb1-231"><a href="#cb1-231"></a><span class="ss">- </span>**EU AI Act** (Regulation 2024/1689). Official text available at eur-lex.europa.eu.</span>
+<span id="cb1-232"><a href="#cb1-232"></a></span>
+<span id="cb1-233"><a href="#cb1-233"></a><span class="ss">- </span>Gigerenzer G, Edwards A. **Simple tools for understanding risks: from innumeracy to insight.** *BMJ* 2003;327:741–744. Classic paper on risk communication.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/edit/main/chapters/12_reporting_and_implementation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li><li><a href="https://github.com/mark-khurana/ML_and_Stats_Course/blob/main/chapters/12_reporting_and_implementation.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></div></div></footer><script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
