@@ -69,13 +69,11 @@ book:
         - advanced/18_meta_analysis.qmd
         - advanced/19_journal_ready_analysis.qmd
 
-    - part: "Appendices"
-      chapters:
-        - appendices/A_dataset_codebook.qmd
-        - appendices/B_math_notation.qmd
-        - appendices/C_further_reading.qmd
-
   appendices:
+    - appendices/A_dataset_codebook.qmd
+    - appendices/B_math_notation.qmd
+    - appendices/C_further_reading.qmd
+    - appendices/D_exercise_solutions.qmd
     - references.qmd
 
 format:

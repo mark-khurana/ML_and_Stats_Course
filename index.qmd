@@ -17,13 +17,12 @@ By the end of this course, you will be able to:
 - Use machine learning methods (random forests, gradient boosting, deep learning) and know when they help and when they do not
 - Apply Bayesian methods including hierarchical models for multi-site studies
 - Reduce high-dimensional data with PCA, t-SNE, and UMAP
-- Produce analyses that meet the expectations of BMJ, JAMA, and Lancet Digital Health
 
 ## Structure
 
 | Part | What it covers | Time |
 |------|---------------|------|
-| **Pre-Course** | Setup, probability, inference, regression refresher | ~12 hrs self-study |
+| **Pre-Course** | Probability, inference, regression refresher | ~8 hrs self-study |
 | **I** | Splines, penalised regression, survival analysis | 1.5 days |
 | **II** | Bayesian inference and hierarchical models | 1 day |
 | **III** | PCA, UMAP, clustering | 0.5 days |
