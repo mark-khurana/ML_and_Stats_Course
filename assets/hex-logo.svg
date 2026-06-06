@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 693" width="600" height="693">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#F5F0E6"/>
+      <stop offset="100%" stop-color="#EAE2D0"/>
+    </linearGradient>
+    <clipPath id="hexClip">
+      <polygon points="300,16 574,175 574,518 300,677 26,518 26,175"/>
+    </clipPath>
+  </defs>
+
+  <!-- Hex border -->
+  <polygon points="300,4 586,169 586,524 300,689 14,524 14,169"
+           fill="#2E4057" stroke="none"/>
+  <!-- Gold accent -->
+  <polygon points="300,11 579,172 579,521 300,682 21,521 21,172"
+           fill="#B8963E" stroke="none"/>
+  <!-- Background -->
+  <polygon points="300,16 574,175 574,518 300,677 26,518 26,175"
+           fill="url(#bgGrad)" stroke="none"/>
+
+  <!-- Title at top -->
+  <text x="300" y="170" text-anchor="middle"
+        font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="72" fill="#2E4057" letter-spacing="-2">
+    <tspan font-weight="300">stat</tspan><tspan font-weight="800">ML</tspan>
+  </text>
+
+  <g clip-path="url(#hexClip)">
+
+    <!-- PRIOR: wide, gold, bold fill -->
+    <path d="M -10 558
+             C 40 552, 80 530, 120 490
+             C 155 450, 180 395, 200 340
+             C 218 290, 232 250, 250 225
+             C 265 205, 278 198, 290 200
+             C 305 204, 320 225, 338 265
+             C 360 315, 385 390, 415 448
+             C 445 498, 490 538, 550 552
+             L 610 558 L 610 680 L -10 680 Z"
+          fill="#B8963E" fill-opacity="0.28" stroke="none"/>
+    <path d="M -10 558
+             C 40 552, 80 530, 120 490
+             C 155 450, 180 395, 200 340
+             C 218 290, 232 250, 250 225
+             C 265 205, 278 198, 290 200
+             C 305 204, 320 225, 338 265
+             C 360 315, 385 390, 415 448
+             C 445 498, 490 538, 550 552"
+          fill="none" stroke="#B8963E" stroke-width="5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- POSTERIOR: narrow, tall, navy, dominant -->
+    <path d="M 100 558
+             C 160 555, 210 542, 255 512
+             C 290 488, 315 448, 335 392
+             C 350 348, 358 300, 365 262
+             C 370 235, 377 218, 387 212
+             C 397 208, 407 220, 415 248
+             C 422 275, 432 318, 442 368
+             C 455 422, 475 470, 505 508
+             C 525 535, 545 550, 570 558
+             L 570 680 L 100 680 Z"
+          fill="#2E4057" fill-opacity="0.25" stroke="none"/>
+    <path d="M 100 558
+             C 160 555, 210 542, 255 512
+             C 290 488, 315 448, 335 392
+             C 350 348, 358 300, 365 262
+             C 370 235, 377 218, 387 212
+             C 397 208, 407 220, 415 248
+             C 422 275, 432 318, 442 368
+             C 455 422, 475 470, 505 508
+             C 525 535, 545 550, 570 558"
+          fill="none" stroke="#2E4057" stroke-width="6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+
+  </g>
+
+  <!-- Bottom text along hex edges (manually rotated) -->
+  <text x="190" y="640" text-anchor="middle"
+        font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="13.5" font-weight="600" fill="#2E4057" letter-spacing="1"
+        transform="rotate(30, 190, 640)">
+    ADVANCED STATISTICS
+  </text>
+  <text x="410" y="640" text-anchor="middle"
+        font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="13.5" font-weight="600" fill="#2E4057" letter-spacing="1"
+        transform="rotate(-30, 410, 640)">
+    &amp; MACHINE LEARNING
+  </text>
+</svg>

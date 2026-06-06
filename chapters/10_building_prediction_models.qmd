@@ -280,7 +280,7 @@ A particularly damaging practice is pre-selecting variables based on univariable
 ### Better Approaches
 
 - **Full model with all pre-specified predictors**: if sample size permits, include all clinically plausible predictors and apply shrinkage (see below). This is the recommended approach by Steyerberg (2019).
-- **Penalised regression**: LASSO (L1 penalty) performs automatic variable selection by shrinking some coefficients to zero. Elastic net combines L1 and L2 penalties. These are covered in detail in later chapters.
+- **Penalised regression**: LASSO (L1 penalty) performs automatic variable selection by shrinking some coefficients to zero. Elastic net combines L1 and L2 penalties. These are covered in detail in @sec-penalised-regression.
 - **Background knowledge with data-driven fine-tuning**: start with a core set of established predictors and consider a small number of additional candidates.
 
 ## Step 5: Understand and Combat Overfitting

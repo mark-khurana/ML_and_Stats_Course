@@ -11,7 +11,9 @@ opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## What Machine Learning Is (and Is Not)
 
-Machine learning (ML) is a collection of algorithms that learn patterns from data to make predictions or discover structure — without being explicitly programmed with rules. That is the textbook definition. Here is a more practical one for clinical researchers:
+You have already done machine learning --- you just did not call it that. The dimensionality reduction (PCA, t-SNE, UMAP) and clustering (K-means, hierarchical, DBSCAN) methods from the previous chapters are forms of **unsupervised** machine learning. This part of the course focuses on **supervised** machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.
+
+Machine learning (ML) is a collection of algorithms that learn patterns from data to make predictions or discover structure --- without being explicitly programmed with rules. That is the textbook definition. Here is a more practical one for clinical researchers:
 
 **Machine learning is pattern recognition at scale.** Given enough examples of inputs and outputs, an ML algorithm finds the mapping between them. A logistic regression that predicts 30-day readmission from 5 clinical variables is, technically, machine learning. An algorithm that reads chest X-rays and flags pneumonia is also machine learning. The difference is one of complexity and scale, not of kind.
 
@@ -51,11 +53,13 @@ Most clinical prediction models — logistic regression, random forests, neural 
 
 ### Unsupervised Learning
 
-In **unsupervised learning**, there are no labels. The algorithm discovers structure in the data on its own.
+In **unsupervised learning**, there are no labels. The algorithm discovers structure in the data on its own. You have already encountered the two most important families of unsupervised methods in earlier chapters:
 
-- **Clustering**: Group patients into subgroups based on similarity. *Are there distinct phenotypes of sepsis patients?*
-- **Dimensionality reduction**: Compress high-dimensional data into fewer dimensions for visualization or preprocessing. *Can we summarize 50 lab values into a few meaningful components?*
+- **Dimensionality reduction** (PCA, t-SNE, UMAP): Compress high-dimensional data into fewer dimensions for visualization or preprocessing. You covered these in @sec-dimensionality-reduction.
+- **Clustering** (K-means, hierarchical, DBSCAN): Group patients into subgroups based on similarity. You covered these in @sec-clustering.
 - **Anomaly detection**: Identify unusual observations. *Which patients have lab value patterns that are outliers?*
+
+This part of the course focuses on **supervised learning** --- the prediction-oriented methods that build on the regression foundations you already know.
 
 ### Reinforcement Learning
 
