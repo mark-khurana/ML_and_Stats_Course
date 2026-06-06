@@ -78,12 +78,12 @@
   </g>
 
   <!-- Bottom text along hex edges (manually rotated) -->
-  <text x="300" y="590" text-anchor="middle"
+  <text x="300" y="572" text-anchor="middle"
         font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
         font-size="20" font-weight="700" fill="#2E4057" letter-spacing="1.5">
     ADVANCED STATISTICS
   </text>
-  <text x="300" y="618" text-anchor="middle"
+  <text x="300" y="600" text-anchor="middle"
         font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
         font-size="20" font-weight="700" fill="#2E4057" letter-spacing="1.5">
     &amp; MACHINE LEARNING
