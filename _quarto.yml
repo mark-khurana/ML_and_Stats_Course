@@ -105,7 +105,7 @@ format:
 
 execute:
   eval: false
-  freeze: auto
+  freeze: true
   warning: false
   message: false
 
