@@ -3,8 +3,8 @@ project:
   output-dir: _book
 
 book:
-  title: "Machine Learning and Advanced Statistics for Health Research"
-  subtitle: "A Practical Course for Medical Students and Public Health Researchers"
+  title: "Advanced Statistics and Machine Learning for Health Research"
+  subtitle: "A Practical Course for Health Researchers"
   date: last-modified
   date-format: "MMMM D, YYYY"
   repo-url: https://github.com/bxc331/ML_and_Stats_Course
@@ -18,6 +18,11 @@ book:
   sidebar:
     collapse-level: 1
     style: floating
+    logo: assets/hex-logo.png
+  open-graph:
+    image: assets/social-preview.png
+  twitter-card:
+    image: assets/social-preview.png
 
   chapters:
     - index.qmd
@@ -35,18 +40,6 @@ book:
         - chapters/05_penalized_regression.qmd
         - chapters/06_survival_analysis.qmd
 
-    - part: "Introduction to Machine Learning"
-      chapters:
-        - chapters/07_ml_foundations.qmd
-        - chapters/08_trees_and_ensembles.qmd
-        - chapters/09_model_evaluation.qmd
-
-    - part: "Clinical Prediction Models"
-      chapters:
-        - chapters/10_building_prediction_models.qmd
-        - chapters/11_performance_and_validation.qmd
-        - chapters/12_reporting_and_implementation.qmd
-
     - part: "Bayesian Methods"
       chapters:
         - chapters/13_bayesian_inference.qmd
@@ -56,6 +49,19 @@ book:
       chapters:
         - chapters/15_dimensionality_reduction.qmd
         - chapters/16_clustering.qmd
+
+    - part: "Introduction to Machine Learning"
+      chapters:
+        - chapters/07_ml_foundations.qmd
+        - chapters/08_trees_and_ensembles.qmd
+        - chapters/08b_introduction_to_deep_learning.qmd
+        - chapters/09_model_evaluation.qmd
+
+    - part: "Clinical Prediction Models"
+      chapters:
+        - chapters/10_building_prediction_models.qmd
+        - chapters/11_performance_and_validation.qmd
+        - chapters/12_reporting_and_implementation.qmd
 
     - part: "Advanced Research Toolkit"
       chapters:

@@ -1,10 +1,10 @@
 ---
-title: "Machine Learning and Advanced Statistics for Health Research"
+title: "Advanced Statistics and Machine Learning for Health Research"
 ---
 
 # Welcome {.unnumbered}
 
-This course teaches machine learning and advanced statistics to people who work in health research. It assumes you know the basics --- means, standard deviations, maybe a t-test --- and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.
+This course teaches advanced statistics and machine learning to people who work in health research. It assumes you know the basics --- means, standard deviations, maybe a t-test --- and takes you from there to the methods you actually see in current medical journals: splines, penalised regression, prediction models, Bayesian analysis, and dimensionality reduction.
 
 Everything uses **clinical data**. Every exercise works in **R and Python**. Pick one or try both.
 
@@ -14,7 +14,7 @@ By the end of this course, you will be able to:
 
 - Model non-linear relationships properly instead of categorising continuous variables
 - Build, validate, and report clinical prediction models to current standards (TRIPOD+AI)
-- Use machine learning methods (random forests, gradient boosting) and know when they help and when they don't
+- Use machine learning methods (random forests, gradient boosting, deep learning) and know when they help and when they do not
 - Apply Bayesian methods including hierarchical models for multi-site studies
 - Reduce high-dimensional data with PCA, t-SNE, and UMAP
 - Produce analyses that meet the expectations of BMJ, JAMA, and Lancet Digital Health
@@ -25,10 +25,10 @@ By the end of this course, you will be able to:
 |------|---------------|------|
 | **Pre-Course** | Setup, probability, inference, regression refresher | ~12 hrs self-study |
 | **I** | Splines, penalised regression, survival analysis | 1.5 days |
-| **II** | ML foundations, trees, ensembles, model evaluation | 1.5 days |
-| **III** | Clinical prediction models, validation, reporting | 1.5 days |
-| **IV** | Bayesian inference and hierarchical models | 1 day |
-| **V** | PCA, UMAP, clustering | 0.5 days |
+| **II** | Bayesian inference and hierarchical models | 1 day |
+| **III** | PCA, UMAP, clustering | 0.5 days |
+| **IV** | ML foundations, trees, ensembles, deep learning, model evaluation | 2 days |
+| **V** | Clinical prediction models, validation, reporting | 1.5 days |
 | **Advanced Toolkit** | Causal inference, meta-analysis, journal-ready analysis | Reference material |
 
 The **Pre-Course** material should be completed before Day 1 if you are taking this in person. If you are self-studying, work through everything in order.
@@ -50,16 +50,17 @@ Rough time estimates per chapter:
 | 4 | Splines and non-linear modelling | 3-4 hrs |
 | 5 | Penalised regression | 2-3 hrs |
 | 6 | Survival analysis | 3-4 hrs |
-| 7 | ML foundations | 2-3 hrs |
-| 8 | Trees and ensembles | 2-3 hrs |
-| 9 | Model evaluation | 2-3 hrs |
-| 10 | Building prediction models | 3-4 hrs |
-| 11 | Performance and validation | 3-4 hrs |
-| 12 | Reporting and TRIPOD+AI | 2-3 hrs |
 | 13 | Bayesian inference | 3-4 hrs |
 | 14 | Applied Bayesian modelling | 3-4 hrs |
 | 15 | Dimensionality reduction | 2-3 hrs |
 | 16 | Clustering | 2-3 hrs |
+| 7 | ML foundations | 2-3 hrs |
+| 8 | Trees and ensembles | 2-3 hrs |
+| 8b | Introduction to deep learning | 2-3 hrs |
+| 9 | Model evaluation | 2-3 hrs |
+| 10 | Building prediction models | 3-4 hrs |
+| 11 | Performance and validation | 3-4 hrs |
+| 12 | Reporting and TRIPOD+AI | 2-3 hrs |
 
 ## Datasets
 

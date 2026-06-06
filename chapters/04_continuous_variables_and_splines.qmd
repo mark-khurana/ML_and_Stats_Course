@@ -188,7 +188,7 @@ Lopez-Ayala et al. [-@lopezayala2025] note that fractional polynomials and splin
 
 Think of a spline as a flexible ruler. A straight line forces the same slope everywhere. A spline lets the curve bend at specific points (called **knots**), producing a smooth curve that follows the data's actual shape. The result is a single smooth function — not separate lines stitched together.
 
-You have already seen the problem a spline solves: in @sec-regression-foundations, we used a straight line to model the relationship between age and blood pressure. That works if the relationship is genuinely linear. But many clinical relationships are not — BMI and mortality is U-shaped, age and surgical risk accelerates in the elderly. A spline captures these patterns.
+You have already seen the problem a spline solves: in @sec-regression, we used a straight line to model the relationship between age and blood pressure. That works if the relationship is genuinely linear. But many clinical relationships are not — BMI and mortality is U-shaped, age and surgical risk accelerates in the elderly. A spline captures these patterns.
 
 ### What Is a Spline?
 

@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#F5F0E6"/>
+      <stop offset="100%" stop-color="#EAE2D0"/>
+    </linearGradient>
+    <linearGradient id="hexBg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#F5F0E6"/>
+      <stop offset="100%" stop-color="#EAE2D0"/>
+    </linearGradient>
+    <clipPath id="hexClip">
+      <polygon points="260,18 494,154 494,494 260,632 26,494 26,154"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="#f8f9fa"/>
+
+  <!-- Hex sticker (left side) -->
+  <g transform="translate(80, -3)">
+    <polygon points="260,6 506,148 506,502 260,644 14,502 14,148"
+             fill="#2E4057" stroke="none"/>
+    <polygon points="260,11 500,151 500,499 260,639 20,499 20,151"
+             fill="#B8963E" stroke="none"/>
+    <polygon points="260,16 496,153 496,497 260,636 24,497 24,153"
+             fill="url(#hexBg)" stroke="none"/>
+
+    <clipPath id="hexClipSm">
+      <polygon points="260,16 496,153 496,497 260,636 24,497 24,153"/>
+    </clipPath>
+
+    <!-- Title -->
+    <text x="260" y="155" text-anchor="middle"
+          font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+          font-size="62" fill="#2E4057" letter-spacing="-2">
+      <tspan font-weight="300">stat</tspan><tspan font-weight="800">ML</tspan>
+    </text>
+
+    <g clip-path="url(#hexClipSm)">
+      <!-- Prior -->
+      <path d="M -10 525
+               C 30 520, 65 505, 100 470
+               C 130 435, 152 385, 168 335
+               C 182 290, 194 252, 210 228
+               C 222 210, 234 204, 244 206
+               C 256 210, 268 228, 282 262
+               C 300 310, 322 382, 348 435
+               C 374 478, 410 510, 470 522
+               L 530 525 L 530 650 L -10 650 Z"
+            fill="#B8963E" fill-opacity="0.28" stroke="none"/>
+      <path d="M -10 525
+               C 30 520, 65 505, 100 470
+               C 130 435, 152 385, 168 335
+               C 182 290, 194 252, 210 228
+               C 222 210, 234 204, 244 206
+               C 256 210, 268 228, 282 262
+               C 300 310, 322 382, 348 435
+               C 374 478, 410 510, 470 522"
+            fill="none" stroke="#B8963E" stroke-width="4.5"
+            stroke-linecap="round"/>
+
+      <!-- Posterior -->
+      <path d="M 80 525
+               C 135 523, 178 515, 215 492
+               C 245 472, 268 438, 282 395
+               C 294 358, 302 315, 308 278
+               C 313 250, 318 235, 328 230
+               C 338 226, 346 238, 353 260
+               C 360 285, 368 320, 376 362
+               C 388 410, 405 452, 428 482
+               C 448 508, 468 520, 500 525
+               L 500 650 L 80 650 Z"
+            fill="#2E4057" fill-opacity="0.25" stroke="none"/>
+      <path d="M 80 525
+               C 135 523, 178 515, 215 492
+               C 245 472, 268 438, 282 395
+               C 294 358, 302 315, 308 278
+               C 313 250, 318 235, 328 230
+               C 338 226, 346 238, 353 260
+               C 360 285, 368 320, 376 362
+               C 388 410, 405 452, 428 482
+               C 448 508, 468 520, 500 525"
+            fill="none" stroke="#2E4057" stroke-width="5"
+            stroke-linecap="round"/>
+    </g>
+
+    <!-- Bottom text -->
+    <text x="158" y="602" text-anchor="middle"
+          font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+          font-size="12" font-weight="600" fill="#2E4057" letter-spacing="1"
+          transform="rotate(30, 158, 602)">
+      ADVANCED STATISTICS
+    </text>
+    <text x="362" y="602" text-anchor="middle"
+          font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+          font-size="12" font-weight="600" fill="#2E4057" letter-spacing="1"
+          transform="rotate(-30, 362, 602)">
+      &amp; MACHINE LEARNING
+    </text>
+  </g>
+
+  <!-- Text (right side) -->
+  <text x="700" y="240" font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="44" font-weight="700" fill="#2E4057" letter-spacing="-0.5">
+    Advanced Statistics &amp;
+  </text>
+  <text x="700" y="295" font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="44" font-weight="700" fill="#2E4057" letter-spacing="-0.5">
+    Machine Learning
+  </text>
+  <text x="700" y="345" font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="24" font-weight="400" fill="#7A6E5E">
+    for Health Research
+  </text>
+
+  <text x="700" y="410" font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="16" font-weight="400" fill="#999">
+    A practical course for health researchers
+  </text>
+
+  <!-- Tags -->
+  <g font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">
+    <rect x="700" y="460" width="30" height="24" rx="4" fill="#2E4057" opacity="0.1"/>
+    <text x="715" y="476" fill="#2E4057" text-anchor="middle">R</text>
+
+    <rect x="740" y="460" width="60" height="24" rx="4" fill="#B8963E" opacity="0.12"/>
+    <text x="770" y="476" fill="#B8963E" text-anchor="middle">Python</text>
+
+    <rect x="810" y="460" width="100" height="24" rx="4" fill="#7A6E5E" opacity="0.08"/>
+    <text x="860" y="476" fill="#7A6E5E" text-anchor="middle">Open Access</text>
+
+    <rect x="920" y="460" width="50" height="24" rx="4" fill="#7A6E5E" opacity="0.08"/>
+    <text x="945" y="476" fill="#7A6E5E" text-anchor="middle">CC BY</text>
+  </g>
+</svg>

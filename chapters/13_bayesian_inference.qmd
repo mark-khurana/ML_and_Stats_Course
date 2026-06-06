@@ -8,6 +8,8 @@ library(knitr)
 
 ## Introduction
 
+You have now completed the core statistical methods that form the backbone of most clinical research: regression, splines, penalised regression, and survival analysis. All of these methods share a common philosophical framework --- they are **frequentist**. In this part of the course, we step back to explore a fundamentally different way of thinking about evidence.
+
 Every statistical method you have learned so far in this course has been **frequentist**. In frequentist statistics, probability refers to long-run frequencies: "if we repeated this experiment infinitely many times, the parameter would fall in our 95% confidence interval 95% of the time." That is a mathematically precise statement, but it is not the question most clinicians actually want answered. What clinicians want to know is: *given the data I have in front of me, what is the probability that this treatment works?*
 
 Bayesian inference answers that question directly. It treats probability as a measure of **uncertainty** --- a degree of belief --- rather than a long-run frequency. This chapter introduces the Bayesian framework from first principles, shows you how it works with a medical example you already understand (diagnostic testing), and then builds toward the computational machinery (MCMC) that makes modern Bayesian analysis possible.

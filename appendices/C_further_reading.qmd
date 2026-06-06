@@ -70,6 +70,15 @@ This annotated bibliography organises key references by topic. It emphasises rec
 - **Boehmke B, Greenwell B.** *Hands-On Machine Learning with R.* Free online. Practical R-based ML with good coverage of tree-based methods.
 - **Lgatto.** Introduction to Machine Learning with R. Free online at [lgatto.github.io/IntroMachineLearningWithR](https://lgatto.github.io/IntroMachineLearningWithR/). Concise, exercise-driven introduction.
 
+### Deep Learning
+- **Goodfellow IJ, Bengio Y, Courville A.** *Deep Learning.* MIT Press, 2016. Freely available at [deeplearningbook.org](https://www.deeplearningbook.org/). The definitive theoretical reference for neural networks, CNNs, and RNNs.
+- **Zhang A, Lipton ZC, Li M, Smola AJ.** *Dive into Deep Learning.* Cambridge University Press, 2023. Freely available at [d2l.ai](https://d2l.ai/). Interactive textbook with executable code. Adopted at 500+ universities.
+- **Howard J, Gugger S.** *Deep Learning for Coders with fastai and PyTorch.* O'Reilly, 2020. Companion to [fast.ai](https://course.fast.ai/). Coding-first approach ideal for applied researchers.
+- **Grinsztajn L, Oyallon E, Varoquaux G.** Why do tree-based models still outperform deep learning on typical tabular data? *NeurIPS* 2022. Benchmark demonstrating that XGBoost beats neural networks on tabular data.
+- **Ma J, et al.** Segment anything in medical images. *Nature Communications* 2024;15:654. MedSAM foundation model for universal medical image segmentation.
+- **Bedi S, et al.** MedHELM: Holistic Evaluation of Large Language Models for Medical Tasks. *Nature Medicine* 2025. Most comprehensive evaluation of LLMs for clinical tasks.
+- **Wiegrebe S, et al.** Deep learning for survival analysis: a review. *Artificial Intelligence Review*, Springer, 2024. Comprehensive taxonomy of deep survival methods.
+
 ## R Packages (Key Packages, Recently Updated)
 
 | Package | Purpose | Last Updated |
@@ -98,6 +107,8 @@ This annotated bibliography organises key references by topic. It emphasises rec
 | `Rtsne` | t-SNE in R | 2023 |
 | `cluster` | Clustering algorithms | 2023 |
 | `factoextra` | Clustering visualisation | 2023 |
+| `keras3` | Deep learning (TensorFlow/JAX backend) | 2025 |
+| `torch` | Deep learning (PyTorch backend) | 2025 |
 | `naniar` | Missing data visualisation | 2024 |
 | `finalfit` | Regression modelling and reporting | 2024 |
 | `marginaleffects` | Marginal effects, predictions, contrasts | 2025 |
@@ -128,7 +139,10 @@ This annotated bibliography organises key references by topic. It emphasises rec
 | `great_tables` | Publication-quality tables | 2025 |
 | `shap` | ML model interpretation | 2024 |
 | `dowhy` | Causal inference | 2024 |
+| `tensorflow` / `keras` | Deep learning | 2025 |
+| `torch` | Deep learning (PyTorch) | 2025 |
 | `pycox` | Deep learning survival analysis | 2024 |
+| `torchsurv` | Deep survival analysis (Novartis/FDA) | 2024 |
 | `plotly` | Interactive visualisation | 2025 |
 | `patsy` | Design matrices (spline bases) | 2023 |
 | `pygam` | Generalised additive models | 2024 |
