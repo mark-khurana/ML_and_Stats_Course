@@ -78,16 +78,14 @@
   </g>
 
   <!-- Bottom text along hex edges (manually rotated) -->
-  <text x="190" y="643" text-anchor="middle"
+  <text x="300" y="610" text-anchor="middle"
         font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
-        font-size="20" font-weight="700" fill="#2E4057" letter-spacing="1.5"
-        transform="rotate(30, 190, 643)">
+        font-size="20" font-weight="700" fill="#2E4057" letter-spacing="1.5">
     ADVANCED STATISTICS
   </text>
-  <text x="410" y="643" text-anchor="middle"
+  <text x="300" y="638" text-anchor="middle"
         font-family="system-ui, -apple-system, Helvetica, Arial, sans-serif"
-        font-size="20" font-weight="700" fill="#2E4057" letter-spacing="1.5"
-        transform="rotate(-30, 410, 643)">
+        font-size="20" font-weight="700" fill="#2E4057" letter-spacing="1.5">
     &amp; MACHINE LEARNING
   </text>
 </svg>
