@@ -774,6 +774,7 @@ c. What does this sequential updating illustrate about the Bayesian framework?
 
 ```{r}
 #| label: exercise-1-solution
+#| eval: false
 #| code-fold: true
 #| code-summary: "Show solution"
 
@@ -801,6 +802,7 @@ cat("P(cancer | positive mammogram AND positive ultrasound):",
 
 ```{python}
 #| label: exercise-1-solution-py
+#| eval: false
 #| code-fold: true
 #| code-summary: "Show solution"
 
@@ -833,6 +835,7 @@ c. Which prior has the most influence on the posterior? Why?
 
 ```{r}
 #| label: exercise-2-solution
+#| eval: false
 #| code-fold: true
 #| code-summary: "Show solution"
 #| fig-width: 8
@@ -872,6 +875,7 @@ ggplot(plot_df, aes(x = theta, y = Density, colour = Prior)) +
 
 ```{python}
 #| label: exercise-2-solution-py
+#| eval: false
 #| code-fold: true
 #| code-summary: "Show solution"
 

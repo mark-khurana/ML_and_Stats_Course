@@ -120,3 +120,7 @@ knitr:
     fig.height: 5
     fig.align: center
     out.width: "100%"
+    # Hold each chunk's text output until after its (single) source block so
+    # code-fold produces ONE "Code" dropdown per chunk instead of one per
+    # output-producing line. Avoids the fragmented "Code / stray text" look.
+    results: hold
