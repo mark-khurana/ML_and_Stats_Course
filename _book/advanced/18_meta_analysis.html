@@ -745,7 +745,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h2 data-number="21.6" class="anchored" data-anchor-id="forest-plots"><span class="header-section-number">21.6</span> Forest Plots</h2>
 <p>The <strong>forest plot</strong> is the standard visualisation for meta-analysis. Each study is shown as a square (size proportional to weight) with a horizontal line (95% CI). The pooled estimate is shown as a diamond.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Example data: RCTs of statins for secondary CV prevention</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a>statin_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
@@ -804,7 +804,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h3 data-number="21.7.2" class="anchored" data-anchor-id="funnel-plots"><span class="header-section-number">21.7.2</span> Funnel plots</h3>
 <p>A <strong>funnel plot</strong> displays each study’s effect estimate (x-axis) against its precision, typically the standard error (y-axis, inverted). In the absence of bias, the plot should resemble a symmetric inverted funnel.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">funnel</span>(m1,</span>
 <span id="cb2-2"><a href="#cb2-2"></a>       <span class="at">xlab =</span> <span class="st">"Risk Ratio (log scale)"</span>,</span>
@@ -819,7 +819,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h3 data-number="21.7.3" class="anchored" data-anchor-id="statistical-tests-for-funnel-plot-asymmetry"><span class="header-section-number">21.7.3</span> Statistical tests for funnel plot asymmetry</h3>
 <p><strong>Egger’s test</strong>: A weighted regression of the effect estimate on its standard error. A significant intercept suggests asymmetry.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">metabias</span>(m1, <span class="at">method.bias =</span> <span class="st">"Egger"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -830,7 +830,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h3 data-number="21.7.4" class="anchored" data-anchor-id="trim-and-fill-method"><span class="header-section-number">21.7.4</span> Trim-and-fill method</h3>
 <p>The <strong>trim-and-fill</strong> method estimates the number of “missing” studies, imputes them, and recalculates the pooled effect. It provides a sensitivity analysis rather than a definitive correction.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>tf <span class="ot">&lt;-</span> <span class="fu">trimfill</span>(m1)</span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="fu">summary</span>(tf)</span>
@@ -862,7 +862,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h2 data-number="21.8" class="anchored" data-anchor-id="advanced-meta-analysis-using-metafor"><span class="header-section-number">21.8</span> Advanced Meta-Analysis using metafor</h2>
 <p>The <code>metafor</code> package provides the most comprehensive and flexible meta-analysis framework in R.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">library</span>(metafor)</span>
 <span id="cb5-2"><a href="#cb5-2"></a></span>
@@ -897,7 +897,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <section id="subgroup-analysis" class="level3" data-number="21.8.1">
 <h3 data-number="21.8.1" class="anchored" data-anchor-id="subgroup-analysis"><span class="header-section-number">21.8.1</span> Subgroup analysis</h3>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># Classify as primary vs secondary prevention</span></span>
 <span id="cb6-2"><a href="#cb6-2"></a>statin_es<span class="sc">$</span>prevention <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"secondary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>,</span>
@@ -934,7 +934,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <li><strong>Ranking</strong>: NMA can rank treatments using the surface under the cumulative ranking curve (SUCRA) or P-scores, though rankings should be interpreted cautiously.</li>
 </ul>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">library</span>(netmeta)</span>
 <span id="cb7-2"><a href="#cb7-2"></a></span>
@@ -983,7 +983,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <li><strong>One-stage</strong>: Fit a single model to all individual data, accounting for study clustering. More flexible, especially with sparse data.</li>
 </ul>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Two-stage IPD meta-analysis example</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a><span class="co"># Suppose we have a stacked dataset with individual data from 5 studies</span></span>
@@ -1020,7 +1020,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h2 data-number="21.11" class="anchored" data-anchor-id="implementation-in-python"><span class="header-section-number">21.11</span> Implementation in Python</h2>
 <p>Python’s meta-analysis ecosystem is less mature than R’s, but basic analyses are feasible.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -1083,7 +1083,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <section id="forest-plot-in-python" class="level3" data-number="21.11.1">
 <h3 data-number="21.11.1" class="anchored" data-anchor-id="forest-plot-in-python"><span class="header-section-number">21.11.1</span> Forest plot in Python</h3>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">def</span> forest_plot(studies, pooled_est, pooled_ci, weights, title<span class="op">=</span><span class="st">"Forest Plot"</span>):</span>
 <span id="cb10-2"><a href="#cb10-2"></a>    <span class="co">"""Create a basic forest plot."""</span></span>
@@ -1131,7 +1131,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <section id="using-pythonmeta-or-pymeta" class="level3" data-number="21.11.2">
 <h3 data-number="21.11.2" class="anchored" data-anchor-id="using-pythonmeta-or-pymeta"><span class="header-section-number">21.11.2</span> Using PythonMeta or PyMeta</h3>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># For more complete meta-analysis in Python, consider the 'meta-analysis' package</span></span>
 <span id="cb11-2"><a href="#cb11-2"></a><span class="co"># Install: pip install meta-analysis</span></span>
@@ -1167,7 +1167,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h3 data-number="21.13.1" class="anchored" data-anchor-id="exercise-1-basic-meta-analysis-in-r"><span class="header-section-number">21.13.1</span> Exercise 1: Basic meta-analysis in R</h3>
 <p>The following data come from randomised trials of a hypothetical new anticoagulant vs warfarin for stroke prevention in atrial fibrillation.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>af_trials <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb12-2"><a href="#cb12-2"></a>  <span class="at">study =</span> <span class="fu">c</span>(<span class="st">"TRAIL-1"</span>, <span class="st">"GUARD-AF"</span>, <span class="st">"SHIELD"</span>, <span class="st">"ORBIT-AF"</span>,</span>
@@ -1192,7 +1192,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h3 data-number="21.13.2" class="anchored" data-anchor-id="exercise-2-meta-analysis-from-scratch-in-python"><span class="header-section-number">21.13.2</span> Exercise 2: Meta-analysis from scratch in Python</h3>
 <p>Using the same trial data as Exercise 1:</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb13-2"><a href="#cb13-2"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1220,7 +1220,7 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <h3 data-number="21.13.3" class="anchored" data-anchor-id="exercise-3-subgroup-analysis-and-meta-regression-in-r"><span class="header-section-number">21.13.3</span> Exercise 3: Subgroup analysis and meta-regression in R</h3>
 <p>Suppose the trials in Exercise 1 were conducted in different settings:</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>af_trials<span class="sc">$</span>region <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Europe"</span>, <span class="st">"North America"</span>, <span class="st">"Europe"</span>, <span class="st">"Asia"</span>,</span>
 <span id="cb14-2"><a href="#cb14-2"></a>                       <span class="st">"North America"</span>, <span class="st">"Europe"</span>, <span class="st">"Asia"</span>, <span class="st">"North America"</span>)</span>

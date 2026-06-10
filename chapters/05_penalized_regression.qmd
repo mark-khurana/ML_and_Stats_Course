@@ -307,74 +307,6 @@ While the LASSO performs automatic variable selection, the results should always
 Use the LASSO as a tool to *complement*, not replace, clinical reasoning about which variables matter.
 :::
 
-### The Geometry of L1 vs L2
-
-Why does the LASSO zero out coefficients while ridge only shrinks them? The cleanest explanation is geometric. Imagine just two predictors, so a coefficient pair $(\beta_1, \beta_2)$ is a point on a 2-D map. The penalty puts a "budget" on how far that point can stray from the origin, and the *shape* of the allowed region differs between the two methods:
-
-- The **L2 (ridge)** budget allows everything inside a **circle** centred at the origin (a sphere in higher dimensions). A circle is smooth --- it has no special points.
-- The **L1 (LASSO)** budget allows everything inside a **diamond** (a square turned 45°, with sharp corners sitting exactly on the axes).
-
-Now picture the regression's "best fit" as a set of nested ellipses (contours of the misfit term, term (1) from the ridge equation), centred on the unpenalised OLS solution. The penalised estimate is the first point where an expanding ellipse just *touches* the allowed region. Here is the crux: a corner of the diamond lies **on an axis**, and a point on an axis has one coordinate equal to **exactly zero** (e.g. $\beta_2 = 0$, meaning that predictor is dropped). Because the diamond's corners stick out, an expanding ellipse is very likely to make first contact *at a corner* --- producing an exact zero. The circle, having no corners, is almost always touched at a point where *both* coordinates are non-zero --- so ridge shrinks but never eliminates. This single geometric difference --- corners versus a smooth edge --- is the whole reason the LASSO performs variable selection and ridge does not. The figure below shows exactly this: the LASSO solution sits on the diamond's corner (one coefficient zero), while the ridge solution sits off-axis (both coefficients non-zero).
-
-```{r}
-#| label: fig-l1-vs-l2-geometry
-#| fig-cap: "Geometric comparison of L1 (LASSO, diamond) and L2 (Ridge, circle) constraints. The ellipses are contours of the loss function. The LASSO solution hits the corner of the diamond, setting one coefficient to zero."
-#| code-fold: true
-#| warning: false
-
-library(ggplot2)
-
-theta <- seq(0, 2 * pi, length.out = 200)
-
-# L2 constraint (circle)
-l2_x <- cos(theta)
-l2_y <- sin(theta)
-
-# L1 constraint (diamond)
-l1_x <- c(1, 0, -1, 0, 1)
-l1_y <- c(0, 1, 0, -1, 0)
-
-# Loss function contours (ellipse centered at (1.5, 1))
-ellipse_x <- function(a, cx = 1.5, cy = 1) cx + a * 1.2 * cos(theta)
-ellipse_y <- function(a, cx = 1.5, cy = 1) cy + a * 0.8 * sin(theta)
-
-plot_df <- rbind(
-  data.frame(x = l2_x, y = l2_y, group = "L2 (Ridge)"),
-  data.frame(x = l1_x, y = l1_y, group = "L1 (LASSO)")
-)
-
-ggplot() +
-  # Constraint regions
-  geom_polygon(data = data.frame(x = l2_x, y = l2_y),
-               aes(x, y), fill = "#3498db", alpha = 0.15) +
-  geom_path(data = data.frame(x = l2_x, y = l2_y),
-            aes(x, y), colour = "#3498db", linewidth = 1.2) +
-  geom_polygon(data = data.frame(x = l1_x, y = l1_y),
-               aes(x, y), fill = "#e74c3c", alpha = 0.15) +
-  geom_path(data = data.frame(x = l1_x, y = l1_y),
-            aes(x, y), colour = "#e74c3c", linewidth = 1.2) +
-  # Loss contours
-  geom_path(data = data.frame(x = ellipse_x(0.8), y = ellipse_y(0.8)),
-            aes(x, y), colour = "grey40", linetype = "dashed") +
-  geom_path(data = data.frame(x = ellipse_x(1.15), y = ellipse_y(1.15)),
-            aes(x, y), colour = "grey40", linetype = "dashed") +
-  geom_path(data = data.frame(x = ellipse_x(1.5), y = ellipse_y(1.5)),
-            aes(x, y), colour = "grey40", linetype = "dashed") +
-  # OLS solution
-  geom_point(aes(x = 1.5, y = 1), size = 3, colour = "black") +
-  annotate("text", x = 1.7, y = 1.15, label = "OLS\nsolution", size = 3) +
-  # LASSO solution (hits corner)
-  geom_point(aes(x = 0, y = 1), size = 3, colour = "#e74c3c") +
-  annotate("text", x = -0.35, y = 1.1, label = "LASSO", size = 3, colour = "#e74c3c") +
-  # Ridge solution
-  geom_point(aes(x = 0.65, y = 0.75), size = 3, colour = "#3498db") +
-  annotate("text", x = 0.65, y = 0.55, label = "Ridge", size = 3, colour = "#3498db") +
-  coord_fixed() +
-  labs(x = expression(beta[1]), y = expression(beta[2])) +
-  theme_minimal(base_size = 14) +
-  xlim(-1.8, 3) + ylim(-1.5, 2.5)
-```
-
 ## Elastic Net: The Best of Both Worlds
 
 ### Definition
@@ -710,7 +642,7 @@ flowchart TD
 
 ## Implementation
 
-The two walkthroughs below are **fully self-contained and runnable**. Each begins by simulating a labelled dataset and splitting it into a *training* set (used to build the model) and a *test* set (held back to check predictions), then walks through fitting, tuning, and using a penalised model. To apply them to your own study, replace the simulated-data block with your own predictors and outcome and keep the rest unchanged. (The earlier versions of these snippets used a placeholder called `your_data`; running them as-is produced an "object not found" error because that placeholder was never defined --- the self-contained versions below avoid that.)
+The two walkthroughs below are self-contained: each simulates a small labelled dataset, splits it into training and test sets, then fits, tunes, and uses a penalised model. To apply them to your own study, replace the simulated-data block with your own predictors and outcome.
 
 ::: {.panel-tabset}
 

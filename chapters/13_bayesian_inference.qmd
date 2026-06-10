@@ -1,3 +1,8 @@
+---
+execute:
+  eval: true
+---
+
 # Bayesian Inference: A Different Way to Think About Evidence {#sec-bayesian-inference}
 
 ```{r}
@@ -135,21 +140,102 @@ The prior distribution encodes what we know (or do not know) about a parameter b
 - These are especially valuable in small-sample settings (paediatric trials, rare diseases).
 - They must be justified and subjected to sensitivity analysis.
 
+The three types are easiest to grasp visually. The figure below shows the same idea --- a prior belief about a response rate $\theta$ between 0 and 1 --- expressed three ways: a *flat* prior that treats every rate as equally plausible, a *weakly informative* prior that gently favours the middle while staying open-minded, and an *informative* prior that encodes a specific prior belief (here, a rate around 25%). Think of it as a dial for *how strong an opinion you bring before seeing the data*: flat = no opinion, weakly informative = a loose hunch, informative = a confident expectation from previous evidence.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: fig-prior-types
+#| fig-cap: "Three types of prior belief about a response rate, from no opinion (flat) to a confident prior expectation (informative). The x-axis is the response rate; the height shows how plausible the prior considers each value."
+#| fig-width: 10
+#| fig-height: 4
+
+library(tidyverse)
+
+theta <- seq(0, 1, length.out = 400)
+
+prior_types <- tibble(
+  type = factor(c("Uninformative\n(flat): Beta(1,1)",
+                  "Weakly informative:\nBeta(2,2)",
+                  "Informative:\nBeta(10,30)"),
+                levels = c("Uninformative\n(flat): Beta(1,1)",
+                           "Weakly informative:\nBeta(2,2)",
+                           "Informative:\nBeta(10,30)")),
+  a = c(1, 2, 10),
+  b = c(1, 2, 30)
+)
+
+prior_curves <- prior_types %>%
+  rowwise() %>%
+  reframe(type = type, theta = theta, density = dbeta(theta, a, b))
+
+ggplot(prior_curves, aes(theta, density, fill = type)) +
+  geom_area(alpha = 0.5) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~ type, scales = "free_y") +
+  labs(x = expression(theta ~ "(response rate)"), y = "Prior plausibility",
+       title = "Three flavours of prior belief") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none")
+```
+
+#### Python
+
+```{python}
+#| label: fig-prior-types-py
+#| fig-cap: "Three types of prior belief about a response rate, from no opinion (flat) to a confident prior expectation (informative)."
+#| fig-width: 10
+#| fig-height: 4
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import beta
+
+theta = np.linspace(0, 1, 400)
+priors = [
+    ("Uninformative (flat): Beta(1,1)", 1, 1),
+    ("Weakly informative: Beta(2,2)", 2, 2),
+    ("Informative: Beta(10,30)", 10, 30),
+]
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 3.5))
+for ax, (name, a, b) in zip(axes, priors):
+    d = beta.pdf(theta, a, b)
+    ax.fill_between(theta, d, alpha=0.4, color="steelblue")
+    ax.plot(theta, d, color="steelblue", linewidth=1.5)
+    ax.set_title(name, fontsize=10)
+    ax.set_xlabel(r"$\theta$ (response rate)")
+    ax.set_ylabel("Prior plausibility")
+fig.suptitle("Three flavours of prior belief", fontsize=12, y=1.05)
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
 ### The Beta Distribution as a Conjugate Prior
 
-When estimating a proportion (e.g., a treatment response rate), the Beta distribution is a natural prior because it is **conjugate** to the binomial likelihood. This means the posterior is also a Beta distribution, which makes calculations simple.
+Do not be put off by the name --- the Beta distribution is simply **a flexible curve for describing a belief about a percentage** (a number between 0 and 1, such as a response rate or a complication rate). By tuning its two knobs, you can make it flat, gently humped, or sharply peaked anywhere on the 0--1 scale, which is exactly what we need to express priors like the three above.
 
-The Beta distribution is parameterised by two shape parameters, $\alpha$ and $\beta$:
+The reason it is the go-to prior for proportions is a convenient mathematical accident called **conjugacy**: when you start with a Beta prior and observe binomial data (successes out of trials), the updated belief --- the posterior --- is *also* a Beta distribution. The practical payoff is enormous: you do not need any simulation or heavy computation to update your belief, just simple arithmetic. (We will meet problems later where this trick is not available and we *do* need computation --- that is what MCMC, below, is for.)
 
-- $\text{Beta}(1, 1)$ --- uniform on [0, 1], an uninformative prior.
+**A concrete clinical setup.** Suppose a new treatment is given to **20 patients and 8 respond**. We want to estimate the true underlying response rate, $\theta$. A natural first guess is simply $8/20 = 40\%$, but with only 20 patients that estimate is shaky, and we may also have prior expectations about the response rate from earlier studies. Bayesian updating lets us combine the two. We will carry this "8 responses in 20 patients" example through the next few sections.
+
+The Beta distribution is parameterised by two shape parameters, $\alpha$ and $\beta$. Loosely, you can read $\alpha$ as a count of "prior successes" and $\beta$ as "prior failures" --- so larger values mean a more confident (narrower) prior:
+
+- $\text{Beta}(1, 1)$ --- uniform on [0, 1], an uninformative prior (no opinion).
 - $\text{Beta}(2, 2)$ --- a gentle hump centred at 0.5, weakly informative.
 - $\text{Beta}(10, 30)$ --- centred at 0.25, moderately informative (e.g., prior belief that the response rate is around 25%).
 
-If the prior is $\text{Beta}(\alpha_0, \beta_0)$ and we observe $y$ successes in $n$ trials, the posterior is:
+The updating rule is beautifully simple. If the prior is $\text{Beta}(\alpha_0, \beta_0)$ and we observe $y$ successes in $n$ trials, the posterior is:
 
 $$
 \theta \mid y \sim \text{Beta}(\alpha_0 + y, \; \beta_0 + n - y)
 $$
+
+In words: **add your observed successes to $\alpha$ and your observed failures to $\beta$.** For our example ($y = 8$ responses, $n - y = 12$ non-responses), a weakly-informative $\text{Beta}(2,2)$ prior becomes a $\text{Beta}(2+8,\; 2+12) = \text{Beta}(10, 14)$ posterior --- the data have been folded directly into the belief.
 
 ::: {.panel-tabset}
 
@@ -245,15 +331,17 @@ Notice how with enough data, the posteriors converge regardless of the prior. Th
 
 ## The Likelihood
 
-The likelihood function $P(D \mid \theta)$ describes how probable the observed data are for each possible value of the parameter. It is the same quantity that appears in maximum likelihood estimation (MLE), but in the Bayesian framework it is multiplied by the prior rather than maximised alone.
+The likelihood answers a simple question: *for each possible value of the true response rate $\theta$, how well does it explain the data we actually saw?* Written $P(D \mid \theta)$, it is the same quantity that appears in maximum likelihood estimation (MLE) --- but in the Bayesian framework we *combine* it with the prior rather than maximising it on its own.
 
-For our binomial example (8 responses in 20 patients):
+For our example of 8 responses in 20 patients, the likelihood is given by the **binomial formula**:
 
 $$
-L(\theta) = \binom{20}{8} \theta^{8} (1-\theta)^{12}
+L(\theta) = \underbrace{\binom{20}{8}}_{\substack{\text{number of ways}\\ \text{8 of 20 could respond}}} \; \underbrace{\theta^{8}}_{\substack{\text{8 patients}\\ \text{responded}}} \; \underbrace{(1-\theta)^{12}}_{\substack{\text{12 did}\\ \text{not respond}}}
 $$
 
-The likelihood peaks at $\hat{\theta}_{\text{MLE}} = 8/20 = 0.40$. The Bayesian posterior will be centred near this value but pulled slightly toward the prior --- a phenomenon called **shrinkage**.
+You will likely not have met this formula before, and you do not need to memorise it --- but the idea behind it is intuitive. If the true response rate were $\theta$, then the chance that any one patient responds is $\theta$ and the chance they do not is $(1-\theta)$. To get *8 responders and 12 non-responders*, we multiply $\theta$ eight times and $(1-\theta)$ twelve times; the $\binom{20}{8}$ term simply counts the many different orders in which those 8 responses could have occurred among the 20 patients. Plug in a candidate rate --- say $\theta = 0.4$ --- and the formula tells you how likely "8 out of 20" is under that rate.
+
+The likelihood is largest at $\hat{\theta}_{\text{MLE}} = 8/20 = 0.40$ --- exactly the observed proportion, which makes sense: the rate that best explains "8 of 20" is 40%. The Bayesian posterior will sit near this value but be pulled slightly toward the prior --- a sensible compromise between what the data say and what we believed beforehand, known as **shrinkage**.
 
 ## The Posterior Distribution
 
@@ -314,33 +402,116 @@ print(f"P(theta > 0.30 | data): {prob_gt_30:.3f}")
 
 ## Markov Chain Monte Carlo (MCMC)
 
+Before the mechanics, some context --- because this is where Bayesian analysis starts to feel unfamiliar to most clinicians. So far, our "8 of 20" example had a tidy shortcut: because the Beta prior pairs perfectly with the binomial likelihood (the conjugacy trick from earlier), we could write the posterior down with simple arithmetic and no computer simulation. That shortcut is the exception, not the rule.
+
 ### Why We Need It
 
-The Beta-Binomial example above was analytically tractable because the Beta prior is conjugate to the binomial likelihood. In real research, models have many parameters and non-conjugate priors. The posterior cannot be written in closed form.
+The Beta-Binomial example above had a **neat closed-form answer** --- we could compute the posterior with pen and paper because the Beta prior is conjugate to the binomial likelihood. But that convenience disappears as soon as a model becomes realistic. A clinical prediction model with age, sex, blood pressure, cholesterol, and a dozen other predictors has many parameters and no conjugate shortcut, so there is **no formula** for the posterior --- you cannot simply write it down.
 
-MCMC is a family of algorithms that **draw samples from the posterior distribution** even when we cannot compute it analytically. The key idea: rather than calculating $P(\theta \mid D)$ everywhere, we construct a random walk through parameter space that, over many steps, visits regions in proportion to their posterior probability.
+This is the practical problem MCMC solves, and it is worth stating plainly because it is genuinely new territory: instead of computing the posterior with a formula, we **let the computer draw thousands of samples from it** and then describe those samples (their average, their spread, their 95% range). It is the same logic as estimating a population by taking a large random sample --- except here we are "sampling" from a probability distribution we cannot see directly. The key idea: rather than evaluating $P(\theta \mid D)$ everywhere, we construct a guided random walk through parameter space that, over many steps, spends time in each region *in proportion to its posterior probability*. Collect those visited points and you have a picture of the posterior.
 
-The most widely used MCMC algorithm today is the **No-U-Turn Sampler (NUTS)**, a variant of Hamiltonian Monte Carlo (HMC). It is the default in Stan, brms, PyMC, and most modern Bayesian software.
+You will never do this by hand, and you rarely even write the sampler yourself --- modern software does it for you (see below). The most widely used algorithm today is the **No-U-Turn Sampler (NUTS)**, a refinement of Hamiltonian Monte Carlo (HMC), and it is the default in Stan, brms, rstanarm, and PyMC. What you *do* need to understand as a user is (1) what the samples represent and (2) how to check the sampler worked --- which is what the next two sections cover.
 
 ### How It Works Conceptually
 
-1. Start at some initial parameter value $\theta_0$.
-2. Propose a new value $\theta^*$ based on the current position.
-3. Evaluate the posterior density at $\theta^*$ relative to $\theta_0$.
-4. Accept or reject the proposal based on a probability rule.
-5. Repeat thousands of times.
+The algorithm is a guided exploration of parameter space. Picture a hiker trying to map out where a mountain range is tallest, but in fog --- they can only feel whether a step takes them uphill or downhill. The "height" here is the **posterior density**: how plausible a parameter value is, given the prior and the data combined. The sampler walks around, preferring to spend time on the high ground (plausible values) but occasionally wandering into the lowlands, and records every spot it stands on. Concretely:
 
-The resulting **chain** of $\theta$ values is a sample from the posterior distribution. We typically run multiple chains (e.g., 4) and discard the initial "warm-up" period.
+1. **Start** at some initial parameter value $\theta_0$.
+2. **Propose** a nearby candidate value $\theta^{*}$.
+3. **Compare the posterior density** at $\theta^{*}$ versus the current spot $\theta_0$ --- i.e. ask "is this candidate more or less plausible, given prior + data?"
+4. **Accept or reject**: if $\theta^{*}$ is more plausible, move there; if less plausible, move there only *sometimes* (with a probability equal to how much less plausible it is). This "sometimes accept a worse spot" rule is what stops the chain getting stuck on one peak and lets it map the whole posterior.
+5. **Repeat** thousands of times, writing down every value visited.
+
+The crucial payoff is in step 4: because the walk lingers on high-density regions in proportion to their plausibility, the **collection of recorded values is itself a sample from the posterior**. You never computed the posterior formula --- you reconstructed it from where the sampler spent its time. Pile those recorded values into a histogram and it traces out the posterior distribution, as the figure below shows. We typically run several independent chains (e.g., 4) from different starting points and discard each chain's initial **"warm-up"** period, during which it is still finding its way to the high-density region.
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: fig-mcmc-posterior-build
+#| fig-cap: "How MCMC reconstructs a posterior. Each grey histogram is the collection of values the sampler has visited so far; as more samples accumulate (left to right), the histogram fills in the true posterior density (red curve) it was never given as a formula."
+#| fig-width: 10
+#| fig-height: 3.6
+
+library(tidyverse)
+
+# Target posterior for the 8/20 example with a Beta(2,2) prior: Beta(10, 14)
+a_post <- 10; b_post <- 14
+
+# Draw samples from the posterior (in practice MCMC would generate these;
+# here we sample directly to illustrate what the accumulating draws look like)
+set.seed(1)
+draws <- rbeta(4000, a_post, b_post)
+
+theta <- seq(0, 1, length.out = 300)
+true_curve <- tibble(theta = theta, density = dbeta(theta, a_post, b_post))
+
+stages <- c(50, 500, 4000)
+hist_data <- map_dfr(stages, function(k) {
+  tibble(n_samples = paste0("After ", k, " samples"), theta = draws[1:k])
+}) %>%
+  mutate(n_samples = factor(n_samples,
+           levels = paste0("After ", stages, " samples")))
+
+ggplot(hist_data, aes(theta)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 fill = "grey70", colour = "white") +
+  geom_line(data = expand_grid(n_samples = factor(paste0("After ", stages, " samples"),
+                                 levels = paste0("After ", stages, " samples")),
+                               true_curve),
+            aes(theta, density), colour = "firebrick", linewidth = 1) +
+  facet_wrap(~ n_samples) +
+  labs(x = expression(theta ~ "(response rate)"), y = "Density",
+       title = "MCMC samples accumulating into the posterior") +
+  theme_minimal(base_size = 12)
+```
+
+#### Python
+
+```{python}
+#| label: fig-mcmc-posterior-build-py
+#| fig-cap: "How MCMC reconstructs a posterior. As more samples accumulate (left to right), the histogram of visited values fills in the true posterior density (red curve)."
+#| fig-width: 10
+#| fig-height: 3.6
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import beta
+
+a_post, b_post = 10, 14
+rng = np.random.default_rng(1)
+draws = rng.beta(a_post, b_post, size=4000)
+theta = np.linspace(0, 1, 300)
+true_curve = beta.pdf(theta, a_post, b_post)
+
+stages = [50, 500, 4000]
+fig, axes = plt.subplots(1, 3, figsize=(12, 3.6), sharex=True)
+for ax, k in zip(axes, stages):
+    ax.hist(draws[:k], bins=30, density=True, color="grey", alpha=0.6,
+            edgecolor="white")
+    ax.plot(theta, true_curve, color="firebrick", linewidth=1.5)
+    ax.set_title(f"After {k} samples", fontsize=10)
+    ax.set_xlabel(r"$\theta$ (response rate)")
+axes[0].set_ylabel("Density")
+fig.suptitle("MCMC samples accumulating into the posterior", fontsize=12, y=1.04)
+plt.tight_layout()
+plt.show()
+```
+
+:::
 
 ### Diagnosing Convergence
 
-MCMC is only useful if the chains have converged to the target posterior. Three key diagnostics:
+MCMC hands you an answer, but you should not trust it blindly --- the sampler can fail to explore the posterior properly, in which case the summaries are wrong. Fortunately, checking is quick: the software prints these diagnostics automatically, and you mainly need to recognise a green light from a red flag. There are three to know, and all three must look good before you believe the results. This is unfamiliar territory if you come from ordinary regression (where there is nothing analogous to "did the fitting algorithm converge?"), so here is each one in plain terms.
 
-**Trace plots** show the sampled values over iterations. A well-behaved trace plot looks like a "hairy caterpillar" --- the chain rapidly explores the parameter space with no trends or drifts. If you see long excursions, stuck chains, or clear trends, the chain has not converged.
+**Trace plots --- "did the chains explore freely?"** A trace plot draws each chain's sampled value against the iteration number. You want it to look like a **"fuzzy caterpillar"**: a dense, flat, fuzzy band where all the chains overlap and rapidly zig-zag across the same range, with no drift up or down. That tells you the chains settled into the same region and explored it thoroughly. **Red flags**: a chain that wanders off on its own, drifts steadily in one direction, or gets "stuck" flat for long stretches --- any of these means it has not converged. (The earlier figure contrasts good and poor mixing.)
 
-**$\hat{R}$ (R-hat)** compares the variance within each chain to the variance between chains. If all chains are sampling from the same distribution, $\hat{R} \approx 1.0$. The standard threshold is $\hat{R} < 1.01$. Values above 1.05 indicate serious convergence problems.
+**$\hat{R}$ (R-hat) --- "do the separate chains agree?"** We run several chains from different starting points; if they have all found the same posterior, they should look interchangeable. $\hat{R}$ measures exactly that, by comparing the spread *within* each chain to the spread *between* chains. If they agree, $\hat{R} \approx 1.0$. **Rule of thumb**: $\hat{R} < 1.01$ is reassuring; values above ~1.05 signal a real problem --- the chains disagree, so do not trust the estimates. The fix is usually to run the chains longer or reconsider the model.
 
-**Effective sample size (ESS)** estimates how many independent samples the chains are equivalent to. Autocorrelation in MCMC means that consecutive draws are correlated, so 4,000 MCMC draws might contain only the equivalent of 1,000 independent draws. For reliable posterior summaries, aim for ESS > 400 per chain for bulk statistics and ESS > 400 for tail quantiles.
+**Effective sample size (ESS) --- "how much independent information do I really have?"** Consecutive MCMC draws are correlated (each step is near the last), so 4,000 draws carry *less* information than 4,000 truly independent ones --- they might be worth only, say, 1,000. ESS estimates that equivalent number of independent draws. A small ESS means your reported posterior mean and 95% interval are themselves noisy. **Rule of thumb**: aim for ESS in the high hundreds or more (≳ 400) for both the central estimate and the interval limits; if it is low, run more iterations.
+
+In practice you glance at all three after every fit: trace plots fuzzy and overlapping, every $\hat{R} \approx 1.00$, and ESS comfortably in the hundreds. Only then do you read off the posterior.
 
 ::: {.panel-tabset}
 
@@ -422,13 +593,17 @@ plt.show()
 
 ### A first taste of Bayesian software
 
-You do not need to write MCMC samplers yourself. Modern software handles this entirely. Here is what fitting a Bayesian logistic regression looks like in practice:
+You do not need to write MCMC samplers yourself. Modern software handles this entirely. Here is what fitting a Bayesian logistic regression looks like in practice, using the Framingham heart-study data (10-year coronary heart disease as the outcome). The first line loads the dataset --- without it, `framingham` would not exist and the fit would fail:
 
 ::: {.panel-tabset}
 ## R
 ```{r}
 #| eval: false
 library(rstanarm)
+
+# Load the data first (CSV included with the course materials)
+framingham <- read.csv("data/framingham.csv")
+
 fit <- stan_glm(chd_10yr ~ age + sex + smoking,
                 data = framingham,
                 family = binomial(),
@@ -440,7 +615,12 @@ summary(fit)
 ## Python
 ```{python}
 #| eval: false
+import pandas as pd
 import bambi as bmb
+
+# Load the data first (CSV included with the course materials)
+framingham = pd.read_csv("data/framingham.csv")
+
 model = bmb.Model("chd_10yr ~ age + sex + smoking",
                    data=framingham, family="bernoulli")
 results = model.fit(draws=2000, chains=4, random_seed=42)

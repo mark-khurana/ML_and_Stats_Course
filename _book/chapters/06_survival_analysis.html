@@ -586,7 +586,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Load the PBC dataset</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="fu">data</span>(pbc, <span class="at">package =</span> <span class="st">"survival"</span>)</span>
@@ -611,7 +611,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Plot KM curve with confidence intervals</span></span>
 <span id="cb2-2"><a href="#cb2-2"></a><span class="fu">ggsurvplot</span>(</span>
@@ -629,7 +629,7 @@ window.Quarto = {
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb3-2"><a href="#cb3-2"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -669,7 +669,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
 <span id="cb4-2"><a href="#cb4-2"></a>kmf.plot_survival_function(ax<span class="op">=</span>ax, ci_show<span class="op">=</span><span class="va">True</span>)</span>
@@ -712,7 +712,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Compare survival between treatment groups</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a>km_by_trt <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> trt_label, <span class="at">data =</span> pbc_clean)</span>
@@ -723,7 +723,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">ggsurvplot</span>(</span>
 <span id="cb6-2"><a href="#cb6-2"></a>  km_by_trt,</span>
@@ -742,7 +742,7 @@ window.Quarto = {
 </div>
 <div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1"></a><span class="im">from</span> lifelines <span class="im">import</span> KaplanMeierFitter</span>
 <span id="cb7-2"><a href="#cb7-2"></a><span class="im">from</span> lifelines.statistics <span class="im">import</span> logrank_test</span>
@@ -823,7 +823,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Fit Cox model with multiple predictors</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a>cox_model <span class="ot">&lt;-</span> <span class="fu">coxph</span>(</span>
@@ -835,7 +835,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># Forest plot of hazard ratios</span></span>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="fu">ggforest</span>(cox_model, <span class="at">data =</span> pbc_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -844,7 +844,7 @@ window.Quarto = {
 </div>
 <div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1"></a><span class="im">from</span> lifelines <span class="im">import</span> CoxPHFitter</span>
 <span id="cb10-2"><a href="#cb10-2"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -871,7 +871,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
 <span id="cb11-2"><a href="#cb11-2"></a>cph.plot(ax<span class="op">=</span>ax)</span>
@@ -914,7 +914,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co"># Test proportional hazards assumption</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a>ph_test <span class="ot">&lt;-</span> <span class="fu">cox.zph</span>(cox_model)</span>
@@ -922,7 +922,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="co"># Plot Schoenfeld residuals</span></span>
 <span id="cb13-2"><a href="#cb13-2"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
@@ -932,7 +932,7 @@ window.Quarto = {
 </div>
 <div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1"></a><span class="co"># Check proportional hazards assumption in lifelines</span></span>
 <span id="cb14-2"><a href="#cb14-2"></a>cph.check_assumptions(df, p_value_threshold<span class="op">=</span><span class="fl">0.05</span>, show_plots<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1003,7 +1003,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="co"># Step 1: Explore the data</span></span>
 <span id="cb16-2"><a href="#cb16-2"></a>pbc_model <span class="ot">&lt;-</span> pbc_clean <span class="sc">%&gt;%</span></span>
@@ -1025,7 +1025,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># Step 3: Assess model discrimination</span></span>
 <span id="cb17-2"><a href="#cb17-2"></a><span class="fu">cat</span>(<span class="st">"Concordance (C-index):"</span>, <span class="fu">summary</span>(cox_full)<span class="sc">$</span>concordance[<span class="dv">1</span>], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
@@ -1035,7 +1035,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Step 4: Predicted survival for new patients</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a>new_patients <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
@@ -1061,7 +1061,7 @@ window.Quarto = {
 </div>
 <div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1"></a><span class="im">from</span> lifelines <span class="im">import</span> CoxPHFitter, KaplanMeierFitter</span>
 <span id="cb19-2"><a href="#cb19-2"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -1095,7 +1095,7 @@ window.Quarto = {
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># Predict survival for specific patient profiles</span></span>
 <span id="cb20-2"><a href="#cb20-2"></a>low_risk <span class="op">=</span> pd.DataFrame({</span>
@@ -1132,7 +1132,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="co"># Fit KM by stage</span></span>
 <span id="cb21-2"><a href="#cb21-2"></a>km_stage <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> stage, <span class="at">data =</span> pbc_clean)</span>
@@ -1145,7 +1145,7 @@ window.Quarto = {
 </div>
 <div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1"></a><span class="co"># Fit KM for each stage and plot</span></span>
 <span id="cb22-2"><a href="#cb22-2"></a><span class="co"># Your code here</span></span>
@@ -1171,7 +1171,7 @@ window.Quarto = {
 <div class="tab-content">
 <div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="co"># Your code here</span></span>
 <span id="cb23-2"><a href="#cb23-2"></a><span class="co"># cox_model &lt;- coxph(Surv(time_years, status_binary) ~ ..., data = pbc_clean)</span></span>
@@ -1182,7 +1182,7 @@ window.Quarto = {
 </div>
 <div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1"></a><span class="co"># Your code here</span></span>
 <span id="cb24-2"><a href="#cb24-2"></a><span class="co"># cph = CoxPHFitter()</span></span>
@@ -1765,629 +1765,740 @@ window.Quarto = {
 <span id="cb25-43"><a href="#cb25-43"></a></span>
 <span id="cb25-44"><a href="#cb25-44"></a><span class="fu">## The Kaplan-Meier Estimator</span></span>
 <span id="cb25-45"><a href="#cb25-45"></a></span>
-<span id="cb25-46"><a href="#cb25-46"></a>The **Kaplan-Meier (KM) estimator** is the workhorse of survival analysis. It provides a non-parametric estimate of the survival function $S(t) = P(T &gt; t)$, the probability of surviving beyond time $t$.</span>
+<span id="cb25-46"><a href="#cb25-46"></a>The **Kaplan-Meier (KM) estimator** is the workhorse of survival analysis. It provides a **non-parametric** estimate of the survival function $S(t) = P(T &gt; t)$, the probability of surviving beyond time $t$.</span>
 <span id="cb25-47"><a href="#cb25-47"></a></span>
-<span id="cb25-48"><a href="#cb25-48"></a><span class="fu">### How It Works</span></span>
-<span id="cb25-49"><a href="#cb25-49"></a></span>
-<span id="cb25-50"><a href="#cb25-50"></a>The KM estimator calculates survival probability at each time point where an event occurs:</span>
-<span id="cb25-51"><a href="#cb25-51"></a></span>
-<span id="cb25-52"><a href="#cb25-52"></a>$$\hat{S}(t) = \prod_{t_i \le t} \left(1 - \frac{d_i}{n_i}\right)$$</span>
-<span id="cb25-53"><a href="#cb25-53"></a></span>
-<span id="cb25-54"><a href="#cb25-54"></a>where:</span>
-<span id="cb25-55"><a href="#cb25-55"></a></span>
-<span id="cb25-56"><a href="#cb25-56"></a><span class="ss">- </span>$t_i$ is a time at which at least one event occurred,</span>
-<span id="cb25-57"><a href="#cb25-57"></a><span class="ss">- </span>$d_i$ is the number of events at time $t_i$,</span>
-<span id="cb25-58"><a href="#cb25-58"></a><span class="ss">- </span>$n_i$ is the number of individuals at risk just before time $t_i$ (alive and uncensored).</span>
-<span id="cb25-59"><a href="#cb25-59"></a></span>
-<span id="cb25-60"><a href="#cb25-60"></a>The key insight is that censored individuals contribute to the **risk set** ($n_i$) up until the moment they are censored, and then they drop out. They are not discarded — they contribute all the information they can.</span>
-<span id="cb25-61"><a href="#cb25-61"></a></span>
-<span id="cb25-62"><a href="#cb25-62"></a><span class="fu">### Clinical Example: Primary Biliary Cholangitis (PBC)</span></span>
-<span id="cb25-63"><a href="#cb25-63"></a></span>
-<span id="cb25-64"><a href="#cb25-64"></a>We will use the classic PBC dataset from the Mayo Clinic, which is included in R's <span class="in">`survival`</span> package. This dataset contains 418 patients with primary biliary cholangitis (PBC), a chronic liver disease. Patients were followed from enrollment until death, transplant, or censoring.</span>
-<span id="cb25-65"><a href="#cb25-65"></a></span>
-<span id="cb25-66"><a href="#cb25-66"></a>::: {.panel-tabset}</span>
-<span id="cb25-67"><a href="#cb25-67"></a></span>
-<span id="cb25-68"><a href="#cb25-68"></a><span class="fu">#### R</span></span>
-<span id="cb25-69"><a href="#cb25-69"></a></span>
-<span id="cb25-72"><a href="#cb25-72"></a><span class="in">```{r}</span></span>
-<span id="cb25-73"><a href="#cb25-73"></a><span class="co">#| label: km-r</span></span>
-<span id="cb25-74"><a href="#cb25-74"></a><span class="co"># Load the PBC dataset</span></span>
-<span id="cb25-75"><a href="#cb25-75"></a><span class="fu">data</span>(pbc, <span class="at">package =</span> <span class="st">"survival"</span>)</span>
-<span id="cb25-76"><a href="#cb25-76"></a></span>
-<span id="cb25-77"><a href="#cb25-77"></a><span class="co"># Prepare data — status: 0 = censored, 1 = transplant, 2 = dead</span></span>
-<span id="cb25-78"><a href="#cb25-78"></a><span class="co"># For now, treat death as the event and censor everything else</span></span>
-<span id="cb25-79"><a href="#cb25-79"></a>pbc_clean <span class="ot">&lt;-</span> pbc <span class="sc">%&gt;%</span></span>
-<span id="cb25-80"><a href="#cb25-80"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(trt)) <span class="sc">%&gt;%</span></span>
-<span id="cb25-81"><a href="#cb25-81"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb25-82"><a href="#cb25-82"></a>    <span class="at">status_binary =</span> <span class="fu">ifelse</span>(status <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb25-83"><a href="#cb25-83"></a>    <span class="at">time_years =</span> time <span class="sc">/</span> <span class="fl">365.25</span>,</span>
-<span id="cb25-84"><a href="#cb25-84"></a>    <span class="at">trt_label =</span> <span class="fu">factor</span>(trt, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"D-penicillamine"</span>, <span class="st">"Placebo"</span>))</span>
-<span id="cb25-85"><a href="#cb25-85"></a>  )</span>
-<span id="cb25-86"><a href="#cb25-86"></a></span>
-<span id="cb25-87"><a href="#cb25-87"></a><span class="fu">cat</span>(<span class="st">"N ="</span>, <span class="fu">nrow</span>(pbc_clean), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb25-88"><a href="#cb25-88"></a><span class="fu">cat</span>(<span class="st">"Events (deaths):"</span>, <span class="fu">sum</span>(pbc_clean<span class="sc">$</span>status_binary), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb25-89"><a href="#cb25-89"></a><span class="fu">cat</span>(<span class="st">"Censored:"</span>, <span class="fu">sum</span>(pbc_clean<span class="sc">$</span>status_binary <span class="sc">==</span> <span class="dv">0</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-48"><a href="#cb25-48"></a>::: {.callout-note}</span>
+<span id="cb25-49"><a href="#cb25-49"></a><span class="fu">## "Non-parametric" — what it means here</span></span>
+<span id="cb25-50"><a href="#cb25-50"></a>A **non-parametric** method makes no assumption about the *shape* of the underlying distribution. A *parametric* survival model (e.g., a Weibull or exponential model) assumes the survival curve follows a specific mathematical formula governed by a few parameters; you are essentially fitting a smooth, pre-specified curve to the data. The Kaplan-Meier estimator does the opposite: it lets the data speak for themselves, building the survival curve directly from the observed event times as a series of steps, without assuming any particular form. The advantage is flexibility and honesty — the curve reflects exactly what happened in your cohort. The cost is that it cannot extrapolate beyond the observed follow-up and uses the data less efficiently than a correctly-specified parametric model.</span>
+<span id="cb25-51"><a href="#cb25-51"></a>:::</span>
+<span id="cb25-52"><a href="#cb25-52"></a></span>
+<span id="cb25-53"><a href="#cb25-53"></a><span class="fu">### How It Works</span></span>
+<span id="cb25-54"><a href="#cb25-54"></a></span>
+<span id="cb25-55"><a href="#cb25-55"></a>The KM estimator calculates survival probability at each time point where an event occurs:</span>
+<span id="cb25-56"><a href="#cb25-56"></a></span>
+<span id="cb25-57"><a href="#cb25-57"></a>$$\hat{S}(t) = \prod_{t_i \le t} \left(1 - \frac{d_i}{n_i}\right)$$</span>
+<span id="cb25-58"><a href="#cb25-58"></a></span>
+<span id="cb25-59"><a href="#cb25-59"></a>where:</span>
+<span id="cb25-60"><a href="#cb25-60"></a></span>
+<span id="cb25-61"><a href="#cb25-61"></a><span class="ss">- </span>$t_i$ is a time at which at least one event occurred,</span>
+<span id="cb25-62"><a href="#cb25-62"></a><span class="ss">- </span>$d_i$ is the number of events at time $t_i$,</span>
+<span id="cb25-63"><a href="#cb25-63"></a><span class="ss">- </span>$n_i$ is the number of individuals at risk just before time $t_i$ (alive and uncensored).</span>
+<span id="cb25-64"><a href="#cb25-64"></a></span>
+<span id="cb25-65"><a href="#cb25-65"></a>**The intuition (for a clinical audience).** Forget the product symbol for a moment and think of survival as running a gauntlet. At each moment when a death occurs, ask a simple question: *of the patients still alive and being followed right now, what fraction made it through this instant?* That fraction is $\left(1 - \frac{d_i}{n_i}\right)$ --- the number who died ($d_i$) out of those still at risk ($n_i$), subtracted from one. To survive *to* time $t$, a patient must clear every one of these hurdles in sequence, so we **multiply** the individual survival fractions together (that is what the $\prod$ symbol means --- a running product). This is exactly how you would compute the chance of passing several independent checkpoints: multiply the chance of passing each.</span>
+<span id="cb25-66"><a href="#cb25-66"></a></span>
+<span id="cb25-67"><a href="#cb25-67"></a>A worked snippet makes it concrete. Suppose 100 patients are at risk, 10 die on day 30, then of the 90 remaining 9 die on day 60. The survival probability after day 30 is $1 - 10/100 = 0.90$; after day 60 it is $0.90 \times (1 - 9/90) = 0.90 \times 0.90 = 0.81$. The curve only steps *down* at the moments events occur, and stays flat in between --- which is why KM curves look like staircases.</span>
+<span id="cb25-68"><a href="#cb25-68"></a></span>
+<span id="cb25-69"><a href="#cb25-69"></a>The key insight is that censored individuals contribute to the **risk set** ($n_i$) up until the moment they are censored, and then they quietly drop out (they reduce $n_i$ for later time points but never count as an event $d_i$). They are not discarded --- they contribute all the information they can, namely "this patient was still event-free up to here."</span>
+<span id="cb25-70"><a href="#cb25-70"></a></span>
+<span id="cb25-71"><a href="#cb25-71"></a><span class="fu">### Clinical Example: Primary Biliary Cholangitis (PBC)</span></span>
+<span id="cb25-72"><a href="#cb25-72"></a></span>
+<span id="cb25-73"><a href="#cb25-73"></a>We will use the classic PBC dataset from the Mayo Clinic, which is included in R's <span class="in">`survival`</span> package. This dataset contains 418 patients with primary biliary cholangitis (PBC), a chronic liver disease. Patients were followed from enrollment until death, transplant, or censoring.</span>
+<span id="cb25-74"><a href="#cb25-74"></a></span>
+<span id="cb25-75"><a href="#cb25-75"></a>::: {.callout-important}</span>
+<span id="cb25-76"><a href="#cb25-76"></a><span class="fu">## Packages you need to load first</span></span>
+<span id="cb25-77"><a href="#cb25-77"></a>The R code in this chapter relies on three packages. If you are running it yourself, install them once and then load them at the top of your script --- the code will error otherwise (for example, the <span class="in">`%&gt;%`</span> pipe comes from <span class="in">`dplyr`</span>/<span class="in">`tidyverse`</span>, and <span class="in">`ggsurvplot()`</span> comes from <span class="in">`survminer`</span>):</span>
+<span id="cb25-78"><a href="#cb25-78"></a></span>
+<span id="cb25-79"><a href="#cb25-79"></a><span class="in">```r</span></span>
+<span id="cb25-80"><a href="#cb25-80"></a><span class="co"># Run once if not already installed:</span></span>
+<span id="cb25-81"><a href="#cb25-81"></a><span class="co"># install.packages(c("survival", "survminer", "tidyverse"))</span></span>
+<span id="cb25-82"><a href="#cb25-82"></a></span>
+<span id="cb25-83"><a href="#cb25-83"></a><span class="fu">library</span>(survival)   <span class="co"># core survival analysis: Surv(), survfit(), coxph(), the pbc data</span></span>
+<span id="cb25-84"><a href="#cb25-84"></a><span class="fu">library</span>(survminer)  <span class="co"># ggsurvplot() for publication-quality Kaplan-Meier plots</span></span>
+<span id="cb25-85"><a href="#cb25-85"></a><span class="fu">library</span>(dplyr)      <span class="co"># the %&gt;% pipe and data wrangling (loaded via tidyverse too)</span></span>
+<span id="cb25-86"><a href="#cb25-86"></a><span class="in">```</span></span>
+<span id="cb25-87"><a href="#cb25-87"></a></span>
+<span id="cb25-88"><a href="#cb25-88"></a><span class="in">`survminer`</span> in particular is a separate package from <span class="in">`survival`</span> and is easy to forget --- without it, <span class="in">`ggsurvplot()`</span> will not be found.</span>
+<span id="cb25-89"><a href="#cb25-89"></a>:::</span>
 <span id="cb25-90"><a href="#cb25-90"></a></span>
-<span id="cb25-91"><a href="#cb25-91"></a><span class="co"># Fit overall KM curve</span></span>
-<span id="cb25-92"><a href="#cb25-92"></a>km_overall <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> pbc_clean)</span>
-<span id="cb25-93"><a href="#cb25-93"></a><span class="fu">print</span>(km_overall)</span>
-<span id="cb25-94"><a href="#cb25-94"></a><span class="in">```</span></span>
-<span id="cb25-95"><a href="#cb25-95"></a></span>
-<span id="cb25-98"><a href="#cb25-98"></a><span class="in">```{r}</span></span>
-<span id="cb25-99"><a href="#cb25-99"></a><span class="co">#| label: km-plot-r</span></span>
-<span id="cb25-100"><a href="#cb25-100"></a><span class="co">#| fig-cap: "Kaplan-Meier survival curve for the PBC dataset. Tick marks indicate censored observations."</span></span>
-<span id="cb25-101"><a href="#cb25-101"></a><span class="co"># Plot KM curve with confidence intervals</span></span>
-<span id="cb25-102"><a href="#cb25-102"></a><span class="fu">ggsurvplot</span>(</span>
-<span id="cb25-103"><a href="#cb25-103"></a>  km_overall,</span>
-<span id="cb25-104"><a href="#cb25-104"></a>  <span class="at">data =</span> pbc_clean,</span>
-<span id="cb25-105"><a href="#cb25-105"></a>  <span class="at">conf.int =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb25-106"><a href="#cb25-106"></a>  <span class="at">risk.table =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb25-107"><a href="#cb25-107"></a>  <span class="at">xlab =</span> <span class="st">"Time (years)"</span>,</span>
-<span id="cb25-108"><a href="#cb25-108"></a>  <span class="at">ylab =</span> <span class="st">"Survival probability"</span>,</span>
-<span id="cb25-109"><a href="#cb25-109"></a>  <span class="at">title =</span> <span class="st">"Overall Survival in PBC Patients"</span>,</span>
-<span id="cb25-110"><a href="#cb25-110"></a>  <span class="at">ggtheme =</span> <span class="fu">theme_minimal</span>()</span>
-<span id="cb25-111"><a href="#cb25-111"></a>)</span>
-<span id="cb25-112"><a href="#cb25-112"></a><span class="in">```</span></span>
-<span id="cb25-113"><a href="#cb25-113"></a></span>
-<span id="cb25-114"><a href="#cb25-114"></a><span class="fu">#### Python</span></span>
-<span id="cb25-115"><a href="#cb25-115"></a></span>
-<span id="cb25-118"><a href="#cb25-118"></a><span class="in">```{python}</span></span>
-<span id="cb25-119"><a href="#cb25-119"></a><span class="co">#| label: km-python</span></span>
-<span id="cb25-120"><a href="#cb25-120"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb25-121"><a href="#cb25-121"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb25-122"><a href="#cb25-122"></a><span class="im">from</span> lifelines <span class="im">import</span> KaplanMeierFitter</span>
-<span id="cb25-123"><a href="#cb25-123"></a><span class="im">from</span> lifelines.statistics <span class="im">import</span> logrank_test</span>
-<span id="cb25-124"><a href="#cb25-124"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb25-91"><a href="#cb25-91"></a>::: {.panel-tabset}</span>
+<span id="cb25-92"><a href="#cb25-92"></a></span>
+<span id="cb25-93"><a href="#cb25-93"></a><span class="fu">#### R</span></span>
+<span id="cb25-94"><a href="#cb25-94"></a></span>
+<span id="cb25-97"><a href="#cb25-97"></a><span class="in">```{r}</span></span>
+<span id="cb25-98"><a href="#cb25-98"></a><span class="co">#| label: km-r</span></span>
+<span id="cb25-99"><a href="#cb25-99"></a><span class="co"># Load the packages used below (see the note above for installation)</span></span>
+<span id="cb25-100"><a href="#cb25-100"></a><span class="fu">library</span>(survival)</span>
+<span id="cb25-101"><a href="#cb25-101"></a><span class="fu">library</span>(survminer)</span>
+<span id="cb25-102"><a href="#cb25-102"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb25-103"><a href="#cb25-103"></a></span>
+<span id="cb25-104"><a href="#cb25-104"></a><span class="co"># Load the PBC dataset</span></span>
+<span id="cb25-105"><a href="#cb25-105"></a><span class="fu">data</span>(pbc, <span class="at">package =</span> <span class="st">"survival"</span>)</span>
+<span id="cb25-106"><a href="#cb25-106"></a></span>
+<span id="cb25-107"><a href="#cb25-107"></a><span class="co"># Prepare data — status: 0 = censored, 1 = transplant, 2 = dead</span></span>
+<span id="cb25-108"><a href="#cb25-108"></a><span class="co"># For now, treat death as the event and censor everything else</span></span>
+<span id="cb25-109"><a href="#cb25-109"></a>pbc_clean <span class="ot">&lt;-</span> pbc <span class="sc">%&gt;%</span></span>
+<span id="cb25-110"><a href="#cb25-110"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(trt)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-111"><a href="#cb25-111"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb25-112"><a href="#cb25-112"></a>    <span class="at">status_binary =</span> <span class="fu">ifelse</span>(status <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb25-113"><a href="#cb25-113"></a>    <span class="at">time_years =</span> time <span class="sc">/</span> <span class="fl">365.25</span>,</span>
+<span id="cb25-114"><a href="#cb25-114"></a>    <span class="at">trt_label =</span> <span class="fu">factor</span>(trt, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"D-penicillamine"</span>, <span class="st">"Placebo"</span>))</span>
+<span id="cb25-115"><a href="#cb25-115"></a>  )</span>
+<span id="cb25-116"><a href="#cb25-116"></a></span>
+<span id="cb25-117"><a href="#cb25-117"></a><span class="fu">cat</span>(<span class="st">"N ="</span>, <span class="fu">nrow</span>(pbc_clean), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-118"><a href="#cb25-118"></a><span class="fu">cat</span>(<span class="st">"Events (deaths):"</span>, <span class="fu">sum</span>(pbc_clean<span class="sc">$</span>status_binary), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-119"><a href="#cb25-119"></a><span class="fu">cat</span>(<span class="st">"Censored:"</span>, <span class="fu">sum</span>(pbc_clean<span class="sc">$</span>status_binary <span class="sc">==</span> <span class="dv">0</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-120"><a href="#cb25-120"></a></span>
+<span id="cb25-121"><a href="#cb25-121"></a><span class="co"># Fit overall KM curve</span></span>
+<span id="cb25-122"><a href="#cb25-122"></a>km_overall <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> pbc_clean)</span>
+<span id="cb25-123"><a href="#cb25-123"></a><span class="fu">print</span>(km_overall)</span>
+<span id="cb25-124"><a href="#cb25-124"></a><span class="in">```</span></span>
 <span id="cb25-125"><a href="#cb25-125"></a></span>
-<span id="cb25-126"><a href="#cb25-126"></a><span class="co"># Load PBC data (from R via CSV or use lifelines datasets)</span></span>
-<span id="cb25-127"><a href="#cb25-127"></a><span class="co"># We'll replicate the data preparation</span></span>
-<span id="cb25-128"><a href="#cb25-128"></a><span class="im">from</span> lifelines.datasets <span class="im">import</span> load_rossi  <span class="co"># placeholder — in practice, load PBC</span></span>
-<span id="cb25-129"><a href="#cb25-129"></a><span class="co"># For demonstration, we use the PBC data exported from R or a similar dataset</span></span>
-<span id="cb25-130"><a href="#cb25-130"></a><span class="co"># Here we simulate the structure:</span></span>
-<span id="cb25-131"><a href="#cb25-131"></a><span class="im">import</span> subprocess</span>
-<span id="cb25-132"><a href="#cb25-132"></a></span>
-<span id="cb25-133"><a href="#cb25-133"></a><span class="co"># In practice, you would load the PBC data. We use lifelines' built-in loader:</span></span>
-<span id="cb25-134"><a href="#cb25-134"></a><span class="cf">try</span>:</span>
-<span id="cb25-135"><a href="#cb25-135"></a>    pbc <span class="op">=</span> pd.read_csv(<span class="st">"data/pbc.csv"</span>)</span>
-<span id="cb25-136"><a href="#cb25-136"></a><span class="cf">except</span> <span class="pp">FileNotFoundError</span>:</span>
-<span id="cb25-137"><a href="#cb25-137"></a>    <span class="co"># Create from R's dataset structure for demonstration</span></span>
-<span id="cb25-138"><a href="#cb25-138"></a>    <span class="im">from</span> lifelines.datasets <span class="im">import</span> load_regression_dataset</span>
-<span id="cb25-139"><a href="#cb25-139"></a>    <span class="bu">print</span>(<span class="st">"Note: Using lifelines example data for demonstration."</span>)</span>
-<span id="cb25-140"><a href="#cb25-140"></a>    <span class="bu">print</span>(<span class="st">"In practice, load the PBC dataset from the survival R package."</span>)</span>
-<span id="cb25-141"><a href="#cb25-141"></a></span>
-<span id="cb25-142"><a href="#cb25-142"></a><span class="co"># Kaplan-Meier estimation</span></span>
-<span id="cb25-143"><a href="#cb25-143"></a>kmf <span class="op">=</span> KaplanMeierFitter()</span>
-<span id="cb25-144"><a href="#cb25-144"></a></span>
-<span id="cb25-145"><a href="#cb25-145"></a><span class="co"># Example with generic time-to-event data</span></span>
-<span id="cb25-146"><a href="#cb25-146"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb25-147"><a href="#cb25-147"></a>n <span class="op">=</span> <span class="dv">312</span></span>
-<span id="cb25-148"><a href="#cb25-148"></a>time_years <span class="op">=</span> np.random.exponential(scale<span class="op">=</span><span class="dv">8</span>, size<span class="op">=</span>n)</span>
-<span id="cb25-149"><a href="#cb25-149"></a>event_observed <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.45</span>, size<span class="op">=</span>n)</span>
-<span id="cb25-150"><a href="#cb25-150"></a></span>
-<span id="cb25-151"><a href="#cb25-151"></a>kmf.fit(time_years, event_observed<span class="op">=</span>event_observed, label<span class="op">=</span><span class="st">"PBC Patients"</span>)</span>
-<span id="cb25-152"><a href="#cb25-152"></a></span>
-<span id="cb25-153"><a href="#cb25-153"></a><span class="bu">print</span>(kmf.summary.head(<span class="dv">10</span>))</span>
-<span id="cb25-154"><a href="#cb25-154"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Median survival time: </span><span class="sc">{</span>kmf<span class="sc">.</span>median_survival_time_<span class="sc">:.2f}</span><span class="ss"> years"</span>)</span>
-<span id="cb25-155"><a href="#cb25-155"></a><span class="in">```</span></span>
-<span id="cb25-156"><a href="#cb25-156"></a></span>
-<span id="cb25-159"><a href="#cb25-159"></a><span class="in">```{python}</span></span>
-<span id="cb25-160"><a href="#cb25-160"></a><span class="co">#| label: km-plot-python</span></span>
-<span id="cb25-161"><a href="#cb25-161"></a><span class="co">#| fig-cap: "Kaplan-Meier survival curve estimated using the lifelines package in Python."</span></span>
-<span id="cb25-162"><a href="#cb25-162"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
-<span id="cb25-163"><a href="#cb25-163"></a>kmf.plot_survival_function(ax<span class="op">=</span>ax, ci_show<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb25-164"><a href="#cb25-164"></a>ax.set_xlabel(<span class="st">"Time (years)"</span>)</span>
-<span id="cb25-165"><a href="#cb25-165"></a>ax.set_ylabel(<span class="st">"Survival probability"</span>)</span>
-<span id="cb25-166"><a href="#cb25-166"></a>ax.set_title(<span class="st">"Kaplan-Meier Survival Estimate"</span>)</span>
-<span id="cb25-167"><a href="#cb25-167"></a>plt.tight_layout()</span>
-<span id="cb25-168"><a href="#cb25-168"></a>plt.show()</span>
-<span id="cb25-169"><a href="#cb25-169"></a><span class="in">```</span></span>
-<span id="cb25-170"><a href="#cb25-170"></a></span>
-<span id="cb25-171"><a href="#cb25-171"></a>:::</span>
-<span id="cb25-172"><a href="#cb25-172"></a></span>
-<span id="cb25-173"><a href="#cb25-173"></a><span class="fu">### Interpreting the KM Curve</span></span>
+<span id="cb25-128"><a href="#cb25-128"></a><span class="in">```{r}</span></span>
+<span id="cb25-129"><a href="#cb25-129"></a><span class="co">#| label: km-plot-r</span></span>
+<span id="cb25-130"><a href="#cb25-130"></a><span class="co">#| fig-cap: "Kaplan-Meier survival curve for the PBC dataset. Tick marks indicate censored observations."</span></span>
+<span id="cb25-131"><a href="#cb25-131"></a><span class="co"># Plot KM curve with confidence intervals</span></span>
+<span id="cb25-132"><a href="#cb25-132"></a><span class="fu">ggsurvplot</span>(</span>
+<span id="cb25-133"><a href="#cb25-133"></a>  km_overall,</span>
+<span id="cb25-134"><a href="#cb25-134"></a>  <span class="at">data =</span> pbc_clean,</span>
+<span id="cb25-135"><a href="#cb25-135"></a>  <span class="at">conf.int =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb25-136"><a href="#cb25-136"></a>  <span class="at">risk.table =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb25-137"><a href="#cb25-137"></a>  <span class="at">xlab =</span> <span class="st">"Time (years)"</span>,</span>
+<span id="cb25-138"><a href="#cb25-138"></a>  <span class="at">ylab =</span> <span class="st">"Survival probability"</span>,</span>
+<span id="cb25-139"><a href="#cb25-139"></a>  <span class="at">title =</span> <span class="st">"Overall Survival in PBC Patients"</span>,</span>
+<span id="cb25-140"><a href="#cb25-140"></a>  <span class="at">ggtheme =</span> <span class="fu">theme_minimal</span>()</span>
+<span id="cb25-141"><a href="#cb25-141"></a>)</span>
+<span id="cb25-142"><a href="#cb25-142"></a><span class="in">```</span></span>
+<span id="cb25-143"><a href="#cb25-143"></a></span>
+<span id="cb25-144"><a href="#cb25-144"></a><span class="fu">#### Python</span></span>
+<span id="cb25-145"><a href="#cb25-145"></a></span>
+<span id="cb25-148"><a href="#cb25-148"></a><span class="in">```{python}</span></span>
+<span id="cb25-149"><a href="#cb25-149"></a><span class="co">#| label: km-python</span></span>
+<span id="cb25-150"><a href="#cb25-150"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb25-151"><a href="#cb25-151"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb25-152"><a href="#cb25-152"></a><span class="im">from</span> lifelines <span class="im">import</span> KaplanMeierFitter</span>
+<span id="cb25-153"><a href="#cb25-153"></a><span class="im">from</span> lifelines.statistics <span class="im">import</span> logrank_test</span>
+<span id="cb25-154"><a href="#cb25-154"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb25-155"><a href="#cb25-155"></a></span>
+<span id="cb25-156"><a href="#cb25-156"></a><span class="co"># Load PBC data (from R via CSV or use lifelines datasets)</span></span>
+<span id="cb25-157"><a href="#cb25-157"></a><span class="co"># We'll replicate the data preparation</span></span>
+<span id="cb25-158"><a href="#cb25-158"></a><span class="im">from</span> lifelines.datasets <span class="im">import</span> load_rossi  <span class="co"># placeholder — in practice, load PBC</span></span>
+<span id="cb25-159"><a href="#cb25-159"></a><span class="co"># For demonstration, we use the PBC data exported from R or a similar dataset</span></span>
+<span id="cb25-160"><a href="#cb25-160"></a><span class="co"># Here we simulate the structure:</span></span>
+<span id="cb25-161"><a href="#cb25-161"></a><span class="im">import</span> subprocess</span>
+<span id="cb25-162"><a href="#cb25-162"></a></span>
+<span id="cb25-163"><a href="#cb25-163"></a><span class="co"># In practice, you would load the PBC data. We use lifelines' built-in loader:</span></span>
+<span id="cb25-164"><a href="#cb25-164"></a><span class="cf">try</span>:</span>
+<span id="cb25-165"><a href="#cb25-165"></a>    pbc <span class="op">=</span> pd.read_csv(<span class="st">"data/pbc.csv"</span>)</span>
+<span id="cb25-166"><a href="#cb25-166"></a><span class="cf">except</span> <span class="pp">FileNotFoundError</span>:</span>
+<span id="cb25-167"><a href="#cb25-167"></a>    <span class="co"># Create from R's dataset structure for demonstration</span></span>
+<span id="cb25-168"><a href="#cb25-168"></a>    <span class="im">from</span> lifelines.datasets <span class="im">import</span> load_regression_dataset</span>
+<span id="cb25-169"><a href="#cb25-169"></a>    <span class="bu">print</span>(<span class="st">"Note: Using lifelines example data for demonstration."</span>)</span>
+<span id="cb25-170"><a href="#cb25-170"></a>    <span class="bu">print</span>(<span class="st">"In practice, load the PBC dataset from the survival R package."</span>)</span>
+<span id="cb25-171"><a href="#cb25-171"></a></span>
+<span id="cb25-172"><a href="#cb25-172"></a><span class="co"># Kaplan-Meier estimation</span></span>
+<span id="cb25-173"><a href="#cb25-173"></a>kmf <span class="op">=</span> KaplanMeierFitter()</span>
 <span id="cb25-174"><a href="#cb25-174"></a></span>
-<span id="cb25-175"><a href="#cb25-175"></a>Key features to examine:</span>
-<span id="cb25-176"><a href="#cb25-176"></a></span>
-<span id="cb25-177"><a href="#cb25-177"></a><span class="ss">1. </span>**Median survival time**: the time at which $\hat{S}(t) = 0.5$ (where the curve crosses the 50% line). If the curve never drops to 50%, the median is undefined.</span>
-<span id="cb25-178"><a href="#cb25-178"></a><span class="ss">2. </span>**Survival at specific time points**: e.g., "5-year survival is 65%."</span>
-<span id="cb25-179"><a href="#cb25-179"></a><span class="ss">3. </span>**Shape of the curve**: A steep early drop suggests high early mortality. A long flat tail suggests most survivors do well long-term.</span>
-<span id="cb25-180"><a href="#cb25-180"></a><span class="ss">4. </span>**Confidence bands**: Wider bands mean more uncertainty, often because fewer patients remain at risk.</span>
-<span id="cb25-181"><a href="#cb25-181"></a><span class="ss">5. </span>**Censoring marks** (tick marks on the curve): Heavy censoring near the tail means the late estimates are unreliable.</span>
+<span id="cb25-175"><a href="#cb25-175"></a><span class="co"># Example with generic time-to-event data</span></span>
+<span id="cb25-176"><a href="#cb25-176"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb25-177"><a href="#cb25-177"></a>n <span class="op">=</span> <span class="dv">312</span></span>
+<span id="cb25-178"><a href="#cb25-178"></a>time_years <span class="op">=</span> np.random.exponential(scale<span class="op">=</span><span class="dv">8</span>, size<span class="op">=</span>n)</span>
+<span id="cb25-179"><a href="#cb25-179"></a>event_observed <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.45</span>, size<span class="op">=</span>n)</span>
+<span id="cb25-180"><a href="#cb25-180"></a></span>
+<span id="cb25-181"><a href="#cb25-181"></a>kmf.fit(time_years, event_observed<span class="op">=</span>event_observed, label<span class="op">=</span><span class="st">"PBC Patients"</span>)</span>
 <span id="cb25-182"><a href="#cb25-182"></a></span>
-<span id="cb25-183"><a href="#cb25-183"></a><span class="fu">### Confidence Intervals for the KM Estimator</span></span>
-<span id="cb25-184"><a href="#cb25-184"></a></span>
-<span id="cb25-185"><a href="#cb25-185"></a>The pointwise confidence interval for $\hat{S}(t)$ is typically computed via **Greenwood's formula**, which estimates the variance of $\hat{S}(t)$:</span>
+<span id="cb25-183"><a href="#cb25-183"></a><span class="bu">print</span>(kmf.summary.head(<span class="dv">10</span>))</span>
+<span id="cb25-184"><a href="#cb25-184"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Median survival time: </span><span class="sc">{</span>kmf<span class="sc">.</span>median_survival_time_<span class="sc">:.2f}</span><span class="ss"> years"</span>)</span>
+<span id="cb25-185"><a href="#cb25-185"></a><span class="in">```</span></span>
 <span id="cb25-186"><a href="#cb25-186"></a></span>
-<span id="cb25-187"><a href="#cb25-187"></a>$$\widehat{\text{Var}}<span class="co">[</span><span class="ot">\hat{S}(t)</span><span class="co">]</span> = \hat{S}(t)^2 \sum_{t_i \le t} \frac{d_i}{n_i(n_i - d_i)}$$</span>
-<span id="cb25-188"><a href="#cb25-188"></a></span>
-<span id="cb25-189"><a href="#cb25-189"></a>A 95% confidence interval is then $\hat{S}(t) \pm 1.96 \sqrt{\widehat{\text{Var}}<span class="co">[</span><span class="ot">\hat{S}(t)</span><span class="co">]</span>}$. In practice, log-log transformations are preferred because they guarantee the interval stays within <span class="co">[</span><span class="ot">0, 1</span><span class="co">]</span>.</span>
-<span id="cb25-190"><a href="#cb25-190"></a></span>
-<span id="cb25-191"><a href="#cb25-191"></a><span class="fu">## The Log-Rank Test</span></span>
-<span id="cb25-192"><a href="#cb25-192"></a></span>
-<span id="cb25-193"><a href="#cb25-193"></a>The **log-rank test** compares survival curves between two or more groups. It is the most widely used test for this purpose.</span>
-<span id="cb25-194"><a href="#cb25-194"></a></span>
-<span id="cb25-195"><a href="#cb25-195"></a>The null hypothesis is that survival is identical across groups: $H_0: S_1(t) = S_2(t)$ for all $t$.</span>
-<span id="cb25-196"><a href="#cb25-196"></a></span>
-<span id="cb25-197"><a href="#cb25-197"></a>The test statistic compares the observed number of events in each group to the number expected under the null hypothesis, summed over all event times. It is most powerful when the **proportional hazards assumption** holds — that is, when one group has a consistently higher (or lower) hazard than the other across time.</span>
-<span id="cb25-198"><a href="#cb25-198"></a></span>
-<span id="cb25-199"><a href="#cb25-199"></a>::: {.panel-tabset}</span>
+<span id="cb25-189"><a href="#cb25-189"></a><span class="in">```{python}</span></span>
+<span id="cb25-190"><a href="#cb25-190"></a><span class="co">#| label: km-plot-python</span></span>
+<span id="cb25-191"><a href="#cb25-191"></a><span class="co">#| fig-cap: "Kaplan-Meier survival curve estimated using the lifelines package in Python."</span></span>
+<span id="cb25-192"><a href="#cb25-192"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb25-193"><a href="#cb25-193"></a>kmf.plot_survival_function(ax<span class="op">=</span>ax, ci_show<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb25-194"><a href="#cb25-194"></a>ax.set_xlabel(<span class="st">"Time (years)"</span>)</span>
+<span id="cb25-195"><a href="#cb25-195"></a>ax.set_ylabel(<span class="st">"Survival probability"</span>)</span>
+<span id="cb25-196"><a href="#cb25-196"></a>ax.set_title(<span class="st">"Kaplan-Meier Survival Estimate"</span>)</span>
+<span id="cb25-197"><a href="#cb25-197"></a>plt.tight_layout()</span>
+<span id="cb25-198"><a href="#cb25-198"></a>plt.show()</span>
+<span id="cb25-199"><a href="#cb25-199"></a><span class="in">```</span></span>
 <span id="cb25-200"><a href="#cb25-200"></a></span>
-<span id="cb25-201"><a href="#cb25-201"></a><span class="fu">#### R</span></span>
+<span id="cb25-201"><a href="#cb25-201"></a>:::</span>
 <span id="cb25-202"><a href="#cb25-202"></a></span>
-<span id="cb25-205"><a href="#cb25-205"></a><span class="in">```{r}</span></span>
-<span id="cb25-206"><a href="#cb25-206"></a><span class="co">#| label: logrank-r</span></span>
-<span id="cb25-207"><a href="#cb25-207"></a><span class="co"># Compare survival between treatment groups</span></span>
-<span id="cb25-208"><a href="#cb25-208"></a>km_by_trt <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> trt_label, <span class="at">data =</span> pbc_clean)</span>
-<span id="cb25-209"><a href="#cb25-209"></a></span>
-<span id="cb25-210"><a href="#cb25-210"></a><span class="co"># Log-rank test</span></span>
-<span id="cb25-211"><a href="#cb25-211"></a>logrank <span class="ot">&lt;-</span> <span class="fu">survdiff</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> trt_label, <span class="at">data =</span> pbc_clean)</span>
-<span id="cb25-212"><a href="#cb25-212"></a><span class="fu">print</span>(logrank)</span>
-<span id="cb25-213"><a href="#cb25-213"></a><span class="in">```</span></span>
+<span id="cb25-203"><a href="#cb25-203"></a><span class="fu">### Interpreting the KM Curve</span></span>
+<span id="cb25-204"><a href="#cb25-204"></a></span>
+<span id="cb25-205"><a href="#cb25-205"></a>Key features to examine:</span>
+<span id="cb25-206"><a href="#cb25-206"></a></span>
+<span id="cb25-207"><a href="#cb25-207"></a><span class="ss">1. </span>**Median survival time**: the time at which $\hat{S}(t) = 0.5$ (where the curve crosses the 50% line). If the curve never drops to 50%, the median is undefined.</span>
+<span id="cb25-208"><a href="#cb25-208"></a><span class="ss">2. </span>**Survival at specific time points**: e.g., "5-year survival is 65%."</span>
+<span id="cb25-209"><a href="#cb25-209"></a><span class="ss">3. </span>**Shape of the curve**: A steep early drop suggests high early mortality. A long flat tail suggests most survivors do well long-term.</span>
+<span id="cb25-210"><a href="#cb25-210"></a><span class="ss">4. </span>**Confidence bands**: Wider bands mean more uncertainty, often because fewer patients remain at risk.</span>
+<span id="cb25-211"><a href="#cb25-211"></a><span class="ss">5. </span>**Censoring marks** (tick marks on the curve): Heavy censoring near the tail means the late estimates are unreliable.</span>
+<span id="cb25-212"><a href="#cb25-212"></a></span>
+<span id="cb25-213"><a href="#cb25-213"></a><span class="fu">### Confidence Intervals for the KM Estimator</span></span>
 <span id="cb25-214"><a href="#cb25-214"></a></span>
-<span id="cb25-217"><a href="#cb25-217"></a><span class="in">```{r}</span></span>
-<span id="cb25-218"><a href="#cb25-218"></a><span class="co">#| label: logrank-plot-r</span></span>
-<span id="cb25-219"><a href="#cb25-219"></a><span class="co">#| fig-cap: "Kaplan-Meier curves comparing D-penicillamine vs placebo in PBC patients."</span></span>
-<span id="cb25-220"><a href="#cb25-220"></a><span class="fu">ggsurvplot</span>(</span>
-<span id="cb25-221"><a href="#cb25-221"></a>  km_by_trt,</span>
-<span id="cb25-222"><a href="#cb25-222"></a>  <span class="at">data =</span> pbc_clean,</span>
-<span id="cb25-223"><a href="#cb25-223"></a>  <span class="at">pval =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb25-224"><a href="#cb25-224"></a>  <span class="at">conf.int =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb25-225"><a href="#cb25-225"></a>  <span class="at">risk.table =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb25-226"><a href="#cb25-226"></a>  <span class="at">xlab =</span> <span class="st">"Time (years)"</span>,</span>
-<span id="cb25-227"><a href="#cb25-227"></a>  <span class="at">ylab =</span> <span class="st">"Survival probability"</span>,</span>
-<span id="cb25-228"><a href="#cb25-228"></a>  <span class="at">legend.title =</span> <span class="st">"Treatment"</span>,</span>
-<span id="cb25-229"><a href="#cb25-229"></a>  <span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"#E7B800"</span>, <span class="st">"#2E9FDF"</span>),</span>
-<span id="cb25-230"><a href="#cb25-230"></a>  <span class="at">ggtheme =</span> <span class="fu">theme_minimal</span>()</span>
-<span id="cb25-231"><a href="#cb25-231"></a>)</span>
-<span id="cb25-232"><a href="#cb25-232"></a><span class="in">```</span></span>
-<span id="cb25-233"><a href="#cb25-233"></a></span>
-<span id="cb25-234"><a href="#cb25-234"></a><span class="fu">#### Python</span></span>
-<span id="cb25-235"><a href="#cb25-235"></a></span>
-<span id="cb25-238"><a href="#cb25-238"></a><span class="in">```{python}</span></span>
-<span id="cb25-239"><a href="#cb25-239"></a><span class="co">#| label: logrank-python</span></span>
-<span id="cb25-240"><a href="#cb25-240"></a><span class="im">from</span> lifelines <span class="im">import</span> KaplanMeierFitter</span>
-<span id="cb25-241"><a href="#cb25-241"></a><span class="im">from</span> lifelines.statistics <span class="im">import</span> logrank_test</span>
-<span id="cb25-242"><a href="#cb25-242"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb25-243"><a href="#cb25-243"></a></span>
-<span id="cb25-244"><a href="#cb25-244"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb25-245"><a href="#cb25-245"></a></span>
-<span id="cb25-246"><a href="#cb25-246"></a><span class="co"># Simulate two treatment groups</span></span>
-<span id="cb25-247"><a href="#cb25-247"></a>n_per_group <span class="op">=</span> <span class="dv">156</span></span>
-<span id="cb25-248"><a href="#cb25-248"></a>time_trt <span class="op">=</span> np.random.exponential(scale<span class="op">=</span><span class="fl">8.5</span>, size<span class="op">=</span>n_per_group)</span>
-<span id="cb25-249"><a href="#cb25-249"></a>event_trt <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.42</span>, size<span class="op">=</span>n_per_group)</span>
-<span id="cb25-250"><a href="#cb25-250"></a></span>
-<span id="cb25-251"><a href="#cb25-251"></a>time_placebo <span class="op">=</span> np.random.exponential(scale<span class="op">=</span><span class="fl">7.5</span>, size<span class="op">=</span>n_per_group)</span>
-<span id="cb25-252"><a href="#cb25-252"></a>event_placebo <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.48</span>, size<span class="op">=</span>n_per_group)</span>
-<span id="cb25-253"><a href="#cb25-253"></a></span>
-<span id="cb25-254"><a href="#cb25-254"></a><span class="co"># Log-rank test</span></span>
-<span id="cb25-255"><a href="#cb25-255"></a>results <span class="op">=</span> logrank_test(time_trt, time_placebo, event_trt, event_placebo)</span>
-<span id="cb25-256"><a href="#cb25-256"></a><span class="bu">print</span>(<span class="ss">f"Log-rank test statistic: </span><span class="sc">{</span>results<span class="sc">.</span>test_statistic<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
-<span id="cb25-257"><a href="#cb25-257"></a><span class="bu">print</span>(<span class="ss">f"p-value: </span><span class="sc">{</span>results<span class="sc">.</span>p_value<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
-<span id="cb25-258"><a href="#cb25-258"></a></span>
-<span id="cb25-259"><a href="#cb25-259"></a><span class="co"># Plot both curves</span></span>
-<span id="cb25-260"><a href="#cb25-260"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
-<span id="cb25-261"><a href="#cb25-261"></a>kmf_trt <span class="op">=</span> KaplanMeierFitter()</span>
-<span id="cb25-262"><a href="#cb25-262"></a>kmf_trt.fit(time_trt, event_trt, label<span class="op">=</span><span class="st">"D-penicillamine"</span>)</span>
-<span id="cb25-263"><a href="#cb25-263"></a>kmf_trt.plot_survival_function(ax<span class="op">=</span>ax)</span>
-<span id="cb25-264"><a href="#cb25-264"></a></span>
-<span id="cb25-265"><a href="#cb25-265"></a>kmf_placebo <span class="op">=</span> KaplanMeierFitter()</span>
-<span id="cb25-266"><a href="#cb25-266"></a>kmf_placebo.fit(time_placebo, event_placebo, label<span class="op">=</span><span class="st">"Placebo"</span>)</span>
-<span id="cb25-267"><a href="#cb25-267"></a>kmf_placebo.plot_survival_function(ax<span class="op">=</span>ax)</span>
-<span id="cb25-268"><a href="#cb25-268"></a></span>
-<span id="cb25-269"><a href="#cb25-269"></a>ax.set_xlabel(<span class="st">"Time (years)"</span>)</span>
-<span id="cb25-270"><a href="#cb25-270"></a>ax.set_ylabel(<span class="st">"Survival probability"</span>)</span>
-<span id="cb25-271"><a href="#cb25-271"></a>ax.set_title(<span class="st">"Survival by Treatment Group"</span>)</span>
-<span id="cb25-272"><a href="#cb25-272"></a>plt.tight_layout()</span>
-<span id="cb25-273"><a href="#cb25-273"></a>plt.show()</span>
-<span id="cb25-274"><a href="#cb25-274"></a><span class="in">```</span></span>
+<span id="cb25-215"><a href="#cb25-215"></a>The survival curve is an *estimate* from a finite sample, so it comes with uncertainty --- the confidence band you see around a KM curve. The pointwise confidence interval for $\hat{S}(t)$ is computed via **Greenwood's formula**, which estimates the variance (the "wobble") of $\hat{S}(t)$:</span>
+<span id="cb25-216"><a href="#cb25-216"></a></span>
+<span id="cb25-217"><a href="#cb25-217"></a>$$\widehat{\text{Var}}<span class="co">[</span><span class="ot">\hat{S}(t)</span><span class="co">]</span> = \hat{S}(t)^2 \sum_{t_i \le t} \frac{d_i}{n_i(n_i - d_i)}$$</span>
+<span id="cb25-218"><a href="#cb25-218"></a></span>
+<span id="cb25-219"><a href="#cb25-219"></a>You do not need to compute this by hand --- <span class="in">`survfit()`</span> does it for you --- but the formula carries one genuinely useful intuition, which is the only thing worth taking away from it. Look at each term in the sum: it grows when $n_i$ (the number still at risk) is **small**. Early in follow-up, $n_i$ is large and each term is tiny, so the band is tight. Late in follow-up, after many patients have died or been censored, $n_i$ shrinks, each term balloons, and the band fans out. **That is why the confidence band on every KM curve is narrow on the left and wide on the right**: the tail of the curve is estimated from only a handful of remaining patients, so it is far less reliable. When you read a KM plot, treat the wide right-hand tail with caution.</span>
+<span id="cb25-220"><a href="#cb25-220"></a></span>
+<span id="cb25-221"><a href="#cb25-221"></a>A 95% confidence interval is then approximately $\hat{S}(t) \pm 1.96 \sqrt{\widehat{\text{Var}}<span class="co">[</span><span class="ot">\hat{S}(t)</span><span class="co">]</span>}$. In practice, software uses a log-log transformation of this interval because it guarantees the limits stay within the valid <span class="co">[</span><span class="ot">0, 1</span><span class="co">]</span> range for a probability (a plain $\pm$ interval can stray below 0 or above 1 in the tails).</span>
+<span id="cb25-222"><a href="#cb25-222"></a></span>
+<span id="cb25-223"><a href="#cb25-223"></a><span class="fu">## The Log-Rank Test</span></span>
+<span id="cb25-224"><a href="#cb25-224"></a></span>
+<span id="cb25-225"><a href="#cb25-225"></a>The **log-rank test** compares survival curves between two or more groups. It is the most widely used test for this purpose.</span>
+<span id="cb25-226"><a href="#cb25-226"></a></span>
+<span id="cb25-227"><a href="#cb25-227"></a>The null hypothesis is that survival is identical across groups: $H_0: S_1(t) = S_2(t)$ for all $t$.</span>
+<span id="cb25-228"><a href="#cb25-228"></a></span>
+<span id="cb25-229"><a href="#cb25-229"></a>The test statistic compares the observed number of events in each group to the number expected under the null hypothesis, summed over all event times. It is most powerful when the **proportional hazards assumption** holds — that is, when one group has a consistently higher (or lower) hazard than the other across time.</span>
+<span id="cb25-230"><a href="#cb25-230"></a></span>
+<span id="cb25-231"><a href="#cb25-231"></a>::: {.panel-tabset}</span>
+<span id="cb25-232"><a href="#cb25-232"></a></span>
+<span id="cb25-233"><a href="#cb25-233"></a><span class="fu">#### R</span></span>
+<span id="cb25-234"><a href="#cb25-234"></a></span>
+<span id="cb25-237"><a href="#cb25-237"></a><span class="in">```{r}</span></span>
+<span id="cb25-238"><a href="#cb25-238"></a><span class="co">#| label: logrank-r</span></span>
+<span id="cb25-239"><a href="#cb25-239"></a><span class="co"># Compare survival between treatment groups</span></span>
+<span id="cb25-240"><a href="#cb25-240"></a>km_by_trt <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> trt_label, <span class="at">data =</span> pbc_clean)</span>
+<span id="cb25-241"><a href="#cb25-241"></a></span>
+<span id="cb25-242"><a href="#cb25-242"></a><span class="co"># Log-rank test</span></span>
+<span id="cb25-243"><a href="#cb25-243"></a>logrank <span class="ot">&lt;-</span> <span class="fu">survdiff</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> trt_label, <span class="at">data =</span> pbc_clean)</span>
+<span id="cb25-244"><a href="#cb25-244"></a><span class="fu">print</span>(logrank)</span>
+<span id="cb25-245"><a href="#cb25-245"></a><span class="in">```</span></span>
+<span id="cb25-246"><a href="#cb25-246"></a></span>
+<span id="cb25-249"><a href="#cb25-249"></a><span class="in">```{r}</span></span>
+<span id="cb25-250"><a href="#cb25-250"></a><span class="co">#| label: logrank-plot-r</span></span>
+<span id="cb25-251"><a href="#cb25-251"></a><span class="co">#| fig-cap: "Kaplan-Meier curves comparing D-penicillamine vs placebo in PBC patients."</span></span>
+<span id="cb25-252"><a href="#cb25-252"></a><span class="fu">ggsurvplot</span>(</span>
+<span id="cb25-253"><a href="#cb25-253"></a>  km_by_trt,</span>
+<span id="cb25-254"><a href="#cb25-254"></a>  <span class="at">data =</span> pbc_clean,</span>
+<span id="cb25-255"><a href="#cb25-255"></a>  <span class="at">pval =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb25-256"><a href="#cb25-256"></a>  <span class="at">conf.int =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb25-257"><a href="#cb25-257"></a>  <span class="at">risk.table =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb25-258"><a href="#cb25-258"></a>  <span class="at">xlab =</span> <span class="st">"Time (years)"</span>,</span>
+<span id="cb25-259"><a href="#cb25-259"></a>  <span class="at">ylab =</span> <span class="st">"Survival probability"</span>,</span>
+<span id="cb25-260"><a href="#cb25-260"></a>  <span class="at">legend.title =</span> <span class="st">"Treatment"</span>,</span>
+<span id="cb25-261"><a href="#cb25-261"></a>  <span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"#E7B800"</span>, <span class="st">"#2E9FDF"</span>),</span>
+<span id="cb25-262"><a href="#cb25-262"></a>  <span class="at">ggtheme =</span> <span class="fu">theme_minimal</span>()</span>
+<span id="cb25-263"><a href="#cb25-263"></a>)</span>
+<span id="cb25-264"><a href="#cb25-264"></a><span class="in">```</span></span>
+<span id="cb25-265"><a href="#cb25-265"></a></span>
+<span id="cb25-266"><a href="#cb25-266"></a><span class="fu">#### Python</span></span>
+<span id="cb25-267"><a href="#cb25-267"></a></span>
+<span id="cb25-270"><a href="#cb25-270"></a><span class="in">```{python}</span></span>
+<span id="cb25-271"><a href="#cb25-271"></a><span class="co">#| label: logrank-python</span></span>
+<span id="cb25-272"><a href="#cb25-272"></a><span class="im">from</span> lifelines <span class="im">import</span> KaplanMeierFitter</span>
+<span id="cb25-273"><a href="#cb25-273"></a><span class="im">from</span> lifelines.statistics <span class="im">import</span> logrank_test</span>
+<span id="cb25-274"><a href="#cb25-274"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb25-275"><a href="#cb25-275"></a></span>
-<span id="cb25-276"><a href="#cb25-276"></a>:::</span>
+<span id="cb25-276"><a href="#cb25-276"></a>np.random.seed(<span class="dv">42</span>)</span>
 <span id="cb25-277"><a href="#cb25-277"></a></span>
-<span id="cb25-278"><a href="#cb25-278"></a>::: {.callout-note}</span>
-<span id="cb25-279"><a href="#cb25-279"></a><span class="fu">## When the Log-Rank Test is Weak</span></span>
-<span id="cb25-280"><a href="#cb25-280"></a>The log-rank test has low power when survival curves cross (e.g., one treatment is better early but worse later). In such cases, consider the **weighted log-rank test** (e.g., Fleming-Harrington) or the **restricted mean survival time (RMST)** approach.</span>
-<span id="cb25-281"><a href="#cb25-281"></a>:::</span>
+<span id="cb25-278"><a href="#cb25-278"></a><span class="co"># Simulate two treatment groups</span></span>
+<span id="cb25-279"><a href="#cb25-279"></a>n_per_group <span class="op">=</span> <span class="dv">156</span></span>
+<span id="cb25-280"><a href="#cb25-280"></a>time_trt <span class="op">=</span> np.random.exponential(scale<span class="op">=</span><span class="fl">8.5</span>, size<span class="op">=</span>n_per_group)</span>
+<span id="cb25-281"><a href="#cb25-281"></a>event_trt <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.42</span>, size<span class="op">=</span>n_per_group)</span>
 <span id="cb25-282"><a href="#cb25-282"></a></span>
-<span id="cb25-283"><a href="#cb25-283"></a><span class="fu">## Cox Proportional Hazards Model</span></span>
-<span id="cb25-284"><a href="#cb25-284"></a></span>
-<span id="cb25-285"><a href="#cb25-285"></a>The **Cox proportional hazards (PH) model** is the most widely used regression model for survival data. Introduced by Sir David Cox in 1972, it models the **hazard function** — the instantaneous rate of the event occurring at time $t$, given survival to that point:</span>
-<span id="cb25-286"><a href="#cb25-286"></a></span>
-<span id="cb25-287"><a href="#cb25-287"></a>$$h(t | X) = h_0(t) \exp(\beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p)$$</span>
-<span id="cb25-288"><a href="#cb25-288"></a></span>
-<span id="cb25-289"><a href="#cb25-289"></a>where:</span>
+<span id="cb25-283"><a href="#cb25-283"></a>time_placebo <span class="op">=</span> np.random.exponential(scale<span class="op">=</span><span class="fl">7.5</span>, size<span class="op">=</span>n_per_group)</span>
+<span id="cb25-284"><a href="#cb25-284"></a>event_placebo <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.48</span>, size<span class="op">=</span>n_per_group)</span>
+<span id="cb25-285"><a href="#cb25-285"></a></span>
+<span id="cb25-286"><a href="#cb25-286"></a><span class="co"># Log-rank test</span></span>
+<span id="cb25-287"><a href="#cb25-287"></a>results <span class="op">=</span> logrank_test(time_trt, time_placebo, event_trt, event_placebo)</span>
+<span id="cb25-288"><a href="#cb25-288"></a><span class="bu">print</span>(<span class="ss">f"Log-rank test statistic: </span><span class="sc">{</span>results<span class="sc">.</span>test_statistic<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb25-289"><a href="#cb25-289"></a><span class="bu">print</span>(<span class="ss">f"p-value: </span><span class="sc">{</span>results<span class="sc">.</span>p_value<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
 <span id="cb25-290"><a href="#cb25-290"></a></span>
-<span id="cb25-291"><a href="#cb25-291"></a><span class="ss">- </span>$h(t | X)$ is the hazard at time $t$ for an individual with covariates $X$,</span>
-<span id="cb25-292"><a href="#cb25-292"></a><span class="ss">- </span>$h_0(t)$ is the **baseline hazard** (an unspecified function of time),</span>
-<span id="cb25-293"><a href="#cb25-293"></a><span class="ss">- </span>$\beta_1, \ldots, \beta_p$ are regression coefficients,</span>
-<span id="cb25-294"><a href="#cb25-294"></a><span class="ss">- </span>$\exp(\beta_j)$ is the **hazard ratio** for a one-unit increase in $X_j$.</span>
-<span id="cb25-295"><a href="#cb25-295"></a></span>
-<span id="cb25-296"><a href="#cb25-296"></a><span class="fu">### Key Properties</span></span>
-<span id="cb25-297"><a href="#cb25-297"></a></span>
-<span id="cb25-298"><a href="#cb25-298"></a><span class="ss">1. </span>**Semi-parametric**: The baseline hazard $h_0(t)$ is left unspecified — the model makes no assumption about the shape of the hazard over time. Only the relative effect of covariates is estimated.</span>
-<span id="cb25-299"><a href="#cb25-299"></a><span class="ss">2. </span>**Proportional hazards assumption**: The ratio of hazards for any two individuals is constant over time. If patient A has twice the hazard of patient B at time 1, they also have twice the hazard at time 5.</span>
-<span id="cb25-300"><a href="#cb25-300"></a><span class="ss">3. </span>**Hazard ratios**: $\text{HR} = \exp(\beta)$. An HR &gt; 1 means increased hazard (worse prognosis); HR &lt; 1 means decreased hazard (better prognosis); HR = 1 means no effect.</span>
-<span id="cb25-301"><a href="#cb25-301"></a></span>
-<span id="cb25-302"><a href="#cb25-302"></a><span class="fu">### Fitting the Cox Model</span></span>
-<span id="cb25-303"><a href="#cb25-303"></a></span>
-<span id="cb25-304"><a href="#cb25-304"></a>::: {.panel-tabset}</span>
-<span id="cb25-305"><a href="#cb25-305"></a></span>
-<span id="cb25-306"><a href="#cb25-306"></a><span class="fu">#### R</span></span>
+<span id="cb25-291"><a href="#cb25-291"></a><span class="co"># Plot both curves</span></span>
+<span id="cb25-292"><a href="#cb25-292"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb25-293"><a href="#cb25-293"></a>kmf_trt <span class="op">=</span> KaplanMeierFitter()</span>
+<span id="cb25-294"><a href="#cb25-294"></a>kmf_trt.fit(time_trt, event_trt, label<span class="op">=</span><span class="st">"D-penicillamine"</span>)</span>
+<span id="cb25-295"><a href="#cb25-295"></a>kmf_trt.plot_survival_function(ax<span class="op">=</span>ax)</span>
+<span id="cb25-296"><a href="#cb25-296"></a></span>
+<span id="cb25-297"><a href="#cb25-297"></a>kmf_placebo <span class="op">=</span> KaplanMeierFitter()</span>
+<span id="cb25-298"><a href="#cb25-298"></a>kmf_placebo.fit(time_placebo, event_placebo, label<span class="op">=</span><span class="st">"Placebo"</span>)</span>
+<span id="cb25-299"><a href="#cb25-299"></a>kmf_placebo.plot_survival_function(ax<span class="op">=</span>ax)</span>
+<span id="cb25-300"><a href="#cb25-300"></a></span>
+<span id="cb25-301"><a href="#cb25-301"></a>ax.set_xlabel(<span class="st">"Time (years)"</span>)</span>
+<span id="cb25-302"><a href="#cb25-302"></a>ax.set_ylabel(<span class="st">"Survival probability"</span>)</span>
+<span id="cb25-303"><a href="#cb25-303"></a>ax.set_title(<span class="st">"Survival by Treatment Group"</span>)</span>
+<span id="cb25-304"><a href="#cb25-304"></a>plt.tight_layout()</span>
+<span id="cb25-305"><a href="#cb25-305"></a>plt.show()</span>
+<span id="cb25-306"><a href="#cb25-306"></a><span class="in">```</span></span>
 <span id="cb25-307"><a href="#cb25-307"></a></span>
-<span id="cb25-310"><a href="#cb25-310"></a><span class="in">```{r}</span></span>
-<span id="cb25-311"><a href="#cb25-311"></a><span class="co">#| label: cox-r</span></span>
-<span id="cb25-312"><a href="#cb25-312"></a><span class="co"># Fit Cox model with multiple predictors</span></span>
-<span id="cb25-313"><a href="#cb25-313"></a>cox_model <span class="ot">&lt;-</span> <span class="fu">coxph</span>(</span>
-<span id="cb25-314"><a href="#cb25-314"></a>  <span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> age <span class="sc">+</span> sex <span class="sc">+</span> albumin <span class="sc">+</span> bili <span class="sc">+</span> edema,</span>
-<span id="cb25-315"><a href="#cb25-315"></a>  <span class="at">data =</span> pbc_clean</span>
-<span id="cb25-316"><a href="#cb25-316"></a>)</span>
-<span id="cb25-317"><a href="#cb25-317"></a></span>
-<span id="cb25-318"><a href="#cb25-318"></a><span class="fu">summary</span>(cox_model)</span>
-<span id="cb25-319"><a href="#cb25-319"></a><span class="in">```</span></span>
-<span id="cb25-320"><a href="#cb25-320"></a></span>
-<span id="cb25-323"><a href="#cb25-323"></a><span class="in">```{r}</span></span>
-<span id="cb25-324"><a href="#cb25-324"></a><span class="co">#| label: cox-forest-r</span></span>
-<span id="cb25-325"><a href="#cb25-325"></a><span class="co">#| fig-cap: "Forest plot of hazard ratios from the Cox PH model for PBC patients."</span></span>
-<span id="cb25-326"><a href="#cb25-326"></a><span class="co"># Forest plot of hazard ratios</span></span>
-<span id="cb25-327"><a href="#cb25-327"></a><span class="fu">ggforest</span>(cox_model, <span class="at">data =</span> pbc_clean)</span>
-<span id="cb25-328"><a href="#cb25-328"></a><span class="in">```</span></span>
-<span id="cb25-329"><a href="#cb25-329"></a></span>
-<span id="cb25-330"><a href="#cb25-330"></a><span class="fu">#### Python</span></span>
-<span id="cb25-331"><a href="#cb25-331"></a></span>
-<span id="cb25-334"><a href="#cb25-334"></a><span class="in">```{python}</span></span>
-<span id="cb25-335"><a href="#cb25-335"></a><span class="co">#| label: cox-python</span></span>
-<span id="cb25-336"><a href="#cb25-336"></a><span class="im">from</span> lifelines <span class="im">import</span> CoxPHFitter</span>
-<span id="cb25-337"><a href="#cb25-337"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb25-338"><a href="#cb25-338"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb25-339"><a href="#cb25-339"></a></span>
-<span id="cb25-340"><a href="#cb25-340"></a><span class="co"># Create a simulated clinical dataset</span></span>
-<span id="cb25-341"><a href="#cb25-341"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb25-342"><a href="#cb25-342"></a>n <span class="op">=</span> <span class="dv">312</span></span>
-<span id="cb25-343"><a href="#cb25-343"></a>df <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb25-344"><a href="#cb25-344"></a>    <span class="st">'time_years'</span>: np.random.exponential(scale<span class="op">=</span><span class="dv">8</span>, size<span class="op">=</span>n),</span>
-<span id="cb25-345"><a href="#cb25-345"></a>    <span class="st">'event'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.45</span>, size<span class="op">=</span>n),</span>
-<span id="cb25-346"><a href="#cb25-346"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">50</span>, <span class="dv">10</span>, size<span class="op">=</span>n),</span>
-<span id="cb25-347"><a href="#cb25-347"></a>    <span class="st">'sex'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.5</span>, size<span class="op">=</span>n),</span>
-<span id="cb25-348"><a href="#cb25-348"></a>    <span class="st">'albumin'</span>: np.random.normal(<span class="fl">3.5</span>, <span class="fl">0.5</span>, size<span class="op">=</span>n),</span>
-<span id="cb25-349"><a href="#cb25-349"></a>    <span class="st">'bili'</span>: np.random.exponential(scale<span class="op">=</span><span class="dv">3</span>, size<span class="op">=</span>n),</span>
-<span id="cb25-350"><a href="#cb25-350"></a>    <span class="st">'edema'</span>: np.random.choice([<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>], size<span class="op">=</span>n, p<span class="op">=</span>[<span class="fl">0.75</span>, <span class="fl">0.15</span>, <span class="fl">0.10</span>])</span>
-<span id="cb25-351"><a href="#cb25-351"></a>})</span>
-<span id="cb25-352"><a href="#cb25-352"></a></span>
-<span id="cb25-353"><a href="#cb25-353"></a>cph <span class="op">=</span> CoxPHFitter()</span>
-<span id="cb25-354"><a href="#cb25-354"></a>cph.fit(df, duration_col<span class="op">=</span><span class="st">'time_years'</span>, event_col<span class="op">=</span><span class="st">'event'</span>,</span>
-<span id="cb25-355"><a href="#cb25-355"></a>        formula<span class="op">=</span><span class="st">'age + sex + albumin + bili + edema'</span>)</span>
+<span id="cb25-308"><a href="#cb25-308"></a>:::</span>
+<span id="cb25-309"><a href="#cb25-309"></a></span>
+<span id="cb25-310"><a href="#cb25-310"></a><span class="fu">### Reading the Log-Rank Output</span></span>
+<span id="cb25-311"><a href="#cb25-311"></a></span>
+<span id="cb25-312"><a href="#cb25-312"></a>The <span class="in">`survdiff()`</span> output in R looks like a small table with one row per group, plus a chi-squared statistic and p-value at the bottom. Here is what each piece tells you and how to report it:</span>
+<span id="cb25-313"><a href="#cb25-313"></a></span>
+<span id="cb25-314"><a href="#cb25-314"></a><span class="ss">- </span>**`N`** --- the number of patients in each group.</span>
+<span id="cb25-315"><a href="#cb25-315"></a><span class="ss">- </span>**`Observed`** --- how many events (deaths) actually occurred in each group.</span>
+<span id="cb25-316"><a href="#cb25-316"></a><span class="ss">- </span>**`Expected`** --- how many events you would have expected in each group *if survival were identical across groups* (the null hypothesis). This is the key comparison: it accounts for how long each group was followed and how many were at risk over time.</span>
+<span id="cb25-317"><a href="#cb25-317"></a><span class="ss">- </span>**Observed vs Expected** --- the heart of the test. If a group has *more* observed deaths than expected, it is doing worse than the average; *fewer* than expected, better. The test asks whether the gap between observed and expected, accumulated across all event times, is larger than chance would produce.</span>
+<span id="cb25-318"><a href="#cb25-318"></a><span class="ss">- </span>**`Chisq` and `p`** --- the test statistic and its p-value. A small p-value (conventionally &lt; 0.05) means the survival curves differ more than would be expected by chance; you reject the hypothesis that the two groups have identical survival.</span>
+<span id="cb25-319"><a href="#cb25-319"></a></span>
+<span id="cb25-320"><a href="#cb25-320"></a>For the PBC treatment comparison above, the relevant question is whether D-penicillamine changed survival versus placebo. A **non-significant** p-value (as is the case in this dataset) means there is no evidence the drug altered survival --- which matches the historical conclusion that D-penicillamine is not effective in PBC. Report it as, for example: *"There was no significant difference in survival between D-penicillamine and placebo (log-rank p = 0.75)."* Crucially, a non-significant log-rank test is **not** proof the treatments are equivalent --- it may simply reflect insufficient events to detect a difference.</span>
+<span id="cb25-321"><a href="#cb25-321"></a></span>
+<span id="cb25-322"><a href="#cb25-322"></a>The <span class="in">`ggsurvplot()`</span> figure shows the same comparison visually: two KM curves with the log-rank p-value annotated (<span class="in">`pval = TRUE`</span>). If the curves sit almost on top of each other, that is the visual counterpart of a non-significant test.</span>
+<span id="cb25-323"><a href="#cb25-323"></a></span>
+<span id="cb25-324"><a href="#cb25-324"></a>::: {.callout-note}</span>
+<span id="cb25-325"><a href="#cb25-325"></a><span class="fu">## When the Log-Rank Test is Weak</span></span>
+<span id="cb25-326"><a href="#cb25-326"></a>The log-rank test has low power when survival curves cross (e.g., one treatment is better early but worse later) --- the early and late differences cancel out, hiding a real effect. In such cases, consider the **weighted log-rank test** (e.g., Fleming-Harrington, which can up-weight early or late differences) or the **restricted mean survival time (RMST)** approach, which compares the average event-free time up to a chosen horizon and does not rely on proportional hazards.</span>
+<span id="cb25-327"><a href="#cb25-327"></a>:::</span>
+<span id="cb25-328"><a href="#cb25-328"></a></span>
+<span id="cb25-329"><a href="#cb25-329"></a><span class="fu">## Cox Proportional Hazards Model</span></span>
+<span id="cb25-330"><a href="#cb25-330"></a></span>
+<span id="cb25-331"><a href="#cb25-331"></a>The **Cox proportional hazards (PH) model** is the most widely used regression model for survival data. Introduced by Sir David Cox in 1972, it models the **hazard function** --- the instantaneous rate of the event occurring at time $t$, given survival to that point.</span>
+<span id="cb25-332"><a href="#cb25-332"></a></span>
+<span id="cb25-333"><a href="#cb25-333"></a>::: {.callout-note}</span>
+<span id="cb25-334"><a href="#cb25-334"></a><span class="fu">## What is a "hazard", in plain terms?</span></span>
+<span id="cb25-335"><a href="#cb25-335"></a>The word *hazard* trips up most clinicians on first encounter, because it is not a probability and not a risk. Think of it as a **speedometer for risk**: at any instant $t$ (among patients who have survived to that instant), it measures *how fast* events are occurring right now. Like a car's speed, it is a *rate* (events per unit time), it applies to *this moment* rather than the whole journey, and it can change from moment to moment.</span>
+<span id="cb25-336"><a href="#cb25-336"></a></span>
+<span id="cb25-337"><a href="#cb25-337"></a>Contrast it with quantities you already use:</span>
+<span id="cb25-338"><a href="#cb25-338"></a></span>
+<span id="cb25-339"><a href="#cb25-339"></a><span class="ss">- </span>A **risk** (or cumulative probability) is like the total distance travelled --- "35% of patients have died **by** 5 years." It accumulates over a period.</span>
+<span id="cb25-340"><a href="#cb25-340"></a><span class="ss">- </span>A **risk ratio / relative risk (RR)** compares those totals between two groups over a fixed period --- "the treated group's 5-year risk is half the control group's."</span>
+<span id="cb25-341"><a href="#cb25-341"></a><span class="ss">- </span>A **hazard** is the instantaneous speed, and a **hazard ratio (HR)** compares the *speeds* of two groups at any given moment.</span>
+<span id="cb25-342"><a href="#cb25-342"></a></span>
+<span id="cb25-343"><a href="#cb25-343"></a>Why bother with a speed rather than a simple risk ratio? Because censoring and varying follow-up make "total risk by time $t$" hard to compare directly --- patients are observed for different lengths of time. The hazard sidesteps this by asking, at each instant, only about the patients actually still at risk at that instant. The Cox model is built on this instantaneous quantity:</span>
+<span id="cb25-344"><a href="#cb25-344"></a>:::</span>
+<span id="cb25-345"><a href="#cb25-345"></a></span>
+<span id="cb25-346"><a href="#cb25-346"></a>$$h(t | X) = h_0(t) \exp(\beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p)$$</span>
+<span id="cb25-347"><a href="#cb25-347"></a></span>
+<span id="cb25-348"><a href="#cb25-348"></a>where:</span>
+<span id="cb25-349"><a href="#cb25-349"></a></span>
+<span id="cb25-350"><a href="#cb25-350"></a><span class="ss">- </span>$h(t | X)$ is the hazard at time $t$ for an individual with covariates $X$,</span>
+<span id="cb25-351"><a href="#cb25-351"></a><span class="ss">- </span>$h_0(t)$ is the **baseline hazard** (an unspecified function of time),</span>
+<span id="cb25-352"><a href="#cb25-352"></a><span class="ss">- </span>$\beta_1, \ldots, \beta_p$ are regression coefficients,</span>
+<span id="cb25-353"><a href="#cb25-353"></a><span class="ss">- </span>$\exp(\beta_j)$ is the **hazard ratio** for a one-unit increase in $X_j$.</span>
+<span id="cb25-354"><a href="#cb25-354"></a></span>
+<span id="cb25-355"><a href="#cb25-355"></a><span class="fu">### Key Properties</span></span>
 <span id="cb25-356"><a href="#cb25-356"></a></span>
-<span id="cb25-357"><a href="#cb25-357"></a>cph.print_summary()</span>
-<span id="cb25-358"><a href="#cb25-358"></a><span class="in">```</span></span>
-<span id="cb25-359"><a href="#cb25-359"></a></span>
-<span id="cb25-362"><a href="#cb25-362"></a><span class="in">```{python}</span></span>
-<span id="cb25-363"><a href="#cb25-363"></a><span class="co">#| label: cox-forest-python</span></span>
-<span id="cb25-364"><a href="#cb25-364"></a><span class="co">#| fig-cap: "Forest plot of hazard ratios from the Cox model fitted in Python."</span></span>
-<span id="cb25-365"><a href="#cb25-365"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
-<span id="cb25-366"><a href="#cb25-366"></a>cph.plot(ax<span class="op">=</span>ax)</span>
-<span id="cb25-367"><a href="#cb25-367"></a>ax.set_title(<span class="st">"Cox PH Model — Hazard Ratios"</span>)</span>
-<span id="cb25-368"><a href="#cb25-368"></a>plt.tight_layout()</span>
-<span id="cb25-369"><a href="#cb25-369"></a>plt.show()</span>
-<span id="cb25-370"><a href="#cb25-370"></a><span class="in">```</span></span>
-<span id="cb25-371"><a href="#cb25-371"></a></span>
-<span id="cb25-372"><a href="#cb25-372"></a>:::</span>
-<span id="cb25-373"><a href="#cb25-373"></a></span>
-<span id="cb25-374"><a href="#cb25-374"></a><span class="fu">### Interpreting Hazard Ratios</span></span>
-<span id="cb25-375"><a href="#cb25-375"></a></span>
-<span id="cb25-376"><a href="#cb25-376"></a>Consider a Cox model result where bilirubin has $\hat{\beta} = 0.15$ (HR = 1.16, 95% CI: 1.10–1.23, p &lt; 0.001).</span>
-<span id="cb25-377"><a href="#cb25-377"></a></span>
-<span id="cb25-378"><a href="#cb25-378"></a>Interpretation: "For each 1 mg/dL increase in serum bilirubin, the hazard of death increases by 16% (HR = 1.16, 95% CI: 1.10–1.23), adjusting for age, sex, albumin, and edema."</span>
+<span id="cb25-357"><a href="#cb25-357"></a><span class="ss">1. </span>**Semi-parametric**: The baseline hazard $h_0(t)$ is left unspecified — the model makes no assumption about the shape of the hazard over time. Only the relative effect of covariates is estimated.</span>
+<span id="cb25-358"><a href="#cb25-358"></a><span class="ss">2. </span>**Proportional hazards assumption**: The ratio of hazards for any two individuals is constant over time. If patient A has twice the hazard of patient B at time 1, they also have twice the hazard at time 5.</span>
+<span id="cb25-359"><a href="#cb25-359"></a><span class="ss">3. </span>**Hazard ratios**: $\text{HR} = \exp(\beta)$. An HR &gt; 1 means increased hazard (worse prognosis); HR &lt; 1 means decreased hazard (better prognosis); HR = 1 means no effect.</span>
+<span id="cb25-360"><a href="#cb25-360"></a></span>
+<span id="cb25-361"><a href="#cb25-361"></a><span class="fu">### Fitting the Cox Model</span></span>
+<span id="cb25-362"><a href="#cb25-362"></a></span>
+<span id="cb25-363"><a href="#cb25-363"></a>::: {.panel-tabset}</span>
+<span id="cb25-364"><a href="#cb25-364"></a></span>
+<span id="cb25-365"><a href="#cb25-365"></a><span class="fu">#### R</span></span>
+<span id="cb25-366"><a href="#cb25-366"></a></span>
+<span id="cb25-369"><a href="#cb25-369"></a><span class="in">```{r}</span></span>
+<span id="cb25-370"><a href="#cb25-370"></a><span class="co">#| label: cox-r</span></span>
+<span id="cb25-371"><a href="#cb25-371"></a><span class="co"># Fit Cox model with multiple predictors</span></span>
+<span id="cb25-372"><a href="#cb25-372"></a>cox_model <span class="ot">&lt;-</span> <span class="fu">coxph</span>(</span>
+<span id="cb25-373"><a href="#cb25-373"></a>  <span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> age <span class="sc">+</span> sex <span class="sc">+</span> albumin <span class="sc">+</span> bili <span class="sc">+</span> edema,</span>
+<span id="cb25-374"><a href="#cb25-374"></a>  <span class="at">data =</span> pbc_clean</span>
+<span id="cb25-375"><a href="#cb25-375"></a>)</span>
+<span id="cb25-376"><a href="#cb25-376"></a></span>
+<span id="cb25-377"><a href="#cb25-377"></a><span class="fu">summary</span>(cox_model)</span>
+<span id="cb25-378"><a href="#cb25-378"></a><span class="in">```</span></span>
 <span id="cb25-379"><a href="#cb25-379"></a></span>
-<span id="cb25-380"><a href="#cb25-380"></a>::: {.callout-warning}</span>
-<span id="cb25-381"><a href="#cb25-381"></a><span class="fu">## Hazard Ratios Are Not Risk Ratios</span></span>
-<span id="cb25-382"><a href="#cb25-382"></a>A hazard ratio of 2.0 does **not** mean "twice the risk of death." It means the instantaneous rate of death is twice as high at any given moment. Over long follow-up, the cumulative risk difference depends on the baseline hazard. Be precise in your language when reporting results.</span>
-<span id="cb25-383"><a href="#cb25-383"></a>:::</span>
-<span id="cb25-384"><a href="#cb25-384"></a></span>
-<span id="cb25-385"><a href="#cb25-385"></a><span class="fu">## Checking the Proportional Hazards Assumption</span></span>
-<span id="cb25-386"><a href="#cb25-386"></a></span>
-<span id="cb25-387"><a href="#cb25-387"></a>The proportional hazards assumption is critical. If it is violated, the hazard ratios from the Cox model do not have a stable interpretation — the "effect" of a covariate depends on when you look.</span>
+<span id="cb25-382"><a href="#cb25-382"></a><span class="in">```{r}</span></span>
+<span id="cb25-383"><a href="#cb25-383"></a><span class="co">#| label: cox-forest-r</span></span>
+<span id="cb25-384"><a href="#cb25-384"></a><span class="co">#| fig-cap: "Forest plot of hazard ratios from the Cox PH model for PBC patients."</span></span>
+<span id="cb25-385"><a href="#cb25-385"></a><span class="co"># Forest plot of hazard ratios</span></span>
+<span id="cb25-386"><a href="#cb25-386"></a><span class="fu">ggforest</span>(cox_model, <span class="at">data =</span> pbc_clean)</span>
+<span id="cb25-387"><a href="#cb25-387"></a><span class="in">```</span></span>
 <span id="cb25-388"><a href="#cb25-388"></a></span>
-<span id="cb25-389"><a href="#cb25-389"></a><span class="fu">### Schoenfeld Residuals</span></span>
+<span id="cb25-389"><a href="#cb25-389"></a><span class="fu">#### Python</span></span>
 <span id="cb25-390"><a href="#cb25-390"></a></span>
-<span id="cb25-391"><a href="#cb25-391"></a>The most common diagnostic tool is the **Schoenfeld residual test**. Under proportional hazards, the scaled Schoenfeld residuals for a covariate should show no trend over time. A significant trend indicates violation.</span>
-<span id="cb25-392"><a href="#cb25-392"></a></span>
-<span id="cb25-393"><a href="#cb25-393"></a>::: {.panel-tabset}</span>
-<span id="cb25-394"><a href="#cb25-394"></a></span>
-<span id="cb25-395"><a href="#cb25-395"></a><span class="fu">#### R</span></span>
-<span id="cb25-396"><a href="#cb25-396"></a></span>
-<span id="cb25-399"><a href="#cb25-399"></a><span class="in">```{r}</span></span>
-<span id="cb25-400"><a href="#cb25-400"></a><span class="co">#| label: ph-check-r</span></span>
-<span id="cb25-401"><a href="#cb25-401"></a><span class="co"># Test proportional hazards assumption</span></span>
-<span id="cb25-402"><a href="#cb25-402"></a>ph_test <span class="ot">&lt;-</span> <span class="fu">cox.zph</span>(cox_model)</span>
-<span id="cb25-403"><a href="#cb25-403"></a><span class="fu">print</span>(ph_test)</span>
-<span id="cb25-404"><a href="#cb25-404"></a><span class="in">```</span></span>
-<span id="cb25-405"><a href="#cb25-405"></a></span>
-<span id="cb25-408"><a href="#cb25-408"></a><span class="in">```{r}</span></span>
-<span id="cb25-409"><a href="#cb25-409"></a><span class="co">#| label: ph-plot-r</span></span>
-<span id="cb25-410"><a href="#cb25-410"></a><span class="co">#| fig-cap: "Schoenfeld residual plots for each covariate. A non-flat trend suggests PH violation."</span></span>
-<span id="cb25-411"><a href="#cb25-411"></a><span class="co"># Plot Schoenfeld residuals</span></span>
-<span id="cb25-412"><a href="#cb25-412"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
-<span id="cb25-413"><a href="#cb25-413"></a><span class="fu">plot</span>(ph_test)</span>
-<span id="cb25-414"><a href="#cb25-414"></a><span class="in">```</span></span>
+<span id="cb25-393"><a href="#cb25-393"></a><span class="in">```{python}</span></span>
+<span id="cb25-394"><a href="#cb25-394"></a><span class="co">#| label: cox-python</span></span>
+<span id="cb25-395"><a href="#cb25-395"></a><span class="im">from</span> lifelines <span class="im">import</span> CoxPHFitter</span>
+<span id="cb25-396"><a href="#cb25-396"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb25-397"><a href="#cb25-397"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb25-398"><a href="#cb25-398"></a></span>
+<span id="cb25-399"><a href="#cb25-399"></a><span class="co"># Create a simulated clinical dataset</span></span>
+<span id="cb25-400"><a href="#cb25-400"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb25-401"><a href="#cb25-401"></a>n <span class="op">=</span> <span class="dv">312</span></span>
+<span id="cb25-402"><a href="#cb25-402"></a>df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb25-403"><a href="#cb25-403"></a>    <span class="st">'time_years'</span>: np.random.exponential(scale<span class="op">=</span><span class="dv">8</span>, size<span class="op">=</span>n),</span>
+<span id="cb25-404"><a href="#cb25-404"></a>    <span class="st">'event'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.45</span>, size<span class="op">=</span>n),</span>
+<span id="cb25-405"><a href="#cb25-405"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">50</span>, <span class="dv">10</span>, size<span class="op">=</span>n),</span>
+<span id="cb25-406"><a href="#cb25-406"></a>    <span class="st">'sex'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.5</span>, size<span class="op">=</span>n),</span>
+<span id="cb25-407"><a href="#cb25-407"></a>    <span class="st">'albumin'</span>: np.random.normal(<span class="fl">3.5</span>, <span class="fl">0.5</span>, size<span class="op">=</span>n),</span>
+<span id="cb25-408"><a href="#cb25-408"></a>    <span class="st">'bili'</span>: np.random.exponential(scale<span class="op">=</span><span class="dv">3</span>, size<span class="op">=</span>n),</span>
+<span id="cb25-409"><a href="#cb25-409"></a>    <span class="st">'edema'</span>: np.random.choice([<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>], size<span class="op">=</span>n, p<span class="op">=</span>[<span class="fl">0.75</span>, <span class="fl">0.15</span>, <span class="fl">0.10</span>])</span>
+<span id="cb25-410"><a href="#cb25-410"></a>})</span>
+<span id="cb25-411"><a href="#cb25-411"></a></span>
+<span id="cb25-412"><a href="#cb25-412"></a>cph <span class="op">=</span> CoxPHFitter()</span>
+<span id="cb25-413"><a href="#cb25-413"></a>cph.fit(df, duration_col<span class="op">=</span><span class="st">'time_years'</span>, event_col<span class="op">=</span><span class="st">'event'</span>,</span>
+<span id="cb25-414"><a href="#cb25-414"></a>        formula<span class="op">=</span><span class="st">'age + sex + albumin + bili + edema'</span>)</span>
 <span id="cb25-415"><a href="#cb25-415"></a></span>
-<span id="cb25-416"><a href="#cb25-416"></a><span class="fu">#### Python</span></span>
-<span id="cb25-417"><a href="#cb25-417"></a></span>
-<span id="cb25-420"><a href="#cb25-420"></a><span class="in">```{python}</span></span>
-<span id="cb25-421"><a href="#cb25-421"></a><span class="co">#| label: ph-check-python</span></span>
-<span id="cb25-422"><a href="#cb25-422"></a><span class="co"># Check proportional hazards assumption in lifelines</span></span>
-<span id="cb25-423"><a href="#cb25-423"></a>cph.check_assumptions(df, p_value_threshold<span class="op">=</span><span class="fl">0.05</span>, show_plots<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb25-424"><a href="#cb25-424"></a><span class="in">```</span></span>
-<span id="cb25-425"><a href="#cb25-425"></a></span>
-<span id="cb25-426"><a href="#cb25-426"></a>:::</span>
-<span id="cb25-427"><a href="#cb25-427"></a></span>
-<span id="cb25-428"><a href="#cb25-428"></a><span class="fu">### What To Do When PH Is Violated</span></span>
-<span id="cb25-429"><a href="#cb25-429"></a></span>
-<span id="cb25-430"><a href="#cb25-430"></a>If the PH assumption is violated for a covariate:</span>
-<span id="cb25-431"><a href="#cb25-431"></a></span>
-<span id="cb25-432"><a href="#cb25-432"></a><span class="ss">1. </span>**Stratify** on the offending variable: <span class="in">`coxph(Surv(time, event) ~ x1 + strata(x2), data = df)`</span>. This allows the baseline hazard to differ by strata of <span class="in">`x2`</span> without estimating an HR for it.</span>
-<span id="cb25-433"><a href="#cb25-433"></a><span class="ss">2. </span>**Include a time interaction**: Allow the effect to change over time.</span>
-<span id="cb25-434"><a href="#cb25-434"></a><span class="ss">3. </span>**Use time-varying covariates** (see below).</span>
-<span id="cb25-435"><a href="#cb25-435"></a><span class="ss">4. </span>**Use an alternative model**: Accelerated failure time (AFT) models or parametric models (Weibull, log-normal).</span>
+<span id="cb25-416"><a href="#cb25-416"></a>cph.print_summary()</span>
+<span id="cb25-417"><a href="#cb25-417"></a><span class="in">```</span></span>
+<span id="cb25-418"><a href="#cb25-418"></a></span>
+<span id="cb25-421"><a href="#cb25-421"></a><span class="in">```{python}</span></span>
+<span id="cb25-422"><a href="#cb25-422"></a><span class="co">#| label: cox-forest-python</span></span>
+<span id="cb25-423"><a href="#cb25-423"></a><span class="co">#| fig-cap: "Forest plot of hazard ratios from the Cox model fitted in Python."</span></span>
+<span id="cb25-424"><a href="#cb25-424"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb25-425"><a href="#cb25-425"></a>cph.plot(ax<span class="op">=</span>ax)</span>
+<span id="cb25-426"><a href="#cb25-426"></a>ax.set_title(<span class="st">"Cox PH Model — Hazard Ratios"</span>)</span>
+<span id="cb25-427"><a href="#cb25-427"></a>plt.tight_layout()</span>
+<span id="cb25-428"><a href="#cb25-428"></a>plt.show()</span>
+<span id="cb25-429"><a href="#cb25-429"></a><span class="in">```</span></span>
+<span id="cb25-430"><a href="#cb25-430"></a></span>
+<span id="cb25-431"><a href="#cb25-431"></a>:::</span>
+<span id="cb25-432"><a href="#cb25-432"></a></span>
+<span id="cb25-433"><a href="#cb25-433"></a><span class="fu">### Interpreting Hazard Ratios</span></span>
+<span id="cb25-434"><a href="#cb25-434"></a></span>
+<span id="cb25-435"><a href="#cb25-435"></a>Consider a Cox model result where bilirubin has $\hat{\beta} = 0.15$ (HR = 1.16, 95% CI: 1.10–1.23, p &lt; 0.001).</span>
 <span id="cb25-436"><a href="#cb25-436"></a></span>
-<span id="cb25-437"><a href="#cb25-437"></a><span class="fu">## Time-Varying Covariates</span></span>
+<span id="cb25-437"><a href="#cb25-437"></a>Interpretation: "For each 1 mg/dL increase in serum bilirubin, the hazard of death increases by 16% (HR = 1.16, 95% CI: 1.10–1.23), adjusting for age, sex, albumin, and edema."</span>
 <span id="cb25-438"><a href="#cb25-438"></a></span>
-<span id="cb25-439"><a href="#cb25-439"></a>In many clinical settings, covariates change over the course of follow-up. A patient's lab values, treatment status, or disease stage may evolve. The standard Cox model assumes covariates are fixed at baseline, but the model can be extended to handle **time-varying covariates**.</span>
-<span id="cb25-440"><a href="#cb25-440"></a></span>
-<span id="cb25-441"><a href="#cb25-441"></a>The idea is to split each patient's follow-up into intervals. Within each interval, the covariate values are fixed, but they can change between intervals. In R, this is accomplished using the <span class="in">`tmerge()`</span> function from the <span class="in">`survival`</span> package or by manually creating a "counting process" data format with start and stop times:</span>
-<span id="cb25-442"><a href="#cb25-442"></a></span>
-<span id="cb25-443"><a href="#cb25-443"></a><span class="in">```r</span></span>
-<span id="cb25-444"><a href="#cb25-444"></a><span class="co"># Conceptual example — counting process format</span></span>
-<span id="cb25-445"><a href="#cb25-445"></a><span class="co"># PatientID  start  stop  event  lab_value</span></span>
-<span id="cb25-446"><a href="#cb25-446"></a><span class="co">#     1        0      3     0     2.1</span></span>
-<span id="cb25-447"><a href="#cb25-447"></a><span class="co">#     1        3      7     0     3.4</span></span>
-<span id="cb25-448"><a href="#cb25-448"></a><span class="co">#     1        7     10     1     5.8    &lt;- event at time 10</span></span>
-<span id="cb25-449"><a href="#cb25-449"></a><span class="in">```</span></span>
-<span id="cb25-450"><a href="#cb25-450"></a></span>
-<span id="cb25-451"><a href="#cb25-451"></a>This is an advanced topic. The key takeaway is that the Cox model is flexible enough to accommodate covariates that change over time, but the data preparation is more complex and requires careful thought about when measurements were taken.</span>
-<span id="cb25-452"><a href="#cb25-452"></a></span>
-<span id="cb25-453"><a href="#cb25-453"></a><span class="fu">## Competing Risks</span></span>
-<span id="cb25-454"><a href="#cb25-454"></a></span>
-<span id="cb25-455"><a href="#cb25-455"></a>Standard survival analysis assumes that the event of interest is the only possible event, or that censoring is **non-informative** (i.e., censored patients have the same future risk as those who remain under observation).</span>
-<span id="cb25-456"><a href="#cb25-456"></a></span>
-<span id="cb25-457"><a href="#cb25-457"></a>**Competing risks** arise when another event prevents the event of interest from being observed. Classic examples:</span>
-<span id="cb25-458"><a href="#cb25-458"></a></span>
-<span id="cb25-459"><a href="#cb25-459"></a><span class="ss">- </span>Studying time to heart transplant rejection, but the patient dies of infection first.</span>
-<span id="cb25-460"><a href="#cb25-460"></a><span class="ss">- </span>Studying time to cancer recurrence, but the patient dies of cardiovascular disease.</span>
-<span id="cb25-461"><a href="#cb25-461"></a><span class="ss">- </span>Studying time to hospital readmission, but the patient dies before readmission.</span>
-<span id="cb25-462"><a href="#cb25-462"></a></span>
-<span id="cb25-463"><a href="#cb25-463"></a>In these situations, treating the competing event as simple censoring is **wrong** — it inflates the estimated probability of the event of interest (because death is not "non-informative" censoring; dead patients cannot experience the event).</span>
+<span id="cb25-439"><a href="#cb25-439"></a>::: {.callout-warning}</span>
+<span id="cb25-440"><a href="#cb25-440"></a><span class="fu">## Hazard Ratios Are Not Risk Ratios</span></span>
+<span id="cb25-441"><a href="#cb25-441"></a>A hazard ratio of 2.0 does **not** mean "twice the risk of death." It means the instantaneous rate of death is twice as high at any given moment. Over long follow-up, the cumulative risk difference depends on the baseline hazard. Be precise in your language when reporting results.</span>
+<span id="cb25-442"><a href="#cb25-442"></a>:::</span>
+<span id="cb25-443"><a href="#cb25-443"></a></span>
+<span id="cb25-444"><a href="#cb25-444"></a><span class="fu">## Checking the Proportional Hazards Assumption</span></span>
+<span id="cb25-445"><a href="#cb25-445"></a></span>
+<span id="cb25-446"><a href="#cb25-446"></a>The proportional hazards assumption is critical. If it is violated, the hazard ratios from the Cox model do not have a stable interpretation — the "effect" of a covariate depends on when you look.</span>
+<span id="cb25-447"><a href="#cb25-447"></a></span>
+<span id="cb25-448"><a href="#cb25-448"></a><span class="fu">### Schoenfeld Residuals</span></span>
+<span id="cb25-449"><a href="#cb25-449"></a></span>
+<span id="cb25-450"><a href="#cb25-450"></a>The most common diagnostic tool is the **Schoenfeld residual test**. The intuition is simple: if a covariate's effect (its hazard ratio) is truly constant over time --- which is exactly what proportional hazards requires --- then a plot of its residuals against time should be a flat, horizontal cloud with no trend. If instead the residuals drift up or down over time, the covariate's effect is *changing* over time, and the PH assumption is violated for that covariate.</span>
+<span id="cb25-451"><a href="#cb25-451"></a></span>
+<span id="cb25-452"><a href="#cb25-452"></a>::: {.panel-tabset}</span>
+<span id="cb25-453"><a href="#cb25-453"></a></span>
+<span id="cb25-454"><a href="#cb25-454"></a><span class="fu">#### R</span></span>
+<span id="cb25-455"><a href="#cb25-455"></a></span>
+<span id="cb25-458"><a href="#cb25-458"></a><span class="in">```{r}</span></span>
+<span id="cb25-459"><a href="#cb25-459"></a><span class="co">#| label: ph-check-r</span></span>
+<span id="cb25-460"><a href="#cb25-460"></a><span class="co"># Test proportional hazards assumption</span></span>
+<span id="cb25-461"><a href="#cb25-461"></a>ph_test <span class="ot">&lt;-</span> <span class="fu">cox.zph</span>(cox_model)</span>
+<span id="cb25-462"><a href="#cb25-462"></a><span class="fu">print</span>(ph_test)</span>
+<span id="cb25-463"><a href="#cb25-463"></a><span class="in">```</span></span>
 <span id="cb25-464"><a href="#cb25-464"></a></span>
-<span id="cb25-465"><a href="#cb25-465"></a><span class="fu">### Two Approaches</span></span>
-<span id="cb25-466"><a href="#cb25-466"></a></span>
-<span id="cb25-467"><a href="#cb25-467"></a><span class="ss">1. </span>**Cause-specific hazard models**: Fit separate Cox models for each event type, censoring the competing events. This estimates the rate of each event among those still at risk.</span>
-<span id="cb25-468"><a href="#cb25-468"></a><span class="ss">2. </span>**Fine-Gray subdistribution hazard model**: Directly models the cumulative incidence function, keeping patients who experienced the competing event in the risk set. This is often more appropriate for clinical prediction.</span>
-<span id="cb25-469"><a href="#cb25-469"></a></span>
-<span id="cb25-470"><a href="#cb25-470"></a>::: {.callout-tip}</span>
-<span id="cb25-471"><a href="#cb25-471"></a><span class="fu">## Rule of Thumb for Competing Risks</span></span>
-<span id="cb25-472"><a href="#cb25-472"></a>If you are interested in **etiology** (what causes the event?), use cause-specific hazards. If you are interested in **prediction** (what is the probability of the event by time $t$?), use the Fine-Gray model and report cumulative incidence functions rather than 1 minus KM.</span>
-<span id="cb25-473"><a href="#cb25-473"></a>:::</span>
+<span id="cb25-467"><a href="#cb25-467"></a><span class="in">```{r}</span></span>
+<span id="cb25-468"><a href="#cb25-468"></a><span class="co">#| label: ph-plot-r</span></span>
+<span id="cb25-469"><a href="#cb25-469"></a><span class="co">#| fig-cap: "Schoenfeld residual plots for each covariate. A non-flat trend suggests PH violation."</span></span>
+<span id="cb25-470"><a href="#cb25-470"></a><span class="co"># Plot Schoenfeld residuals</span></span>
+<span id="cb25-471"><a href="#cb25-471"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb25-472"><a href="#cb25-472"></a><span class="fu">plot</span>(ph_test)</span>
+<span id="cb25-473"><a href="#cb25-473"></a><span class="in">```</span></span>
 <span id="cb25-474"><a href="#cb25-474"></a></span>
-<span id="cb25-475"><a href="#cb25-475"></a><span class="fu">## Full Clinical Example: PBC Prognostic Model</span></span>
+<span id="cb25-475"><a href="#cb25-475"></a><span class="fu">#### Python</span></span>
 <span id="cb25-476"><a href="#cb25-476"></a></span>
-<span id="cb25-477"><a href="#cb25-477"></a>Let us build a complete survival model for the PBC dataset, following the steps a clinical researcher would take.</span>
-<span id="cb25-478"><a href="#cb25-478"></a></span>
-<span id="cb25-479"><a href="#cb25-479"></a>::: {.panel-tabset}</span>
-<span id="cb25-480"><a href="#cb25-480"></a></span>
-<span id="cb25-481"><a href="#cb25-481"></a><span class="fu">#### R</span></span>
-<span id="cb25-482"><a href="#cb25-482"></a></span>
-<span id="cb25-485"><a href="#cb25-485"></a><span class="in">```{r}</span></span>
-<span id="cb25-486"><a href="#cb25-486"></a><span class="co">#| label: clinical-example-r</span></span>
-<span id="cb25-487"><a href="#cb25-487"></a><span class="co"># Step 1: Explore the data</span></span>
-<span id="cb25-488"><a href="#cb25-488"></a>pbc_model <span class="ot">&lt;-</span> pbc_clean <span class="sc">%&gt;%</span></span>
-<span id="cb25-489"><a href="#cb25-489"></a>  <span class="fu">select</span>(time_years, status_binary, age, sex, albumin, bili,</span>
-<span id="cb25-490"><a href="#cb25-490"></a>         protime, stage, edema, trt_label) <span class="sc">%&gt;%</span></span>
-<span id="cb25-491"><a href="#cb25-491"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb25-479"><a href="#cb25-479"></a><span class="in">```{python}</span></span>
+<span id="cb25-480"><a href="#cb25-480"></a><span class="co">#| label: ph-check-python</span></span>
+<span id="cb25-481"><a href="#cb25-481"></a><span class="co"># Check proportional hazards assumption in lifelines</span></span>
+<span id="cb25-482"><a href="#cb25-482"></a>cph.check_assumptions(df, p_value_threshold<span class="op">=</span><span class="fl">0.05</span>, show_plots<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb25-483"><a href="#cb25-483"></a><span class="in">```</span></span>
+<span id="cb25-484"><a href="#cb25-484"></a></span>
+<span id="cb25-485"><a href="#cb25-485"></a>:::</span>
+<span id="cb25-486"><a href="#cb25-486"></a></span>
+<span id="cb25-487"><a href="#cb25-487"></a>**What to look for in the output.** The `cox.zph()` table in R gives one row per covariate plus a `GLOBAL` row, each with a chi-squared statistic and a **p-value**. Read it as a series of hypothesis tests where the null is "this covariate satisfies proportional hazards":</span>
+<span id="cb25-488"><a href="#cb25-488"></a></span>
+<span id="cb25-489"><a href="#cb25-489"></a><span class="ss">- </span>A **large p-value (e.g., &gt; 0.05)** is the *good* outcome here --- it means no evidence against proportional hazards, so the assumption is reasonable for that covariate.</span>
+<span id="cb25-490"><a href="#cb25-490"></a><span class="ss">- </span>A **small p-value (&lt; 0.05)** flags a covariate whose effect changes over time --- a PH violation you need to address (see the next section).</span>
+<span id="cb25-491"><a href="#cb25-491"></a><span class="ss">- </span>The **`GLOBAL`** row tests all covariates jointly; if it is non-significant, the model as a whole is broadly consistent with PH.</span>
 <span id="cb25-492"><a href="#cb25-492"></a></span>
-<span id="cb25-493"><a href="#cb25-493"></a><span class="fu">cat</span>(<span class="st">"Complete cases:"</span>, <span class="fu">nrow</span>(pbc_model), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb25-494"><a href="#cb25-494"></a><span class="fu">cat</span>(<span class="st">"Events:"</span>, <span class="fu">sum</span>(pbc_model<span class="sc">$</span>status_binary), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb25-495"><a href="#cb25-495"></a><span class="fu">cat</span>(<span class="st">"Median follow-up:"</span>, <span class="fu">median</span>(pbc_model<span class="sc">$</span>time_years), <span class="st">"years</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-493"><a href="#cb25-493"></a>Then back up the numbers with the **Schoenfeld residual plots**: for each covariate you want the smoothed line to be roughly **flat/horizontal**. A clear upward or downward slope is the visual signature of a violation --- for example, a covariate whose effect is strong early but fades with time will show a declining trend. A useful habit: do not rely on the p-value alone (with large samples even trivial deviations become "significant"); always eyeball the plot to judge whether the trend is practically meaningful, not just statistically detectable.</span>
+<span id="cb25-494"><a href="#cb25-494"></a></span>
+<span id="cb25-495"><a href="#cb25-495"></a><span class="fu">### What To Do When PH Is Violated</span></span>
 <span id="cb25-496"><a href="#cb25-496"></a></span>
-<span id="cb25-497"><a href="#cb25-497"></a><span class="co"># Step 2: Fit multivariable Cox model</span></span>
-<span id="cb25-498"><a href="#cb25-498"></a>cox_full <span class="ot">&lt;-</span> <span class="fu">coxph</span>(</span>
-<span id="cb25-499"><a href="#cb25-499"></a>  <span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> age <span class="sc">+</span> sex <span class="sc">+</span> albumin <span class="sc">+</span> <span class="fu">log</span>(bili) <span class="sc">+</span></span>
-<span id="cb25-500"><a href="#cb25-500"></a>    protime <span class="sc">+</span> stage <span class="sc">+</span> edema <span class="sc">+</span> trt_label,</span>
-<span id="cb25-501"><a href="#cb25-501"></a>  <span class="at">data =</span> pbc_model</span>
-<span id="cb25-502"><a href="#cb25-502"></a>)</span>
-<span id="cb25-503"><a href="#cb25-503"></a><span class="fu">summary</span>(cox_full)</span>
-<span id="cb25-504"><a href="#cb25-504"></a><span class="in">```</span></span>
-<span id="cb25-505"><a href="#cb25-505"></a></span>
-<span id="cb25-508"><a href="#cb25-508"></a><span class="in">```{r}</span></span>
-<span id="cb25-509"><a href="#cb25-509"></a><span class="co">#| label: clinical-concordance-r</span></span>
-<span id="cb25-510"><a href="#cb25-510"></a><span class="co"># Step 3: Assess model discrimination</span></span>
-<span id="cb25-511"><a href="#cb25-511"></a><span class="fu">cat</span>(<span class="st">"Concordance (C-index):"</span>, <span class="fu">summary</span>(cox_full)<span class="sc">$</span>concordance[<span class="dv">1</span>], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb25-512"><a href="#cb25-512"></a><span class="fu">cat</span>(<span class="st">"This means the model correctly ranks survival times"</span>,</span>
-<span id="cb25-513"><a href="#cb25-513"></a>    <span class="fu">round</span>(<span class="fu">summary</span>(cox_full)<span class="sc">$</span>concordance[<span class="dv">1</span>] <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
-<span id="cb25-514"><a href="#cb25-514"></a>    <span class="st">"% of the time.</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb25-515"><a href="#cb25-515"></a><span class="in">```</span></span>
-<span id="cb25-516"><a href="#cb25-516"></a></span>
-<span id="cb25-519"><a href="#cb25-519"></a><span class="in">```{r}</span></span>
-<span id="cb25-520"><a href="#cb25-520"></a><span class="co">#| label: clinical-predict-r</span></span>
-<span id="cb25-521"><a href="#cb25-521"></a><span class="co">#| fig-cap: "Predicted survival curves for a low-risk and high-risk patient profile."</span></span>
-<span id="cb25-522"><a href="#cb25-522"></a><span class="co"># Step 4: Predicted survival for new patients</span></span>
-<span id="cb25-523"><a href="#cb25-523"></a>new_patients <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb25-524"><a href="#cb25-524"></a>  <span class="at">age =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">65</span>),</span>
-<span id="cb25-525"><a href="#cb25-525"></a>  <span class="at">sex =</span> <span class="fu">c</span>(<span class="st">"f"</span>, <span class="st">"f"</span>),</span>
-<span id="cb25-526"><a href="#cb25-526"></a>  <span class="at">albumin =</span> <span class="fu">c</span>(<span class="fl">3.8</span>, <span class="fl">2.5</span>),</span>
-<span id="cb25-527"><a href="#cb25-527"></a>  <span class="at">bili =</span> <span class="fu">c</span>(<span class="fl">1.0</span>, <span class="fl">10.0</span>),</span>
-<span id="cb25-528"><a href="#cb25-528"></a>  <span class="at">protime =</span> <span class="fu">c</span>(<span class="fl">10.5</span>, <span class="fl">13.0</span>),</span>
-<span id="cb25-529"><a href="#cb25-529"></a>  <span class="at">stage =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>),</span>
-<span id="cb25-530"><a href="#cb25-530"></a>  <span class="at">edema =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb25-531"><a href="#cb25-531"></a>  <span class="at">trt_label =</span> <span class="fu">c</span>(<span class="st">"Placebo"</span>, <span class="st">"Placebo"</span>)</span>
-<span id="cb25-532"><a href="#cb25-532"></a>)</span>
-<span id="cb25-533"><a href="#cb25-533"></a></span>
-<span id="cb25-534"><a href="#cb25-534"></a>pred_surv <span class="ot">&lt;-</span> <span class="fu">survfit</span>(cox_full, <span class="at">newdata =</span> new_patients)</span>
-<span id="cb25-535"><a href="#cb25-535"></a></span>
-<span id="cb25-536"><a href="#cb25-536"></a><span class="fu">plot</span>(pred_surv, <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">lwd =</span> <span class="dv">2</span>,</span>
-<span id="cb25-537"><a href="#cb25-537"></a>     <span class="at">xlab =</span> <span class="st">"Time (years)"</span>, <span class="at">ylab =</span> <span class="st">"Survival probability"</span>,</span>
-<span id="cb25-538"><a href="#cb25-538"></a>     <span class="at">main =</span> <span class="st">"Predicted Survival: Low-risk vs High-risk Patient"</span>)</span>
-<span id="cb25-539"><a href="#cb25-539"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="fu">c</span>(<span class="st">"Low risk"</span>, <span class="st">"High risk"</span>),</span>
-<span id="cb25-540"><a href="#cb25-540"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb25-541"><a href="#cb25-541"></a><span class="in">```</span></span>
+<span id="cb25-497"><a href="#cb25-497"></a>If the PH assumption is violated for a covariate, you have several options:</span>
+<span id="cb25-498"><a href="#cb25-498"></a></span>
+<span id="cb25-499"><a href="#cb25-499"></a><span class="ss">1. </span>**Stratify** on the offending variable: <span class="in">`coxph(Surv(time, event) ~ x1 + strata(x2), data = df)`</span>.</span>
+<span id="cb25-500"><a href="#cb25-500"></a></span>
+<span id="cb25-501"><a href="#cb25-501"></a>   Stratification is the most common fix and deserves a proper explanation, because what it does is subtle. Recall that the Cox model assumes a single shared **baseline hazard** $h_0(t)$ that every patient's hazard is a multiple of. When you <span class="in">`strata(x2)`</span>, you tell the model: *do not assume one common baseline --- let each level of `x2` have its own, separately-shaped baseline hazard*. So if you stratify on, say, hospital site or disease stage, patients in stage 1 follow one baseline time-course and stage-4 patients another, and the model no longer forces their hazards to stay in fixed proportion.</span>
+<span id="cb25-502"><a href="#cb25-502"></a></span>
+<span id="cb25-503"><a href="#cb25-503"></a>   The important trade-off: a stratified variable **drops out of the results table** --- you no longer get a hazard ratio for it, because you are no longer modelling its effect, just absorbing it into the baseline. So stratify on variables you want to *adjust for* but are not interested in estimating (nuisance variables like centre, or a strong confounder that violates PH). Keep the variables you actually want HRs for as ordinary covariates. The other covariates (<span class="in">`x1`</span> above) still get hazard ratios, now estimated within strata. A practical note: stratification works best for categorical variables with a few levels; a continuous variable must be binned into categories first, which loses information.</span>
+<span id="cb25-504"><a href="#cb25-504"></a></span>
+<span id="cb25-505"><a href="#cb25-505"></a><span class="ss">2. </span>**Include a time interaction**: allow the effect to change over time by adding a term such as <span class="in">`x:time`</span> (or <span class="in">`tt()`</span> in <span class="in">`survival`</span>). This estimates *how* the hazard ratio drifts --- useful when the time-dependence is itself of interest.</span>
+<span id="cb25-506"><a href="#cb25-506"></a><span class="ss">3. </span>**Use time-varying covariates** (see below) when the covariate's *value* (not just its effect) changes during follow-up.</span>
+<span id="cb25-507"><a href="#cb25-507"></a><span class="ss">4. </span>**Use an alternative model**: accelerated failure time (AFT) models or fully parametric models (Weibull, log-normal), which do not rest on proportional hazards at all.</span>
+<span id="cb25-508"><a href="#cb25-508"></a></span>
+<span id="cb25-509"><a href="#cb25-509"></a><span class="fu">## Time-Varying Covariates</span></span>
+<span id="cb25-510"><a href="#cb25-510"></a></span>
+<span id="cb25-511"><a href="#cb25-511"></a>In many clinical settings, covariates change over the course of follow-up. A patient's lab values, treatment status, or disease stage may evolve. The standard Cox model assumes covariates are fixed at baseline, but the model can be extended to handle **time-varying covariates**.</span>
+<span id="cb25-512"><a href="#cb25-512"></a></span>
+<span id="cb25-513"><a href="#cb25-513"></a>The idea is to split each patient's follow-up into intervals. Within each interval, the covariate values are fixed, but they can change between intervals. In R, this is accomplished using the <span class="in">`tmerge()`</span> function from the <span class="in">`survival`</span> package or by manually creating a "counting process" data format with start and stop times:</span>
+<span id="cb25-514"><a href="#cb25-514"></a></span>
+<span id="cb25-515"><a href="#cb25-515"></a><span class="in">```r</span></span>
+<span id="cb25-516"><a href="#cb25-516"></a><span class="co"># Conceptual example — counting process format</span></span>
+<span id="cb25-517"><a href="#cb25-517"></a><span class="co"># PatientID  start  stop  event  lab_value</span></span>
+<span id="cb25-518"><a href="#cb25-518"></a><span class="co">#     1        0      3     0     2.1</span></span>
+<span id="cb25-519"><a href="#cb25-519"></a><span class="co">#     1        3      7     0     3.4</span></span>
+<span id="cb25-520"><a href="#cb25-520"></a><span class="co">#     1        7     10     1     5.8    &lt;- event at time 10</span></span>
+<span id="cb25-521"><a href="#cb25-521"></a><span class="in">```</span></span>
+<span id="cb25-522"><a href="#cb25-522"></a></span>
+<span id="cb25-523"><a href="#cb25-523"></a>This is an advanced topic. The key takeaway is that the Cox model is flexible enough to accommodate covariates that change over time, but the data preparation is more complex and requires careful thought about when measurements were taken.</span>
+<span id="cb25-524"><a href="#cb25-524"></a></span>
+<span id="cb25-525"><a href="#cb25-525"></a><span class="fu">## Competing Risks</span></span>
+<span id="cb25-526"><a href="#cb25-526"></a></span>
+<span id="cb25-527"><a href="#cb25-527"></a>Standard survival analysis assumes that the event of interest is the only possible event, or that censoring is **non-informative** (i.e., censored patients have the same future risk as those who remain under observation).</span>
+<span id="cb25-528"><a href="#cb25-528"></a></span>
+<span id="cb25-529"><a href="#cb25-529"></a>**Competing risks** arise when another event prevents the event of interest from ever being observed. The defining feature is that the competing event *removes the patient from being at risk for your event altogether* --- it is not just a temporary loss to follow-up. Classic clinical examples:</span>
+<span id="cb25-530"><a href="#cb25-530"></a></span>
+<span id="cb25-531"><a href="#cb25-531"></a><span class="ss">- </span>Studying time to heart transplant rejection, but the patient dies of infection first.</span>
+<span id="cb25-532"><a href="#cb25-532"></a><span class="ss">- </span>Studying time to cancer recurrence, but the patient dies of cardiovascular disease.</span>
+<span id="cb25-533"><a href="#cb25-533"></a><span class="ss">- </span>Studying time to hospital readmission, but the patient dies before readmission.</span>
+<span id="cb25-534"><a href="#cb25-534"></a></span>
+<span id="cb25-535"><a href="#cb25-535"></a>**Why this matters clinically.** The instinctive fix --- treat the competing event (e.g., death) as just another censoring --- is **wrong**, and in a specific, important direction: it **overestimates** the probability of your event of interest. The reason is intuitive once stated. Ordinary censoring assumes the censored patient *could still have the event later* and is simply unobserved (e.g., they moved away). But a patient who has died of another cause can **never** experience cancer recurrence --- they are not "out there, still at risk." By treating them as censored, the standard Kaplan-Meier "1 − S(t)" silently pretends they might still recur, and inflates the recurrence probability. In older patients or any setting with substantial mortality from other causes, this bias can be large and clinically misleading --- you would quote a recurrence risk higher than any real patient faces. This is why, whenever a meaningful fraction of patients can experience a competing event, you should report the **cumulative incidence function** (which correctly accounts for competing events) rather than 1 minus the Kaplan-Meier estimate.</span>
+<span id="cb25-536"><a href="#cb25-536"></a></span>
+<span id="cb25-537"><a href="#cb25-537"></a><span class="fu">### Two Approaches</span></span>
+<span id="cb25-538"><a href="#cb25-538"></a></span>
+<span id="cb25-539"><a href="#cb25-539"></a>There are two established ways to handle competing risks, and the distinction between them is one of the most commonly confused points in clinical survival analysis. They answer **different questions**, so the "right" one depends on what you want to know.</span>
+<span id="cb25-540"><a href="#cb25-540"></a></span>
+<span id="cb25-541"><a href="#cb25-541"></a><span class="ss">1. </span>**Cause-specific hazard models.** Fit a separate Cox model for each event type, treating the competing events as censored. Each model estimates the **rate of that specific event among patients still alive and event-free** at each instant. This answers an *etiological* question: *what drives the rate of this particular event?* A hazard ratio here describes the effect of a covariate on the biological process leading to that event, holding the at-risk population fixed. Because competing events are censored, the cause-specific hazard ratios should **not** be read directly as effects on the *probability* of the event over time.</span>
 <span id="cb25-542"><a href="#cb25-542"></a></span>
-<span id="cb25-543"><a href="#cb25-543"></a><span class="fu">#### Python</span></span>
+<span id="cb25-543"><a href="#cb25-543"></a><span class="ss">2. </span>**Fine-Gray subdistribution hazard model.** Rather than censoring patients who experience the competing event, the Fine-Gray model **keeps them in the risk set** (conceptually, they remain "unable to have the event" forever). It models the **subdistribution hazard**, which links directly to the **cumulative incidence function** --- the actual probability of experiencing the event by time $t$ *in the real world, where competing events also happen*. This answers a *prognostic / predictive* question: *what is the chance this patient actually experiences the event by 5 years, given they might die of something else first?*</span>
 <span id="cb25-544"><a href="#cb25-544"></a></span>
-<span id="cb25-547"><a href="#cb25-547"></a><span class="in">```{python}</span></span>
-<span id="cb25-548"><a href="#cb25-548"></a><span class="co">#| label: clinical-example-python</span></span>
-<span id="cb25-549"><a href="#cb25-549"></a><span class="im">from</span> lifelines <span class="im">import</span> CoxPHFitter, KaplanMeierFitter</span>
-<span id="cb25-550"><a href="#cb25-550"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb25-551"><a href="#cb25-551"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb25-552"><a href="#cb25-552"></a></span>
-<span id="cb25-553"><a href="#cb25-553"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb25-554"><a href="#cb25-554"></a>n <span class="op">=</span> <span class="dv">276</span></span>
+<span id="cb25-545"><a href="#cb25-545"></a>The crucial consequence: a covariate can increase the cause-specific hazard of an event yet *decrease* its cumulative incidence (because it also raises the competing mortality), so the two models can even point in opposite directions. Neither is "wrong" --- they answer different questions.</span>
+<span id="cb25-546"><a href="#cb25-546"></a></span>
+<span id="cb25-547"><a href="#cb25-547"></a>::: {.callout-tip}</span>
+<span id="cb25-548"><a href="#cb25-548"></a><span class="fu">## Rule of Thumb for Competing Risks</span></span>
+<span id="cb25-549"><a href="#cb25-549"></a>If you are interested in **etiology** (what causes the event, mechanistically?), use **cause-specific hazards**. If you are interested in **prediction** (what is the absolute probability of the event by time $t$?), use the **Fine-Gray model** and report **cumulative incidence functions** rather than 1 minus KM. For a clinical prediction model, Fine-Gray (or directly modelling the cumulative incidence) is usually what you want.</span>
+<span id="cb25-550"><a href="#cb25-550"></a>:::</span>
+<span id="cb25-551"><a href="#cb25-551"></a></span>
+<span id="cb25-552"><a href="#cb25-552"></a>For a clinically-oriented, practical treatment of competing risks --- including worked examples of both approaches and guidance on which to choose --- see the prediction-modelling textbook by Smits, van Kuijk, and Wynants <span class="co">[</span><span class="ot">@smits2026prediction</span><span class="co">]</span>. Accessible methodological introductions are given by Austin, Lee, and Fine <span class="co">[</span><span class="ot">@austin2016competing</span><span class="co">]</span>, and the original subdistribution-hazard method is due to Fine and Gray <span class="co">[</span><span class="ot">@fine1999</span><span class="co">]</span>. In R, the <span class="in">`tidycmprsk`</span> and <span class="in">`cmprsk`</span> packages fit Fine-Gray models and estimate cumulative incidence; in Python, <span class="in">`scikit-survival`</span> and <span class="in">`lifelines`</span> provide competing-risks tools.</span>
+<span id="cb25-553"><a href="#cb25-553"></a></span>
+<span id="cb25-554"><a href="#cb25-554"></a><span class="fu">## Full Clinical Example: PBC Prognostic Model</span></span>
 <span id="cb25-555"><a href="#cb25-555"></a></span>
-<span id="cb25-556"><a href="#cb25-556"></a><span class="co"># Simulate a PBC-like dataset</span></span>
-<span id="cb25-557"><a href="#cb25-557"></a>pbc_sim <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb25-558"><a href="#cb25-558"></a>    <span class="st">'time_years'</span>: np.<span class="bu">abs</span>(np.random.exponential(<span class="dv">7</span>, n) <span class="op">+</span></span>
-<span id="cb25-559"><a href="#cb25-559"></a>                         np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)),</span>
-<span id="cb25-560"><a href="#cb25-560"></a>    <span class="st">'event'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.45</span>, n),</span>
-<span id="cb25-561"><a href="#cb25-561"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">50</span>, <span class="dv">10</span>, n),</span>
-<span id="cb25-562"><a href="#cb25-562"></a>    <span class="st">'sex'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.12</span>, n),  <span class="co"># mostly female in PBC</span></span>
-<span id="cb25-563"><a href="#cb25-563"></a>    <span class="st">'albumin'</span>: np.random.normal(<span class="fl">3.5</span>, <span class="fl">0.4</span>, n),</span>
-<span id="cb25-564"><a href="#cb25-564"></a>    <span class="st">'log_bili'</span>: np.random.normal(<span class="fl">0.5</span>, <span class="fl">1.0</span>, n),</span>
-<span id="cb25-565"><a href="#cb25-565"></a>    <span class="st">'protime'</span>: np.random.normal(<span class="dv">11</span>, <span class="dv">1</span>, n),</span>
-<span id="cb25-566"><a href="#cb25-566"></a>    <span class="st">'stage'</span>: np.random.choice([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], n, p<span class="op">=</span>[<span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.40</span>, <span class="fl">0.30</span>]),</span>
-<span id="cb25-567"><a href="#cb25-567"></a>    <span class="st">'edema'</span>: np.random.choice([<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>], n, p<span class="op">=</span>[<span class="fl">0.75</span>, <span class="fl">0.15</span>, <span class="fl">0.10</span>]),</span>
-<span id="cb25-568"><a href="#cb25-568"></a>    <span class="st">'treatment'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.5</span>, n)</span>
-<span id="cb25-569"><a href="#cb25-569"></a>})</span>
-<span id="cb25-570"><a href="#cb25-570"></a></span>
-<span id="cb25-571"><a href="#cb25-571"></a><span class="co"># Fit Cox model</span></span>
-<span id="cb25-572"><a href="#cb25-572"></a>cph <span class="op">=</span> CoxPHFitter()</span>
-<span id="cb25-573"><a href="#cb25-573"></a>cph.fit(pbc_sim, duration_col<span class="op">=</span><span class="st">'time_years'</span>, event_col<span class="op">=</span><span class="st">'event'</span>,</span>
-<span id="cb25-574"><a href="#cb25-574"></a>        formula<span class="op">=</span><span class="st">'age + sex + albumin + log_bili + protime + stage + edema + treatment'</span>)</span>
+<span id="cb25-556"><a href="#cb25-556"></a>Let us build a complete survival model for the PBC dataset, following the steps a clinical researcher would take.</span>
+<span id="cb25-557"><a href="#cb25-557"></a></span>
+<span id="cb25-558"><a href="#cb25-558"></a>::: {.callout-note}</span>
+<span id="cb25-559"><a href="#cb25-559"></a><span class="fu">## Kaplan-Meier vs Cox --- when and why to use each</span></span>
+<span id="cb25-560"><a href="#cb25-560"></a>Before reading the model output, it helps to be crystal clear on how the two main tools differ, because they are often confused:</span>
+<span id="cb25-561"><a href="#cb25-561"></a></span>
+<span id="cb25-562"><a href="#cb25-562"></a><span class="pp">|</span> <span class="pp">|</span> **Kaplan-Meier (+ log-rank)** | **Cox proportional hazards** <span class="pp">|</span></span>
+<span id="cb25-563"><a href="#cb25-563"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb25-564"><a href="#cb25-564"></a><span class="pp">|</span> What it gives you <span class="pp">|</span> A survival *curve* for a whole group (or a few groups) | The *effect* of each predictor on the hazard, as a hazard ratio <span class="pp">|</span></span>
+<span id="cb25-565"><a href="#cb25-565"></a><span class="pp">|</span> Handles covariates? <span class="pp">|</span> Only categorical group comparisons (e.g., treatment arm, stage) <span class="pp">|</span> Multiple predictors at once, including continuous ones, **adjusted for each other** <span class="pp">|</span></span>
+<span id="cb25-566"><a href="#cb25-566"></a><span class="pp">|</span> Output to report <span class="pp">|</span> Median survival, x-year survival %, log-rank p-value <span class="pp">|</span> Hazard ratios with 95% CIs and p-values <span class="pp">|</span></span>
+<span id="cb25-567"><a href="#cb25-567"></a><span class="pp">|</span> Analogy <span class="pp">|</span> Like comparing mean outcomes between groups (a *t*-test / ANOVA of survival) <span class="pp">|</span> Like multivariable regression for survival <span class="pp">|</span></span>
+<span id="cb25-568"><a href="#cb25-568"></a></span>
+<span id="cb25-569"><a href="#cb25-569"></a>In short: reach for **Kaplan-Meier** to *describe and visualise* survival and to compare a small number of groups; reach for the **Cox model** when you need to *adjust for several variables simultaneously* and quantify each one's independent effect. They are complementary --- a typical paper shows KM curves for the headline comparison and a Cox model for the adjusted analysis.</span>
+<span id="cb25-570"><a href="#cb25-570"></a>:::</span>
+<span id="cb25-571"><a href="#cb25-571"></a></span>
+<span id="cb25-572"><a href="#cb25-572"></a>The worked example below follows the standard sequence: explore the data, fit the multivariable Cox model, assess how well it discriminates, and use it to predict survival for individual patients.</span>
+<span id="cb25-573"><a href="#cb25-573"></a></span>
+<span id="cb25-574"><a href="#cb25-574"></a>::: {.panel-tabset}</span>
 <span id="cb25-575"><a href="#cb25-575"></a></span>
-<span id="cb25-576"><a href="#cb25-576"></a>cph.print_summary()</span>
-<span id="cb25-577"><a href="#cb25-577"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Concordance index: </span><span class="sc">{</span>cph<span class="sc">.</span>concordance_index_<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
-<span id="cb25-578"><a href="#cb25-578"></a><span class="in">```</span></span>
-<span id="cb25-579"><a href="#cb25-579"></a></span>
-<span id="cb25-582"><a href="#cb25-582"></a><span class="in">```{python}</span></span>
-<span id="cb25-583"><a href="#cb25-583"></a><span class="co">#| label: clinical-predict-python</span></span>
-<span id="cb25-584"><a href="#cb25-584"></a><span class="co">#| fig-cap: "Predicted survival curves for two patient profiles using the Python Cox model."</span></span>
-<span id="cb25-585"><a href="#cb25-585"></a><span class="co"># Predict survival for specific patient profiles</span></span>
-<span id="cb25-586"><a href="#cb25-586"></a>low_risk <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb25-587"><a href="#cb25-587"></a>    <span class="st">'age'</span>: [<span class="dv">40</span>], <span class="st">'sex'</span>: [<span class="dv">0</span>], <span class="st">'albumin'</span>: [<span class="fl">3.8</span>], <span class="st">'log_bili'</span>: [<span class="fl">0.0</span>],</span>
-<span id="cb25-588"><a href="#cb25-588"></a>    <span class="st">'protime'</span>: [<span class="fl">10.5</span>], <span class="st">'stage'</span>: [<span class="dv">2</span>], <span class="st">'edema'</span>: [<span class="dv">0</span>], <span class="st">'treatment'</span>: [<span class="dv">0</span>]</span>
-<span id="cb25-589"><a href="#cb25-589"></a>})</span>
-<span id="cb25-590"><a href="#cb25-590"></a>high_risk <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb25-591"><a href="#cb25-591"></a>    <span class="st">'age'</span>: [<span class="dv">65</span>], <span class="st">'sex'</span>: [<span class="dv">0</span>], <span class="st">'albumin'</span>: [<span class="fl">2.5</span>], <span class="st">'log_bili'</span>: [<span class="fl">2.3</span>],</span>
-<span id="cb25-592"><a href="#cb25-592"></a>    <span class="st">'protime'</span>: [<span class="fl">13.0</span>], <span class="st">'stage'</span>: [<span class="dv">4</span>], <span class="st">'edema'</span>: [<span class="dv">1</span>], <span class="st">'treatment'</span>: [<span class="dv">0</span>]</span>
-<span id="cb25-593"><a href="#cb25-593"></a>})</span>
-<span id="cb25-594"><a href="#cb25-594"></a></span>
-<span id="cb25-595"><a href="#cb25-595"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
-<span id="cb25-596"><a href="#cb25-596"></a>cph.predict_survival_function(low_risk).plot(ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'Low risk'</span>, color<span class="op">=</span><span class="st">'blue'</span>)</span>
-<span id="cb25-597"><a href="#cb25-597"></a>cph.predict_survival_function(high_risk).plot(ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'High risk'</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
-<span id="cb25-598"><a href="#cb25-598"></a>ax.set_xlabel(<span class="st">"Time (years)"</span>)</span>
-<span id="cb25-599"><a href="#cb25-599"></a>ax.set_ylabel(<span class="st">"Survival probability"</span>)</span>
-<span id="cb25-600"><a href="#cb25-600"></a>ax.set_title(<span class="st">"Predicted Survival: Low-risk vs High-risk Patient"</span>)</span>
-<span id="cb25-601"><a href="#cb25-601"></a>ax.legend()</span>
-<span id="cb25-602"><a href="#cb25-602"></a>plt.tight_layout()</span>
-<span id="cb25-603"><a href="#cb25-603"></a>plt.show()</span>
-<span id="cb25-604"><a href="#cb25-604"></a><span class="in">```</span></span>
-<span id="cb25-605"><a href="#cb25-605"></a></span>
-<span id="cb25-606"><a href="#cb25-606"></a>:::</span>
-<span id="cb25-607"><a href="#cb25-607"></a></span>
-<span id="cb25-608"><a href="#cb25-608"></a><span class="fu">## Exercises</span></span>
-<span id="cb25-609"><a href="#cb25-609"></a></span>
-<span id="cb25-610"><a href="#cb25-610"></a><span class="fu">### Exercise 1: Kaplan-Meier Curves by Disease Stage</span></span>
+<span id="cb25-576"><a href="#cb25-576"></a><span class="fu">#### R</span></span>
+<span id="cb25-577"><a href="#cb25-577"></a></span>
+<span id="cb25-580"><a href="#cb25-580"></a><span class="in">```{r}</span></span>
+<span id="cb25-581"><a href="#cb25-581"></a><span class="co">#| label: clinical-example-r</span></span>
+<span id="cb25-582"><a href="#cb25-582"></a><span class="co"># Step 1: Explore the data</span></span>
+<span id="cb25-583"><a href="#cb25-583"></a>pbc_model <span class="ot">&lt;-</span> pbc_clean <span class="sc">%&gt;%</span></span>
+<span id="cb25-584"><a href="#cb25-584"></a>  <span class="fu">select</span>(time_years, status_binary, age, sex, albumin, bili,</span>
+<span id="cb25-585"><a href="#cb25-585"></a>         protime, stage, edema, trt_label) <span class="sc">%&gt;%</span></span>
+<span id="cb25-586"><a href="#cb25-586"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb25-587"><a href="#cb25-587"></a></span>
+<span id="cb25-588"><a href="#cb25-588"></a><span class="fu">cat</span>(<span class="st">"Complete cases:"</span>, <span class="fu">nrow</span>(pbc_model), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-589"><a href="#cb25-589"></a><span class="fu">cat</span>(<span class="st">"Events:"</span>, <span class="fu">sum</span>(pbc_model<span class="sc">$</span>status_binary), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-590"><a href="#cb25-590"></a><span class="fu">cat</span>(<span class="st">"Median follow-up:"</span>, <span class="fu">median</span>(pbc_model<span class="sc">$</span>time_years), <span class="st">"years</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-591"><a href="#cb25-591"></a></span>
+<span id="cb25-592"><a href="#cb25-592"></a><span class="co"># Step 2: Fit multivariable Cox model</span></span>
+<span id="cb25-593"><a href="#cb25-593"></a>cox_full <span class="ot">&lt;-</span> <span class="fu">coxph</span>(</span>
+<span id="cb25-594"><a href="#cb25-594"></a>  <span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> age <span class="sc">+</span> sex <span class="sc">+</span> albumin <span class="sc">+</span> <span class="fu">log</span>(bili) <span class="sc">+</span></span>
+<span id="cb25-595"><a href="#cb25-595"></a>    protime <span class="sc">+</span> stage <span class="sc">+</span> edema <span class="sc">+</span> trt_label,</span>
+<span id="cb25-596"><a href="#cb25-596"></a>  <span class="at">data =</span> pbc_model</span>
+<span id="cb25-597"><a href="#cb25-597"></a>)</span>
+<span id="cb25-598"><a href="#cb25-598"></a><span class="fu">summary</span>(cox_full)</span>
+<span id="cb25-599"><a href="#cb25-599"></a><span class="in">```</span></span>
+<span id="cb25-600"><a href="#cb25-600"></a></span>
+<span id="cb25-603"><a href="#cb25-603"></a><span class="in">```{r}</span></span>
+<span id="cb25-604"><a href="#cb25-604"></a><span class="co">#| label: clinical-concordance-r</span></span>
+<span id="cb25-605"><a href="#cb25-605"></a><span class="co"># Step 3: Assess model discrimination</span></span>
+<span id="cb25-606"><a href="#cb25-606"></a><span class="fu">cat</span>(<span class="st">"Concordance (C-index):"</span>, <span class="fu">summary</span>(cox_full)<span class="sc">$</span>concordance[<span class="dv">1</span>], <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-607"><a href="#cb25-607"></a><span class="fu">cat</span>(<span class="st">"This means the model correctly ranks survival times"</span>,</span>
+<span id="cb25-608"><a href="#cb25-608"></a>    <span class="fu">round</span>(<span class="fu">summary</span>(cox_full)<span class="sc">$</span>concordance[<span class="dv">1</span>] <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb25-609"><a href="#cb25-609"></a>    <span class="st">"% of the time.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb25-610"><a href="#cb25-610"></a><span class="in">```</span></span>
 <span id="cb25-611"><a href="#cb25-611"></a></span>
-<span id="cb25-612"><a href="#cb25-612"></a>Using the PBC dataset, create Kaplan-Meier curves stratified by disease stage (1–4). Perform a log-rank test to compare survival across stages. Report the median survival time for each stage.</span>
-<span id="cb25-613"><a href="#cb25-613"></a></span>
-<span id="cb25-614"><a href="#cb25-614"></a>::: {.panel-tabset}</span>
-<span id="cb25-615"><a href="#cb25-615"></a></span>
-<span id="cb25-616"><a href="#cb25-616"></a><span class="fu">#### R Starter Code</span></span>
-<span id="cb25-617"><a href="#cb25-617"></a></span>
-<span id="cb25-620"><a href="#cb25-620"></a><span class="in">```{r}</span></span>
-<span id="cb25-621"><a href="#cb25-621"></a><span class="co">#| label: ex1-r</span></span>
-<span id="cb25-622"><a href="#cb25-622"></a><span class="co">#| eval: false</span></span>
-<span id="cb25-623"><a href="#cb25-623"></a><span class="co"># Fit KM by stage</span></span>
-<span id="cb25-624"><a href="#cb25-624"></a>km_stage <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> stage, <span class="at">data =</span> pbc_clean)</span>
-<span id="cb25-625"><a href="#cb25-625"></a></span>
-<span id="cb25-626"><a href="#cb25-626"></a><span class="co"># Your code: plot the curves and perform the log-rank test</span></span>
-<span id="cb25-627"><a href="#cb25-627"></a><span class="co"># Hint: use ggsurvplot() with pval = TRUE</span></span>
-<span id="cb25-628"><a href="#cb25-628"></a><span class="co"># Hint: use survdiff() for the formal test</span></span>
-<span id="cb25-629"><a href="#cb25-629"></a><span class="in">```</span></span>
+<span id="cb25-614"><a href="#cb25-614"></a><span class="in">```{r}</span></span>
+<span id="cb25-615"><a href="#cb25-615"></a><span class="co">#| label: clinical-predict-r</span></span>
+<span id="cb25-616"><a href="#cb25-616"></a><span class="co">#| fig-cap: "Predicted survival curves for a low-risk and high-risk patient profile."</span></span>
+<span id="cb25-617"><a href="#cb25-617"></a><span class="co"># Step 4: Predicted survival for new patients</span></span>
+<span id="cb25-618"><a href="#cb25-618"></a>new_patients <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb25-619"><a href="#cb25-619"></a>  <span class="at">age =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">65</span>),</span>
+<span id="cb25-620"><a href="#cb25-620"></a>  <span class="at">sex =</span> <span class="fu">c</span>(<span class="st">"f"</span>, <span class="st">"f"</span>),</span>
+<span id="cb25-621"><a href="#cb25-621"></a>  <span class="at">albumin =</span> <span class="fu">c</span>(<span class="fl">3.8</span>, <span class="fl">2.5</span>),</span>
+<span id="cb25-622"><a href="#cb25-622"></a>  <span class="at">bili =</span> <span class="fu">c</span>(<span class="fl">1.0</span>, <span class="fl">10.0</span>),</span>
+<span id="cb25-623"><a href="#cb25-623"></a>  <span class="at">protime =</span> <span class="fu">c</span>(<span class="fl">10.5</span>, <span class="fl">13.0</span>),</span>
+<span id="cb25-624"><a href="#cb25-624"></a>  <span class="at">stage =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>),</span>
+<span id="cb25-625"><a href="#cb25-625"></a>  <span class="at">edema =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb25-626"><a href="#cb25-626"></a>  <span class="at">trt_label =</span> <span class="fu">c</span>(<span class="st">"Placebo"</span>, <span class="st">"Placebo"</span>)</span>
+<span id="cb25-627"><a href="#cb25-627"></a>)</span>
+<span id="cb25-628"><a href="#cb25-628"></a></span>
+<span id="cb25-629"><a href="#cb25-629"></a>pred_surv <span class="ot">&lt;-</span> <span class="fu">survfit</span>(cox_full, <span class="at">newdata =</span> new_patients)</span>
 <span id="cb25-630"><a href="#cb25-630"></a></span>
-<span id="cb25-631"><a href="#cb25-631"></a><span class="fu">#### Python Starter Code</span></span>
-<span id="cb25-632"><a href="#cb25-632"></a></span>
-<span id="cb25-635"><a href="#cb25-635"></a><span class="in">```{python}</span></span>
-<span id="cb25-636"><a href="#cb25-636"></a><span class="co">#| label: ex1-python</span></span>
-<span id="cb25-637"><a href="#cb25-637"></a><span class="co">#| eval: false</span></span>
-<span id="cb25-638"><a href="#cb25-638"></a><span class="co"># Fit KM for each stage and plot</span></span>
-<span id="cb25-639"><a href="#cb25-639"></a><span class="co"># Your code here</span></span>
-<span id="cb25-640"><a href="#cb25-640"></a><span class="co"># Hint: loop over stages, fit KaplanMeierFitter for each</span></span>
-<span id="cb25-641"><a href="#cb25-641"></a><span class="co"># Use logrank_test() for pairwise comparisons</span></span>
-<span id="cb25-642"><a href="#cb25-642"></a><span class="in">```</span></span>
-<span id="cb25-643"><a href="#cb25-643"></a></span>
-<span id="cb25-644"><a href="#cb25-644"></a>:::</span>
-<span id="cb25-645"><a href="#cb25-645"></a></span>
-<span id="cb25-646"><a href="#cb25-646"></a><span class="fu">### Exercise 2: Build and Evaluate a Cox Model</span></span>
+<span id="cb25-631"><a href="#cb25-631"></a><span class="fu">plot</span>(pred_surv, <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">lwd =</span> <span class="dv">2</span>,</span>
+<span id="cb25-632"><a href="#cb25-632"></a>     <span class="at">xlab =</span> <span class="st">"Time (years)"</span>, <span class="at">ylab =</span> <span class="st">"Survival probability"</span>,</span>
+<span id="cb25-633"><a href="#cb25-633"></a>     <span class="at">main =</span> <span class="st">"Predicted Survival: Low-risk vs High-risk Patient"</span>)</span>
+<span id="cb25-634"><a href="#cb25-634"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="fu">c</span>(<span class="st">"Low risk"</span>, <span class="st">"High risk"</span>),</span>
+<span id="cb25-635"><a href="#cb25-635"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb25-636"><a href="#cb25-636"></a><span class="in">```</span></span>
+<span id="cb25-637"><a href="#cb25-637"></a></span>
+<span id="cb25-638"><a href="#cb25-638"></a><span class="fu">#### Python</span></span>
+<span id="cb25-639"><a href="#cb25-639"></a></span>
+<span id="cb25-642"><a href="#cb25-642"></a><span class="in">```{python}</span></span>
+<span id="cb25-643"><a href="#cb25-643"></a><span class="co">#| label: clinical-example-python</span></span>
+<span id="cb25-644"><a href="#cb25-644"></a><span class="im">from</span> lifelines <span class="im">import</span> CoxPHFitter, KaplanMeierFitter</span>
+<span id="cb25-645"><a href="#cb25-645"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb25-646"><a href="#cb25-646"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb25-647"><a href="#cb25-647"></a></span>
-<span id="cb25-648"><a href="#cb25-648"></a>Build a Cox proportional hazards model for PBC survival using age, bilirubin (log-transformed), albumin, prothrombin time, and edema as predictors.</span>
-<span id="cb25-649"><a href="#cb25-649"></a></span>
-<span id="cb25-650"><a href="#cb25-650"></a><span class="ss">1. </span>Report the hazard ratios and 95% confidence intervals.</span>
-<span id="cb25-651"><a href="#cb25-651"></a><span class="ss">2. </span>Check the proportional hazards assumption. Which covariates, if any, violate it?</span>
-<span id="cb25-652"><a href="#cb25-652"></a><span class="ss">3. </span>Calculate the concordance index. How well does the model discriminate?</span>
-<span id="cb25-653"><a href="#cb25-653"></a><span class="ss">4. </span>Predict the 5-year survival probability for a 55-year-old woman with bilirubin = 3 mg/dL, albumin = 3.2 g/dL, prothrombin time = 11 seconds, and no edema.</span>
-<span id="cb25-654"><a href="#cb25-654"></a></span>
-<span id="cb25-655"><a href="#cb25-655"></a>::: {.panel-tabset}</span>
-<span id="cb25-656"><a href="#cb25-656"></a></span>
-<span id="cb25-657"><a href="#cb25-657"></a><span class="fu">#### R Starter Code</span></span>
-<span id="cb25-658"><a href="#cb25-658"></a></span>
-<span id="cb25-661"><a href="#cb25-661"></a><span class="in">```{r}</span></span>
-<span id="cb25-662"><a href="#cb25-662"></a><span class="co">#| label: ex2-r</span></span>
-<span id="cb25-663"><a href="#cb25-663"></a><span class="co">#| eval: false</span></span>
-<span id="cb25-664"><a href="#cb25-664"></a><span class="co"># Your code here</span></span>
-<span id="cb25-665"><a href="#cb25-665"></a><span class="co"># cox_model &lt;- coxph(Surv(time_years, status_binary) ~ ..., data = pbc_clean)</span></span>
-<span id="cb25-666"><a href="#cb25-666"></a><span class="co"># summary(cox_model)</span></span>
-<span id="cb25-667"><a href="#cb25-667"></a><span class="co"># cox.zph(cox_model)</span></span>
-<span id="cb25-668"><a href="#cb25-668"></a><span class="in">```</span></span>
-<span id="cb25-669"><a href="#cb25-669"></a></span>
-<span id="cb25-670"><a href="#cb25-670"></a><span class="fu">#### Python Starter Code</span></span>
-<span id="cb25-671"><a href="#cb25-671"></a></span>
-<span id="cb25-674"><a href="#cb25-674"></a><span class="in">```{python}</span></span>
-<span id="cb25-675"><a href="#cb25-675"></a><span class="co">#| label: ex2-python</span></span>
-<span id="cb25-676"><a href="#cb25-676"></a><span class="co">#| eval: false</span></span>
-<span id="cb25-677"><a href="#cb25-677"></a><span class="co"># Your code here</span></span>
-<span id="cb25-678"><a href="#cb25-678"></a><span class="co"># cph = CoxPHFitter()</span></span>
-<span id="cb25-679"><a href="#cb25-679"></a><span class="co"># cph.fit(...)</span></span>
-<span id="cb25-680"><a href="#cb25-680"></a><span class="co"># cph.check_assumptions(...)</span></span>
-<span id="cb25-681"><a href="#cb25-681"></a><span class="in">```</span></span>
-<span id="cb25-682"><a href="#cb25-682"></a></span>
-<span id="cb25-683"><a href="#cb25-683"></a>:::</span>
-<span id="cb25-684"><a href="#cb25-684"></a></span>
-<span id="cb25-685"><a href="#cb25-685"></a><span class="fu">### Exercise 3: Competing Risks Thinking</span></span>
-<span id="cb25-686"><a href="#cb25-686"></a></span>
-<span id="cb25-687"><a href="#cb25-687"></a>Consider a study of time to kidney transplant rejection in 500 recipients. During follow-up, some patients die before experiencing rejection (a competing risk).</span>
-<span id="cb25-688"><a href="#cb25-688"></a></span>
-<span id="cb25-689"><a href="#cb25-689"></a><span class="ss">1. </span>Explain why treating death as censoring would bias the results. What direction would the bias go?</span>
-<span id="cb25-690"><a href="#cb25-690"></a><span class="ss">2. </span>Which approach would you use if your goal were to estimate the probability of rejection within 2 years — cause-specific hazards or Fine-Gray? Why?</span>
-<span id="cb25-691"><a href="#cb25-691"></a><span class="ss">3. </span>(Bonus) In R, use the <span class="in">`cmprsk`</span> or <span class="in">`tidycmprsk`</span> package to fit a Fine-Gray model. In Python, explore <span class="in">`lifelines`</span> or <span class="in">`scikit-survival`</span> for competing risk methods.</span>
-<span id="cb25-692"><a href="#cb25-692"></a></span>
-<span id="cb25-693"><a href="#cb25-693"></a><span class="fu">## Summary</span></span>
-<span id="cb25-694"><a href="#cb25-694"></a></span>
-<span id="cb25-695"><a href="#cb25-695"></a><span class="pp">|</span> Concept <span class="pp">|</span> What It Does <span class="pp">|</span> Key Assumption <span class="pp">|</span></span>
-<span id="cb25-696"><a href="#cb25-696"></a><span class="pp">|---------|-------------|----------------|</span></span>
-<span id="cb25-697"><a href="#cb25-697"></a><span class="pp">|</span> Kaplan-Meier <span class="pp">|</span> Non-parametric survival estimate <span class="pp">|</span> Non-informative censoring <span class="pp">|</span></span>
-<span id="cb25-698"><a href="#cb25-698"></a><span class="pp">|</span> Log-rank test <span class="pp">|</span> Compares survival curves <span class="pp">|</span> Proportional hazards (most powerful) <span class="pp">|</span></span>
-<span id="cb25-699"><a href="#cb25-699"></a><span class="pp">|</span> Cox PH model <span class="pp">|</span> Regression for survival data <span class="pp">|</span> Proportional hazards, non-informative censoring <span class="pp">|</span></span>
-<span id="cb25-700"><a href="#cb25-700"></a><span class="pp">|</span> Fine-Gray model <span class="pp">|</span> Competing risks regression <span class="pp">|</span> Models subdistribution hazard <span class="pp">|</span></span>
-<span id="cb25-701"><a href="#cb25-701"></a></span>
-<span id="cb25-702"><a href="#cb25-702"></a>Survival analysis is fundamental to clinical research. The methods in this chapter — Kaplan-Meier estimation, log-rank testing, and Cox regression — form the backbone of nearly every clinical trial and prognostic study. The proportional hazards assumption must always be checked, and competing risks should be considered whenever another event can prevent observation of the event of interest.</span>
-<span id="cb25-703"><a href="#cb25-703"></a></span>
-<span id="cb25-704"><a href="#cb25-704"></a><span class="fu">## References and Further Reading</span></span>
-<span id="cb25-705"><a href="#cb25-705"></a></span>
-<span id="cb25-706"><a href="#cb25-706"></a>The foundational paper on proportional hazards regression is Cox (1972), "Regression Models and Life-Tables," published in the *Journal of the Royal Statistical Society, Series B*, which introduced the semi-parametric model that now bears his name. This paper is one of the most cited in all of statistics.</span>
-<span id="cb25-707"><a href="#cb25-707"></a></span>
-<span id="cb25-708"><a href="#cb25-708"></a>For a comprehensive and accessible introduction to survival analysis in the context of this course, see Smits et al. (2026), which covers Kaplan-Meier estimation, the Cox model, and competing risks with modern clinical examples. Their treatment of model diagnostics and the proportional hazards assumption is particularly practical.</span>
-<span id="cb25-709"><a href="#cb25-709"></a></span>
-<span id="cb25-710"><a href="#cb25-710"></a>Bradburn et al. provide an excellent tutorial series on survival analysis for medical researchers, published in the *British Journal of Cancer*. Their series covers Kaplan-Meier methods, the Cox model, and advanced topics in a format accessible to clinicians without extensive statistical training.</span>
-<span id="cb25-711"><a href="#cb25-711"></a></span>
-<span id="cb25-712"><a href="#cb25-712"></a>For hands-on implementation, the <span class="in">`survival`</span> and <span class="in">`survminer`</span> packages in R are the standard tools. Therneau and Grambsch's *Modeling Survival Data: Extending the Cox Model* (Springer, 2000) is the definitive reference for the R <span class="in">`survival`</span> package. In Python, the <span class="in">`lifelines`</span> library by Cameron Davidson-Pilon provides an excellent API for survival analysis, and its online documentation includes worked clinical examples.</span>
-<span id="cb25-713"><a href="#cb25-713"></a></span>
-<span id="cb25-714"><a href="#cb25-714"></a>For competing risks specifically, Fine and Gray (1999), "A Proportional Hazards Model for the Subdistribution of a Competing Risk," in the *Journal of the American Statistical Association*, is the key methodological reference. Austin and Fine (2017) provide practical guidance on when and how to use competing risk methods in clinical research.</span>
+<span id="cb25-648"><a href="#cb25-648"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb25-649"><a href="#cb25-649"></a>n <span class="op">=</span> <span class="dv">276</span></span>
+<span id="cb25-650"><a href="#cb25-650"></a></span>
+<span id="cb25-651"><a href="#cb25-651"></a><span class="co"># Simulate a PBC-like dataset</span></span>
+<span id="cb25-652"><a href="#cb25-652"></a>pbc_sim <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb25-653"><a href="#cb25-653"></a>    <span class="st">'time_years'</span>: np.<span class="bu">abs</span>(np.random.exponential(<span class="dv">7</span>, n) <span class="op">+</span></span>
+<span id="cb25-654"><a href="#cb25-654"></a>                         np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)),</span>
+<span id="cb25-655"><a href="#cb25-655"></a>    <span class="st">'event'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.45</span>, n),</span>
+<span id="cb25-656"><a href="#cb25-656"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">50</span>, <span class="dv">10</span>, n),</span>
+<span id="cb25-657"><a href="#cb25-657"></a>    <span class="st">'sex'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.12</span>, n),  <span class="co"># mostly female in PBC</span></span>
+<span id="cb25-658"><a href="#cb25-658"></a>    <span class="st">'albumin'</span>: np.random.normal(<span class="fl">3.5</span>, <span class="fl">0.4</span>, n),</span>
+<span id="cb25-659"><a href="#cb25-659"></a>    <span class="st">'log_bili'</span>: np.random.normal(<span class="fl">0.5</span>, <span class="fl">1.0</span>, n),</span>
+<span id="cb25-660"><a href="#cb25-660"></a>    <span class="st">'protime'</span>: np.random.normal(<span class="dv">11</span>, <span class="dv">1</span>, n),</span>
+<span id="cb25-661"><a href="#cb25-661"></a>    <span class="st">'stage'</span>: np.random.choice([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], n, p<span class="op">=</span>[<span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.40</span>, <span class="fl">0.30</span>]),</span>
+<span id="cb25-662"><a href="#cb25-662"></a>    <span class="st">'edema'</span>: np.random.choice([<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>], n, p<span class="op">=</span>[<span class="fl">0.75</span>, <span class="fl">0.15</span>, <span class="fl">0.10</span>]),</span>
+<span id="cb25-663"><a href="#cb25-663"></a>    <span class="st">'treatment'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.5</span>, n)</span>
+<span id="cb25-664"><a href="#cb25-664"></a>})</span>
+<span id="cb25-665"><a href="#cb25-665"></a></span>
+<span id="cb25-666"><a href="#cb25-666"></a><span class="co"># Fit Cox model</span></span>
+<span id="cb25-667"><a href="#cb25-667"></a>cph <span class="op">=</span> CoxPHFitter()</span>
+<span id="cb25-668"><a href="#cb25-668"></a>cph.fit(pbc_sim, duration_col<span class="op">=</span><span class="st">'time_years'</span>, event_col<span class="op">=</span><span class="st">'event'</span>,</span>
+<span id="cb25-669"><a href="#cb25-669"></a>        formula<span class="op">=</span><span class="st">'age + sex + albumin + log_bili + protime + stage + edema + treatment'</span>)</span>
+<span id="cb25-670"><a href="#cb25-670"></a></span>
+<span id="cb25-671"><a href="#cb25-671"></a>cph.print_summary()</span>
+<span id="cb25-672"><a href="#cb25-672"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Concordance index: </span><span class="sc">{</span>cph<span class="sc">.</span>concordance_index_<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb25-673"><a href="#cb25-673"></a><span class="in">```</span></span>
+<span id="cb25-674"><a href="#cb25-674"></a></span>
+<span id="cb25-677"><a href="#cb25-677"></a><span class="in">```{python}</span></span>
+<span id="cb25-678"><a href="#cb25-678"></a><span class="co">#| label: clinical-predict-python</span></span>
+<span id="cb25-679"><a href="#cb25-679"></a><span class="co">#| fig-cap: "Predicted survival curves for two patient profiles using the Python Cox model."</span></span>
+<span id="cb25-680"><a href="#cb25-680"></a><span class="co"># Predict survival for specific patient profiles</span></span>
+<span id="cb25-681"><a href="#cb25-681"></a>low_risk <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb25-682"><a href="#cb25-682"></a>    <span class="st">'age'</span>: [<span class="dv">40</span>], <span class="st">'sex'</span>: [<span class="dv">0</span>], <span class="st">'albumin'</span>: [<span class="fl">3.8</span>], <span class="st">'log_bili'</span>: [<span class="fl">0.0</span>],</span>
+<span id="cb25-683"><a href="#cb25-683"></a>    <span class="st">'protime'</span>: [<span class="fl">10.5</span>], <span class="st">'stage'</span>: [<span class="dv">2</span>], <span class="st">'edema'</span>: [<span class="dv">0</span>], <span class="st">'treatment'</span>: [<span class="dv">0</span>]</span>
+<span id="cb25-684"><a href="#cb25-684"></a>})</span>
+<span id="cb25-685"><a href="#cb25-685"></a>high_risk <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb25-686"><a href="#cb25-686"></a>    <span class="st">'age'</span>: [<span class="dv">65</span>], <span class="st">'sex'</span>: [<span class="dv">0</span>], <span class="st">'albumin'</span>: [<span class="fl">2.5</span>], <span class="st">'log_bili'</span>: [<span class="fl">2.3</span>],</span>
+<span id="cb25-687"><a href="#cb25-687"></a>    <span class="st">'protime'</span>: [<span class="fl">13.0</span>], <span class="st">'stage'</span>: [<span class="dv">4</span>], <span class="st">'edema'</span>: [<span class="dv">1</span>], <span class="st">'treatment'</span>: [<span class="dv">0</span>]</span>
+<span id="cb25-688"><a href="#cb25-688"></a>})</span>
+<span id="cb25-689"><a href="#cb25-689"></a></span>
+<span id="cb25-690"><a href="#cb25-690"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb25-691"><a href="#cb25-691"></a>cph.predict_survival_function(low_risk).plot(ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'Low risk'</span>, color<span class="op">=</span><span class="st">'blue'</span>)</span>
+<span id="cb25-692"><a href="#cb25-692"></a>cph.predict_survival_function(high_risk).plot(ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'High risk'</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb25-693"><a href="#cb25-693"></a>ax.set_xlabel(<span class="st">"Time (years)"</span>)</span>
+<span id="cb25-694"><a href="#cb25-694"></a>ax.set_ylabel(<span class="st">"Survival probability"</span>)</span>
+<span id="cb25-695"><a href="#cb25-695"></a>ax.set_title(<span class="st">"Predicted Survival: Low-risk vs High-risk Patient"</span>)</span>
+<span id="cb25-696"><a href="#cb25-696"></a>ax.legend()</span>
+<span id="cb25-697"><a href="#cb25-697"></a>plt.tight_layout()</span>
+<span id="cb25-698"><a href="#cb25-698"></a>plt.show()</span>
+<span id="cb25-699"><a href="#cb25-699"></a><span class="in">```</span></span>
+<span id="cb25-700"><a href="#cb25-700"></a></span>
+<span id="cb25-701"><a href="#cb25-701"></a>:::</span>
+<span id="cb25-702"><a href="#cb25-702"></a></span>
+<span id="cb25-703"><a href="#cb25-703"></a><span class="fu">### What the Outputs Are Telling You</span></span>
+<span id="cb25-704"><a href="#cb25-704"></a></span>
+<span id="cb25-705"><a href="#cb25-705"></a>It is easy to run this code and be confronted with a wall of numbers. Here is what to actually look at, in order:</span>
+<span id="cb25-706"><a href="#cb25-706"></a></span>
+<span id="cb25-707"><a href="#cb25-707"></a><span class="ss">1. </span>**The `summary(cox_full)` / `print_summary()` table** is the heart of it. For each predictor, focus on three columns:</span>
+<span id="cb25-708"><a href="#cb25-708"></a><span class="ss">   - </span>**`exp(coef)` --- the hazard ratio.** This is the headline number. HR &gt; 1 = higher hazard (worse survival) per unit increase in that predictor; HR &lt; 1 = protective. For example, an HR of 2.7 for <span class="in">`log(bili)`</span> means each one-unit rise in log-bilirubin nearly triples the instantaneous hazard, holding the other predictors fixed.</span>
+<span id="cb25-709"><a href="#cb25-709"></a><span class="ss">   - </span>**The 95% confidence interval** (<span class="in">`lower .95`</span>, <span class="in">`upper .95`</span>). If it excludes 1, the effect is statistically significant; its width tells you how precisely the effect is estimated.</span>
+<span id="cb25-710"><a href="#cb25-710"></a><span class="ss">   - </span>**`Pr(&gt;|z|)` --- the p-value.** Which predictors are independently associated with survival after adjustment?</span>
+<span id="cb25-711"><a href="#cb25-711"></a>   You are *learning*: which factors carry prognostic information, in which direction, and how strongly. In the PBC model you should see that higher bilirubin, older age, lower albumin, and worse edema/stage all predict shorter survival --- which matches the clinical picture of advanced liver disease.</span>
+<span id="cb25-712"><a href="#cb25-712"></a></span>
+<span id="cb25-713"><a href="#cb25-713"></a><span class="ss">2. </span>**The concordance (C-index)** summarises *discrimination* --- how well the model ranks who dies sooner. 0.5 is a coin-flip; 1.0 is perfect. A value around 0.8 (as here) means that, given two patients, the model correctly identifies the one who dies first about 80% of the time. This is the single best one-number summary of predictive performance.</span>
+<span id="cb25-714"><a href="#cb25-714"></a></span>
+<span id="cb25-715"><a href="#cb25-715"></a><span class="ss">3. </span>**The predicted survival curves** turn the model into something a clinician can use: plug in a patient's covariates and read off their estimated survival probability over time. The low-risk vs high-risk curves should be visibly separated --- the *visual* proof that the predictors above translate into meaningfully different prognoses. This is also where the link back to Kaplan-Meier becomes clear: a KM curve describes an *observed group*, whereas these Cox-predicted curves are *individualised* and *adjusted* for the full covariate profile.</span>
+<span id="cb25-716"><a href="#cb25-716"></a></span>
+<span id="cb25-717"><a href="#cb25-717"></a>If you observe nothing else, observe these three things: **direction and size of each hazard ratio, whether its CI excludes 1, and the C-index.** Together they answer "what matters, how much, and how well does the whole model predict?"</span>
+<span id="cb25-718"><a href="#cb25-718"></a></span>
+<span id="cb25-719"><a href="#cb25-719"></a><span class="fu">## Exercises</span></span>
+<span id="cb25-720"><a href="#cb25-720"></a></span>
+<span id="cb25-721"><a href="#cb25-721"></a><span class="fu">### Exercise 1: Kaplan-Meier Curves by Disease Stage</span></span>
+<span id="cb25-722"><a href="#cb25-722"></a></span>
+<span id="cb25-723"><a href="#cb25-723"></a>Using the PBC dataset, create Kaplan-Meier curves stratified by disease stage (1–4). Perform a log-rank test to compare survival across stages. Report the median survival time for each stage.</span>
+<span id="cb25-724"><a href="#cb25-724"></a></span>
+<span id="cb25-725"><a href="#cb25-725"></a>::: {.panel-tabset}</span>
+<span id="cb25-726"><a href="#cb25-726"></a></span>
+<span id="cb25-727"><a href="#cb25-727"></a><span class="fu">#### R Starter Code</span></span>
+<span id="cb25-728"><a href="#cb25-728"></a></span>
+<span id="cb25-731"><a href="#cb25-731"></a><span class="in">```{r}</span></span>
+<span id="cb25-732"><a href="#cb25-732"></a><span class="co">#| label: ex1-r</span></span>
+<span id="cb25-733"><a href="#cb25-733"></a><span class="co">#| eval: false</span></span>
+<span id="cb25-734"><a href="#cb25-734"></a><span class="co"># Fit KM by stage</span></span>
+<span id="cb25-735"><a href="#cb25-735"></a>km_stage <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time_years, status_binary) <span class="sc">~</span> stage, <span class="at">data =</span> pbc_clean)</span>
+<span id="cb25-736"><a href="#cb25-736"></a></span>
+<span id="cb25-737"><a href="#cb25-737"></a><span class="co"># Your code: plot the curves and perform the log-rank test</span></span>
+<span id="cb25-738"><a href="#cb25-738"></a><span class="co"># Hint: use ggsurvplot() with pval = TRUE</span></span>
+<span id="cb25-739"><a href="#cb25-739"></a><span class="co"># Hint: use survdiff() for the formal test</span></span>
+<span id="cb25-740"><a href="#cb25-740"></a><span class="in">```</span></span>
+<span id="cb25-741"><a href="#cb25-741"></a></span>
+<span id="cb25-742"><a href="#cb25-742"></a><span class="fu">#### Python Starter Code</span></span>
+<span id="cb25-743"><a href="#cb25-743"></a></span>
+<span id="cb25-746"><a href="#cb25-746"></a><span class="in">```{python}</span></span>
+<span id="cb25-747"><a href="#cb25-747"></a><span class="co">#| label: ex1-python</span></span>
+<span id="cb25-748"><a href="#cb25-748"></a><span class="co">#| eval: false</span></span>
+<span id="cb25-749"><a href="#cb25-749"></a><span class="co"># Fit KM for each stage and plot</span></span>
+<span id="cb25-750"><a href="#cb25-750"></a><span class="co"># Your code here</span></span>
+<span id="cb25-751"><a href="#cb25-751"></a><span class="co"># Hint: loop over stages, fit KaplanMeierFitter for each</span></span>
+<span id="cb25-752"><a href="#cb25-752"></a><span class="co"># Use logrank_test() for pairwise comparisons</span></span>
+<span id="cb25-753"><a href="#cb25-753"></a><span class="in">```</span></span>
+<span id="cb25-754"><a href="#cb25-754"></a></span>
+<span id="cb25-755"><a href="#cb25-755"></a>:::</span>
+<span id="cb25-756"><a href="#cb25-756"></a></span>
+<span id="cb25-757"><a href="#cb25-757"></a><span class="fu">### Exercise 2: Build and Evaluate a Cox Model</span></span>
+<span id="cb25-758"><a href="#cb25-758"></a></span>
+<span id="cb25-759"><a href="#cb25-759"></a>Build a Cox proportional hazards model for PBC survival using age, bilirubin (log-transformed), albumin, prothrombin time, and edema as predictors.</span>
+<span id="cb25-760"><a href="#cb25-760"></a></span>
+<span id="cb25-761"><a href="#cb25-761"></a><span class="ss">1. </span>Report the hazard ratios and 95% confidence intervals.</span>
+<span id="cb25-762"><a href="#cb25-762"></a><span class="ss">2. </span>Check the proportional hazards assumption. Which covariates, if any, violate it?</span>
+<span id="cb25-763"><a href="#cb25-763"></a><span class="ss">3. </span>Calculate the concordance index. How well does the model discriminate?</span>
+<span id="cb25-764"><a href="#cb25-764"></a><span class="ss">4. </span>Predict the 5-year survival probability for a 55-year-old woman with bilirubin = 3 mg/dL, albumin = 3.2 g/dL, prothrombin time = 11 seconds, and no edema.</span>
+<span id="cb25-765"><a href="#cb25-765"></a></span>
+<span id="cb25-766"><a href="#cb25-766"></a>::: {.panel-tabset}</span>
+<span id="cb25-767"><a href="#cb25-767"></a></span>
+<span id="cb25-768"><a href="#cb25-768"></a><span class="fu">#### R Starter Code</span></span>
+<span id="cb25-769"><a href="#cb25-769"></a></span>
+<span id="cb25-772"><a href="#cb25-772"></a><span class="in">```{r}</span></span>
+<span id="cb25-773"><a href="#cb25-773"></a><span class="co">#| label: ex2-r</span></span>
+<span id="cb25-774"><a href="#cb25-774"></a><span class="co">#| eval: false</span></span>
+<span id="cb25-775"><a href="#cb25-775"></a><span class="co"># Your code here</span></span>
+<span id="cb25-776"><a href="#cb25-776"></a><span class="co"># cox_model &lt;- coxph(Surv(time_years, status_binary) ~ ..., data = pbc_clean)</span></span>
+<span id="cb25-777"><a href="#cb25-777"></a><span class="co"># summary(cox_model)</span></span>
+<span id="cb25-778"><a href="#cb25-778"></a><span class="co"># cox.zph(cox_model)</span></span>
+<span id="cb25-779"><a href="#cb25-779"></a><span class="in">```</span></span>
+<span id="cb25-780"><a href="#cb25-780"></a></span>
+<span id="cb25-781"><a href="#cb25-781"></a><span class="fu">#### Python Starter Code</span></span>
+<span id="cb25-782"><a href="#cb25-782"></a></span>
+<span id="cb25-785"><a href="#cb25-785"></a><span class="in">```{python}</span></span>
+<span id="cb25-786"><a href="#cb25-786"></a><span class="co">#| label: ex2-python</span></span>
+<span id="cb25-787"><a href="#cb25-787"></a><span class="co">#| eval: false</span></span>
+<span id="cb25-788"><a href="#cb25-788"></a><span class="co"># Your code here</span></span>
+<span id="cb25-789"><a href="#cb25-789"></a><span class="co"># cph = CoxPHFitter()</span></span>
+<span id="cb25-790"><a href="#cb25-790"></a><span class="co"># cph.fit(...)</span></span>
+<span id="cb25-791"><a href="#cb25-791"></a><span class="co"># cph.check_assumptions(...)</span></span>
+<span id="cb25-792"><a href="#cb25-792"></a><span class="in">```</span></span>
+<span id="cb25-793"><a href="#cb25-793"></a></span>
+<span id="cb25-794"><a href="#cb25-794"></a>:::</span>
+<span id="cb25-795"><a href="#cb25-795"></a></span>
+<span id="cb25-796"><a href="#cb25-796"></a><span class="fu">### Exercise 3: Competing Risks Thinking</span></span>
+<span id="cb25-797"><a href="#cb25-797"></a></span>
+<span id="cb25-798"><a href="#cb25-798"></a>Consider a study of time to kidney transplant rejection in 500 recipients. During follow-up, some patients die before experiencing rejection (a competing risk).</span>
+<span id="cb25-799"><a href="#cb25-799"></a></span>
+<span id="cb25-800"><a href="#cb25-800"></a><span class="ss">1. </span>Explain why treating death as censoring would bias the results. What direction would the bias go?</span>
+<span id="cb25-801"><a href="#cb25-801"></a><span class="ss">2. </span>Which approach would you use if your goal were to estimate the probability of rejection within 2 years — cause-specific hazards or Fine-Gray? Why?</span>
+<span id="cb25-802"><a href="#cb25-802"></a><span class="ss">3. </span>(Bonus) In R, use the <span class="in">`cmprsk`</span> or <span class="in">`tidycmprsk`</span> package to fit a Fine-Gray model. In Python, explore <span class="in">`lifelines`</span> or <span class="in">`scikit-survival`</span> for competing risk methods.</span>
+<span id="cb25-803"><a href="#cb25-803"></a></span>
+<span id="cb25-804"><a href="#cb25-804"></a><span class="fu">## Summary</span></span>
+<span id="cb25-805"><a href="#cb25-805"></a></span>
+<span id="cb25-806"><a href="#cb25-806"></a><span class="pp">|</span> Concept <span class="pp">|</span> What It Does <span class="pp">|</span> Key Assumption <span class="pp">|</span></span>
+<span id="cb25-807"><a href="#cb25-807"></a><span class="pp">|---------|-------------|----------------|</span></span>
+<span id="cb25-808"><a href="#cb25-808"></a><span class="pp">|</span> Kaplan-Meier <span class="pp">|</span> Non-parametric survival estimate <span class="pp">|</span> Non-informative censoring <span class="pp">|</span></span>
+<span id="cb25-809"><a href="#cb25-809"></a><span class="pp">|</span> Log-rank test <span class="pp">|</span> Compares survival curves <span class="pp">|</span> Proportional hazards (most powerful) <span class="pp">|</span></span>
+<span id="cb25-810"><a href="#cb25-810"></a><span class="pp">|</span> Cox PH model <span class="pp">|</span> Regression for survival data <span class="pp">|</span> Proportional hazards, non-informative censoring <span class="pp">|</span></span>
+<span id="cb25-811"><a href="#cb25-811"></a><span class="pp">|</span> Fine-Gray model <span class="pp">|</span> Competing risks regression <span class="pp">|</span> Models subdistribution hazard <span class="pp">|</span></span>
+<span id="cb25-812"><a href="#cb25-812"></a></span>
+<span id="cb25-813"><a href="#cb25-813"></a>Survival analysis is fundamental to clinical research. The methods in this chapter — Kaplan-Meier estimation, log-rank testing, and Cox regression — form the backbone of nearly every clinical trial and prognostic study. The proportional hazards assumption must always be checked, and competing risks should be considered whenever another event can prevent observation of the event of interest.</span>
+<span id="cb25-814"><a href="#cb25-814"></a></span>
+<span id="cb25-815"><a href="#cb25-815"></a><span class="fu">## References and Further Reading</span></span>
+<span id="cb25-816"><a href="#cb25-816"></a></span>
+<span id="cb25-817"><a href="#cb25-817"></a>The foundational paper on proportional hazards regression is Cox (1972), "Regression Models and Life-Tables," published in the *Journal of the Royal Statistical Society, Series B*, which introduced the semi-parametric model that now bears his name. This paper is one of the most cited in all of statistics.</span>
+<span id="cb25-818"><a href="#cb25-818"></a></span>
+<span id="cb25-819"><a href="#cb25-819"></a>For a comprehensive and accessible introduction to survival analysis in the context of this course, see Smits et al. (2026), which covers Kaplan-Meier estimation, the Cox model, and competing risks with modern clinical examples. Their treatment of model diagnostics and the proportional hazards assumption is particularly practical.</span>
+<span id="cb25-820"><a href="#cb25-820"></a></span>
+<span id="cb25-821"><a href="#cb25-821"></a>Bradburn et al. provide an excellent tutorial series on survival analysis for medical researchers, published in the *British Journal of Cancer*. Their series covers Kaplan-Meier methods, the Cox model, and advanced topics in a format accessible to clinicians without extensive statistical training.</span>
+<span id="cb25-822"><a href="#cb25-822"></a></span>
+<span id="cb25-823"><a href="#cb25-823"></a>For hands-on implementation, the <span class="in">`survival`</span> and <span class="in">`survminer`</span> packages in R are the standard tools. Therneau and Grambsch's *Modeling Survival Data: Extending the Cox Model* (Springer, 2000) is the definitive reference for the R <span class="in">`survival`</span> package. In Python, the <span class="in">`lifelines`</span> library by Cameron Davidson-Pilon provides an excellent API for survival analysis, and its online documentation includes worked clinical examples.</span>
+<span id="cb25-824"><a href="#cb25-824"></a></span>
+<span id="cb25-825"><a href="#cb25-825"></a>For competing risks specifically, Fine and Gray (1999), "A Proportional Hazards Model for the Subdistribution of a Competing Risk," in the *Journal of the American Statistical Association*, is the key methodological reference. Austin and Fine (2017) provide practical guidance on when and how to use competing risk methods in clinical research.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

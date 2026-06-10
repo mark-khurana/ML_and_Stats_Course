@@ -41,7 +41,12 @@ In this chapter, we focus primarily on right censoring, which dominates clinical
 
 ## The Kaplan-Meier Estimator
 
-The **Kaplan-Meier (KM) estimator** is the workhorse of survival analysis. It provides a non-parametric estimate of the survival function $S(t) = P(T > t)$, the probability of surviving beyond time $t$.
+The **Kaplan-Meier (KM) estimator** is the workhorse of survival analysis. It provides a **non-parametric** estimate of the survival function $S(t) = P(T > t)$, the probability of surviving beyond time $t$.
+
+::: {.callout-note}
+## "Non-parametric" — what it means here
+A **non-parametric** method makes no assumption about the *shape* of the underlying distribution. A *parametric* survival model (e.g., a Weibull or exponential model) assumes the survival curve follows a specific mathematical formula governed by a few parameters; you are essentially fitting a smooth, pre-specified curve to the data. The Kaplan-Meier estimator does the opposite: it lets the data speak for themselves, building the survival curve directly from the observed event times as a series of steps, without assuming any particular form. The advantage is flexibility and honesty — the curve reflects exactly what happened in your cohort. The cost is that it cannot extrapolate beyond the observed follow-up and uses the data less efficiently than a correctly-specified parametric model.
+:::
 
 ### How It Works
 
@@ -55,11 +60,31 @@ where:
 - $d_i$ is the number of events at time $t_i$,
 - $n_i$ is the number of individuals at risk just before time $t_i$ (alive and uncensored).
 
-The key insight is that censored individuals contribute to the **risk set** ($n_i$) up until the moment they are censored, and then they drop out. They are not discarded — they contribute all the information they can.
+**The intuition (for a clinical audience).** Forget the product symbol for a moment and think of survival as running a gauntlet. At each moment when a death occurs, ask a simple question: *of the patients still alive and being followed right now, what fraction made it through this instant?* That fraction is $\left(1 - \frac{d_i}{n_i}\right)$ --- the number who died ($d_i$) out of those still at risk ($n_i$), subtracted from one. To survive *to* time $t$, a patient must clear every one of these hurdles in sequence, so we **multiply** the individual survival fractions together (that is what the $\prod$ symbol means --- a running product). This is exactly how you would compute the chance of passing several independent checkpoints: multiply the chance of passing each.
+
+A worked snippet makes it concrete. Suppose 100 patients are at risk, 10 die on day 30, then of the 90 remaining 9 die on day 60. The survival probability after day 30 is $1 - 10/100 = 0.90$; after day 60 it is $0.90 \times (1 - 9/90) = 0.90 \times 0.90 = 0.81$. The curve only steps *down* at the moments events occur, and stays flat in between --- which is why KM curves look like staircases.
+
+The key insight is that censored individuals contribute to the **risk set** ($n_i$) up until the moment they are censored, and then they quietly drop out (they reduce $n_i$ for later time points but never count as an event $d_i$). They are not discarded --- they contribute all the information they can, namely "this patient was still event-free up to here."
 
 ### Clinical Example: Primary Biliary Cholangitis (PBC)
 
 We will use the classic PBC dataset from the Mayo Clinic, which is included in R's `survival` package. This dataset contains 418 patients with primary biliary cholangitis (PBC), a chronic liver disease. Patients were followed from enrollment until death, transplant, or censoring.
+
+::: {.callout-important}
+## Packages you need to load first
+The R code in this chapter relies on three packages. If you are running it yourself, install them once and then load them at the top of your script --- the code will error otherwise (for example, the `%>%` pipe comes from `dplyr`/`tidyverse`, and `ggsurvplot()` comes from `survminer`):
+
+```r
+# Run once if not already installed:
+# install.packages(c("survival", "survminer", "tidyverse"))
+
+library(survival)   # core survival analysis: Surv(), survfit(), coxph(), the pbc data
+library(survminer)  # ggsurvplot() for publication-quality Kaplan-Meier plots
+library(dplyr)      # the %>% pipe and data wrangling (loaded via tidyverse too)
+```
+
+`survminer` in particular is a separate package from `survival` and is easy to forget --- without it, `ggsurvplot()` will not be found.
+:::
 
 ::: {.panel-tabset}
 
@@ -67,6 +92,11 @@ We will use the classic PBC dataset from the Mayo Clinic, which is included in R
 
 ```{r}
 #| label: km-r
+# Load the packages used below (see the note above for installation)
+library(survival)
+library(survminer)
+library(dplyr)
+
 # Load the PBC dataset
 data(pbc, package = "survival")
 
@@ -172,11 +202,13 @@ Key features to examine:
 
 ### Confidence Intervals for the KM Estimator
 
-The pointwise confidence interval for $\hat{S}(t)$ is typically computed via **Greenwood's formula**, which estimates the variance of $\hat{S}(t)$:
+The survival curve is an *estimate* from a finite sample, so it comes with uncertainty --- the confidence band you see around a KM curve. The pointwise confidence interval for $\hat{S}(t)$ is computed via **Greenwood's formula**, which estimates the variance (the "wobble") of $\hat{S}(t)$:
 
 $$\widehat{\text{Var}}[\hat{S}(t)] = \hat{S}(t)^2 \sum_{t_i \le t} \frac{d_i}{n_i(n_i - d_i)}$$
 
-A 95% confidence interval is then $\hat{S}(t) \pm 1.96 \sqrt{\widehat{\text{Var}}[\hat{S}(t)]}$. In practice, log-log transformations are preferred because they guarantee the interval stays within [0, 1].
+You do not need to compute this by hand --- `survfit()` does it for you --- but the formula carries one genuinely useful intuition, which is the only thing worth taking away from it. Look at each term in the sum: it grows when $n_i$ (the number still at risk) is **small**. Early in follow-up, $n_i$ is large and each term is tiny, so the band is tight. Late in follow-up, after many patients have died or been censored, $n_i$ shrinks, each term balloons, and the band fans out. **That is why the confidence band on every KM curve is narrow on the left and wide on the right**: the tail of the curve is estimated from only a handful of remaining patients, so it is far less reliable. When you read a KM plot, treat the wide right-hand tail with caution.
+
+A 95% confidence interval is then approximately $\hat{S}(t) \pm 1.96 \sqrt{\widehat{\text{Var}}[\hat{S}(t)]}$. In practice, software uses a log-log transformation of this interval because it guarantees the limits stay within the valid [0, 1] range for a probability (a plain $\pm$ interval can stray below 0 or above 1 in the tails).
 
 ## The Log-Rank Test
 
@@ -259,14 +291,41 @@ plt.show()
 
 :::
 
+### Reading the Log-Rank Output
+
+The `survdiff()` output in R looks like a small table with one row per group, plus a chi-squared statistic and p-value at the bottom. Here is what each piece tells you and how to report it:
+
+- **`N`** --- the number of patients in each group.
+- **`Observed`** --- how many events (deaths) actually occurred in each group.
+- **`Expected`** --- how many events you would have expected in each group *if survival were identical across groups* (the null hypothesis). This is the key comparison: it accounts for how long each group was followed and how many were at risk over time.
+- **Observed vs Expected** --- the heart of the test. If a group has *more* observed deaths than expected, it is doing worse than the average; *fewer* than expected, better. The test asks whether the gap between observed and expected, accumulated across all event times, is larger than chance would produce.
+- **`Chisq` and `p`** --- the test statistic and its p-value. A small p-value (conventionally < 0.05) means the survival curves differ more than would be expected by chance; you reject the hypothesis that the two groups have identical survival.
+
+For the PBC treatment comparison above, the relevant question is whether D-penicillamine changed survival versus placebo. A **non-significant** p-value (as is the case in this dataset) means there is no evidence the drug altered survival --- which matches the historical conclusion that D-penicillamine is not effective in PBC. Report it as, for example: *"There was no significant difference in survival between D-penicillamine and placebo (log-rank p = 0.75)."* Crucially, a non-significant log-rank test is **not** proof the treatments are equivalent --- it may simply reflect insufficient events to detect a difference.
+
+The `ggsurvplot()` figure shows the same comparison visually: two KM curves with the log-rank p-value annotated (`pval = TRUE`). If the curves sit almost on top of each other, that is the visual counterpart of a non-significant test.
+
 ::: {.callout-note}
 ## When the Log-Rank Test is Weak
-The log-rank test has low power when survival curves cross (e.g., one treatment is better early but worse later). In such cases, consider the **weighted log-rank test** (e.g., Fleming-Harrington) or the **restricted mean survival time (RMST)** approach.
+The log-rank test has low power when survival curves cross (e.g., one treatment is better early but worse later) --- the early and late differences cancel out, hiding a real effect. In such cases, consider the **weighted log-rank test** (e.g., Fleming-Harrington, which can up-weight early or late differences) or the **restricted mean survival time (RMST)** approach, which compares the average event-free time up to a chosen horizon and does not rely on proportional hazards.
 :::
 
 ## Cox Proportional Hazards Model
 
-The **Cox proportional hazards (PH) model** is the most widely used regression model for survival data. Introduced by Sir David Cox in 1972, it models the **hazard function** — the instantaneous rate of the event occurring at time $t$, given survival to that point:
+The **Cox proportional hazards (PH) model** is the most widely used regression model for survival data. Introduced by Sir David Cox in 1972, it models the **hazard function** --- the instantaneous rate of the event occurring at time $t$, given survival to that point.
+
+::: {.callout-note}
+## What is a "hazard", in plain terms?
+The word *hazard* trips up most clinicians on first encounter, because it is not a probability and not a risk. Think of it as a **speedometer for risk**: at any instant $t$ (among patients who have survived to that instant), it measures *how fast* events are occurring right now. Like a car's speed, it is a *rate* (events per unit time), it applies to *this moment* rather than the whole journey, and it can change from moment to moment.
+
+Contrast it with quantities you already use:
+
+- A **risk** (or cumulative probability) is like the total distance travelled --- "35% of patients have died **by** 5 years." It accumulates over a period.
+- A **risk ratio / relative risk (RR)** compares those totals between two groups over a fixed period --- "the treated group's 5-year risk is half the control group's."
+- A **hazard** is the instantaneous speed, and a **hazard ratio (HR)** compares the *speeds* of two groups at any given moment.
+
+Why bother with a speed rather than a simple risk ratio? Because censoring and varying follow-up make "total risk by time $t$" hard to compare directly --- patients are observed for different lengths of time. The hazard sidesteps this by asking, at each instant, only about the patients actually still at risk at that instant. The Cox model is built on this instantaneous quantity:
+:::
 
 $$h(t | X) = h_0(t) \exp(\beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p)$$
 
@@ -364,7 +423,7 @@ The proportional hazards assumption is critical. If it is violated, the hazard r
 
 ### Schoenfeld Residuals
 
-The most common diagnostic tool is the **Schoenfeld residual test**. Under proportional hazards, the scaled Schoenfeld residuals for a covariate should show no trend over time. A significant trend indicates violation.
+The most common diagnostic tool is the **Schoenfeld residual test**. The intuition is simple: if a covariate's effect (its hazard ratio) is truly constant over time --- which is exactly what proportional hazards requires --- then a plot of its residuals against time should be a flat, horizontal cloud with no trend. If instead the residuals drift up or down over time, the covariate's effect is *changing* over time, and the PH assumption is violated for that covariate.
 
 ::: {.panel-tabset}
 
@@ -395,14 +454,27 @@ cph.check_assumptions(df, p_value_threshold=0.05, show_plots=True)
 
 :::
 
+**What to look for in the output.** The `cox.zph()` table in R gives one row per covariate plus a `GLOBAL` row, each with a chi-squared statistic and a **p-value**. Read it as a series of hypothesis tests where the null is "this covariate satisfies proportional hazards":
+
+- A **large p-value (e.g., > 0.05)** is the *good* outcome here --- it means no evidence against proportional hazards, so the assumption is reasonable for that covariate.
+- A **small p-value (< 0.05)** flags a covariate whose effect changes over time --- a PH violation you need to address (see the next section).
+- The **`GLOBAL`** row tests all covariates jointly; if it is non-significant, the model as a whole is broadly consistent with PH.
+
+Then back up the numbers with the **Schoenfeld residual plots**: for each covariate you want the smoothed line to be roughly **flat/horizontal**. A clear upward or downward slope is the visual signature of a violation --- for example, a covariate whose effect is strong early but fades with time will show a declining trend. A useful habit: do not rely on the p-value alone (with large samples even trivial deviations become "significant"); always eyeball the plot to judge whether the trend is practically meaningful, not just statistically detectable.
+
 ### What To Do When PH Is Violated
 
-If the PH assumption is violated for a covariate:
+If the PH assumption is violated for a covariate, you have several options:
 
-1. **Stratify** on the offending variable: `coxph(Surv(time, event) ~ x1 + strata(x2), data = df)`. This allows the baseline hazard to differ by strata of `x2` without estimating an HR for it.
-2. **Include a time interaction**: Allow the effect to change over time.
-3. **Use time-varying covariates** (see below).
-4. **Use an alternative model**: Accelerated failure time (AFT) models or parametric models (Weibull, log-normal).
+1. **Stratify** on the offending variable: `coxph(Surv(time, event) ~ x1 + strata(x2), data = df)`.
+
+   Stratification is the most common fix and deserves a proper explanation, because what it does is subtle. Recall that the Cox model assumes a single shared **baseline hazard** $h_0(t)$ that every patient's hazard is a multiple of. When you `strata(x2)`, you tell the model: *do not assume one common baseline --- let each level of `x2` have its own, separately-shaped baseline hazard*. So if you stratify on, say, hospital site or disease stage, patients in stage 1 follow one baseline time-course and stage-4 patients another, and the model no longer forces their hazards to stay in fixed proportion.
+
+   The important trade-off: a stratified variable **drops out of the results table** --- you no longer get a hazard ratio for it, because you are no longer modelling its effect, just absorbing it into the baseline. So stratify on variables you want to *adjust for* but are not interested in estimating (nuisance variables like centre, or a strong confounder that violates PH). Keep the variables you actually want HRs for as ordinary covariates. The other covariates (`x1` above) still get hazard ratios, now estimated within strata. A practical note: stratification works best for categorical variables with a few levels; a continuous variable must be binned into categories first, which loses information.
+
+2. **Include a time interaction**: allow the effect to change over time by adding a term such as `x:time` (or `tt()` in `survival`). This estimates *how* the hazard ratio drifts --- useful when the time-dependence is itself of interest.
+3. **Use time-varying covariates** (see below) when the covariate's *value* (not just its effect) changes during follow-up.
+4. **Use an alternative model**: accelerated failure time (AFT) models or fully parametric models (Weibull, log-normal), which do not rest on proportional hazards at all.
 
 ## Time-Varying Covariates
 
@@ -424,27 +496,50 @@ This is an advanced topic. The key takeaway is that the Cox model is flexible en
 
 Standard survival analysis assumes that the event of interest is the only possible event, or that censoring is **non-informative** (i.e., censored patients have the same future risk as those who remain under observation).
 
-**Competing risks** arise when another event prevents the event of interest from being observed. Classic examples:
+**Competing risks** arise when another event prevents the event of interest from ever being observed. The defining feature is that the competing event *removes the patient from being at risk for your event altogether* --- it is not just a temporary loss to follow-up. Classic clinical examples:
 
 - Studying time to heart transplant rejection, but the patient dies of infection first.
 - Studying time to cancer recurrence, but the patient dies of cardiovascular disease.
 - Studying time to hospital readmission, but the patient dies before readmission.
 
-In these situations, treating the competing event as simple censoring is **wrong** — it inflates the estimated probability of the event of interest (because death is not "non-informative" censoring; dead patients cannot experience the event).
+**Why this matters clinically.** The instinctive fix --- treat the competing event (e.g., death) as just another censoring --- is **wrong**, and in a specific, important direction: it **overestimates** the probability of your event of interest. The reason is intuitive once stated. Ordinary censoring assumes the censored patient *could still have the event later* and is simply unobserved (e.g., they moved away). But a patient who has died of another cause can **never** experience cancer recurrence --- they are not "out there, still at risk." By treating them as censored, the standard Kaplan-Meier "1 − S(t)" silently pretends they might still recur, and inflates the recurrence probability. In older patients or any setting with substantial mortality from other causes, this bias can be large and clinically misleading --- you would quote a recurrence risk higher than any real patient faces. This is why, whenever a meaningful fraction of patients can experience a competing event, you should report the **cumulative incidence function** (which correctly accounts for competing events) rather than 1 minus the Kaplan-Meier estimate.
 
 ### Two Approaches
 
-1. **Cause-specific hazard models**: Fit separate Cox models for each event type, censoring the competing events. This estimates the rate of each event among those still at risk.
-2. **Fine-Gray subdistribution hazard model**: Directly models the cumulative incidence function, keeping patients who experienced the competing event in the risk set. This is often more appropriate for clinical prediction.
+There are two established ways to handle competing risks, and the distinction between them is one of the most commonly confused points in clinical survival analysis. They answer **different questions**, so the "right" one depends on what you want to know.
+
+1. **Cause-specific hazard models.** Fit a separate Cox model for each event type, treating the competing events as censored. Each model estimates the **rate of that specific event among patients still alive and event-free** at each instant. This answers an *etiological* question: *what drives the rate of this particular event?* A hazard ratio here describes the effect of a covariate on the biological process leading to that event, holding the at-risk population fixed. Because competing events are censored, the cause-specific hazard ratios should **not** be read directly as effects on the *probability* of the event over time.
+
+2. **Fine-Gray subdistribution hazard model.** Rather than censoring patients who experience the competing event, the Fine-Gray model **keeps them in the risk set** (conceptually, they remain "unable to have the event" forever). It models the **subdistribution hazard**, which links directly to the **cumulative incidence function** --- the actual probability of experiencing the event by time $t$ *in the real world, where competing events also happen*. This answers a *prognostic / predictive* question: *what is the chance this patient actually experiences the event by 5 years, given they might die of something else first?*
+
+The crucial consequence: a covariate can increase the cause-specific hazard of an event yet *decrease* its cumulative incidence (because it also raises the competing mortality), so the two models can even point in opposite directions. Neither is "wrong" --- they answer different questions.
 
 ::: {.callout-tip}
 ## Rule of Thumb for Competing Risks
-If you are interested in **etiology** (what causes the event?), use cause-specific hazards. If you are interested in **prediction** (what is the probability of the event by time $t$?), use the Fine-Gray model and report cumulative incidence functions rather than 1 minus KM.
+If you are interested in **etiology** (what causes the event, mechanistically?), use **cause-specific hazards**. If you are interested in **prediction** (what is the absolute probability of the event by time $t$?), use the **Fine-Gray model** and report **cumulative incidence functions** rather than 1 minus KM. For a clinical prediction model, Fine-Gray (or directly modelling the cumulative incidence) is usually what you want.
 :::
+
+For a clinically-oriented, practical treatment of competing risks --- including worked examples of both approaches and guidance on which to choose --- see the prediction-modelling textbook by Smits, van Kuijk, and Wynants [@smits2026prediction]. Accessible methodological introductions are given by Austin, Lee, and Fine [@austin2016competing], and the original subdistribution-hazard method is due to Fine and Gray [@fine1999]. In R, the `tidycmprsk` and `cmprsk` packages fit Fine-Gray models and estimate cumulative incidence; in Python, `scikit-survival` and `lifelines` provide competing-risks tools.
 
 ## Full Clinical Example: PBC Prognostic Model
 
 Let us build a complete survival model for the PBC dataset, following the steps a clinical researcher would take.
+
+::: {.callout-note}
+## Kaplan-Meier vs Cox --- when and why to use each
+Before reading the model output, it helps to be crystal clear on how the two main tools differ, because they are often confused:
+
+| | **Kaplan-Meier (+ log-rank)** | **Cox proportional hazards** |
+|---|---|---|
+| What it gives you | A survival *curve* for a whole group (or a few groups) | The *effect* of each predictor on the hazard, as a hazard ratio |
+| Handles covariates? | Only categorical group comparisons (e.g., treatment arm, stage) | Multiple predictors at once, including continuous ones, **adjusted for each other** |
+| Output to report | Median survival, x-year survival %, log-rank p-value | Hazard ratios with 95% CIs and p-values |
+| Analogy | Like comparing mean outcomes between groups (a *t*-test / ANOVA of survival) | Like multivariable regression for survival |
+
+In short: reach for **Kaplan-Meier** to *describe and visualise* survival and to compare a small number of groups; reach for the **Cox model** when you need to *adjust for several variables simultaneously* and quantify each one's independent effect. They are complementary --- a typical paper shows KM curves for the headline comparison and a Cox model for the adjusted analysis.
+:::
+
+The worked example below follows the standard sequence: explore the data, fit the multivariable Cox model, assess how well it discriminates, and use it to predict survival for individual patients.
 
 ::: {.panel-tabset}
 
@@ -564,6 +659,22 @@ plt.show()
 ```
 
 :::
+
+### What the Outputs Are Telling You
+
+It is easy to run this code and be confronted with a wall of numbers. Here is what to actually look at, in order:
+
+1. **The `summary(cox_full)` / `print_summary()` table** is the heart of it. For each predictor, focus on three columns:
+   - **`exp(coef)` --- the hazard ratio.** This is the headline number. HR > 1 = higher hazard (worse survival) per unit increase in that predictor; HR < 1 = protective. For example, an HR of 2.7 for `log(bili)` means each one-unit rise in log-bilirubin nearly triples the instantaneous hazard, holding the other predictors fixed.
+   - **The 95% confidence interval** (`lower .95`, `upper .95`). If it excludes 1, the effect is statistically significant; its width tells you how precisely the effect is estimated.
+   - **`Pr(>|z|)` --- the p-value.** Which predictors are independently associated with survival after adjustment?
+   You are *learning*: which factors carry prognostic information, in which direction, and how strongly. In the PBC model you should see that higher bilirubin, older age, lower albumin, and worse edema/stage all predict shorter survival --- which matches the clinical picture of advanced liver disease.
+
+2. **The concordance (C-index)** summarises *discrimination* --- how well the model ranks who dies sooner. 0.5 is a coin-flip; 1.0 is perfect. A value around 0.8 (as here) means that, given two patients, the model correctly identifies the one who dies first about 80% of the time. This is the single best one-number summary of predictive performance.
+
+3. **The predicted survival curves** turn the model into something a clinician can use: plug in a patient's covariates and read off their estimated survival probability over time. The low-risk vs high-risk curves should be visibly separated --- the *visual* proof that the predictors above translate into meaningfully different prognoses. This is also where the link back to Kaplan-Meier becomes clear: a KM curve describes an *observed group*, whereas these Cox-predicted curves are *individualised* and *adjusted* for the full covariate profile.
+
+If you observe nothing else, observe these three things: **direction and size of each hazard ratio, whether its CI excludes 1, and the C-index.** Together they answer "what matters, how much, and how well does the whole model predict?"
 
 ## Exercises
 

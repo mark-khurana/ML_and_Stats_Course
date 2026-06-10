@@ -679,7 +679,7 @@ e(L) = P(A=1 \mid L)
 <h3 data-number="20.4.2" class="anchored" data-anchor-id="estimating-the-propensity-score"><span class="header-section-number">20.4.2</span> Estimating the propensity score</h3>
 <p>We typically estimate <span class="math inline">\(e(L)\)</span> using logistic regression (or more flexible methods like gradient boosting):</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Simulate clinical data</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
@@ -730,7 +730,7 @@ e(L) = P(A=1 \mid L)
 <h3 data-number="20.4.3" class="anchored" data-anchor-id="propensity-score-matching"><span class="header-section-number">20.4.3</span> Propensity score matching</h3>
 <p><strong>Matching</strong> creates a pseudo-randomised subset by pairing treated and control patients with similar propensity scores.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Using MatchIt for nearest-neighbour matching with caliper</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a>m_out <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treatment <span class="sc">~</span> age <span class="sc">+</span> diabetes <span class="sc">+</span> egfr <span class="sc">+</span> smoking,</span>
@@ -773,7 +773,7 @@ w_i = \frac{A_i}{e(L_i)} + \frac{1 - A_i}{1 - e(L_i)}
 w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
 \]</span></p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># Using WeightIt</span></span>
 <span id="cb6-2"><a href="#cb6-2"></a>w_out <span class="ot">&lt;-</span> <span class="fu">weightit</span>(treatment <span class="sc">~</span> age <span class="sc">+</span> diabetes <span class="sc">+</span> egfr <span class="sc">+</span> smoking,</span>
@@ -926,7 +926,7 @@ w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
 <h2 data-number="20.7" class="anchored" data-anchor-id="implementation-in-python"><span class="header-section-number">20.7</span> Implementation in Python</h2>
 <p>Python’s causal inference ecosystem is maturing. Here we demonstrate propensity score matching and IPTW using <code>dowhy</code> and <code>causalinference</code>.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb7-2"><a href="#cb7-2"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -1007,7 +1007,7 @@ w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
 <section id="using-dowhy-for-causal-analysis" class="level3" data-number="20.7.1">
 <h3 data-number="20.7.1" class="anchored" data-anchor-id="using-dowhy-for-causal-analysis"><span class="header-section-number">20.7.1</span> Using DoWhy for causal analysis</h3>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># DoWhy provides a structured causal inference workflow</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a><span class="co"># Install: pip install dowhy</span></span>
@@ -1054,7 +1054,7 @@ w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
 \]</span></p>
 <p>where <span class="math inline">\(RR\)</span> is the observed risk ratio. The E-value for the confidence interval bound closest to the null is also reported.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># E-value calculation</span></span>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="fu">library</span>(EValue)</span>
@@ -1122,7 +1122,7 @@ w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
 <h3 data-number="20.10.2" class="anchored" data-anchor-id="exercise-2-propensity-score-matching-in-r"><span class="header-section-number">20.10.2</span> Exercise 2: Propensity score matching in R</h3>
 <p>Using the simulated dataset below, perform propensity score matching and estimate the treatment effect.</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb10-2"><a href="#cb10-2"></a>n <span class="ot">&lt;-</span> <span class="dv">1500</span></span>
@@ -1153,7 +1153,7 @@ w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
 <h3 data-number="20.10.3" class="anchored" data-anchor-id="exercise-3-iptw-in-python"><span class="header-section-number">20.10.3</span> Exercise 3: IPTW in Python</h3>
 <p>Using the same data-generating process as Exercise 2 (replicate it in Python):</p>
 <div class="cell" data-layout-align="center">
-<details open="" class="code-fold">
+<details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb11-2"><a href="#cb11-2"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
