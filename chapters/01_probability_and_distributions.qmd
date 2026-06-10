@@ -484,7 +484,7 @@ Notice how the distribution of sample means changes:
 
 This is the CLT in action. It does not matter that we started with a skewed distribution --- the means converge to normality.
 
-## Bayes' Theorem: Updating Beliefs with Evidence
+## Bayes' Theorem: Updating Beliefs with Evidence {#sec-bayes-theorem}
 
 ### The Idea
 

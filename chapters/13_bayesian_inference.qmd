@@ -13,7 +13,7 @@ library(knitr)
 
 ::: {.callout-tip}
 ## Prerequisites
-This chapter assumes you are comfortable with: (1) probability and Bayes' theorem from Chapter 1, (2) basic R or Python programming from Chapter 0, and (3) the regression concepts from Chapters 3--5. If Bayes' theorem feels unfamiliar, review Section 1.4 before continuing.
+This chapter assumes you are comfortable with: (1) probability and Bayes' theorem (@sec-probability), (2) basic R or Python programming (@sec-setup), and (3) the regression concepts from @sec-regression. If Bayes' theorem feels unfamiliar, review @sec-bayes-theorem before continuing.
 :::
 
 ## Introduction
@@ -252,11 +252,13 @@ library(tidyverse)
 # Observed data: 8 successes out of 20 trials
 y <- 8; n <- 20
 
-# Define three priors
+# Define three priors (factor levels fix the facet order:
+# uninformative -> weakly informative -> informative)
+prior_levels <- c("Uninformative: Beta(1,1)",
+                  "Weakly informative: Beta(2,2)",
+                  "Informative: Beta(10,30)")
 priors <- tibble(
-  prior_name = c("Uninformative: Beta(1,1)",
-                 "Weakly informative: Beta(2,2)",
-                 "Informative: Beta(10,30)"),
+  prior_name = factor(prior_levels, levels = prior_levels),
   alpha0 = c(1, 2, 10),
   beta0  = c(1, 2, 30)
 )
@@ -273,7 +275,8 @@ plot_data <- priors %>%
     Posterior = dbeta(theta, alpha0 + y, beta0 + n - y)
   ) %>%
   pivot_longer(cols = c(Prior, Posterior),
-               names_to = "Distribution", values_to = "Density")
+               names_to = "Distribution", values_to = "Density") %>%
+  mutate(prior_name = factor(prior_name, levels = prior_levels))
 
 ggplot(plot_data, aes(x = theta, y = Density, colour = Distribution,
                        linetype = Distribution)) +
@@ -327,7 +330,9 @@ plt.show()
 
 :::
 
-Notice how with enough data, the posteriors converge regardless of the prior. This is a key property: **the data overwhelm the prior** as the sample size grows. With small samples, however, the prior has real influence --- which is precisely why choosing it carefully matters.
+Notice what happens with only **20 patients** --- a small sample. The choice of prior visibly matters: with the uninformative $\text{Beta}(1,1)$ and weakly-informative $\text{Beta}(2,2)$ priors, the posterior sits close to the observed rate of $8/20 = 0.40$, but with the informative $\text{Beta}(10,30)$ prior the posterior is clearly **pulled down toward the prior's expectation of 0.25**. With this little data, the prior is not overwhelmed --- it leaves a real fingerprint on the answer.
+
+This cuts both ways, and it is the key practical lesson. When data are scarce, the prior carries real weight, so it must be chosen and justified carefully (and you should always check how much the conclusions shift under different reasonable priors --- a *sensitivity analysis*). It is only as the sample size grows *much larger* that the likelihood dominates and the posterior becomes insensitive to the prior --- the regime where "the data overwhelm the prior." Twenty patients is firmly in the small-sample regime, which is exactly why Bayesian methods, with a sensible prior, are so useful here in the first place.
 
 ## The Likelihood
 
