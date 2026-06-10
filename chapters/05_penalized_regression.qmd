@@ -1,3 +1,8 @@
+---
+execute:
+  eval: true
+---
+
 # Penalised Regression: Ridge, LASSO, and Elastic Net {#sec-penalised-regression}
 
 ::: {.callout-note}
@@ -17,7 +22,9 @@ By the end of this chapter, you will be able to:
 
 ## Introduction: Why Standard Regression Is Not Enough
 
-Throughout the earlier chapters, we have used standard regression --- ordinary least squares (OLS) for continuous outcomes, logistic regression for binary outcomes, Cox regression for time-to-event data. These methods work well when the number of predictors is small relative to the sample size and the predictors are not highly correlated.
+Throughout the earlier chapters, we have used standard regression --- ordinary least squares (OLS) for continuous outcomes, logistic regression for binary outcomes, and Cox regression for *time-to-event* data (outcomes measured as the time until an event such as death or relapse occurs; also called survival data, covered in the survival analysis chapter). These methods work well when the number of predictors is small relative to the sample size and the predictors are not highly correlated.
+
+Two pieces of notation recur throughout this chapter: we write $p$ for the **number of predictors** (variables) and $n$ for the **number of observations** (patients). So "$p > n$" is shorthand for *more predictors than patients* --- the genomics-style setting where standard regression breaks down.
 
 But modern clinical research increasingly involves situations where these assumptions break down:
 
@@ -28,7 +35,7 @@ But modern clinical research increasingly involves situations where these assump
 
 In all these situations, standard regression either **fails entirely** (when $p > n$) or produces **unreliable, overfitted** models (when $p$ is close to $n$).
 
-Penalised regression --- also known as regularised regression or shrinkage methods --- solves this problem by adding a penalty to the regression coefficients, pulling them toward zero. This trades a small amount of bias for a large reduction in variance, typically producing models that predict much better on new data.
+Penalised regression --- also known as regularised regression or shrinkage methods --- solves this problem by adding a penalty to the regression coefficients, pulling them toward zero. This trades a small amount of **bias** for a large reduction in **variance**, typically producing models that predict much better on new data. (If those two terms are unfamiliar, do not worry --- the bias-variance tradeoff is exactly what the next section unpacks; for now, read "bias" as *systematic error* and "variance" as *instability from one sample to the next*.)
 
 ## The Problem: Overfitting and Instability
 
@@ -49,6 +56,12 @@ What goes wrong?
 4. **Non-convergence.** When $p > n$, the standard regression algorithm simply does not converge --- there is no unique solution.
 
 ### A Demonstration
+
+To make the problem concrete, the simulation below creates a dataset where we *know* the truth: 100 patients, 40 candidate predictors, but only the first 5 actually influence the outcome (the other 35 are pure noise with a true coefficient of zero). We then fit a standard logistic regression and compare the coefficients it estimates (blue bars) against the true values (red dots). If the method were working well, the blue bars should sit near the red dots --- near zero for the 35 noise predictors. Instead, because there are far too many predictors for the available information, many coefficients are estimated as large positive or negative values for variables that have *no real effect at all*. That is overfitting made visible: the model is fitting the noise.
+
+::: {.panel-tabset}
+
+#### R
 
 ```{r}
 #| label: fig-overfitting-demo
@@ -90,6 +103,45 @@ ggplot(coef_df, aes(x = reorder(predictor, -abs(estimated)))) +
   theme_minimal(base_size = 12)
 ```
 
+#### Python
+
+```{python}
+#| label: fig-overfitting-demo-python
+#| fig-cap: "The same demonstration in Python: standard logistic regression with 40 predictors and 100 observations. Estimated coefficients (blue) bear little resemblance to the true values (red dots)."
+#| code-fold: true
+#| warning: false
+#| message: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+
+rng = np.random.default_rng(42)
+n, p = 100, 40
+
+# True model: only the first 5 predictors matter
+X = rng.normal(size=(n, p))
+true_beta = np.array([1.0] * 5 + [0.0] * (p - 5))
+y = rng.binomial(1, 1 / (1 + np.exp(-(X @ true_beta))))
+
+# Standard (essentially unpenalised) logistic regression
+fit = LogisticRegression(penalty=None, max_iter=10000).fit(X, y)
+estimated = fit.coef_[0]
+
+order = np.argsort(np.abs(estimated))
+plt.figure(figsize=(7, 8))
+plt.barh(range(p), estimated[order], color="#3498db", alpha=0.7, label="Estimated")
+plt.plot(true_beta[order], range(p), "o", color="#e74c3c", label="True")
+plt.yticks(range(p), [f"X{j+1}" for j in order], fontsize=7)
+plt.xlabel("Coefficient value")
+plt.title("Many coefficients are wildly wrong (blue) vs the truth (red)")
+plt.legend(loc="best")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
 ## The Bias-Variance Tradeoff
 
 The fundamental insight behind penalised regression is the **bias-variance tradeoff**.
@@ -106,11 +158,13 @@ $$\text{Expected Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible No
 
 ### The Tradeoff
 
-Standard regression (OLS, maximum likelihood) is **unbiased** --- it gives the best estimates *on average*. But in high-dimensional or small-sample settings, this unbiasedness comes at the cost of enormous variance. The estimated coefficients are unbiased but wildly imprecise.
+Standard regression (OLS, maximum likelihood) is **unbiased** --- meaning that if you could repeat your study many times on fresh samples and average the coefficient estimates, that average would land on the true value. There is no systematic tendency to over- or under-estimate. (This is a guaranteed mathematical property of least squares and maximum likelihood under the usual modelling assumptions; it is *why* these methods are the default starting point.) But notice what "unbiased on average" does *not* promise: that any *single* estimate from your *one* actual dataset is close to the truth. In high-dimensional or small-sample settings, the estimates scatter enormously from sample to sample --- they are correct on average but wildly imprecise in any given sample. That scatter is the variance, and it is what penalisation attacks.
 
 Penalised regression deliberately introduces a small amount of bias --- shrinking coefficients toward zero --- in exchange for a dramatic reduction in variance. The net effect is a model with **lower total prediction error** despite being biased.
 
 Think of it this way: if the true coefficient is 0.5, an unbiased estimator might give you estimates of -2.3, 3.1, 0.8, -1.5, etc. across different samples (unbiased on average, but highly variable). A biased estimator that consistently gives you 0.3 is much closer to the truth in any given sample, even though it is systematically too low.
+
+The figure below makes this tradeoff visual. The horizontal axis is the penalty strength $\lambda$, plotted so that the penalty *increases* as you move to the right (equivalently, model complexity *decreases* to the right). Watch the three curves as the penalty grows: **bias²** (red) rises, because shrinking coefficients toward zero introduces systematic error; **variance** (blue) falls, because a more constrained model is less sensitive to the particular sample; and the **total error** (dark line), which is their sum plus irreducible noise, is U-shaped. The dashed vertical line marks the sweet spot --- the penalty that minimises total error. Too little penalty (far left) and variance dominates; too much (far right) and bias dominates. Cross-validation, introduced later, is simply an automatic way to find that dashed line from data.
 
 ```{r}
 #| label: fig-bias-variance
@@ -163,35 +217,52 @@ The penalty term discourages large coefficients. The tuning parameter $\lambda \
 - $\lambda \to \infty$: all coefficients shrunk to zero (null model)
 - Intermediate $\lambda$: the sweet spot, chosen by cross-validation
 
+We will lean on **cross-validation** repeatedly to choose $\lambda$, so here is the idea in one sentence (it gets a full treatment in @sec-choosing-lambda): cross-validation repeatedly hides part of the data, fits the model on the rest, and checks how well it predicts the hidden part --- giving an honest estimate of out-of-sample performance for each candidate $\lambda$, so we can pick the value that predicts best on data the model has not seen.
+
 The three main methods differ only in the form of the penalty.
 
 ::: {.callout-important}
 ## Standardisation Is Essential
 
-Before applying penalised regression, all predictors must be **standardised** (centred to mean zero, scaled to unit variance). This is because the penalty treats all coefficients equally --- if one predictor is measured in milligrams and another in kilograms, the unstandardised coefficients will be on very different scales, and the penalty will disproportionately shrink the one with the smaller scale.
+Before applying penalised regression, all predictors must be **standardised**. Standardising a variable means two simple steps: subtract its mean (so the new variable is centred at zero) and divide by its standard deviation (so a one-unit change now means "one standard deviation"). For a predictor $x_j$ with mean $\bar{x}_j$ and standard deviation $s_j$, each value becomes
+$$z_{ij} = \frac{x_{ij} - \bar{x}_j}{s_j}.$$
+After this, every predictor is on the same footing: mean zero, standard deviation one, no units.
 
-Both `glmnet` (R) and `sklearn` (Python) standardise internally by default, but you should be aware of this, especially when interpreting the output.
+Why does this matter here specifically? The penalty adds up the sizes of the coefficients ($\sum \beta_j^2$ for ridge, $\sum |\beta_j|$ for LASSO) and treats every coefficient the same way. But a coefficient's size depends on the units of its predictor. Measure a drug dose in milligrams and the coefficient is small; measure the *same* dose in kilograms and the coefficient is a million times larger --- even though nothing about the science changed. Because the penalty only "sees" coefficient size, it would shrink the kilogram version far more aggressively than the milligram version. Standardising removes this arbitrariness, so the penalty reflects each predictor's genuine contribution rather than the accident of its measurement scale.
+
+Both `glmnet` (R) and `sklearn` (Python) standardise internally by default and then report coefficients back on the original scale, so you usually do not have to do this by hand --- but you should know it is happening, because it explains why penalised coefficients are not directly comparable to ordinary regression coefficients unless you account for it.
 :::
 
 ## Ridge Regression (L2 Penalty)
 
 ### Definition
 
-Ridge regression adds the **squared sum of coefficients** (L2 norm) as the penalty:
+Ridge regression, introduced by Hoerl and Kennard [-@hoerl1970], adds the **squared sum of coefficients** (L2 norm) as the penalty:
 
-$$\hat{\boldsymbol{\beta}}_{\text{Ridge}} = \arg\min_{\boldsymbol{\beta}} \left\{ \sum_{i=1}^{n} \left( y_i - \beta_0 - \sum_{j=1}^{p} \beta_j x_{ij} \right)^2 + \lambda \sum_{j=1}^{p} \beta_j^2 \right\}$$
+$$\hat{\boldsymbol{\beta}}_{\text{Ridge}} = \arg\min_{\boldsymbol{\beta}} \left\{ \underbrace{\sum_{i=1}^{n} \left( y_i - \beta_0 - \sum_{j=1}^{p} \beta_j x_{ij} \right)^2}_{\text{(1) how badly the model fits the data}} + \underbrace{\lambda \sum_{j=1}^{p} \beta_j^2}_{\text{(2) penalty for large coefficients}} \right\}$$
 
-Note that the **intercept** $\beta_0$ is typically **not penalised** --- only the predictor coefficients $\beta_1, \ldots, \beta_p$ are shrunk.
+The equation looks dense, but it is saying something simple. Read it as a tug-of-war between two quantities the model tries to keep small at the same time:
+
+- **Term (1) — misfit.** This is the ordinary regression criterion: for each patient $i$, take the gap between the observed outcome $y_i$ and the model's prediction, square it, and add up over all patients. Smaller means the model fits the data better. On its own, minimising this term is just standard regression.
+- **Term (2) — penalty.** This adds up the squared coefficients and multiplies by $\lambda$. It grows whenever coefficients get large, so it pushes them back toward zero. $\lambda$ is the dial that sets how strong that pushback is.
+
+"$\arg\min_{\boldsymbol{\beta}}$" just means *find the set of coefficients $\boldsymbol{\beta}$ that makes the whole expression as small as possible*. So ridge regression looks for coefficients that fit the data well **and** stay modest in size, with $\lambda$ deciding how much weight to give each goal. Set $\lambda = 0$ and the penalty vanishes, recovering ordinary regression; make $\lambda$ very large and the coefficients are squeezed close to zero.
+
+Note that the **intercept** $\beta_0$ is typically **not penalised** --- only the predictor coefficients $\beta_1, \ldots, \beta_p$ are shrunk, because the intercept just sets the baseline level of the outcome and shrinking it would have no useful effect.
 
 ### Key Properties
 
-1. **Shrinks coefficients toward zero, but never exactly to zero.** No matter how large $\lambda$ is, the Ridge coefficients remain non-zero (though they can be extremely small). This means Ridge regression does *not* perform variable selection --- all predictors remain in the model.
+Ridge has three properties worth understanding. The first is the one that matters most in practice; the other two explain *why* ridge is so well-behaved.
 
-2. **Closed-form solution.** The Ridge estimate has an elegant closed-form:
+1. **It shrinks every coefficient toward zero, but never all the way to zero.** No matter how strong the penalty, ridge makes coefficients smaller without ever switching any off completely --- they get tiny, but stay non-zero. The practical upshot is that ridge keeps *all* of your predictors in the model.
+
+   This is the place to define a term used throughout the chapter. **Variable selection** means automatically deciding which predictors to *keep* and which to *drop entirely* from the model --- in effect, setting some coefficients to exactly zero so those variables disappear. It is what you would otherwise do by hand when you trim a model down to a short, usable list of predictors. **Ridge does not do variable selection**: because its coefficients never hit exactly zero, every predictor stays in, just with a reduced weight. (The LASSO, covered next, *does* perform variable selection --- this is the single biggest difference between the two methods, so keep the contrast in mind.)
+
+2. **It has a closed-form solution.** "Closed-form" means the answer can be computed directly with a single formula, rather than by an iterative search. For ridge that formula is:
 $$\hat{\boldsymbol{\beta}}_{\text{Ridge}} = (\mathbf{X}^T\mathbf{X} + \lambda \mathbf{I})^{-1} \mathbf{X}^T \mathbf{y}$$
-The $\lambda \mathbf{I}$ term added to $\mathbf{X}^T\mathbf{X}$ makes the matrix invertible even when $p > n$ or when predictors are highly correlated. This is why Ridge regression is sometimes described as "regularising" an ill-conditioned problem.
+   You do not need to manipulate this by hand --- the software does. The point to take away is the role of the $\lambda \mathbf{I}$ piece: adding it guarantees the matrix can always be inverted (i.e., the equation always has a unique, stable solution), even when there are more predictors than patients ($p > n$) or when predictors are highly correlated --- exactly the cases where ordinary regression fails. This is the mathematical reason ridge "rescues" problems that would otherwise have no stable answer.
 
-3. **Handles multicollinearity gracefully.** When predictors are highly correlated (e.g., systolic and diastolic blood pressure, or multiple related inflammatory markers), standard regression produces wildly unstable coefficients that can have the wrong sign. Ridge regression stabilises these estimates by shrinking correlated predictors toward each other.
+3. **It handles multicollinearity gracefully.** *Multicollinearity* is when predictors carry overlapping information --- systolic and diastolic blood pressure, or several related inflammatory markers. Ordinary regression reacts badly to this: it cannot decide how to split the shared effect between the correlated variables, so it produces wildly unstable coefficients that can even come out with the wrong sign. Ridge calms this down by pulling correlated predictors toward a shared, modest value instead of letting them swing against each other.
 
 ### When to Use Ridge
 
@@ -204,7 +275,7 @@ The $\lambda \mathbf{I}$ term added to $\mathbf{X}^T\mathbf{X}$ makes the matrix
 
 ### Definition
 
-The LASSO (Least Absolute Shrinkage and Selection Operator) uses the **sum of absolute values** (L1 norm) as the penalty:
+The LASSO (Least Absolute Shrinkage and Selection Operator), introduced by Tibshirani [-@tibshirani1996], uses the **sum of absolute values** (L1 norm) as the penalty:
 
 $$\hat{\boldsymbol{\beta}}_{\text{LASSO}} = \arg\min_{\boldsymbol{\beta}} \left\{ \sum_{i=1}^{n} \left( y_i - \beta_0 - \sum_{j=1}^{p} \beta_j x_{ij} \right)^2 + \lambda \sum_{j=1}^{p} |\beta_j| \right\}$$
 
@@ -238,9 +309,12 @@ Use the LASSO as a tool to *complement*, not replace, clinical reasoning about w
 
 ### The Geometry of L1 vs L2
 
-The difference between Ridge and LASSO can be understood geometrically. The L2 penalty constrains coefficients to lie within a sphere (in two dimensions, a circle). The L1 penalty constrains coefficients to lie within a diamond (in two dimensions, a square rotated 45 degrees).
+Why does the LASSO zero out coefficients while ridge only shrinks them? The cleanest explanation is geometric. Imagine just two predictors, so a coefficient pair $(\beta_1, \beta_2)$ is a point on a 2-D map. The penalty puts a "budget" on how far that point can stray from the origin, and the *shape* of the allowed region differs between the two methods:
 
-The key insight is that the diamond has **corners** on the axes. When the contours of the loss function touch the constraint region, they are much more likely to hit a corner of the diamond (where one coefficient is exactly zero) than a point on the smooth surface of the sphere. This is why the LASSO produces exact zeros and Ridge does not.
+- The **L2 (ridge)** budget allows everything inside a **circle** centred at the origin (a sphere in higher dimensions). A circle is smooth --- it has no special points.
+- The **L1 (LASSO)** budget allows everything inside a **diamond** (a square turned 45°, with sharp corners sitting exactly on the axes).
+
+Now picture the regression's "best fit" as a set of nested ellipses (contours of the misfit term, term (1) from the ridge equation), centred on the unpenalised OLS solution. The penalised estimate is the first point where an expanding ellipse just *touches* the allowed region. Here is the crux: a corner of the diamond lies **on an axis**, and a point on an axis has one coordinate equal to **exactly zero** (e.g. $\beta_2 = 0$, meaning that predictor is dropped). Because the diamond's corners stick out, an expanding ellipse is very likely to make first contact *at a corner* --- producing an exact zero. The circle, having no corners, is almost always touched at a point where *both* coordinates are non-zero --- so ridge shrinks but never eliminates. This single geometric difference --- corners versus a smooth edge --- is the whole reason the LASSO performs variable selection and ridge does not. The figure below shows exactly this: the LASSO solution sits on the diamond's corner (one coefficient zero), while the ridge solution sits off-axis (both coefficients non-zero).
 
 ```{r}
 #| label: fig-l1-vs-l2-geometry
@@ -305,7 +379,7 @@ ggplot() +
 
 ### Definition
 
-The Elastic Net combines both L1 and L2 penalties:
+The Elastic Net, proposed by Zou and Hastie [-@zou2005], combines both L1 and L2 penalties:
 
 $$\hat{\boldsymbol{\beta}}_{\text{EN}} = \arg\min_{\boldsymbol{\beta}} \left\{ \text{Loss}(\boldsymbol{\beta}) + \lambda \left[ \alpha \sum_{j=1}^{p} |\beta_j| + \frac{(1-\alpha)}{2} \sum_{j=1}^{p} \beta_j^2 \right] \right\}$$
 
@@ -327,15 +401,15 @@ The Elastic Net addresses the LASSO's limitations while retaining its strengths:
 
 ### Choosing Alpha
 
-In practice, $\alpha$ is often chosen by **cross-validation** alongside $\lambda$. A common approach:
+In practice, $\alpha$ is often chosen by **cross-validation** alongside $\lambda$. Cross-validation (defined fully in @sec-choosing-lambda) is the standard tool for choosing *any* tuning parameter: it scores each candidate value by how well the resulting model predicts data it was not trained on. Here we have two dials to set --- $\alpha$ (the L1/L2 mix) and $\lambda$ (the overall strength) --- so we search over a grid of both:
 
 - Try $\alpha \in \{0.1, 0.25, 0.5, 0.75, 0.9, 1.0\}$
-- For each $\alpha$, use cross-validation to find the optimal $\lambda$
+- For each $\alpha$, use cross-validation to find the optimal $\lambda$ (this is the inner search `cv.glmnet` does automatically)
 - Select the $(\alpha, \lambda)$ combination with the best cross-validated performance
 
-Alternatively, $\alpha = 0.5$ is a reasonable default that balances L1 and L2 equally.
+In practice this is a short loop over the $\alpha$ values, calling cross-validation once per $\alpha$ and keeping the best pair --- exactly the pattern shown in the R implementation walkthrough later in this chapter. If you would rather not search at all, $\alpha = 0.5$ is a reasonable default that balances L1 and L2 equally and works well in many clinical datasets.
 
-## Choosing Lambda: Cross-Validation
+## Choosing Lambda: Cross-Validation {#sec-choosing-lambda}
 
 ### The Cross-Validation Procedure
 
@@ -366,7 +440,7 @@ Steyerberg [-@steyerberg2019] recommends reporting results for both and discussi
 
 ```{r}
 #| label: fig-cv-lambda
-#| fig-cap: "Cross-validation curve for LASSO. The x-axis is log(lambda), the y-axis is cross-validated deviance. Vertical lines mark lambda.min (left) and lambda.1se (right)."
+#| fig-cap: "Cross-validation curve for LASSO. The x-axis is -log(lambda) (so the penalty decreases left to right), the y-axis is cross-validated deviance. Vertical lines mark lambda.1se (left) and lambda.min (right)."
 #| code-fold: true
 #| warning: false
 #| message: false
@@ -384,9 +458,20 @@ cv_fit <- cv.glmnet(X, y, family = "binomial", alpha = 1, nfolds = 10)
 plot(cv_fit)
 ```
 
+**How to read this plot.** This is the standard `glmnet` cross-validation plot, and it repays a careful look. One orientation point first: current versions of `glmnet` label the x-axis $-\log(\lambda)$ (negative log lambda), so the penalty *decreases* from left to right. This is the opposite layout to a plain $\log(\lambda)$ axis, so read it carefully:
+
+- The **x-axis** is $-\log(\lambda)$. Because of the minus sign, the penalty is *strongest* on the **left** (large $\lambda$, a heavily shrunk model) and *weakest* on the **right** (small $\lambda$, a complex model close to ordinary regression). Each red dot is one candidate $\lambda$.
+- The **y-axis** is the cross-validated **deviance** --- a measure of prediction error (lower is better; see the deviance explanation later in this chapter). Each red dot is the average error across the 10 folds for that $\lambda$, and the **vertical bars** through it show ±1 standard error of that average, i.e. how uncertain the estimate is.
+- The numbers along the **top** count how many predictors remain in the model (have non-zero coefficients) at each $\lambda$ --- notice they *grow* from left to right (few on the strongly-penalised left, all of them on the weakly-penalised right) as the penalty releases more coefficients from zero.
+- The two **dashed vertical lines** mark the two recommended choices. Because larger $\lambda$ is now on the left, `lambda.1se` (the largest $\lambda$ within one standard error of the best --- the simpler, more parsimonious model) is the **left** line, and `lambda.min` (the $\lambda$ with the lowest average error) is the **right** line.
+
+So the plot is really a picture of the bias-variance tradeoff from earlier, drawn from real cross-validated data: error is high when the penalty is too strong (over-shrinking, far left) *and* when it is too weak (overfitting, far right), with a basin of good values in between that the two dashed lines bracket.
+
 ## Regularisation Paths
 
 A **regularisation path** (also called a coefficient trace or coefficient path) shows how each coefficient changes as $\lambda$ varies from large (strong penalty) to small (weak penalty).
+
+The code below fits a LASSO over the *whole range* of $\lambda$ in one call (`glmnet` does this automatically --- you do not specify a single $\lambda$), then plots every coefficient as a line. The two dashed vertical lines reuse the `lambda.min` and `lambda.1se` values found by cross-validation in the previous section, so you can see which coefficients survive at each recommended penalty. On the $-\log(\lambda)$ axis the penalty relaxes as you move left to right, so you watch predictors switch on one by one from left (strong penalty, all near zero) to right (weak penalty, all active).
 
 ```{r}
 #| label: fig-regularisation-path
@@ -398,31 +483,47 @@ A **regularisation path** (also called a coefficient trace or coefficient path) 
 library(glmnet)
 
 fit_lasso <- glmnet(X, y, family = "binomial", alpha = 1)
+# glmnet 5.0 draws this plot on a -log(lambda) axis, so the reference
+# lines are placed at -log(lambda.min) and -log(lambda.1se) to match.
 plot(fit_lasso, xvar = "lambda", label = TRUE)
-abline(v = log(cv_fit$lambda.min), lty = 2, col = "blue")
-abline(v = log(cv_fit$lambda.1se), lty = 2, col = "red")
-legend("topright", legend = c("lambda.min", "lambda.1se"),
+abline(v = -log(cv_fit$lambda.min), lty = 2, col = "blue")
+abline(v = -log(cv_fit$lambda.1se), lty = 2, col = "red")
+legend("topleft", legend = c("lambda.min", "lambda.1se"),
        col = c("blue", "red"), lty = 2, cex = 0.8)
 ```
 
 ### How to Read a Regularisation Path
 
-- **Right side** (large $\lambda$): strong penalty, all coefficients near zero.
-- **Left side** (small $\lambda$): weak penalty, coefficients approach their OLS values.
-- **Order of entry**: predictors that become non-zero first (at the largest $\lambda$) are the most important --- they require the least "loosening" of the penalty to enter the model.
-- **Sign and magnitude**: the sign and eventual magnitude reveal the direction and strength of each predictor's association.
+First, the x-axis. Current `glmnet` (version 5.0 and later) labels it $-\log(\lambda)$ --- *negative* log lambda. The minus sign matters: it means the penalty *decreases* as you move from left to right. So large penalties sit on the **left** and small penalties on the **right** --- the mirror image of a plain $\log(\lambda)$ axis. This is the same axis as the cross-validation plot in the previous section, so the two figures line up. (If you have seen older `glmnet` figures with a $\log(\lambda)$ axis, the left--right orientation there is reversed; always read the axis label.)
 
-This plot is extremely useful for understanding the relative importance of predictors and the stability of the model across different penalty strengths.
+With that settled, here is how to read the curves:
+
+- **Left side** (large $\lambda$, small $-\log\lambda$): strong penalty, all coefficients squeezed to near zero.
+- **Right side** (small $\lambda$, large $-\log\lambda$): weak penalty, coefficients approach their ordinary (unpenalised) regression values.
+- **Order of entry**: predictors whose lines peel away from zero **earliest --- i.e. furthest to the left, while the penalty is still strong** --- are the most important, because they survive the heaviest shrinkage.
+- **Sign and magnitude**: the sign and eventual magnitude of each line reveal the direction and strength of that predictor's association.
+
+The two dashed vertical lines mark the cross-validated `lambda.min` and `lambda.1se`, so you can read off which coefficients are non-zero at each recommended penalty. This plot is extremely useful for understanding the relative importance of predictors and the stability of the model across different penalty strengths.
 
 ## Clinical Example: Breast Cancer Diagnosis from Image Features
 
 ### The Dataset
 
-The Wisconsin Breast Cancer Diagnostic dataset contains 569 biopsy samples with 30 image-derived features (mean, standard error, and worst values for 10 characteristics: radius, texture, perimeter, area, smoothness, compactness, concavity, concave points, symmetry, and fractal dimension). The outcome is the diagnosis: malignant (M) or benign (B).
+The Original Wisconsin Breast Cancer dataset (the `BreastCancer` data in the `mlbench` package, used in the code below) contains 699 biopsy samples scored on **9 cytological attributes**, each graded 1--10 by a pathologist: clump thickness, uniformity of cell size, uniformity of cell shape, marginal adhesion, single epithelial cell size, bare nuclei, bland chromatin, normal nucleoli, and mitoses. The outcome is the diagnosis: malignant or benign.
 
-With 30 predictors and 569 observations, this is a setting where penalised regression may improve upon standard logistic regression, particularly because many of the features are highly correlated (e.g., radius, perimeter, and area are nearly collinear).
+With 9 predictors and several hundred observations, this is not a $p > n$ problem, but it is still a useful setting for penalised regression because many of the cytological features are highly correlated (cell-size and cell-shape uniformity, for instance, tend to move together). Correlated predictors are exactly where the three methods behave differently, which is what makes the comparison below instructive.
 
-### Analysis in R
+::: {.callout-note}
+## What is "deviance"?
+
+The code below reports model performance as **deviance**, a term that recurs whenever we fit logistic (and other generalised linear) models, so it is worth pinning down. Deviance is a measure of **how poorly a model fits**, built from the likelihood: it is defined as $-2 \times$ the log-likelihood of the fitted model. Lower deviance means a better fit. For ordinary linear regression, deviance reduces to the residual sum of squares, so you can think of it as the natural extension of "squared prediction error" to logistic regression and other models where squared error does not directly apply. When we report **cross-validated deviance**, we mean the deviance computed on held-out folds --- so it measures how well the model predicts *new* data, not how well it memorised the training data. It is the default error measure `glmnet` minimises when choosing $\lambda$ for a binary outcome.
+:::
+
+The worked example below is shown in both R (`glmnet`) and Python (`scikit-learn`). Both fit LASSO, Ridge, and Elastic Net to the same kind of problem and compare the resulting coefficients; the datasets shipped with each language differ slightly (R's `mlbench` carries the 9-attribute Original Wisconsin data; scikit-learn ships the 30-feature Diagnostic version), so the exact numbers differ, but the *pattern* is identical and is the point of the example.
+
+::: {.panel-tabset}
+
+#### R
 
 ```{r}
 #| label: breast-cancer-r
@@ -432,7 +533,7 @@ With 30 predictors and 569 observations, this is a setting where penalised regre
 library(glmnet)
 library(ggplot2)
 
-# Load the dataset (available in mlbench or we can use the built-in version)
+# Load the dataset (9 cytological attributes, Original Wisconsin data)
 # install.packages("mlbench")
 data(BreastCancer, package = "mlbench")
 
@@ -440,7 +541,7 @@ data(BreastCancer, package = "mlbench")
 bc <- BreastCancer[complete.cases(BreastCancer), ]
 bc$diagnosis <- ifelse(bc$Class == "malignant", 1, 0)
 
-# Extract numeric predictors (columns 2-10 in BreastCancer)
+# Extract numeric predictors (the 9 cytological attributes, columns 2-10)
 X <- as.matrix(apply(bc[, 2:10], 2, as.numeric))
 y <- bc$diagnosis
 
@@ -472,16 +573,12 @@ cat("Elastic Net:", round(min(cv_enet$cvm), 4), "\n")
 cat("LASSO:      ", round(min(cv_lasso$cvm), 4), "\n")
 ```
 
-### Comparing the Three Methods
-
 ```{r}
 #| label: fig-compare-methods
-#| fig-cap: "Coefficient estimates from Ridge, Elastic Net, and LASSO for the breast cancer dataset. Ridge retains all predictors; LASSO sets some to zero; Elastic Net is intermediate."
+#| fig-cap: "Coefficient estimates from Ridge, Elastic Net, and LASSO for the breast cancer dataset (R). Ridge retains all predictors; LASSO sets some to zero; Elastic Net is intermediate."
 #| code-fold: true
 #| warning: false
 #| message: false
-
-library(ggplot2)
 
 # Extract coefficients at lambda.min for each method
 coef_ridge <- as.vector(coef(cv_ridge, s = "lambda.min"))[-1]
@@ -507,14 +604,77 @@ ggplot(comp_df, aes(x = predictor, y = coefficient, fill = method)) +
   theme(legend.position = "bottom")
 ```
 
+#### Python
+
+```{python}
+#| label: breast-cancer-python
+#| warning: false
+#| message: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegressionCV
+
+# scikit-learn ships the 30-feature Diagnostic version of the dataset
+data = load_breast_cancer()
+X = StandardScaler().fit_transform(data.data)
+y = data.target  # 1 = benign, 0 = malignant in sklearn's coding
+feature_names = data.feature_names
+
+# Fit LASSO, Ridge, and Elastic Net, each tuned by cross-validation
+# In sklearn, C = 1/lambda, so it tunes C; penalty selects the norm
+common = dict(Cs=20, cv=10, scoring="neg_log_loss",
+              max_iter=10000, random_state=42)
+lasso = LogisticRegressionCV(penalty="l1", solver="saga", **common).fit(X, y)
+ridge = LogisticRegressionCV(penalty="l2", solver="lbfgs", **common).fit(X, y)
+enet = LogisticRegressionCV(penalty="elasticnet", solver="saga",
+                            l1_ratios=[0.5], **common).fit(X, y)
+
+n_lasso = int(np.sum(np.abs(lasso.coef_[0]) > 1e-6))
+n_ridge = int(np.sum(np.abs(ridge.coef_[0]) > 1e-6))
+n_enet = int(np.sum(np.abs(enet.coef_[0]) > 1e-6))
+print(f"Non-zero coefficients (of {X.shape[1]}):")
+print(f"  Ridge:       {n_ridge}")
+print(f"  Elastic Net: {n_enet}")
+print(f"  LASSO:       {n_lasso}")
+```
+
+```{python}
+#| label: fig-compare-methods-python
+#| fig-cap: "Coefficient estimates from Ridge, Elastic Net, and LASSO for the breast cancer dataset (Python). Ridge retains all predictors; LASSO sets many to zero; Elastic Net is intermediate."
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# Show the first 10 features for legibility
+k = 10
+idx = np.arange(k)
+width = 0.27
+
+plt.figure(figsize=(9, 6))
+plt.barh(idx - width, ridge.coef_[0][:k], height=width, label="Ridge", color="#3498db")
+plt.barh(idx, enet.coef_[0][:k], height=width, label="Elastic Net", color="#2ecc71")
+plt.barh(idx + width, lasso.coef_[0][:k], height=width, label="LASSO", color="#e74c3c")
+plt.yticks(idx, [n.replace(" ", "\n") for n in feature_names[:k]], fontsize=8)
+plt.xlabel("Coefficient (standardised)")
+plt.legend(loc="best")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
 ### Interpretation
 
-Several patterns emerge from this analysis:
+Several patterns emerge, and they are visible directly in the coefficient figure above --- compare the three coloured bars for each predictor (the counts below describe the R fit on the 9-attribute data; the Python fit shows the same qualitative pattern on its 30 features):
 
-1. **Ridge** retains all 9 predictors, distributing the coefficients across correlated features.
-2. **LASSO** selects a subset --- typically those features that carry the most unique information.
-3. **Elastic Net** behaves intermediately, selecting somewhat more predictors than LASSO while still shrinking some to zero.
-4. The cross-validated deviance is similar across all three methods, confirming that penalised regression is robust to the choice of penalty type in this dataset.
+1. **Ridge** retains all predictors: every blue bar is non-zero, with the weights spread across correlated features rather than concentrated on one.
+2. **LASSO** selects a subset --- many red bars sit at exactly zero (those predictors are dropped), leaving only the features that carry the most unique information.
+3. **Elastic Net** behaves intermediately: more green bars are non-zero than red (LASSO) ones, but some are still shrunk to zero --- visibly between the other two.
+4. The cross-validated deviance (printed above) is similar across all three methods, confirming that penalised regression is robust to the choice of penalty type in this dataset.
 
 ## When to Use Which Method
 
@@ -550,162 +710,142 @@ flowchart TD
 
 ## Implementation
 
-### R: Using `glmnet`
+The two walkthroughs below are **fully self-contained and runnable**. Each begins by simulating a labelled dataset and splitting it into a *training* set (used to build the model) and a *test* set (held back to check predictions), then walks through fitting, tuning, and using a penalised model. To apply them to your own study, replace the simulated-data block with your own predictors and outcome and keep the rest unchanged. (The earlier versions of these snippets used a placeholder called `your_data`; running them as-is produced an "object not found" error because that placeholder was never defined --- the self-contained versions below avoid that.)
 
-The `glmnet` package is the standard implementation for penalised regression in R. It is fast (uses coordinate descent), handles logistic and Cox regression as well as linear, and has excellent cross-validation support.
+::: {.panel-tabset}
+
+#### R: Using `glmnet`
+
+The `glmnet` package is the standard implementation for penalised regression in R. It is fast (it uses the coordinate-descent algorithm of Friedman, Hastie, and Tibshirani [-@friedman2010]), handles logistic and Cox regression as well as linear, and has excellent cross-validation support. For the underlying theory, the standard reference is *The Elements of Statistical Learning* [@hastie2009]. Note that in `glmnet`, `X` must be a **matrix** (not a data frame) and `y` a vector --- forgetting this is the most common cause of errors.
 
 ```{r}
 #| label: r-glmnet-walkthrough
-#| eval: false
+#| warning: false
+#| message: false
 
 library(glmnet)
 
-# --- Step 1: Prepare data ---
-# X must be a matrix (not a data frame)
-# y must be a vector (numeric for linear, 0/1 for logistic)
-X <- as.matrix(your_data[, predictor_columns])
-y <- your_data$outcome
+# --- Step 0: Simulated example data (replace with your own) ---
+set.seed(42)
+n <- 300; p <- 20
+X_all <- matrix(rnorm(n * p), n, p)
+colnames(X_all) <- paste0("x", 1:p)
+true_beta <- c(rep(1.2, 5), rep(0, p - 5))   # only first 5 predictors matter
+y_all <- rbinom(n, 1, plogis(X_all %*% true_beta))
 
-# --- Step 2: Fit with cross-validation ---
+# Train/test split (75% / 25%)
+train <- sample(seq_len(n), size = 0.75 * n)
+X <- X_all[train, ];  y <- y_all[train]
+X_test <- X_all[-train, ];  y_test <- y_all[-train]
+
+# --- Step 1: Fit LASSO with cross-validation ---
 # alpha = 1 for LASSO, 0 for Ridge, 0-1 for Elastic Net
-# family = "gaussian" for linear, "binomial" for logistic, "cox" for survival
-set.seed(42)  # For reproducibility of CV folds
+# family = "gaussian" (linear), "binomial" (logistic), "cox" (survival)
 cv_fit <- cv.glmnet(X, y, family = "binomial", alpha = 1, nfolds = 10)
 
-# --- Step 3: Examine the CV curve ---
-plot(cv_fit)  # Shows deviance vs log(lambda)
+# --- Step 2: Examine the CV curve (deviance vs log lambda) ---
+plot(cv_fit)
 
-# --- Step 4: Extract coefficients ---
-# At lambda.min (best prediction)
-coef(cv_fit, s = "lambda.min")
+# --- Step 3: Extract coefficients at the two recommended lambdas ---
+cat("Non-zero coefficients at lambda.1se (parsimonious model):\n")
+coef_1se <- coef(cv_fit, s = "lambda.1se")
+print(round(coef_1se[coef_1se[, 1] != 0, , drop = FALSE], 3))
 
-# At lambda.1se (most parsimonious)
-coef(cv_fit, s = "lambda.1se")
-
-# --- Step 5: Make predictions ---
+# --- Step 4: Predict on the held-out test set ---
 predictions <- predict(cv_fit, newx = X_test, s = "lambda.min",
-                        type = "response")  # Gives probabilities
+                        type = "response")   # predicted probabilities
+cat("\nFirst few test-set predicted probabilities:\n")
+print(round(head(as.vector(predictions)), 3))
 
-# --- Step 6: Regularisation path ---
-fit <- glmnet(X, y, family = "binomial", alpha = 1)
-plot(fit, xvar = "lambda", label = TRUE)
-
-# --- Step 7: Compare alpha values for Elastic Net ---
+# --- Step 5: Search over alpha for the best Elastic Net mix ---
 alphas <- c(0, 0.25, 0.5, 0.75, 1)
-cv_results <- lapply(alphas, function(a) {
-  cv.glmnet(X, y, family = "binomial", alpha = a, nfolds = 10)
+min_errors <- sapply(alphas, function(a) {
+  min(cv.glmnet(X, y, family = "binomial", alpha = a, nfolds = 10)$cvm)
 })
-# Find the alpha with lowest minimum CV error
-min_errors <- sapply(cv_results, function(fit) min(fit$cvm))
 best_alpha <- alphas[which.min(min_errors)]
-cat("Best alpha:", best_alpha, "\n")
+cat("\nBest alpha (0 = Ridge, 1 = LASSO):", best_alpha, "\n")
 ```
 
-### Python: Using `scikit-learn`
+#### Python: Using `scikit-learn`
+
+In scikit-learn the regularisation strength is parameterised as `C = 1/lambda` (so *larger* `C` means *weaker* penalty), and `LogisticRegression` does **not** standardise automatically --- you must scale the predictors yourself with `StandardScaler`.
 
 ```{python}
 #| label: python-sklearn-walkthrough
-#| eval: false
+#| warning: false
+#| message: false
 
 import numpy as np
-import pandas as pd
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-# --- Step 1: Prepare data ---
-X = your_data[predictor_columns].values
-y = your_data['outcome'].values
+# --- Step 0: Simulated example data (replace with your own) ---
+rng = np.random.default_rng(42)
+n, p = 300, 20
+X_all = rng.normal(size=(n, p))
+true_beta = np.array([1.2] * 5 + [0.0] * (p - 5))   # only first 5 matter
+prob = 1 / (1 + np.exp(-(X_all @ true_beta)))
+y_all = rng.binomial(1, prob)
 
-# StandardScaler (sklearn's LogisticRegression does not auto-scale)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_all, y_all, test_size=0.25, random_state=42)
 
-# --- Step 2: LASSO (L1) with cross-validation ---
-# In sklearn, the parameter C = 1/lambda (inverse regularisation strength)
-# penalty='l1' for LASSO, 'l2' for Ridge, 'elasticnet' for Elastic Net
+# Standardise (fit the scaler on training data only, then apply to both)
+scaler = StandardScaler().fit(X_train)
+X_train_s = scaler.transform(X_train)
+X_test_s = scaler.transform(X_test)
 
+# --- Step 1: LASSO (L1) tuned by cross-validation ---
 lasso_cv = LogisticRegressionCV(
-    penalty='l1',
-    solver='saga',       # Required for L1 penalty
-    Cs=50,               # Number of C values to try (more = finer grid)
-    cv=10,               # 10-fold CV
-    scoring='neg_log_loss',
-    max_iter=10000,
-    random_state=42
-)
-lasso_cv.fit(X_scaled, y)
+    penalty="l1", solver="saga", Cs=30, cv=10,
+    scoring="neg_log_loss", max_iter=10000, random_state=42
+).fit(X_train_s, y_train)
 
 print(f"Best C (= 1/lambda): {lasso_cv.C_[0]:.4f}")
-print(f"Best lambda: {1/lasso_cv.C_[0]:.4f}")
-print(f"\nNon-zero coefficients:")
-for name, coef in zip(predictor_columns, lasso_cv.coef_[0]):
+print("Non-zero coefficients:")
+for j, coef in enumerate(lasso_cv.coef_[0]):
     if abs(coef) > 1e-6:
-        print(f"  {name}: {coef:.4f}")
+        print(f"  x{j+1}: {coef:.3f}")
 
-# --- Step 3: Ridge (L2) with cross-validation ---
+# --- Step 2: Predict on the held-out test set ---
+test_probs = lasso_cv.predict_proba(X_test_s)[:, 1]
+print("\nFirst few test-set predicted probabilities:")
+print(np.round(test_probs[:6], 3))
+
+# --- Step 3: Ridge and Elastic Net for comparison ---
 ridge_cv = LogisticRegressionCV(
-    penalty='l2',
-    solver='lbfgs',
-    Cs=50,
-    cv=10,
-    scoring='neg_log_loss',
-    max_iter=10000,
-    random_state=42
-)
-ridge_cv.fit(X_scaled, y)
-
-# --- Step 4: Elastic Net with cross-validation ---
-from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import GridSearchCV
-
-# sklearn's Elastic Net for classification uses SGDClassifier
-# or LogisticRegression with penalty='elasticnet'
+    penalty="l2", solver="lbfgs", Cs=30, cv=10,
+    scoring="neg_log_loss", max_iter=10000, random_state=42
+).fit(X_train_s, y_train)
 enet_cv = LogisticRegressionCV(
-    penalty='elasticnet',
-    solver='saga',
-    Cs=50,
-    cv=10,
-    l1_ratios=[0.1, 0.25, 0.5, 0.75, 0.9],  # alpha values to try
-    scoring='neg_log_loss',
-    max_iter=10000,
-    random_state=42
-)
-enet_cv.fit(X_scaled, y)
+    penalty="elasticnet", solver="saga", Cs=30, cv=10,
+    l1_ratios=[0.1, 0.5, 0.9], scoring="neg_log_loss",
+    max_iter=10000, random_state=42
+).fit(X_train_s, y_train)
+print(f"\nElastic Net best l1_ratio (alpha): {enet_cv.l1_ratio_[0]:.2f}")
 
-print(f"Best l1_ratio (alpha): {enet_cv.l1_ratio_[0]:.2f}")
-print(f"Best C (1/lambda): {enet_cv.C_[0]:.4f}")
-
-# --- Step 5: Regularisation path plot ---
-from sklearn.linear_model import lasso_path
-
-# For linear regression (use LogisticRegression loop for classification)
-Cs = np.logspace(-3, 2, 100)
+# --- Step 4: Regularisation path for the LASSO ---
+Cs = np.logspace(-3, 2, 60)
 coefs = []
 for C in Cs:
-    model = LogisticRegression(penalty='l1', C=C, solver='saga',
-                                max_iter=10000)
-    model.fit(X_scaled, y)
-    coefs.append(model.coef_[0])
-
+    m = LogisticRegression(penalty="l1", C=C, solver="saga", max_iter=10000)
+    m.fit(X_train_s, y_train)
+    coefs.append(m.coef_[0])
 coefs = np.array(coefs)
-lambdas = 1.0 / Cs
 
-plt.figure(figsize=(10, 6))
-for j in range(X.shape[1]):
-    plt.plot(np.log(lambdas), coefs[:, j],
-             label=predictor_columns[j] if X.shape[1] <= 15 else None)
-plt.xlabel('log(lambda)')
-plt.ylabel('Coefficient')
-plt.title('LASSO Regularisation Path')
-plt.axvline(x=np.log(1/lasso_cv.C_[0]), color='k', linestyle='--',
-            label='CV optimal lambda')
-if X.shape[1] <= 15:
-    plt.legend(loc='best', fontsize=8)
+plt.figure(figsize=(9, 6))
+for j in range(p):
+    plt.plot(np.log(1.0 / Cs), coefs[:, j])
+plt.xlabel("log(lambda)")
+plt.ylabel("Coefficient")
+plt.title("LASSO Regularisation Path")
 plt.tight_layout()
 plt.show()
 ```
+
+:::
 
 ## Common Pitfalls
 
@@ -716,7 +856,7 @@ plt.show()
 
 2. **Interpreting LASSO-selected variables as "important."** A variable dropped by the LASSO may be correlated with a retained variable. It is not necessarily unimportant --- it is just redundant *given the other predictors in the model*.
 
-3. **Reporting p-values for LASSO-selected variables.** After variable selection by LASSO, the standard errors and p-values from refitting an unpenalised model on the selected variables are **invalid**. This is because the selection step has already used the data, inflating the apparent significance. This is sometimes called "post-selection inference" and is an active area of research.
+3. **Reporting p-values for LASSO-selected variables.** This is subtle and frequently done wrong, so it is worth spelling out. A common workflow is: run the LASSO, see which variables survive, then refit an *ordinary* (unpenalised) regression on just those survivors and report its p-values. Those p-values are **invalid** --- they are far too small, and the confidence intervals far too narrow. The reason is **double-dipping**: the data were already used once to *choose* the variables (the LASSO only kept the ones that looked strongest in this particular sample), and then the *same* data are used again to *test* them. Standard p-values assume the variables were specified in advance, independently of the data; but here the selection step has cherry-picked the most promising-looking variables, so of course they look significant when re-tested on the same data. A variable that survived partly by chance will appear "significant" even when its true effect is zero, inflating the false-positive rate. The honest treatment of this problem --- doing valid inference *after* a data-driven selection step --- is called **post-selection inference** and is an active research area; practical tools include sample-splitting (select on one half, test on the other) and dedicated methods such as the `selectiveInference` R package. The safe default for this course: treat LASSO output as a *list of selected predictors and a prediction model*, not as a source of p-values.
 
 4. **Using the same data for tuning and evaluation.** The cross-validation used to select $\lambda$ should be considered part of model building. To honestly assess model performance, you need a **separate** test set or nested cross-validation.
 

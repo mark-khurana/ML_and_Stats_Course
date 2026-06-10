@@ -1,3 +1,8 @@
+---
+execute:
+  eval: true
+---
+
 # Modelling Non-Linear Relationships: Splines, Fractional Polynomials, and Why Categorisation Fails {#sec-splines}
 
 ::: {.callout-note}
@@ -129,7 +134,7 @@ Before choosing a modelling strategy, it helps to assess whether non-linearity i
 
 2. **Likelihood ratio test.** Fit a model with a linear term and a model with a non-linear term (e.g., a spline). Compare them using a likelihood ratio test. A significant result indicates that the non-linear model fits substantially better.
 
-3. **AIC/BIC comparison.** Compare the Akaike Information Criterion (AIC) or Bayesian Information Criterion (BIC) of the linear and non-linear models. Lower values indicate better fit (penalised for complexity).
+3. **AIC/BIC comparison.** The Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC) are single-number summaries that balance *how well a model fits* against *how many parameters it uses*. Each starts from the model's log-likelihood (a measure of fit) and then adds a penalty for every extra parameter, so a more complex model is only rewarded if it improves the fit by more than its added complexity "costs." This guards against the temptation to keep adding flexibility just to chase the data. **Lower values indicate a better fit-versus-complexity balance**, so you compare the linear and non-linear models and prefer the one with the smaller AIC (or BIC). BIC penalises extra parameters more heavily than AIC, so it tends to favour simpler models, especially in large samples. The values are only meaningful *relative to each other* on the same dataset --- an AIC of 480 is not "good" or "bad" in isolation, it is only lower or higher than a competing model's.
 
 4. **Residual plots.** Plot residuals against the predictor. A systematic pattern (e.g., a curve) suggests non-linearity.
 
@@ -161,9 +166,9 @@ where $p_1$ and $p_2$ are selected from the allowed power set. If $p_1 = p_2$, t
 
 ### How FPs Work
 
-The algorithm searches through all combinations of powers from the allowed set and selects the combination that best fits the data (by maximum likelihood or AIC). For an FP2, there are 36 possible combinations of powers, making the search computationally straightforward.
+The algorithm searches through all combinations of powers from the allowed set and selects the combination that best fits the data (by maximum likelihood or AIC). For an FP2, there are 36 possible combinations of powers, making the search computationally straightforward. Where does 36 come from? The allowed power set has 8 values. An FP2 chooses two powers, and the order does not matter, so there are $\binom{8}{2} = 28$ pairs of *distinct* powers, plus 8 cases where the two powers are *equal* (the "repeated powers" form $x^{p}\log x$ described above) --- giving $28 + 8 = 36$ candidate models in total. The algorithm simply fits all 36 and keeps the best.
 
-The key advantage of fractional polynomials is that they can capture a wide range of curve shapes --- monotone increasing, monotone decreasing, U-shaped, J-shaped, S-shaped --- with only one or two parameters beyond the linear term.
+The key advantage of fractional polynomials is that they can capture a wide range of curve shapes --- monotone increasing, monotone decreasing, U-shaped, J-shaped, S-shaped --- with only one or two parameters beyond the linear term. (A relationship is **monotone** if it moves in a single direction across the whole range of the predictor: *monotone increasing* means the outcome only ever rises as the predictor rises, *monotone decreasing* means it only ever falls --- in neither case does the curve reverse direction, even if its steepness changes.)
 
 ### Strengths and Limitations
 
@@ -217,19 +222,23 @@ This data-driven placement ensures that knots are spread across the range of obs
 
 ### Cubic Splines
 
-A **cubic spline** uses third-degree (cubic) polynomial segments between knots. The segments are constrained to have continuous first and second derivatives at each knot, ensuring the resulting curve is smooth.
+A **cubic spline** builds the curve out of short cubic (third-degree) pieces, one between each pair of neighbouring knots, and glues them together so that the joins are invisible. "Cubic" simply means each piece is a curve of the form $a + bx + cx^2 + dx^3$ --- flexible enough to bend once or twice, which is usually all you need over a short interval. The cleverness is in *how* the pieces are joined: at every knot, neighbouring pieces are forced to meet at the same height, with the same slope, and with the same curvature (rate of change of slope). In calculus terms, the curve has **continuous first and second derivatives** at each knot. The practical consequence is that the eye sees one smooth curve, with no kinks or sudden changes in bend where the pieces meet.
 
-A cubic spline with $k$ knots uses $k + 3$ parameters (degrees of freedom) --- the cubic polynomial in the first segment, plus one additional parameter for each knot beyond the first. This can become expensive in terms of degrees of freedom when many knots are used.
+The price of this flexibility is paid in **degrees of freedom** --- roughly, the number of free parameters the model has to estimate from the data. A cubic spline with $k$ knots uses $k + 3$ parameters: the cubic shape of the first segment, plus one extra parameter for each additional knot. More knots mean a more flexible curve but more parameters to estimate, and in small samples that flexibility can be expensive. This cost is exactly what restricted cubic splines, described next, are designed to reduce.
 
 ### Restricted Cubic Splines (RCS)
 
 A **restricted cubic spline** (also called a **natural cubic spline**) adds one more constraint: the function is forced to be **linear** beyond the outermost knots (i.e., in the tails of the distribution).
 
-This constraint is motivated by the fact that there are typically few observations in the tails, so we have little information to estimate complex curves there. Forcing linearity in the tails:
+This constraint is motivated by the fact that there are typically few observations in the tails, so we have little information to estimate complex curves there. Concretely, "linear beyond the outer knots" means that below the first knot and above the last knot the curve is a **straight line** --- it contains no squared ($x^2$) or cubic ($x^3$) terms in those regions. Those higher-order terms are precisely what let a curve bend, so removing them in the data-sparse tails stops the model from inventing dramatic bends where it has almost no data to justify them. Inside the knots, the full cubic flexibility is retained.
 
-- Prevents wild oscillations at the extremes
-- Reduces the number of parameters (an RCS with $k$ knots uses $k - 1$ parameters)
-- Makes extrapolation more sensible (linear extrapolation is more defensible than cubic extrapolation)
+Forcing linearity in the tails:
+
+- Prevents wild oscillations at the extremes (an unrestricted cubic spline can swing violently just past the last data points, because the squared and cubic terms are unconstrained there)
+- Reduces the number of parameters (an RCS with $k$ knots uses $k - 1$ parameters, versus $k + 3$ for an unrestricted cubic spline --- the four "saved" parameters are the squared and cubic terms removed from the two tails)
+- Makes extrapolation more sensible (extending a straight line beyond the data is far more defensible than extending a cubic, which could shoot off to implausible values)
+
+The degrees-of-freedom saving is the practical headline: a 4-knot RCS costs only 3 parameters (4 − 1), so it adds just **2 parameters beyond a simple linear term** while still capturing most biologically plausible curve shapes. That is why it is such an economical default.
 
 ::: {.callout-important}
 ## The Recommended Default
@@ -261,7 +270,9 @@ Instead, you interpret spline models through:
 
 2. **Specific contrasts.** You can calculate the predicted difference in outcome between any two values of the predictor (e.g., the odds ratio for BMI = 35 vs BMI = 25).
 
-3. **Overall tests.** Use a chunk test (Wald test or likelihood ratio test) with $k - 1$ degrees of freedom to test whether the predictor has *any* association with the outcome. Use a test with $k - 2$ degrees of freedom to test specifically for *non-linearity* (i.e., whether the relationship departs from a straight line).
+3. **Overall tests.** Two distinct questions can be asked, and they use different degrees of freedom. The first is *"does this predictor matter at all?"* --- a **chunk test** (Wald or likelihood ratio test) of all the spline terms together, with $k - 1$ degrees of freedom (the total number of parameters the RCS spends on the predictor). The second is *"is the relationship actually curved, or would a straight line do?"* --- the **non-linearity test**, with $k - 2$ degrees of freedom.
+
+   Why $k - 2$? Of the $k - 1$ parameters the spline uses, exactly **one** describes the overall linear trend (the straight-line component). The remaining $k - 2$ parameters are the "extra" terms that allow the curve to bend away from that straight line. Testing whether *those* $k - 2$ terms are jointly zero is therefore a direct test of non-linearity: if they are not needed, the relationship is adequately linear; if they are, a straight line is too simple. So for a 4-knot RCS ($k = 4$): the overall test has 3 df, and the non-linearity test has 2 df.
 
 ```{r}
 #| label: fig-rcs-interpretation
@@ -477,115 +488,120 @@ Lopez-Ayala et al. [-@lopezayala2025] provide a practical framework (their Box 2
 
 ## Implementation
 
-### R: Using the `rms` Package
+The `rms` package by Frank Harrell is the gold standard for this in R, and `patsy` + `statsmodels` give the equivalent capability in Python. The walkthroughs below are **fully self-contained and runnable**: each one first simulates a small example dataset (a continuous `predictor`, two `confounder`s, and a binary `outcome`) so you can run the code as-is, then fits and plots a restricted cubic spline. To use them on your own study, replace the simulated `dat` with your own data frame and keep the rest unchanged.
 
-The `rms` package by Frank Harrell is the gold standard for modelling continuous variables with restricted cubic splines.
+::: {.panel-tabset}
+
+#### R
+
+The key function is `rcs(variable, number_of_knots)` inside an `rms` model fit such as `lrm()`.
 
 ```{r}
 #| label: r-implementation
-#| eval: false
+#| warning: false
+#| message: false
 
-# Install and load required packages
-# install.packages(c("rms", "ggplot2"))
 library(rms)
 library(ggplot2)
 
-# Step 1: Prepare data and set datadist (required by rms)
-dd <- datadist(your_data)
+# --- Simulated example data (replace this block with your own data) ---
+set.seed(1)
+n <- 400
+predictor   <- runif(n, 20, 45)
+confounder1 <- rnorm(n)
+confounder2 <- rbinom(n, 1, 0.4)
+logit_p <- -8 + 0.05 * (predictor - 30)^2 + 0.3 * confounder1 + 0.5 * confounder2
+dat <- data.frame(
+  outcome = rbinom(n, 1, plogis(logit_p)),
+  predictor = predictor,
+  confounder1 = confounder1,
+  confounder2 = confounder2
+)
+
+# Step 1: Tell rms about the data distribution (required for Predict/summary)
+dd <- datadist(dat)
 options(datadist = "dd")
 
-# Step 2: Fit a logistic regression with RCS
-# rcs(variable, number_of_knots)
-fit <- lrm(outcome ~ rcs(predictor, 4) + confounder1 + confounder2,
-            data = your_data)
+# Step 2: Fit a logistic regression with the predictor modelled as an RCS(4)
+fit <- lrm(outcome ~ rcs(predictor, 4) + confounder1 + confounder2, data = dat)
 
 # Step 3: Examine the model
 print(fit)         # Overall model summary
-anova(fit)         # Tests for each predictor (total + non-linearity)
+anova(fit)         # Tests for each predictor (total effect + non-linearity)
 
-# Step 4: Plot the relationship
-p <- Predict(fit, predictor)  # Predictions across range of predictor
-plot(p)                        # rms built-in plotting
-
-# Or use ggplot for more control
-pred_df <- as.data.frame(p)
+# Step 4: Plot the fitted relationship across the range of the predictor
+pred_df <- as.data.frame(Predict(fit, predictor))
 ggplot(pred_df, aes(x = predictor, y = yhat)) +
-  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "#3498db") +
   geom_line(linewidth = 1) +
-  labs(x = "Predictor", y = "Log-Odds") +
-  theme_minimal()
+  labs(x = "Predictor", y = "Log-Odds of Outcome") +
+  theme_minimal(base_size = 13)
 
-# Step 5: Specific contrasts
-# Odds ratio for predictor = 30 vs predictor = 25 (reference)
+# Step 5: A specific contrast --- log-odds ratio for predictor 30 vs 25
 summary(fit, predictor = c(25, 30))
 ```
 
-### Python: Using `patsy` and `statsmodels`
+#### Python
+
+`patsy`'s `cr()` builds a natural (restricted) cubic spline basis; `df` equals the number of knots minus one, so `df=3` corresponds to a 4-knot RCS.
 
 ```{python}
 #| label: python-implementation
-#| eval: false
+#| warning: false
+#| message: false
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-from patsy import dmatrix, bs, cr
+import statsmodels.formula.api as smf
+from scipy.special import expit
 
-# --- Method 1: Using patsy's cr() for natural (restricted) cubic splines ---
+# --- Simulated example data (replace this block with your own data) ---
+rng = np.random.default_rng(1)
+n = 400
+predictor = rng.uniform(20, 45, n)
+confounder1 = rng.normal(size=n)
+confounder2 = rng.binomial(1, 0.4, n)
+logit_p = -8 + 0.05 * (predictor - 30) ** 2 + 0.3 * confounder1 + 0.5 * confounder2
+dat = pd.DataFrame({
+    "outcome": rng.binomial(1, expit(logit_p)),
+    "predictor": predictor,
+    "confounder1": confounder1,
+    "confounder2": confounder2,
+})
 
-# Create the spline basis using patsy formula
-# cr() creates a natural cubic spline (restricted cubic spline)
-# df = number of knots - 1 (so df=3 means 4 knots)
-formula = "cr(predictor, df=3)"
-spline_basis = dmatrix(formula, data=your_data, return_type='dataframe')
-
-# Fit logistic regression
-X = pd.concat([spline_basis, your_data[['confounder1', 'confounder2']]], axis=1)
-model = sm.GLM(your_data['outcome'], X, family=sm.families.Binomial())
+# Step 1: Fit using the formula interface. patsy's cr() builds a natural
+# (restricted) cubic spline basis; df=3 corresponds to a 4-knot RCS. Using the
+# formula API means statsmodels remembers the spline knots and reapplies them
+# automatically when we predict on new data below.
+model = smf.glm(
+    "outcome ~ cr(predictor, df=3) + confounder1 + confounder2",
+    data=dat, family=sm.families.Binomial(),
+)
 result = model.fit()
 print(result.summary())
 
-# --- Method 2: Using scikit-learn's SplineTransformer ---
-
-from sklearn.preprocessing import SplineTransformer
-
-# Create spline features
-spline_transformer = SplineTransformer(
-    n_knots=4,
-    degree=3,
-    extrapolation='linear'  # This mimics the RCS constraint
-)
-X_spline = spline_transformer.fit_transform(
-    your_data[['predictor']].values
-)
-
-# Fit logistic regression
-model = sm.GLM(your_data['outcome'],
-               sm.add_constant(X_spline),
-               family=sm.families.Binomial())
-result = model.fit()
-
-# --- Plotting the fitted relationship ---
-
-x_range = np.linspace(your_data['predictor'].min(),
-                       your_data['predictor'].max(), 200)
-
-# Generate predictions
-X_pred = dmatrix(formula, data=pd.DataFrame({'predictor': x_range}),
-                 return_type='dataframe')
-pred_logodds = result.predict(X_pred)
+# Step 2: Plot the fitted relationship across the range of the predictor
+# (holding the confounders fixed at reference values).
+x_range = np.linspace(dat["predictor"].min(), dat["predictor"].max(), 200)
+grid = pd.DataFrame({"predictor": x_range, "confounder1": 0.0, "confounder2": 0})
+pred_prob = result.predict(grid)
 
 plt.figure(figsize=(8, 5))
-plt.plot(x_range, pred_logodds, 'k-', linewidth=2)
-plt.xlabel('Predictor')
-plt.ylabel('Predicted Probability')
-plt.title('Non-linear relationship modelled with RCS')
+plt.plot(x_range, pred_prob, "k-", linewidth=2)
+plt.xlabel("Predictor")
+plt.ylabel("Predicted Probability of Outcome")
+plt.title("Non-linear relationship modelled with a restricted cubic spline")
 plt.tight_layout()
 plt.show()
 ```
 
+:::
+
 ## Comparison with Other Approaches
+
+The table below summarises the main options. As a quick reminder of the two flexible approaches: **fractional polynomials** (introduced earlier in this chapter) model the predictor using a small number of non-integer powers (such as $\sqrt{x}$, $1/x$, or $\log x$) chosen to fit the data, giving a smooth global curve; **restricted cubic splines** instead stitch together local cubic pieces between knots and force straight lines in the tails. Both avoid the pitfalls of categorisation, but they bend the curve in different ways.
 
 | Approach | Pros | Cons |
 |:---|:---|:---|
