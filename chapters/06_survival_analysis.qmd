@@ -689,6 +689,9 @@ Using the PBC dataset, create Kaplan-Meier curves stratified by disease stage (1
 ```{r}
 #| label: ex1-r
 #| eval: false
+library(survival)   # Surv(), survfit(), survdiff()
+library(survminer)  # ggsurvplot()
+
 # Fit KM by stage
 km_stage <- survfit(Surv(time_years, status_binary) ~ stage, data = pbc_clean)
 
@@ -726,6 +729,8 @@ Build a Cox proportional hazards model for PBC survival using age, bilirubin (lo
 ```{r}
 #| label: ex2-r
 #| eval: false
+library(survival)   # Surv(), coxph(), cox.zph()
+
 # Your code here
 # cox_model <- coxph(Surv(time_years, status_binary) ~ ..., data = pbc_clean)
 # summary(cox_model)

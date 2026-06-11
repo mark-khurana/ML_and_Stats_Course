@@ -27,6 +27,8 @@ Remarkably, many published prediction model studies omit several of these detail
 
 The **Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis** (TRIPOD) guideline was first published in 2015. In 2024, it was updated as **TRIPOD+AI** to address machine learning and AI-based models.
 
+In plain terms, TRIPOD+AI is a checklist of things every prediction-model paper should report so that a reader can judge whether the model is trustworthy and could actually be used. Think of it the same way you think of CONSORT for randomised trials or STROBE for observational studies: not a hurdle, but a shared expectation that makes your work credible and reproducible. Journals increasingly require it, and reviewers will look for it.
+
 TRIPOD+AI applies to studies that develop, validate, or update a prediction model, whether based on regression, machine learning, or deep learning. The key additions in the +AI version include:
 
 - **Fairness evaluation**: assessing whether the model performs equitably across demographic groups
@@ -70,6 +72,8 @@ The full checklist contains items across title, abstract, introduction, methods,
 
 - Describe the validation approach (internal, external, temporal)
 - Report performance in the validation data, not just the development data
+
+If some of these terms are still fuzzy, here is the quick clinician's translation. *Discrimination* (the C-statistic) is whether the model ranks a patient who has the outcome above one who does not --- like a diagnostic test's ability to separate cases from non-cases. *Calibration* is whether the predicted risks are numerically honest: when the model says "20% risk", do roughly 20 in 100 such patients actually have the event? A model can discriminate well yet be badly calibrated (consistently over- or under-stating risk), which is dangerous if clinicians act on the actual numbers. *Clinical utility* (decision curve analysis / net benefit) goes one step further and asks whether using the model to guide decisions does more good than harm at a realistic risk threshold. A complete paper reports all three, in the validation data, not just the development data where performance is always flattering.
 
 ::: {.callout-tip title="Exercise 12.1: TRIPOD+AI audit"}
 Find a recently published clinical prediction model paper (try searching PubMed for "prediction model" in your area of interest). Using the TRIPOD+AI checklist, evaluate how many items the paper reports adequately.

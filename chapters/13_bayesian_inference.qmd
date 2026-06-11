@@ -171,14 +171,13 @@ prior_curves <- prior_types %>%
   rowwise() %>%
   reframe(type = type, theta = theta, density = dbeta(theta, a, b))
 
-ggplot(prior_curves, aes(theta, density, fill = type)) +
-  geom_area(alpha = 0.5) +
-  geom_line(linewidth = 1) +
+ggplot(prior_curves, aes(theta, density)) +
+  geom_area(fill = "#3498db", alpha = 0.25) +
+  geom_line(linewidth = 1, colour = "#2c3e50") +
   facet_wrap(~ type, scales = "free_y") +
   labs(x = expression(theta ~ "(response rate)"), y = "Prior plausibility",
        title = "Three flavours of prior belief") +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none")
+  theme_minimal(base_size = 13)
 ```
 
 #### Python
@@ -598,7 +597,7 @@ plt.show()
 
 ### A first taste of Bayesian software
 
-You do not need to write MCMC samplers yourself. Modern software handles this entirely. Here is what fitting a Bayesian logistic regression looks like in practice, using the Framingham heart-study data (10-year coronary heart disease as the outcome). The first line loads the dataset --- without it, `framingham` would not exist and the fit would fail:
+You do not need to write MCMC samplers yourself. Modern software handles this entirely. Here is what fitting a Bayesian logistic regression looks like in practice, using the Framingham heart-study data (10-year coronary heart disease as the outcome):
 
 ::: {.panel-tabset}
 ## R
@@ -701,8 +700,9 @@ ggplot(plot_df, aes(x = theta, y = Density, colour = Component)) +
        title = "Bayesian Estimation of Surgical Complication Rate",
        subtitle = "2 complications in 15 procedures; Prior: Beta(3, 22)") +
   geom_vline(xintercept = 0.12, linetype = "dashed", colour = "grey40") +
-  annotate("text", x = 0.135, y = max(dbeta(theta, alpha_post, beta_post)) * 0.9,
-           label = "National avg = 12%", size = 3.5, hjust = 0) +
+  annotate("text", x = 0.12, y = max(dbeta(theta, alpha_post, beta_post)) * 0.55,
+           label = "National average = 12%", angle = 90, vjust = -0.4,
+           size = 3.3, colour = "grey30") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "bottom")
 
@@ -739,7 +739,8 @@ ax.plot(theta, beta.pdf(theta, y + 1, n - y + 1),
 ax.plot(theta, beta.pdf(theta, alpha_post, beta_post_),
         label="Posterior", color="firebrick", linewidth=1.5)
 ax.axvline(0.12, linestyle="--", color="grey", linewidth=1)
-ax.text(0.135, ax.get_ylim()[1] * 0.5, "National avg = 12%", fontsize=9)
+ax.text(0.12, ax.get_ylim()[1] * 0.55, "National average = 12%", rotation=90,
+        ha="right", va="center", fontsize=8, color="grey")
 ax.set_xlabel("Complication rate")
 ax.set_ylabel("Density")
 ax.set_title("Bayesian Estimation of Surgical Complication Rate\n"
@@ -840,6 +841,8 @@ c. Which prior has the most influence on the posterior? Why?
 #| code-summary: "Show solution"
 #| fig-width: 8
 #| fig-height: 5
+
+library(tidyverse)  # tibble(), bind_rows(), ggplot()
 
 y <- 21; n <- 30
 priors <- list(

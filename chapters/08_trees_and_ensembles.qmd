@@ -14,38 +14,66 @@ library(knitr)
 opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+Of all the machine learning methods in this book, the tree-based family is the one clinicians tend to adopt fastest --- because it mirrors how clinical reasoning already works. A doctor triaging chest pain mentally runs through a series of questions ("Is the troponin elevated? Are there ECG changes? Is the patient over 65?"), and each answer narrows down the likely diagnosis. That branching logic *is* a decision tree. This chapter starts from that intuition and builds up to the methods that win most clinical prediction competitions on tabular data: random forests and gradient boosting, which combine hundreds of trees into a single, far more accurate model.
+
+Why invest in these methods rather than stopping at logistic regression? Because they automatically capture two things that are pervasive in medicine and awkward for standard regression: **non-linear effects** (risk that rises sharply only past a threshold) and **interactions** (a lab value that matters only in diabetic patients). You do not have to specify these by hand --- the trees discover them. The price is interpretability, which is why the chapter spends time on how to read a tree and how to inspect variable importance.
+
 ## Decision Trees (CART)
 
 A **decision tree** is perhaps the most intuitive machine learning model. It makes predictions by asking a series of yes/no questions about the input features, splitting the data at each step into increasingly homogeneous groups. The result looks like an inverted tree — hence the name.
 
+**Why start with CART?** CART (Classification And Regression Trees) is the foundation for everything else in this chapter --- random forests and gradient boosting are both just clever ways of combining many CART trees. But a single tree is also valuable in its own right for clinical work: it produces a rule you can literally read off and apply at the bedside without a computer, and it handles a mix of continuous and categorical predictors, missing values, and interactions with no special preprocessing. When you need a model that a clinical team will actually trust and use, a small decision tree is often the most practical choice. @fig-cart-example shows the kind of transparent rule a tree produces.
+
+```{mermaid}
+%%| label: fig-cart-example
+%%| fig-cap: "A simple, readable decision tree for 30-day readmission risk. To use it, start at the top and follow the answers to your patient's questions down to a leaf, which gives the predicted risk group. This is the kind of transparent rule that makes trees appealing at the bedside."
+flowchart TD
+    A["Prior admissions ≥ 2?"] -->|Yes| B["Has heart failure?"]
+    A -->|No| C["Age ≥ 75?"]
+    B -->|Yes| D["High risk<br/>~62% readmit"]
+    B -->|No| E["Moderate risk<br/>~34% readmit"]
+    C -->|Yes| F["Moderate risk<br/>~28% readmit"]
+    C -->|No| G["Low risk<br/>~9% readmit"]
+    style D fill:#e8736a,color:#fff
+    style E fill:#f4c06a
+    style F fill:#f4c06a
+    style G fill:#7fc08a,color:#fff
+```
+
 ### How Trees Split
 
-The algorithm works top-down, greedily selecting the best split at each node:
+The algorithm works top-down, **greedily** selecting the best split at each node. "Greedy" means it takes the single best step available right now without looking ahead --- like a clinician ordering the one test that best separates the likely diagnoses at this moment, then reassessing. Concretely:
 
-1. Consider every feature and every possible split point.
-2. For each candidate split, measure how much it improves the "purity" of the resulting child nodes.
-3. Choose the split that maximizes purity improvement.
-4. Repeat recursively for each child node until a stopping criterion is met (e.g., minimum node size, maximum depth, or no further improvement).
+1. **Consider every feature and every possible split point.** For a continuous variable like age, the tree tries every threshold ("age < 60?", "age < 61?", …); for a binary variable like *has diabetes*, there is only one possible split. So at the very first node the algorithm might evaluate thousands of candidate questions.
+2. **Score each candidate split by how much it improves the "purity" of the two resulting groups.** A split is good if it sends mostly-readmitted patients down one branch and mostly-not-readmitted patients down the other. "Purity" is just a number measuring how one-sided a group is (defined precisely in the next section).
+3. **Choose the single split that improves purity the most**, and use it to divide the patients into two child nodes.
+4. **Repeat recursively** on each child node --- each becomes a new little problem with its own best question --- until a **stopping criterion** is met: the node is too small to split further (`minsplit`), the tree has reached its maximum allowed depth (`maxdepth`), or no remaining split improves purity enough to be worthwhile.
+
+A worked picture: at the root, the algorithm might find that "prior admissions ≥ 2?" best separates readmitted from non-readmitted patients. Among the patients who answered "yes," it then searches again and might pick "has heart failure?"; among those who answered "no," it might instead pick "age ≥ 75?". Different branches can ask about different variables --- this is precisely how trees capture interactions automatically.
 
 ### Splitting Criteria
 
-For **classification trees**, the two most common measures of impurity are:
+"Purity" needs to be turned into a number the computer can compare. **Impurity** is simply a score for *how mixed* a group of patients is: it is **0 when everyone in the group has the same outcome** (all readmitted, or all not) and **largest when the group is a 50/50 coin-flip**. A split is judged good when it produces child groups that are *purer* (lower impurity) than the parent. Two formulas are used to measure this; do not be put off by the notation --- each one is just a one-line recipe.
 
-**Gini impurity**: For a node with $K$ classes and class proportions $p_1, \ldots, p_K$:
+In the formulas below, imagine a group of patients in which a fraction $p_1$ have outcome 1 (readmitted), $p_2$ have outcome 2, and so on, across $K$ possible outcomes. For the binary readmission example there are just two: $p_{\text{yes}}$ and $p_{\text{no}} = 1 - p_{\text{yes}}$.
+
+**Gini impurity** --- the chance two randomly drawn patients from the group have *different* outcomes:
 
 $$G = \sum_{k=1}^{K} p_k (1 - p_k) = 1 - \sum_{k=1}^{K} p_k^2$$
 
-Gini impurity is 0 when a node is pure (all one class) and maximized when classes are equally mixed. For a binary problem, the maximum Gini is 0.5 (at $p = 0.5$).
+Read it as: take each outcome's proportion, and you are summing how "spread out" the group is across outcomes. Gini is 0 when a node is pure (all one class) and maximised when classes are equally mixed. For a binary problem the maximum is 0.5, reached at $p = 0.5$.
 
-**Entropy (information gain)**:
+*Worked example.* A node of 100 patients with 30 readmitted and 70 not has $p_{\text{yes}} = 0.30$, $p_{\text{no}} = 0.70$, so $G = 1 - (0.30^2 + 0.70^2) = 1 - (0.09 + 0.49) = 0.42$ --- fairly impure. If a split sends 40 patients to a child node that is 35 readmitted / 5 not ($p = 0.875$), that child has $G = 1 - (0.875^2 + 0.125^2) = 0.22$ --- much purer. The tree favours splits that drive these child Gini values down.
+
+**Entropy (information gain)** --- an alternative impurity measure borrowed from information theory:
 
 $$H = -\sum_{k=1}^{K} p_k \log_2(p_k)$$
 
-Entropy is 0 when the node is pure and maximized at $\log_2(K)$ when classes are equally distributed.
+It behaves almost identically to Gini: 0 when the node is pure, and maximised (at $\log_2 K$) when outcomes are evenly split. The reduction in entropy achieved by a split is called the **information gain**.
 
-In practice, Gini and entropy produce very similar trees. Gini is the default in most implementations because it is slightly faster to compute (no logarithm).
+In practice, Gini and entropy produce very similar trees, so the choice rarely matters. Gini is the default in most implementations because it is slightly faster to compute (no logarithm). **You do not need to compute these by hand** --- the software does it for every candidate split. The reason to understand them is to know what the tree is optimising: at each step it is hunting for the question that most cleanly separates the outcomes.
 
-For **regression trees**, the splitting criterion is typically the **reduction in variance** (or equivalently, the reduction in residual sum of squares).
+For **regression trees** (continuous outcomes, e.g. predicting length of stay), there are no classes to count, so impurity is instead the **variance** within the node. A split is good when it produces child nodes whose values are tightly clustered --- equivalently, when it gives the largest **reduction in residual sum of squares**.
 
 ### Clinical Example: Hospital Readmission
 
@@ -151,14 +179,18 @@ Each node in the tree displays:
 
 - The **splitting rule** (e.g., "age >= 72")
 - The **predicted class** (the majority class in that node)
-- The **class probabilities**
+- The **class probabilities** (e.g. 0.34 readmitted / 0.66 not)
 - The **percentage of observations** that reach this node
 
-To classify a new patient, start at the root and follow the branches based on the patient's feature values until you reach a terminal node (leaf). The prediction is the majority class of that leaf.
+To classify a new patient, start at the root and follow the branches based on the patient's feature values until you reach a terminal node (leaf). The prediction is the majority class of that leaf, and the leaf's class probability is the patient's estimated risk.
+
+*Worked example.* Suppose a 78-year-old patient has had no prior admissions and no heart failure. Starting at the root of @fig-cart-example, "prior admissions ≥ 2?" is **No**, so we go right to "age ≥ 75?", which is **Yes**, landing in the *moderate risk* leaf (~28% readmission risk). A different patient with three prior admissions and heart failure follows the left branches into the *high risk* leaf (~62%). Notice two clinically useful properties: the prediction is reached by at most a handful of questions, and you can explain *exactly why* any patient received their risk estimate --- a transparency that "black box" models cannot offer. The flip side is that a single tree's boundaries are coarse (everyone in a leaf gets the same risk) and can shift noticeably if the data change slightly, which is the motivation for the ensemble methods later in this chapter.
 
 ### Pruning: Controlling Tree Complexity
 
-An unpruned tree will grow until every leaf is pure (or nearly so), perfectly memorizing the training data — a textbook case of overfitting. **Pruning** cuts back the tree to reduce complexity.
+**Why pruning matters.** A tree left to grow without limits will keep asking questions until each leaf contains just one or two patients --- effectively building a private rule for every individual in the training set. It will look *perfect* on the data it was built from and then fail badly on new patients, because it has memorised noise (one patient's quirky lab value) instead of learning generalisable patterns. This is **overfitting**, and for a clinical tool it is dangerous: a model that boasts 99% accuracy in development but collapses in the next clinic is worse than no model, because people trusted it.
+
+**Pruning** is the cure: it deliberately cuts the tree back to a smaller, simpler set of rules that capture the real signal and ignore the noise. A pruned tree usually performs slightly *worse* on the training data but *better* on new patients --- which is the only performance that matters. Think of it as the bias--variance tradeoff (from the previous chapter) made tangible: a few extra mistakes in development buy a large gain in reliability. The goal is the smallest tree whose performance is statistically indistinguishable from the bigger one.
 
 Two strategies:
 
@@ -215,6 +247,13 @@ print(f"\nBest: max_depth={best['max_depth']} with AUC={best['mean_auc']:.3f}")
 ```
 
 :::
+
+**What the code is showing.** Both versions answer the same question --- *how big should the tree be?* --- by measuring performance on held-out data rather than the training data:
+
+- The **R** version uses cost-complexity pruning. `printcp()` prints a table where each row is a candidate tree size, and the key column is `xerror` (the cross-validated error). As the tree grows, `xerror` first falls (the tree is learning real structure) and then rises again (it has started memorising noise). `plotcp()` shows this as a U-shape. The code picks the complexity parameter `cp` at the bottom of the U and prunes to it; the final two lines print how many leaves the full tree had versus the smaller pruned tree --- you should see the pruned tree is considerably smaller.
+- The **Python** version makes the same point more directly by sweeping `max_depth` from 2 up to "no limit" and printing the cross-validated AUC for each. Reading down the list, AUC climbs, peaks at a modest depth, then stops improving (or worsens) as the tree gets deeper --- and the script reports the depth that won. The deepest tree is *not* the best.
+
+The shared lesson: deeper is not better. The right-sized tree is the one that does best on patients it has never seen, and cross-validation is how you find it.
 
 ## Why Single Trees Are Unstable
 
@@ -525,15 +564,40 @@ plt.show()
 
 ## Hyperparameter Tuning
 
-All ensemble methods have hyperparameters that must be tuned. Two common strategies:
+Let us start from the very beginning, because this idea trips up almost everyone the first time.
+
+When you fit a random forest, there are two completely different kinds of "settings" involved. The first kind, the model **learns by itself** from the data --- for a tree, that means the actual questions at each split ("prior admissions ≥ 2?"). You never choose these; the algorithm finds them. The second kind, **you must choose before training even starts** --- for example, how many trees to grow, or how deep each tree may go. These pre-set dials are called **hyperparameters**, and the model cannot learn them from the data because they govern *how the learning itself happens*.
+
+::: {.callout-note}
+## Parameters vs. hyperparameters (the one distinction to remember)
+- A **parameter** is something the model estimates from the data (a regression coefficient, a tree's split rules). You do not set these.
+- A **hyperparameter** is a knob *you* set beforehand that controls the learning process (number of trees, tree depth, learning rate). The model cannot figure these out on its own.
+
+An analogy: baking bread, the *recipe quantities the dough develops into* (how the crumb sets) are like parameters --- they emerge from the process. The **oven temperature and baking time** are hyperparameters --- you dial them in beforehand, and getting them wrong ruins the loaf no matter how good the dough.
+:::
+
+**Why bother tuning them?** Every library ships with default hyperparameter values, and they are reasonable starting points --- but they are generic, not tailored to *your* dataset. The best settings depend on how much data you have, how noisy it is, and how many predictors there are. Tuning simply means **trying several combinations of settings and keeping the one that performs best on held-out data** (via the cross-validation you met earlier). Done well, tuning often buys a meaningful bump in performance for free; done carelessly (tuning on the test set), it produces a model that looks great and then disappoints.
+
+The hyperparameters you will see in the code below, in plain language:
+
+| Hyperparameter (R / Python) | What it controls | Rule of thumb |
+|---|---|---|
+| `trees` / `n_estimators` | How many trees are in the forest | More is safer (just slower); a few hundred is usually plenty |
+| `mtry` / `max_features` | How many predictors each split is allowed to consider | Smaller values make trees more different from each other, which can help |
+| `min_n` / `min_samples_leaf` | The smallest group of patients allowed in a leaf | Larger values = simpler, smoother trees that overfit less |
+| `max_depth` | How many questions deep a tree may grow | Shallower = simpler; limits overfitting |
+
+You do not need to memorise these --- the point is that each one trades flexibility against the risk of overfitting, and tuning finds the sweet spot for your data.
+
+There are two common strategies for searching through the possible combinations.
 
 ### Grid Search
 
-Exhaustively try every combination of specified parameter values. Reliable but computationally expensive — the number of combinations grows multiplicatively.
+**Grid search** means you write down a list of candidate values for each hyperparameter, and the computer tries *every possible combination*. If you list 4 values for `mtry` and 5 values for `min_n`, grid search trains and evaluates all $4 \times 5 = 20$ combinations and reports which did best. It is thorough and easy to reason about, but the cost explodes as you add hyperparameters: 4 settings each for just five hyperparameters is already $4^5 = 1024$ models to fit --- and each one is itself fit five times under 5-fold cross-validation. This multiplicative blow-up is grid search's main drawback.
 
 ### Random Search
 
-Randomly sample hyperparameter combinations. Bergstra and Bengio (2012) showed that random search is more efficient than grid search because not all hyperparameters are equally important. Random search explores more values of the important parameters for the same computational budget.
+**Random search** instead samples a fixed number of combinations *at random* from the ranges you specify (say, 20 combinations, regardless of how many hyperparameters there are). Bergstra and Bengio (2012) showed this is usually *more* efficient than grid search, and the reason is intuitive: in most problems only one or two hyperparameters really matter, but you do not know in advance which. A grid wastes much of its budget trying many values of the unimportant dials while testing only a few values of the important one. Random search, for the same number of model fits, ends up trying *more distinct values of every dial* --- so it is more likely to stumble onto a good value of whichever one actually matters. **In practice, start with random search**; it gives you most of the benefit for a fraction of the compute.
 
 ::: {.panel-tabset}
 
@@ -626,6 +690,22 @@ print(f"Best AUC: {search.best_score_:.3f}")
 print(f"Best parameters: {search.best_params_}")
 ```
 
+:::
+
+**What the code is doing, step by step.** Both versions automate the "try many settings, keep the best" recipe. Reading the R version line by line:
+
+1. `rand_forest(... mtry = tune(), min_n = tune())` --- we declare a random forest but, instead of fixing `mtry` and `min_n`, we mark them with `tune()`, which is a placeholder meaning *"leave this blank for now; we will search for a good value."*
+2. The `recipe` and `workflow` just bundle the model with the outcome and predictors --- think of the workflow as a sealed envelope containing everything needed to fit the model.
+3. `grid_random(...)` builds the list of 20 random combinations of `mtry` and `min_n` to try (these are the candidate "oven settings").
+4. `vfold_cv(...)` creates the 5-fold cross-validation splits. This is the crucial part: **every candidate setting is judged on held-out patients, not on the data it was trained on.** That is what stops us from simply picking the most complex, overfit model.
+5. `tune_grid(...)` does the heavy lifting --- it fits the forest for each of the 20 settings, across all 5 folds, and records the cross-validated AUC for each.
+6. `show_best(...)` then prints the top settings.
+
+**What the output shows.** `show_best` returns a small table: each row is one hyperparameter combination, with its mean cross-validated AUC and the spread across folds. You read it top-down --- the first row is the winning combination. `select_best` grabs that winner, and `finalize_workflow` + `fit` retrain the forest on *all* the data using those best settings, giving you the final model. The Python `RandomizedSearchCV` does exactly the same thing in one object, printing `Best AUC` and the `Best parameters` dictionary at the end. The specific numbers are not the lesson (the data here are simulated); the lesson is the *workflow*: define the dials to search, score each candidate honestly on held-out folds, and keep the winner.
+
+::: {.callout-important}
+## The cardinal rule of tuning
+Tuning must happen **inside** cross-validation, using only the training data --- never tune by looking at your final test set. If you try hundreds of settings and pick the one that scores best on the test set, that test score is no longer an honest estimate of future performance: you have, in effect, let the test set leak into model development. Keep a truly untouched test set (or external validation data) for the *final* check, after all tuning is done.
 :::
 
 ## Comparing Methods: When to Use What
@@ -758,6 +838,9 @@ Using the readmission dataset (or a dataset of your choice):
 ```{r}
 #| label: ex1-tree-r
 #| eval: false
+library(rpart)      # rpart(), rpart.control()
+library(rpart.plot) # rpart.plot() for visualising the tree
+
 # Fit a full tree (set cp very low to avoid early pruning)
 full_tree <- rpart(readmitted ~ ., data = readmit_data, method = "class",
                    control = rpart.control(cp = 0.001))
@@ -803,6 +886,8 @@ from sklearn.model_selection import cross_val_score
 ```{r}
 #| label: ex2-tune-r
 #| eval: false
+library(tidymodels) # initial_split(), training(), testing(), tune_grid()
+
 # Split data
 set.seed(42)
 split <- initial_split(readmit_data, prop = 0.8, strata = readmitted)

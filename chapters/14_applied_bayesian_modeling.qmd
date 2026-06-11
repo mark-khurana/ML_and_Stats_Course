@@ -24,11 +24,26 @@ $$
 y_i = \beta_0 + \beta_1 x_{1i} + \cdots + \beta_p x_{pi} + \epsilon_i, \quad \epsilon_i \sim \text{Normal}(0, \sigma^2)
 $$
 
-But now we place priors on all parameters: $\beta_0, \beta_1, \ldots, \beta_p, \sigma$. The MCMC sampler then generates draws from the joint posterior $P(\beta_0, \beta_1, \ldots, \beta_p, \sigma \mid \mathbf{y})$.
+Reading this equation in words: the outcome for patient $i$ (say, their blood pressure, $y_i$) is built up from a baseline value plus a contribution from each predictor, plus some leftover noise.
+
+- $y_i$ is the outcome we want to model for patient $i$.
+- $\beta_0$ (the **intercept**) is the predicted outcome when every predictor equals zero --- a baseline level.
+- $\beta_1, \ldots, \beta_p$ (the **slopes** or coefficients) say how much the outcome changes for a one-unit increase in each predictor $x_{1}, \ldots, x_p$. For example, $\beta_1 = 0.5$ for age means the outcome rises by 0.5 units for each additional year.
+- $x_{1i}, \ldots, x_{pi}$ are the predictor values measured on patient $i$ (age, BMI, and so on).
+- $\epsilon_i$ is the **residual** --- the part of patient $i$'s outcome that the predictors do not explain. We assume it is random noise centred on zero with standard deviation $\sigma$, which captures how much patients scatter around the line.
+
+The symbol $\sim \text{Normal}(0, \sigma^2)$ simply means "is drawn from a bell-shaped (normal) distribution centred at 0 with spread $\sigma$." This is the same linear model you would fit with `lm()`; nothing about the structure changes.
+
+What *is* new in the Bayesian version is that we place priors on all parameters: $\beta_0, \beta_1, \ldots, \beta_p, \sigma$. A prior is just a starting belief about plausible values before seeing the data. The MCMC sampler then combines those priors with the data and generates draws from the joint posterior $P(\beta_0, \beta_1, \ldots, \beta_p, \sigma \mid \mathbf{y})$ --- our updated belief about every parameter once the data have been taken into account.
 
 ### Clinical Example: Predicting Systolic Blood Pressure
 
 We will model systolic blood pressure (SBP) as a function of age, BMI, and whether the patient is on antihypertensive medication.
+
+::: {.callout-important}
+## Load your packages first
+Every R example in this chapter (and the exercises) assumes you have loaded the **tidyverse** --- this is where functions like `tibble()`, `mutate()`, the pipe `%>%`, and `ggplot()` come from. If you skip it, R will not recognise these functions. We show `library(tidyverse)` at the top of each code block as a reminder; you only need to run it once per session. The Bayesian models additionally need `library(brms)`, and some plots need `library(bayesplot)`.
+:::
 
 ::: {.panel-tabset}
 
@@ -39,7 +54,8 @@ We will model systolic blood pressure (SBP) as a function of age, BMI, and wheth
 #| message: false
 #| warning: false
 
-library(brms)
+library(tidyverse)  # provides tibble(), mutate(), %>%, ggplot()
+library(brms)       # provides brm() for Bayesian models
 
 # Simulate clinical data
 set.seed(123)
@@ -78,7 +94,8 @@ summary(fit_bp)
 #| fig-width: 9
 #| fig-height: 5
 
-library(bayesplot)
+library(tidyverse)
+library(bayesplot)  # provides mcmc_areas() for posterior plots
 mcmc_areas(fit_bp, pars = c("b_age", "b_bmi", "b_on_meds"),
            prob = 0.95, prob_outer = 0.99) +
   labs(title = "Posterior Distributions of Regression Coefficients",
@@ -149,6 +166,17 @@ plt.show()
 
 The output shows the **posterior mean**, **standard deviation** (the Bayesian analogue of the standard error), and the **95% credible interval** for each coefficient. Notice that the on-medication effect has a credible interval that is entirely below zero, providing direct evidence that medication lowers SBP.
 
+::: {.callout-note}
+## What are `chains`, `iter`, and `warmup`?
+These three arguments control the MCMC sampler and appear in every `brm()` call in this chapter, so it is worth pausing on them.
+
+- **`chains = 4`** runs the sampler four separate times from different starting points. If all four chains end up exploring the same region, that is reassuring evidence the sampler has found the right answer (this is what the $\hat{R}$ diagnostic checks).
+- **`iter = 2000`** is the total number of steps each chain takes.
+- **`warmup = 1000`** (sometimes called *burn-in*) is the number of *initial* steps that are **thrown away**. When a chain starts, it begins at an arbitrary point that may be far from the posterior, and it also needs time to tune its internal step size. Those early, unreliable samples would distort our estimates, so we discard them and keep only what comes after.
+
+So `iter = 2000` with `warmup = 1000` means each chain takes 2000 steps but we *keep* only the last 1000 --- giving $4 \times 1000 = 4000$ usable posterior draws. A useful analogy: warm-up is like letting a car engine idle until it reaches operating temperature before you start the timed lap. The warm-up laps still happen; you simply do not record them.
+:::
+
 ## Bayesian Logistic Regression
 
 For binary outcomes (e.g., 30-day readmission, treatment response), we use Bayesian logistic regression. The model is identical to the frequentist version except that all parameters receive priors:
@@ -165,6 +193,9 @@ $$
 #| label: bayesian-logistic-r
 #| message: false
 #| warning: false
+
+library(tidyverse)
+library(brms)
 
 # Simulate readmission data
 set.seed(456)
@@ -284,10 +315,13 @@ The procedure:
 ```{r}
 #| label: fig-prior-predictive-r
 #| fig-cap: "Prior predictive check: simulated SBP distributions under the chosen priors."
-#| fig-width: 8
-#| fig-height: 5
+#| fig-width: 6.5
+#| fig-height: 4
 #| message: false
 #| warning: false
+
+library(tidyverse)
+library(brms)
 
 # Generate prior predictive samples
 pp_check_prior <- brm(
@@ -331,6 +365,8 @@ tibble(
 ```{python}
 #| label: fig-prior-predictive-py
 #| fig-cap: "Prior predictive check: simulated SBP distributions under the chosen priors."
+#| fig-width: 6.5
+#| fig-height: 4
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -365,6 +401,8 @@ plt.show()
 
 :::
 
+**How to read this plot.** The blue curve is the range of blood pressures the model considers possible *based on the priors alone*, before it has seen a single patient. The red curve is the real data, shown only for comparison. What we are looking for is a sanity check: the blue curve should comfortably cover the clinically realistic range (roughly 80--200 mmHg) without putting serious weight on impossible values such as negative pressures or readings above 400 mmHg. Here the blue curve is wide --- it does not yet know the typical SBP --- but it is centred in a sensible place and is not absurd, so these priors are acceptable. It is meant to be broader than the data; the data will sharpen it later.
+
 If the prior predictive distribution is wildly broader than any plausible clinical range, consider tightening the priors. If it is too narrow and excludes plausible values, widen them. This iterative process happens **before** fitting the model to data.
 
 ## Posterior Predictive Checks
@@ -379,6 +417,8 @@ The procedure:
 
 If the model is well specified, the simulated data should be nearly indistinguishable from the real data in terms of summary statistics (mean, variance, range, shape).
 
+**How to read this plot.** Each light blue line is one fake dataset the *fitted* model generates; the dark line is the observed data. Unlike the prior predictive check, here the model has already learned from the data, so we expect a close match. If the dark line sits comfortably within the spread of blue lines --- same centre, same width, same overall shape --- the model is reproducing the data well. If the dark line falls outside the blue cloud (for example, the data are skewed but the model only produces symmetric curves), the model is misspecified and the likelihood or priors need revisiting.
+
 ::: {.panel-tabset}
 
 ### R
@@ -386,9 +426,12 @@ If the model is well specified, the simulated data should be nearly indistinguis
 ```{r}
 #| label: fig-posterior-predictive-r
 #| fig-cap: "Posterior predictive check: the model-generated data (blue) should resemble the observed data (dark line)."
-#| fig-width: 8
-#| fig-height: 5
+#| fig-width: 6.5
+#| fig-height: 4
 #| message: false
+
+library(tidyverse)
+library(brms)
 
 pp_check(fit_bp, type = "dens_overlay", ndraws = 100) +
   labs(title = "Posterior Predictive Check",
@@ -401,6 +444,8 @@ pp_check(fit_bp, type = "dens_overlay", ndraws = 100) +
 ```{python}
 #| label: fig-posterior-predictive-py
 #| fig-cap: "Posterior predictive check for the blood pressure model."
+#| fig-width: 6.5
+#| fig-height: 4
 
 import pymc as pm
 import arviz as az
@@ -443,13 +488,99 @@ $$
 y_{ij} = \beta_0 + \beta_1 \text{treatment}_{ij} + u_j + \epsilon_{ij}
 $$
 
-where:
+Reading the equation: $y_{ij}$ is the outcome for patient $i$ in hospital $j$. The first two terms, $\beta_0 + \beta_1 \text{treatment}_{ij}$, are the *average* picture across all hospitals --- the same intercept and treatment effect we would get from an ordinary regression. The new piece is $u_j$, a small "nudge" that is specific to hospital $j$. It captures how that hospital departs from the average. The terms are:
 
-- $u_j \sim \text{Normal}(0, \tau^2)$ is the random effect for hospital $j$
-- $\tau$ is the between-hospital standard deviation (estimated from the data)
-- $\epsilon_{ij} \sim \text{Normal}(0, \sigma^2)$ is the residual error
+- $\beta_0$ is the overall baseline outcome (the **fixed intercept**, shared by all hospitals).
+- $\beta_1$ is the **average treatment effect** across all hospitals.
+- $u_j$ is the **random effect** for hospital $j$: how much hospital $j$'s own treatment effect sits above or below the average $\beta_1$. A hospital with $u_j = +2$ responds 2 units more than the typical site; one with $u_j = -2$ responds 2 units less.
+- $\epsilon_{ij}$ is the residual error for an individual patient --- the usual unexplained patient-to-patient noise.
 
-In the Bayesian framework, $\tau$ also gets a prior. A common choice is a half-Cauchy or half-normal distribution, which allows for substantial between-group variation while gently regularising toward zero.
+**What does "random effect" mean?** Instead of estimating each hospital's deviation $u_j$ in complete isolation, we assume the deviations themselves come from a shared distribution:
+
+$$
+u_j \sim \text{Normal}(0, \tau^2).
+$$
+
+This single line is what makes the model "hierarchical." It says the hospital effects scatter around zero (zero meaning "exactly average") with a spread of $\tau$. Because all the $u_j$ are tied together by this common distribution, information is shared across hospitals: a hospital with very few patients borrows strength from the others rather than relying only on its own noisy data. That borrowing is exactly the partial pooling and shrinkage we explore below.
+
+**The role of $\tau$.** The parameter $\tau$ is the **between-hospital standard deviation** --- it answers the clinically important question "how much do hospitals actually differ?"
+
+- If $\tau$ is close to **zero**, the hospitals are nearly identical, every $u_j$ is tiny, and the model collapses toward a single shared treatment effect (complete pooling).
+- If $\tau$ is **large**, hospitals differ substantially, and each site keeps much of its own estimate (closer to no pooling).
+
+Crucially, $\tau$ is not fixed in advance; it is **estimated from the data**, so the model learns how much pooling is warranted rather than assuming it.
+
+In the Bayesian framework, $\tau$ also gets a prior. Because $\tau$ is a standard deviation it cannot be negative, so we use a prior defined only on positive values. Two common choices are the **half-normal** and the **half-Cauchy** --- the right-hand halves of the ordinary normal and Cauchy distributions. Both place most of their weight near zero (gently regularising toward "hospitals are similar") while still permitting larger values. The difference is in the tail: the half-Cauchy has a much heavier tail, so it is more willing to allow a large between-hospital spread if the data demand it. This makes the half-Cauchy a popular, mildly conservative default for group-level standard deviations, especially when the number of groups is small.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-tau-priors-r
+#| fig-cap: "Two common priors for the between-hospital standard deviation tau. Both concentrate near zero, but the half-Cauchy has a heavier tail, allowing larger between-group variation."
+#| fig-width: 6.5
+#| fig-height: 4
+#| message: false
+#| warning: false
+
+library(tidyverse)
+
+tau_grid <- seq(0, 20, length.out = 400)
+
+prior_df <- bind_rows(
+  tibble(tau = tau_grid,
+         density = 2 * dnorm(tau_grid, 0, 5),    # half-normal(0, 5)
+         prior = "Half-Normal(0, 5)"),
+  tibble(tau = tau_grid,
+         density = 2 * dcauchy(tau_grid, 0, 5),  # half-Cauchy(0, 5)
+         prior = "Half-Cauchy(0, 5)")
+)
+
+ggplot(prior_df, aes(x = tau, y = density, colour = prior)) +
+  geom_line(linewidth = 1) +
+  scale_colour_manual(values = c("Half-Normal(0, 5)" = "steelblue",
+                                  "Half-Cauchy(0, 5)" = "firebrick")) +
+  labs(x = expression(tau~"(between-hospital SD)"),
+       y = "Prior density",
+       colour = "Prior",
+       title = "Priors for a Group-Level Standard Deviation",
+       subtitle = "Both favour small tau; the half-Cauchy keeps a heavier tail") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
+```
+
+### Python
+
+```{python}
+#| label: fig-tau-priors-py
+#| fig-cap: "Two common priors for the between-hospital standard deviation tau."
+#| fig-width: 6.5
+#| fig-height: 4
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+tau_grid = np.linspace(0, 20, 400)
+half_normal = 2 * stats.norm.pdf(tau_grid, 0, 5)    # half-normal(0, 5)
+half_cauchy = 2 * stats.cauchy.pdf(tau_grid, 0, 5)  # half-Cauchy(0, 5)
+
+fig, ax = plt.subplots(figsize=(6.5, 4))
+ax.plot(tau_grid, half_normal, color="steelblue", linewidth=2,
+        label="Half-Normal(0, 5)")
+ax.plot(tau_grid, half_cauchy, color="firebrick", linewidth=2,
+        label="Half-Cauchy(0, 5)")
+ax.set_xlabel(r"$\tau$ (between-hospital SD)")
+ax.set_ylabel("Prior density")
+ax.set_title("Priors for a Group-Level Standard Deviation\n"
+             "Both favour small tau; the half-Cauchy keeps a heavier tail")
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
 
 ### Clinical Example: Treatment Effects Across Hospitals
 
@@ -465,6 +596,7 @@ In the Bayesian framework, $\tau$ also gets a prior. A common choice is a half-C
 #| message: false
 #| warning: false
 
+library(tidyverse)  # tibble(), map2_dfr(), %>%, ggplot()
 library(brms)
 
 # Simulate multi-site trial data
@@ -515,11 +647,14 @@ no_pool <- trial_data %>%
             n = n(), .groups = "drop") %>%
   mutate(
     hospital_num = as.numeric(hospital),
-    partial_pool_est = grand_mean + ranefs[, "Estimate"]
+    partial_pool_est = grand_mean + ranefs[, "Estimate"],
+    # Label each hospital with its sample size so the reader can see
+    # which sites are small (and therefore shrink most)
+    hospital_label = paste0("Hospital ", hospital, " (n = ", n, ")")
   )
 
 # Plot shrinkage
-ggplot(no_pool, aes(y = reorder(hospital, n))) +
+ggplot(no_pool, aes(y = reorder(hospital_label, n))) +
   geom_point(aes(x = no_pool_est, colour = "No pooling"), size = 3) +
   geom_point(aes(x = partial_pool_est, colour = "Partial pooling"), size = 3) +
   geom_vline(xintercept = grand_mean, linetype = "dashed", colour = "grey40") +
@@ -527,7 +662,7 @@ ggplot(no_pool, aes(y = reorder(hospital, n))) +
            label = paste0("Grand mean = ", round(grand_mean, 1)),
            hjust = 0, size = 3.5) +
   geom_segment(aes(x = no_pool_est, xend = partial_pool_est,
-                   yend = reorder(hospital, n)),
+                   yend = reorder(hospital_label, n)),
                arrow = arrow(length = unit(0.15, "cm")),
                colour = "grey60") +
   scale_colour_manual(values = c("No pooling" = "steelblue",
@@ -643,6 +778,20 @@ A complete Bayesian analysis follows a structured workflow:
 - Write down the likelihood (data-generating process).
 - Choose priors for all parameters.
 - Justify your choices: are the priors weakly informative? Are they based on prior studies?
+
+::: {.callout-tip}
+## You don't have to write a likelihood from scratch
+"Specify the likelihood" sounds like it requires deriving probability formulas by hand. In practice, with `brms` (R) or `bambi`/PyMC (Python) you almost never do. The likelihood is determined by the **type of outcome** you are modelling, and you select it with a single `family =` argument. The mapping is the same one you already use for choosing a regression in everyday practice:
+
+| Your outcome | Example | `family` to use | Underlying likelihood |
+|---|---|---|---|
+| Continuous, roughly symmetric | Blood pressure, BMI | `gaussian()` | Normal |
+| Binary (yes/no) | 30-day readmission, mortality | `bernoulli()` | Bernoulli (logistic) |
+| Count | Number of admissions | `poisson()` | Poisson |
+| Time-to-event | Survival time | `cox()` / `weibull()` | Survival |
+
+So the practical question is not "what is the mathematical form of the likelihood?" but the familiar clinical question "**what kind of measurement is my outcome?**" Pick the matching family, and the software writes the likelihood for you. The equations in this chapter are there so you understand *what the software is doing* --- not because you need to type them out.
+:::
 
 ### Step 2: Prior Predictive Check
 
@@ -778,6 +927,9 @@ e. Calculate $P(\text{OR}_{\text{APACHE}} > 1.10 \mid \text{data})$ --- the prob
 #| code-summary: "Show solution"
 #| message: false
 #| warning: false
+
+library(tidyverse)
+library(brms)
 
 set.seed(101)
 n <- 500

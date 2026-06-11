@@ -6,6 +6,12 @@ library(tidyverse)
 library(knitr)
 ```
 
+Clustering answers a question every clinician has asked: "are all my patients really the same, or are there hidden subgroups in here?" Given a table of measurements and no labels, a clustering algorithm proposes a grouping --- this patient belongs with those patients --- so that you can then ask whether the groups differ in outcome, biology, or treatment response. That is how the now-famous sepsis and ARDS subtypes were discovered. This chapter walks through three popular algorithms and, crucially, how to tell a real subgroup from a mirage, because clustering will hand you groups whether or not any exist.
+
+::: {.callout-note}
+These chapters use `eval: false`, so the rendered page shows code but no live figures or printouts. Each code block is followed by a description of what its output *would* look like, so you can run it yourself and know what counts as a sensible result.
+:::
+
 ## Introduction
 
 Every classification method we have studied so far is **supervised**: you train a model on labelled data and use it to predict labels for new observations. Clustering is fundamentally different. It is **unsupervised** --- there are no labels. The goal is to discover natural groupings in the data that you did not know existed.
@@ -35,6 +41,8 @@ K-means minimises the **within-cluster sum of squares (WCSS)**: the total square
 $$
 \text{WCSS} = \sum_{k=1}^{K} \sum_{i \in C_k} \| x_i - \mu_k \|^2
 $$
+
+Read this formula as "for every patient, measure how far they sit from their own cluster's centre ($\mu_k$ is that centre, or **centroid**), square it, and add it all up." Tight, well-defined clusters give a small WCSS; loose, scattered ones give a large WCSS. K-means simply shuffles the group assignments until this total is as small as it can make it.
 
 ### Choosing K: Elbow Method, Silhouette Scores, Gap Statistic
 
@@ -193,6 +201,8 @@ plt.show()
 
 :::
 
+**What the code is showing.** We simulate 400 patients drawn from three hidden lab-profile phenotypes (a metabolic, an inflammatory, and a healthier group), scale the labs, and then ask K-means to try every value of $k$ from 2 to 10, recording two diagnostics each time. The figure has three panels. The **elbow plot** (left) shows within-cluster spread falling as $k$ rises --- you hunt for the "elbow" where it stops dropping steeply, the point of diminishing returns. The **silhouette plot** (middle) shows average cluster quality; here you want the *peak*. The **PCA scatter** (right) shows the actual $k=3$ clustering, with each patient coloured by assigned cluster and placed on the first two principal components (a 2D summary, since we cannot plot four lab axes at once) --- well-separated colours mean the clusters occupy distinct regions.
+
 Both the elbow and silhouette plots suggest $k = 3$ --- consistent with our simulation of three phenotypes. In practice, the signal is rarely this clean, and multiple values of $k$ may appear reasonable. Domain knowledge should guide the final choice.
 
 ## Hierarchical Clustering
@@ -300,6 +310,8 @@ plt.show()
 ```
 
 :::
+
+**What the code is showing.** The first block builds a **dendrogram** --- the upside-down tree that records, branch by branch, which patients (then which groups of patients) got merged and at what distance. The coloured rectangles show where we "cut" the tree to get three clusters. The second block redraws the dendrogram four times, once per linkage rule (single, complete, average, Ward's), so you can see how the choice of linkage reshapes the tree. The practical lesson from that comparison: single linkage often produces one lopsided "chain" with stragglers, while Ward's gives balanced, compact groups --- which is why Ward's is the recommended default for clinical data.
 
 ### Reading a Dendrogram
 
@@ -458,6 +470,8 @@ plt.show()
 
 :::
 
+**What the code is showing.** We deliberately build a hard case: two interlocking crescent (banana) shapes plus a scatter of random "noise" patients who belong to neither. We then cluster it two ways and plot them side by side. The left panel is K-means asked for two clusters; because it can only carve out round blobs, it slices each crescent in half --- the wrong answer. The right panel is DBSCAN, which grows clusters by following dense trails of points, so it traces each crescent correctly and marks the scattered outliers as "noise" (the crosses). Here `eps = 0.15` sets how close two patients must be to count as neighbours, and `minPts = 5` sets how many neighbours a point needs to anchor a dense region.
+
 The figure shows a classic example: K-means splits the crescent-shaped clusters incorrectly, while DBSCAN identifies them perfectly and correctly labels the noise points.
 
 ## Cluster Validation
@@ -472,7 +486,7 @@ $$
 s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}
 $$
 
-Values range from --1 to +1. A high average silhouette score indicates well-separated, compact clusters.
+Values range from --1 to +1. A high average silhouette score indicates well-separated, compact clusters. The intuition: for each patient, compare "how far am I from my own group" ($a$) with "how far am I from the nearest rival group" ($b$). If the rival is much farther away ($b \gg a$), the score is near +1 and the patient is comfortably in the right cluster; if the patient is actually closer to a rival group, the score goes negative, flagging a likely misassignment.
 
 **Calinski-Harabasz index.** The ratio of between-cluster variance to within-cluster variance (higher is better). It favours compact, well-separated clusters.
 
@@ -542,6 +556,8 @@ plt.show()
 ```
 
 :::
+
+**What the code is showing.** This draws a **silhouette plot** for the $k=3$ lab-data solution: one horizontal bar per patient, grouped and coloured by cluster, with each bar's length equal to that patient's silhouette score. A healthy cluster looks like a wide, mostly positive block of bars; bars that are short or dip below zero are patients sitting near (or on the wrong side of) a cluster boundary. The dashed line marks the overall average, the single number you would quote to summarise cluster quality. If one cluster's bars are systematically shorter than the others, that cluster is poorly defined and worth scrutinising.
 
 ## Clinical Applications
 
@@ -689,6 +705,8 @@ plt.show()
 
 :::
 
+**What the code is showing.** This is the full pipeline end to end: 500 patients with 50 features and four built-in subtypes, which we scale, compress to 15 principal components, cluster with K-means, and finally lay out on a 2D UMAP map for viewing. The figure has two panels showing the *same* UMAP coordinates twice --- on the left, dots are coloured by the cluster K-means assigned; on the right, by the patients' true (simulated) subtype. Because the layout is identical, you read them by comparing colours position-for-position: if the two panels colour the same blobs the same way, the algorithm recovered the real structure.
+
 Comparing the two panels lets you assess how well the clustering algorithm recovered the true subtypes. In practice you do not know the true subtypes --- the comparison would instead be against clinical outcomes, treatment response, or other external validation.
 
 ## Cautionary Notes
@@ -727,6 +745,8 @@ d. Profile the clusters: compute the mean of each variable within each cluster. 
 #| code-summary: "Show solution"
 #| fig-width: 10
 #| fig-height: 5
+
+library(tidyverse)  # tibble(), bind_rows(), group_by/summarise/across
 
 set.seed(42)
 n <- 600
@@ -814,6 +834,8 @@ print(df.groupby('cluster')[cols].mean().round(2))
 ```
 
 :::
+
+**What the solution shows.** The code simulates 600 patients from three vital-sign phenotypes (a septic-shock pattern, a stable pattern, and a febrile pattern), then runs the elbow and silhouette diagnostics and prints a **cluster profile table** --- the mean of each variable within each cluster, on the original scale. That profile table is the payoff: it is where you turn anonymous "Cluster 1, 2, 3" labels into clinical stories by reading off, say, that one cluster has high heart rate, high lactate, and low blood pressure and recognising it as the septic-shock group. A clustering you cannot interpret this way is rarely useful.
 
 ### Exercise 2: Hierarchical Clustering with Different Linkage Methods
 

@@ -10,6 +10,8 @@ library(knitr)
 opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+Deep learning is the technology behind most of the headline-grabbing medical AI of the last decade --- systems that read chest X-rays, grade diabetic retinopathy, or flag arrhythmias on an ECG. This chapter is a practical, clinician-facing tour of what neural networks are, how they learn, and --- crucially --- *when they are and are not the right tool* for a health research question. The code in this chapter is shown for illustration and is set to `eval: false`, so the rendered page displays the code and our explanation of what it would produce, rather than live output. The aim is not to make you a deep learning engineer, but to let you read a deep learning paper critically, talk to a collaborator who builds these models, and recognise when a far simpler method would serve your patients just as well.
+
 ## When Does Deep Learning Make Sense?
 
 In the previous chapter, you learned that gradient-boosted trees are powerful, flexible, and remarkably effective for clinical prediction on structured data. A natural question follows: when should you reach for something more complex?
@@ -36,7 +38,7 @@ A neural network is, at its core, a series of matrix multiplications followed by
 
 $$a = f\left(\sum_{i=1}^{n} w_i x_i + b\right)$$
 
-where $x_i$ are the inputs, $w_i$ are the weights, $b$ is the bias, and $f$ is the activation function.
+where $x_i$ are the inputs, $w_i$ are the weights, $b$ is the bias, and $f$ is the activation function. In clinical terms, this is exactly the structure of a risk score: each input (say, age, creatinine, blood pressure) is multiplied by a weight that says how much it matters, the weighted contributions are added up, an intercept (the bias $b$) is added, and the total is squashed into a usable range by $f$. A single neuron with a sigmoid activation *is* a logistic regression. The power of a network comes from wiring thousands of these simple units together so the later ones can act on features the earlier ones discovered.
 
 **Layers**: Neurons are organized into layers:
 
@@ -61,7 +63,7 @@ Neural networks learn by adjusting their weights to minimize a **loss function**
 
 $$w \leftarrow w - \eta \frac{\partial \mathcal{L}}{\partial w}$$
 
-This process repeats over many **epochs** (complete passes through the training data). The learning rate is critical: too large, and the model oscillates; too small, and it converges painfully slowly.
+Read the update rule in plain language: the gradient $\partial \mathcal{L}/\partial w$ is the slope of the error with respect to one weight --- it tells you which direction makes the predictions *worse*, so we step in the opposite direction (hence the minus sign). The learning rate $\eta$ is the size of that step. A useful mental picture is walking downhill in fog: the gradient is the steepest direction underfoot, and $\eta$ is how big a stride you take before re-checking. This process repeats over many **epochs** (complete passes through the training data). The learning rate is critical: too large, and the model oscillates; too small, and it converges painfully slowly.
 
 ::: {.callout-tip}
 ## You Already Know This Pattern
@@ -239,6 +241,8 @@ print(f"Test AUC:  {auc:.3f}")
 ```
 
 :::
+
+**What the code is doing.** This walks through the full life-cycle of a neural network on tabular data, end to end. First we simulate 1,000 patients and a true readmission risk that depends on age, prior admissions, comorbidities, heart failure, and discharge haemoglobin --- so we *know* the right answer and can judge the model. We then standardise every feature (subtract the mean, divide by the standard deviation) so that no variable dominates simply because it is measured on a larger scale, and split the data into training and held-out test sets. The architecture is a small stack: an input layer, two hidden layers (32 then 16 neurons) with ReLU activations and 30% dropout between them to curb overfitting, and a single sigmoid output that emits a readmission probability. `compile` chooses the optimiser (Adam), the loss (binary cross-entropy, the same quantity logistic regression minimises), and the metric to watch (AUC). `fit` trains for up to 50 epochs but, thanks to early stopping with `patience = 5`, halts once the validation AUC stops improving and rewinds to the best weights. Because the chapter is `eval: false`, no numbers are printed here, but the final two lines would report the test-set loss and AUC --- the AUC being the headline: the probability the model ranks a randomly chosen readmitted patient above a randomly chosen non-readmitted one. Expect something in the 0.65--0.75 range for data this noisy.
 
 ::: {.callout-note}
 ## Compare This to Chapter 8
@@ -464,6 +468,8 @@ history = model.fit(
 
 :::
 
+**What the code is doing.** This is the workhorse recipe for medical imaging in a typical research group. Rather than training a network from scratch (which would need tens of thousands of labelled images), we load ResNet50 with its ImageNet weights already in place --- a model that has *already* learned to detect edges, textures, and shapes from 14 million natural photographs. We discard its original 1,000-category classifier (`include_top = FALSE`) and freeze its weights so they are not disturbed. We then bolt on a fresh head --- a pooling layer, dropout, and a single sigmoid neuron --- which is the only part that learns from our clinical images. The `image_data_generator` performs *data augmentation*: each epoch it shows the network slightly rotated and flipped versions of the same images, artificially enlarging a small dataset and teaching the model to ignore irrelevant orientation. The `flow_images_from_directory` lines expect your images sorted into one folder per class. There is no output to read because the code is illustrative (`eval: false`) and points at a placeholder path; the practical takeaway is the *pattern* --- freeze a pretrained backbone, train a small new head, augment aggressively --- which lets you reach strong performance with only a few hundred annotated scans.
+
 ## Practical Considerations
 
 ### When to Use (and Not Use) Deep Learning
@@ -534,6 +540,7 @@ Using the readmission dataset from this chapter, fit both a neural network and a
 ```{r}
 #| label: ex1-nn-vs-xgb-r
 #| eval: false
+library(tidyverse)  # tibble()
 library(keras3)
 library(tidymodels)
 library(xgboost)

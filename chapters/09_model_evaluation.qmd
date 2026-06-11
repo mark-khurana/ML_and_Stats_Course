@@ -159,6 +159,8 @@ plt.show()
 
 :::
 
+**What the code is showing.** This puts the prevalence lesson on its feet with a real test: an HIV rapid test with near-perfect sensitivity (99.7%) and specificity (99.5%). The `calculate_ppv` function is just Bayes' theorem written out --- it asks "of everyone who tests positive, what fraction are truly positive?" The three worked examples show the same excellent test producing wildly different answers depending on *who* you test: a positive result means roughly a 44% chance of true infection in the general population (prevalence 0.4%), about 91% in an STI clinic (5%), and around 99% after known exposure (30%). The plot then sweeps prevalence from near zero to 50% and traces the PPV: a steep climb at low prevalence that flattens out, with the dashed line marking where a positive result becomes more likely true than false. The clinical message a health researcher should take away is that the same test can be trustworthy or near-useless depending entirely on the pre-test probability of the patient in front of you --- which is why we target testing to higher-risk groups.
+
 ## The Confusion Matrix
 
 A **confusion matrix** is the fundamental bookkeeping device for classification evaluation. For a binary outcome, it is a 2x2 table that cross-classifies predictions against truth:
@@ -238,6 +240,8 @@ print(classification_report(true_outcome, pred_class_20, target_names=["Negative
 ```
 
 :::
+
+**What the code is showing.** This demonstrates the single most important fact about a confusion matrix: it changes when you move the threshold, even though the model itself never changes. We simulate 1,000 patients at 15% prevalence and a moderately good model, then build two confusion matrices from the *same* predicted probabilities --- one classifying anyone above 0.5 as positive, the other lowering the bar to 0.2. The printed tables and the sensitivity/specificity lines tell the story: at the strict 0.5 threshold the model is cautious, so specificity is high but it misses many true cases (low sensitivity); dropping to 0.2 catches far more true cases (sensitivity rises) at the cost of more false alarms (specificity falls). Reading these outputs side by side is the intuition behind every ROC curve that follows: there is no single "right" confusion matrix, only the one that matches the clinical cost of missing a case versus raising a false alarm.
 
 ## ROC Curves
 
@@ -342,6 +346,8 @@ print(f"Specificity: {1 - fpr[best_idx]:.3f}")
 
 :::
 
+**What the code is showing.** This draws the ROC curve and pulls two numbers off it. The plot traces sensitivity against 1 − specificity as the threshold slides from high to low; a curve hugging the top-left corner is good, the diagonal is a coin flip. The reported AUC (with its 95% confidence interval) summarises the whole curve in one figure --- recall it is the probability the model scores a randomly chosen diseased patient higher than a non-diseased one, so the confidence interval matters because a wide one means the estimate could be much better or much worse than the point value suggests. The code also finds the threshold that maximises Youden's J (sensitivity + specificity − 1), reporting the sensitivity and specificity there. Treat that "optimal" threshold as a *statistical* suggestion only: as the later section warns, it assumes a false negative and a false positive cost the same, which is rarely true in medicine.
+
 ## Precision-Recall Curves
 
 When outcomes are highly imbalanced --- as they often are in clinical prediction --- ROC curves can paint an overly optimistic picture. Because specificity is calculated over the large number of true negatives, even a substantial number of false positives barely moves the false positive rate. The **precision-recall (PR) curve** addresses this by focusing entirely on the positive class.
@@ -433,6 +439,8 @@ print("The AUROC looks impressive, but AUPRC reveals the real challenge.")
 ```
 
 :::
+
+**What the code is showing.** This is a deliberate side-by-side demonstration of how ROC curves can flatter a model on rare outcomes. We simulate a realistically imbalanced dataset --- only 2% of 5,000 patients have the event --- and plot the ROC and precision-recall curves for the *same* predictions. The ROC curve and its AUROC look excellent, because specificity is computed against the huge pool of true negatives, so even hundreds of false positives barely nudge the false-positive rate. The PR curve tells the uncomfortable truth: its baseline is the prevalence (the dashed line at 0.02), and the curve shows that to catch most true cases (high recall) you must wade through many false positives (precision collapses). The much lower AUPRC is the honest summary for a rare-disease screening problem. The lesson for a health researcher: when your outcome is rare, report the precision-recall curve, not just the ROC.
 
 ## Choosing the Threshold: A Clinical Decision
 
@@ -526,6 +534,8 @@ plt.show()
 ```
 
 :::
+
+**What the code is showing.** This makes the threshold trade-off visible as a single picture. We step the classification threshold across its range and, at each value, record the model's sensitivity and specificity, then plot both as lines on the same axes. The two curves move in opposite directions: as you raise the threshold (demand stronger evidence before calling a patient positive), sensitivity falls while specificity rises; lower it, and the reverse happens. Where the lines cross is the threshold that balances the two, but --- as the surrounding text stresses --- the *right* operating point is wherever the clinical costs of a missed case and a false alarm balance, which may be far from the crossing point. Reading this plot lets you pick a threshold deliberately rather than defaulting to 0.5.
 
 ## Fairness: Does the Model Work for Everyone?
 
@@ -628,6 +638,8 @@ for g in ["A", "B"]:
 ```
 
 :::
+
+**What the code is showing.** This is a minimal but realistic fairness audit. We simulate two groups, A and B, where group B has both a different disease prevalence and a model that genuinely discriminates a little worse (we built that gap in deliberately). The first loop reports the AUC and prevalence *separately* for each group --- the single overall AUC would have hidden the disparity. The second loop fixes one threshold and reports sensitivity and specificity per group, exposing the more clinically alarming problem: at the same cut-off, the model may catch a smaller fraction of true cases in group B, meaning patients in that group are more likely to be missed. The takeaway for a health researcher is procedural: always disaggregate your performance metrics by the demographic groups you care about, because a model that looks fine on average can quietly underperform for a subgroup and widen existing health inequities.
 
 ## Putting It All Together: A Complete Evaluation
 

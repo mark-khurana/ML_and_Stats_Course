@@ -16,6 +16,8 @@ You have learned how to fit models, validate predictions, and draw causal infere
 
 This chapter walks you through the complete workflow: from creating publication-quality tables and figures to writing a statistical methods section, meeting reporting guideline requirements, and building a reproducible research pipeline. We conclude with three capstone project descriptions that bring together everything in the course.
 
+For a clinician or epidemiologist, this is where months of analysis either land or fall flat. A clear "Table 1", a well-formatted regression table, and a figure that a reader can interpret at a glance are what convince reviewers --- and ultimately fellow clinicians --- that your findings are trustworthy. The code chunks below are set to `eval: false`, so the rendered page shows the code but not its output; the surrounding text explains what each table or figure *would* look like and how to read it, so you know exactly what to expect when you run the code on your own data.
+
 ## What Do Top Journals Expect?
 
 ### General standards
@@ -101,6 +103,8 @@ trial |>
   )
 ```
 
+**What the code shows.** This builds a complete, publication-ready "Table 1" from the `trial` dataset using `gtsummary`, the most widely used R package for clinical tables. The pipeline reads top to bottom: `tbl_summary(by = trt)` produces one column per treatment group, summarising continuous variables as mean (SD) and categorical ones as n (%); the later steps add an overall column (`add_overall`), a column of p-values comparing the groups (`add_p`), and the sample size per variable (`add_n`), then relabel and bold the rows and hand off to `gt` to add a title. The rendered result is the familiar table you see at the start of almost every clinical paper: rows are patient characteristics (age, tumour grade, stage, and so on), columns are the treatment arms, and each cell tells you the typical value in that group. Reading across a row lets you check whether the arms were balanced at baseline; the `label` argument is what turns raw variable names like `ph.ecog` into human-readable text for the reader.
+
 ::: {.callout-tip}
 ## Should Table 1 include p-values?
 In a randomised trial, baseline differences are due to chance, so p-values for baseline comparisons are widely considered inappropriate (they test a hypothesis you know to be true). In observational studies, standardised mean differences (SMDs) are preferred over p-values because SMDs are not influenced by sample size.
@@ -155,6 +159,8 @@ print(table1.tabulate(tablefmt="github"))
 # table1.to_html('table1.html')
 ```
 
+**What the code shows.** This is the Python equivalent using the `tableone` package. After simulating a clinical dataset, we tell `TableOne` which variables are categorical (so they are reported as n (%)) and which non-normal continuous variables should be shown as median [IQR] rather than mean (SD). Setting `groupby='Treatment'` splits the table by treatment arm, and `smd=True` adds standardised mean differences --- the preferred way to judge baseline balance in observational studies, because (unlike p-values) an SMD does not shrink just because the sample is large. The printed table mirrors the R output: characteristics down the rows, treatment groups across the columns, with the final SMD column flagging any variable that is meaningfully imbalanced (a common rule of thumb is that an SMD above 0.1 is worth noting). The commented `to_excel`/`to_latex`/`to_html` lines show how to export it straight into a manuscript or supplement.
+
 ## Regression Tables
 
 ### Presenting regression results
@@ -205,6 +211,8 @@ tbl_regression(
   )
 ```
 
+**What the code shows.** This turns a fitted Cox proportional-hazards model into a polished "Table 2". We first fit the model with `coxph`, then `tbl_regression(exponentiate = TRUE)` exponentiates the coefficients so they appear as hazard ratios (HRs) rather than raw log-hazards --- the scale clinicians actually interpret. Each row is a predictor with its HR, 95% confidence interval, and p-value; `add_global_p` adds an overall p-value for multi-level variables, and `bold_p` highlights the statistically significant ones. To read it: an HR above 1 means higher hazard (worse survival) per unit increase in that predictor, an HR below 1 means lower hazard, and an HR of 1 means no association. For example, an HR of 1.02 for "Age, per year" would mean each additional year of age is associated with a 2% higher hazard of death, holding the other covariates fixed. The footnote spelling out the abbreviations is the kind of detail reviewers expect.
+
 ### Regression tables in Python
 
 ```{python}
@@ -250,6 +258,8 @@ summary_df.index = summary_df.index.map(lambda x: name_map.get(x, x))
 
 print(summary_df[['HR (95% CI)', 'p-value']].to_string())
 ```
+
+**What the code shows.** This produces the same hazard-ratio table in Python using `lifelines`. After fitting the Cox model with `CoxPHFitter`, we pull the relevant columns out of `cph.summary` --- the exponentiated coefficient (the HR) and its lower and upper 95% confidence limits --- round them, and stitch them into a single tidy "HR (95% CI)" string per predictor. The `name_map` step renames the raw variable names to clinician-friendly labels, exactly as `gtsummary` does in R. The printed result is a compact two-column table (HR with CI, and p-value) ready to drop into a manuscript, and it is interpreted identically: HRs above 1 indicate higher hazard, below 1 lower hazard.
 
 ## Publication-Quality Figures
 
@@ -337,6 +347,8 @@ ggsave("figure1_survival.pdf",
        units = "mm", device = cairo_pdf)
 ```
 
+**What the code shows.** This produces a journal-ready Kaplan-Meier survival figure and saves it at the resolution and dimensions a journal expects. The first part defines a reusable `theme_publication()` so every figure in the paper shares consistent fonts, sizes, and gridlines, and sets up a colour-blind-friendly palette (avoiding red-green combinations that some readers cannot distinguish). `ggsurvplot` then draws the survival curves by sex, with a risk table beneath showing how many patients remain at risk over time, a log-rank p-value, and shaded confidence bands. The two `ggsave` calls export the same figure twice: a TIFF at 300 DPI (the raster format most journals require) and a vector PDF (which stays sharp at any size). The point is that the *figure content* and the *export settings* are equally important --- a beautiful plot saved at screen resolution will be rejected at the production stage.
+
 ### Publication figures in Python
 
 ```{python}
@@ -391,6 +403,8 @@ plt.savefig('figure1_survival.pdf', bbox_inches='tight')
 plt.show()
 ```
 
+**What the code shows.** This is the Python counterpart, producing the same Kaplan-Meier figure with `matplotlib` and `lifelines`. The `plt.rcParams.update(...)` block sets publication defaults once --- Arial font, bold axis labels, 300 DPI, the correct double-column width (~183 mm), and clean spines --- so they apply to the whole figure without repeating yourself. We then loop over the two sexes, fitting and plotting a survival curve for each in a colour-blind-safe colour with confidence bands. The result is a survival plot with time on the x-axis and survival probability (0 to 1) on the y-axis: curves that drop more steeply indicate worse survival, and the gap between the two curves shows the survival difference between groups. As in R, it is saved both as a 300-DPI TIFF and as a scalable PDF.
+
 ### Multi-panel figures
 
 Journals often prefer combined multi-panel figures (Figure 1A, 1B, etc.) rather than separate images.
@@ -421,6 +435,8 @@ ggsave("figure2_panels.tiff",
        width = 183, height = 90,
        units = "mm", dpi = 300)
 ```
+
+**What the code shows.** Journals usually want related plots combined into one labelled figure (Figure 1A, 1B, ...) rather than several separate files, and the `patchwork` package makes this trivial in R. Here we build two `ggplot` panels --- a boxplot of age by sex (panel A) and a scatter plot of Karnofsky score against age with a fitted regression line (panel B) --- giving each a `title` of "A" or "B". The expression `p1 + p2` simply places them side by side, and `plot_layout` controls the arrangement. The single exported TIFF then contains both panels at journal width, ready to reference as "Figure 2A" and "Figure 2B" in the text. The lesson is mechanical but important: assembling panels in code (rather than pasting images together in other software) keeps the figure reproducible and correctly sized.
 
 ## Writing a Statistical Methods Section
 
@@ -525,6 +541,8 @@ for (subgroup in c("Male", "Female")) {
   cat(subgroup, ": C-statistic =", round(auc, 3), "\n")
 }
 ```
+
+**What the code shows.** This walks through the core statistical steps a TRIPOD+AI-compliant prediction-model paper must report, in order. Step 1 uses `pmsampsize` to calculate how many patients (and events) you need before you start --- guarding against the common mistake of developing a model on too little data. Step 2 fits the model with `rms::lrm`, using restricted cubic splines (`rcs`) so continuous predictors like blood pressure are not forced to be perfectly linear. Step 3's `validate(..., B = 200)` runs bootstrap internal validation, which estimates *optimism* --- how much the model's apparent performance is inflated by being tested on the same data it was trained on --- and the code then subtracts that optimism to give an honest, corrected C-statistic (discrimination). Step 4's `calibrate` produces a calibration plot, checking whether predicted risks match observed risks (a model can discriminate well yet be poorly calibrated). Step 5 loops over sex subgroups to report performance separately --- the fairness check TRIPOD+AI now requires. The key message reinforced throughout: never report discrimination (the C-statistic / AUROC) without also reporting calibration.
 
 ## Reproducible Research Workflow
 
@@ -720,6 +738,8 @@ tbl_summary_result |> as_gt() |> gt::gtsave("output/tables/table1.docx")
 ggsave("output/figures/figure1_calibration.tiff",
        width = 89, height = 89, units = "mm", dpi = 300)
 ```
+
+**What the code shows.** This is the chapter's capstone example, stitching every earlier skill into one end-to-end pipeline that mirrors how a real prediction-model paper is built. It moves through seven numbered steps: (1) load the data and document missingness, then handle it with multiple imputation (`mice`) rather than silently dropping incomplete records; (2) generate the Table 1 of baseline characteristics by group; (3) develop a pre-specified logistic model with `rms::lrm`, using splines for non-linear effects; (4) run bootstrap internal validation to obtain an optimism-corrected C-statistic; (5) draw a calibration plot with the diagonal reference line, where points hugging the line mean predicted and observed risks agree; (6) perform a decision curve analysis with `dcurves`, which translates statistical performance into net clinical benefit across the range of risk thresholds a clinician might act on; and (7) export the finished tables and figures at journal quality. Read as a whole, this is the template you would adapt for your own study --- the deliberate sequence (impute, describe, develop, validate, calibrate, assess clinical usefulness, export) is itself the lesson.
 
 ## Capstone Projects
 

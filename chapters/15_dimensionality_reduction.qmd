@@ -6,6 +6,12 @@ library(tidyverse)
 library(knitr)
 ```
 
+Imagine you have measured 500 gene expression values, or two dozen lab tests, on each of your patients. You cannot plot 500 axes, and your eyes can only make sense of two or three. Dimensionality reduction is the set of techniques that squeeze those many measurements down to a handful of summary axes you *can* plot --- ideally without throwing away the patterns that matter. The reward is a picture: a single scatter plot where each dot is a patient, and where patients with similar profiles sit close together, often revealing subgroups, gradients, or outliers that were invisible in the raw spreadsheet. This chapter shows three ways to make that picture and, just as importantly, how to read it without being misled.
+
+::: {.callout-note}
+These chapters are set to `eval: false`, so the rendered page shows the code but not its live output. As you read, picture the figure each block *would* produce --- the surrounding text describes what to expect so you can run the code yourself and recognise a sensible result.
+:::
+
 ## Introduction
 
 The previous chapters covered supervised learning --- methods that predict an outcome from labelled data. In this part, we turn to **unsupervised** methods that explore and summarize data without a specific outcome in mind.
@@ -40,6 +46,8 @@ Given a data matrix $\mathbf{X}$ with $n$ observations and $p$ variables:
 4. **The eigenvalues** tell you how much variance each component captures.
 
 The first principal component (PC1) captures the most variance, PC2 captures the second most (orthogonal to PC1), and so on. By keeping only the first $k$ components, you reduce the data from $p$ dimensions to $k$ dimensions.
+
+In plain terms, a **principal component** is just a recipe: a new variable made by mixing the original measurements in fixed proportions (the weights in that recipe are called the **loadings**). PC1 is the single mixture that spreads patients out as much as possible --- the direction along which they differ most. If glucose, HbA1c, and triglycerides all rise and fall together, PCA notices and bundles them into one axis, so a patient's position on PC1 might summarise their whole "metabolic" profile in a single number. "Variance explained" is then simply the share of the data's total spread that each component accounts for: PC1 might capture 40% of all the variation, meaning that one axis alone tells you a large chunk of what distinguishes your patients.
 
 ### Key Properties
 
@@ -193,6 +201,8 @@ plt.show()
 
 :::
 
+**What the code is doing.** We simulate 300 patients with eight correlated lab values, standardise them (so glucose in the hundreds does not drown out HbA1c around 6), and run PCA. The code then draws two figures. The **scree plot** (left) is a bar chart of how much variance each of the eight components captures, tallest on the left; the dashed "Kaiser threshold" line marks the level a component would reach if it explained no more than its fair share --- bars above it are worth keeping. You would look for the bars to drop off sharply after the first two or three, telling you most of the signal lives in just a few dimensions. The **biplot** (right) places every patient on the PC1--PC2 plane and overlays arrows for the original labs; how to read those arrows is explained next.
+
 ### Interpreting the Biplot
 
 The biplot overlays two things:
@@ -219,6 +229,8 @@ t-SNE works in two steps:
 2. In the low-dimensional (2D) embedding, try to arrange points so that the same neighbourhood probabilities are preserved, using a **t-distribution** kernel (heavier tails than a Gaussian, which helps prevent crowding).
 
 The algorithm minimises the KL divergence between the high-dimensional and low-dimensional probability distributions using gradient descent.
+
+The intuition is worth holding onto even if the maths is not: t-SNE asks "who are each patient's closest neighbours?" in the full high-dimensional space, then arranges the 2D plot so that those same neighbourly relationships are preserved. The payoff for a health researcher is a map where patients who are genuinely alike clump together, making subtypes pop out visually --- which is exactly why t-SNE became popular for single-cell and other omics data where distinct cell populations or patient phenotypes hide in hundreds of dimensions.
 
 ### The Perplexity Parameter
 
@@ -333,7 +345,9 @@ plt.show()
 
 :::
 
-Notice how perplexity changes the visual appearance but the three groups are consistently separated. This is reassuring --- the cluster structure is real, not an artefact of a particular perplexity setting.
+**What the code is showing.** We build a fake dataset of 300 patients across three "disease subtypes" (each subtype differs on a different handful of the 20 features), then run t-SNE twice --- once with perplexity 10, once with 40 --- and plot the two resulting maps side by side, colouring each dot by its true subtype. Each dot is a patient; the axes ("t-SNE 1/2") have no units and no inherent meaning, so do not try to read values off them. What you look for is *separation*: three coloured blobs that do not overlap means the subtypes really do have distinct profiles.
+
+Notice how perplexity changes the visual appearance but the three groups are consistently separated. This is reassuring --- the cluster structure is real, not an artefact of a particular perplexity setting. (The perplexity setting, recall, is roughly the number of near neighbours each point pays attention to: a small value zooms in on tight local clumps, a large value smooths things into broader groupings.)
 
 ## UMAP: Uniform Manifold Approximation and Projection
 
@@ -433,6 +447,8 @@ plt.show()
 ```
 
 :::
+
+**What the code is showing.** We take the *same* three-subtype dataset and run all three methods on it --- PCA, t-SNE, and UMAP --- then plot their 2D outputs in one row so you can compare them like for like, with patients coloured by true subtype. The point of the figure is not any single panel but the contrast between them: it lets you see, on real-looking data, how a linear method (PCA) and two non-linear methods behave on the same problem.
 
 All three methods recover the three groups, but with different visual characteristics. PCA shows the groups with some overlap (because the separation is partly non-linear). t-SNE and UMAP separate them more clearly, with UMAP preserving more of the relative distances between clusters.
 
@@ -542,6 +558,8 @@ plt.show()
 
 :::
 
+**What the code is showing.** This puts the four-step recipe into practice on a larger, more realistic problem: 500 patients, 100 features, and three severity groups (Healthy, Mild, Severe) whose differences are buried in only the first 20 features. We scale, compress the 100 features down to 20 principal components, then hand those to UMAP to draw a single 2D map, colouring each patient by severity. You would expect to see the three colours form a gradient or three loose clusters --- Healthy at one end, Severe at the other --- which would confirm that the severity signal survived the squeeze from 100 dimensions to 2. Doing PCA first is not just for speed: it strips out noise so UMAP focuses on the real structure.
+
 ## Exercises
 
 ### Exercise 1: PCA on Clinical Lab Data
@@ -563,6 +581,8 @@ d. Create a biplot coloured by a simulated diabetes status variable. Do diabetic
 #| code-summary: "Show solution"
 #| fig-width: 10
 #| fig-height: 5
+
+library(tidyverse)  # %>% pipe, select()
 
 # Add diabetes status (correlated with glucose/HbA1c)
 set.seed(99)
@@ -634,6 +654,8 @@ for pc in [0, 1]:
 ```
 
 :::
+
+**What the solution shows.** The code labels patients as diabetic or not (based on glucose and HbA1c), re-runs PCA, and prints two things: how many components are needed to reach 80% of the variance, and the loadings of PC1 and PC2 sorted by size. Reading the printed loadings is the key step --- the labs with the largest positive or negative numbers are the ones that define each axis. If glucose, HbA1c, and triglycerides top the PC1 list, then PC1 is effectively a "metabolic" score, and you would expect diabetic patients to sit toward one end of that axis.
 
 ### Exercise 2: t-SNE Sensitivity to Perplexity
 

@@ -10,6 +10,8 @@ library(survival)
 library(broom)
 ```
 
+This chapter is about a question health researchers ask constantly but rarely state out loud: does the treatment actually *work*, or do the treated patients simply differ from everyone else? With observational data we cannot randomise, so we have to do the next best thing --- carefully adjust for the ways treated and untreated patients differ. The methods here (propensity scores, matching, inverse probability weighting, target trial emulation) are all variations on that single idea. As you read, keep one practical mantra in mind: a causal estimate is only as trustworthy as the assumption that we have measured and adjusted for every important confounder. The code chunks in this chapter are set to `eval: false`, so you will see the commands but not live output --- the surrounding text describes what each command produces and how to read it.
+
 ## Introduction
 
 Most clinical research relies on observational data --- electronic health records, claims databases, registries, and cohort studies. Yet the questions we care about most are causal: *Does* this drug reduce mortality? *Would* this surgery improve outcomes compared with conservative management? Answering causal questions with observational data requires careful methodology, because the fundamental problem is that patients who receive a treatment are systematically different from those who do not.
@@ -184,6 +186,8 @@ ggplot(dat, aes(x = ps, fill = factor(treatment))) +
   theme_minimal()
 ```
 
+**What the code shows.** We first simulate a clinical cohort where treatment is *deliberately* confounded --- older, diabetic, smoking patients with worse kidney function are more likely to be treated, and those same characteristics also raise mortality. This mimics confounding by indication. We then fit a logistic regression of treatment on the covariates; its fitted probabilities are the propensity scores, stored in `dat$ps`. The final density plot shows the propensity-score distribution separately for treated and untreated patients. What you want to see is substantial *overlap* between the two curves: that means for most patients there exist comparable patients in the other group. If the two curves barely overlap (treated patients piled up near 1, controls near 0), the groups are too different to compare fairly --- the warning below.
+
 ::: {.callout-warning}
 ## Positivity assumption
 Every patient must have a non-zero probability of receiving *either* treatment. If some patients have propensity scores near 0 or 1, the overlap assumption is violated and estimates become unstable. Always check the propensity score distributions visually.
@@ -225,11 +229,13 @@ outcome_model <- glm(mortality ~ treatment,
 tidy(outcome_model, conf.int = TRUE, exponentiate = TRUE)
 ```
 
-**Checking balance** is the most important step after matching. A standardised mean difference (SMD) below 0.1 for all covariates is the conventional threshold for acceptable balance.
+**What the code shows.** `matchit` pairs each treated patient with the most similar untreated patient by propensity score, refusing any match further apart than the caliper (0.2 standard deviations of the logit score). `summary(m_out)` reports how many patients were matched and how well-balanced the groups now are. `love.plot` then draws a "Love plot": one dot per covariate showing the standardised mean difference (SMD) before matching and after. The SMD is just the difference in a covariate's mean between treated and control groups, divided by its standard deviation --- a unit-free measure of how far apart the groups are. The whole point of matching is to pull every "after" dot inside the 0.1 reference line, signalling the matched groups now look alike on the measured confounders. Finally we estimate the treatment effect on the matched sample; with `exponentiate = TRUE` the `treatment` row is an odds ratio for mortality (below 1 means the treatment is protective), with its 95% confidence interval.
+
+**Checking balance** is the most important step after matching. A standardised mean difference (SMD) below 0.1 for all covariates is the conventional threshold for acceptable balance. Balance, here, simply means the treated and control groups have a similar mix of patients --- the situation a randomised trial would create automatically, and what we are trying to recreate by hand.
 
 ### Inverse probability of treatment weighting (IPTW)
 
-Instead of discarding unmatched patients, **IPTW** reweights the entire sample so that the distribution of covariates is balanced between groups:
+Instead of discarding unmatched patients, **IPTW** reweights the entire sample so that the distribution of covariates is balanced between groups. The intuition is simple: a treated patient who, by their covariates, looked very *unlikely* to be treated is rare and therefore informative, so we give them more weight; a treated patient who looked almost certain to be treated is over-represented, so we down-weight them. After weighting, the treated and control "pseudo-populations" have the same covariate mix, just as randomisation would have produced. The weight for each patient is:
 
 $$
 w_i = \frac{A_i}{e(L_i)} + \frac{1 - A_i}{1 - e(L_i)}
@@ -264,6 +270,8 @@ svyglm(mortality ~ treatment, design = d_weighted, family = quasibinomial) |>
   tidy(conf.int = TRUE, exponentiate = TRUE)
 ```
 
+**What the code shows.** `weightit` computes a propensity score and turns it into the weights from the formula above (here for the ATE). `bal.tab` is the weighting equivalent of the Love plot: it prints a table of standardised mean differences for each covariate after weighting --- again, you want them comfortably under 0.1. `summary(w_out)` reports the range of the weights so you can spot any extreme values (see the note below). We then feed those weights into a survey-weighted regression (`svydesign` plus `svyglm`); the survey machinery is needed to get correct, slightly wider confidence intervals that account for the weighting. The exponentiated `treatment` coefficient is the estimated odds ratio in the balanced pseudo-population --- our IPTW estimate of the treatment effect on mortality.
+
 ::: {.callout-note}
 ## Stabilised weights
 Extreme weights can inflate variance. **Stabilised weights** replace the numerator 1 with $P(A=1)$ for treated and $P(A=0)$ for untreated. The `WeightIt` package does this by default. Always check that weights are not excessively large (e.g., max weight > 20 warrants investigation).
@@ -280,6 +288,8 @@ $$
 $$
 
 where $\hat{\mu}_a(L)$ is the predicted outcome under treatment $a$.
+
+Do not be put off by the formula --- the practical message is reassuring. With ordinary propensity-score methods you have to get the treatment model right; with an outcome regression you have to get the outcome model right. Doubly robust estimation gives you *two chances*: it stays valid if you correctly specify **either** the propensity model **or** the outcome model. Since we are rarely certain which model is "correct," this is a sensible default for a cautious health researcher.
 
 In practice, packages like `AIPW` in R or `DoWhy` in Python handle this computation.
 
@@ -426,6 +436,8 @@ print(f"  Coefficient: {wls_model.params[1]:.4f}")
 print(f"  95% CI: ({wls_model.conf_int()[1][0]:.4f}, {wls_model.conf_int()[1][1]:.4f})")
 ```
 
+**What the code shows.** This is the Python counterpart to the R workflow above, written from scratch so you can see every step rather than relying on a package. We simulate the same confounded cohort, fit a logistic regression for the propensity score, then build the inverse-probability weights (both raw and stabilised). The `weighted_smd` helper prints the standardised mean difference for each covariate *after* weighting --- the printed numbers should all be close to zero (well under 0.1) if weighting has balanced the groups. The final weighted least-squares model regresses mortality on treatment using the stabilised weights; its `treatment` coefficient is the estimated effect on the probability of death (a risk difference, since the outcome is on the probability scale), reported with a 95% confidence interval.
+
 ### Using DoWhy for causal analysis
 
 ```{python}
@@ -466,6 +478,8 @@ refutation = model.refute_estimate(
 print(refutation)
 ```
 
+**What the code shows.** `DoWhy` makes the four logical steps of a causal analysis explicit rather than burying them in modelling code. **Model** records your assumptions (treatment, outcome, and the confounders to adjust for). **Identify** uses those assumptions to work out, on paper, which quantity can actually be estimated --- printing the adjustment formula. **Estimate** then computes it; here using stabilised propensity-score weighting, so the printed `estimate.value` is comparable to the IPTW number from the manual code above. **Refute** is the part most analysts skip: it stress-tests the estimate by, for example, adding a randomly generated extra "common cause." A trustworthy estimate should barely move when a *random* (and therefore non-confounding) variable is added; a large change is a red flag that the analysis is fragile.
+
 ## Sensitivity Analysis for Unmeasured Confounding
 
 No observational study can prove the absence of unmeasured confounding. **Sensitivity analysis** quantifies how strong unmeasured confounding would need to be to explain away the observed effect.
@@ -489,6 +503,8 @@ library(EValue)
 # Convert protective RR to above-null: 1/0.65 = 1.538
 evalues.RR(est = 1/0.65, lo = 1/0.85, hi = 1/0.50)
 ```
+
+**What the code shows.** `evalues.RR` takes our observed risk ratio (and its confidence limits) and returns the E-value. Because a protective effect (RR below 1) and a harmful one of the same magnitude are equivalent for this calculation, we flip the protective RR of 0.65 to `1/0.65 = 1.54` first. The function prints two numbers: the E-value for the point estimate and the E-value for the confidence-interval bound nearest the null. Read them like this: "an unmeasured confounder would need to be associated with both treatment and mortality by a risk ratio of *at least this value*, over and above the confounders we already adjusted for, to fully explain away our result." A large E-value (say 3 or more) means only a very strong hidden confounder could overturn the finding, so the result is fairly robust; an E-value close to 1 means a weak, plausible confounder could erase it.
 
 ## Practical Guidance: Choosing Your Method
 
@@ -519,6 +535,8 @@ Using the simulated dataset below, perform propensity score matching and estimat
 ```{r}
 #| label: exercise-2-data
 #| eval: false
+
+library(tidyverse)  # tibble()
 
 set.seed(123)
 n <- 1500

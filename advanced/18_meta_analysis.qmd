@@ -15,6 +15,8 @@ Meta-analysis sits at the top of the evidence hierarchy in evidence-based medici
 
 This chapter covers the statistical foundations of meta-analysis, practical implementation in R and Python, and critical appraisal of heterogeneity and publication bias.
 
+As a health researcher, you will encounter meta-analyses constantly --- they underpin clinical guidelines, inform treatment decisions, and are often the studies most cited by colleagues and policymakers. Whether you are conducting one yourself or critically reading one in a journal, understanding *how* the numbers are combined and *what can go wrong* is essential. This chapter is hands-on: each code block below shows how to run and read the standard outputs (forest plots, heterogeneity statistics, funnel plots) that appear in nearly every published systematic review. Note that the code chunks in this chapter are set to `eval: false`, so the rendered page shows the code but not live output --- the surrounding text describes what each output *would* show so you know what to expect when you run it yourself.
+
 ::: {.callout-note}
 ## Systematic review vs meta-analysis
 A **systematic review** is the process of comprehensively searching for, selecting, and appraising studies. A **meta-analysis** is the *statistical* component --- combining the numbers. You can have a systematic review without a meta-analysis (if studies are too heterogeneous to combine), but you should never have a meta-analysis without a systematic review.
@@ -30,7 +32,7 @@ $$
 \hat{\theta}_{\text{pooled}} = \frac{\sum_{i=1}^{k} w_i \hat{\theta}_i}{\sum_{i=1}^{k} w_i}
 $$
 
-where $\hat{\theta}_i$ is the effect estimate from study $i$ and $w_i$ is its weight.
+where $\hat{\theta}_i$ is the effect estimate from study $i$ and $w_i$ is its weight. The **pooled estimate** is simply this weighted average --- the single summary number a meta-analysis produces. In plain terms: a large, precise trial pulls the combined answer towards its own result more strongly than a small, imprecise one, exactly as your intuition would suggest when weighing evidence.
 
 ## Effect Measures
 
@@ -59,6 +61,8 @@ The SMD is also known as **Hedges' g** (with a small-sample correction) or **Coh
 
 ## Fixed-Effect vs Random-Effects Models
 
+The single most important modelling choice in a meta-analysis is whether to assume all the studies are estimating *one* true effect (**fixed-effect**) or a *range* of true effects (**random-effects**). This is not a technicality: it changes the weights, the width of the confidence interval, and how you interpret the result. The two models below answer the same underlying clinical question --- "does this treatment work?" --- but make different assumptions about how much the studies are allowed to genuinely disagree.
+
 ### Fixed-effect model
 
 Assumes all studies estimate the **same true effect** $\theta$. Differences between study results are due solely to sampling variation.
@@ -75,7 +79,7 @@ This model is appropriate when studies are clinically and methodologically very 
 
 Assumes each study estimates its **own true effect** $\theta_i$, drawn from a distribution of true effects: $\theta_i \sim N(\mu, \tau^2)$.
 
-The between-study variance $\tau^2$ is estimated from the data (commonly using the DerSimonian-Laird, REML, or Paule-Mandel methods). Weights incorporate both within-study and between-study variance:
+Here **$\tau^2$ (tau-squared)** is the *between-study variance* --- a number that captures how much the true effects genuinely scatter from study to study, over and above ordinary sampling noise. A $\tau^2$ of zero means every study is chasing the same target (and the random-effects model collapses back to the fixed-effect one); a large $\tau^2$ means the treatment effect really does differ across populations or settings. It is estimated from the data (commonly using the DerSimonian-Laird, REML, or Paule-Mandel methods). Weights incorporate both within-study and between-study variance:
 
 $$
 w_i^{RE} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}
@@ -139,7 +143,7 @@ Study-level associations do not imply individual-level associations. If trials w
 
 ## Forest Plots
 
-The **forest plot** is the standard visualisation for meta-analysis. Each study is shown as a square (size proportional to weight) with a horizontal line (95% CI). The pooled estimate is shown as a diamond.
+The **forest plot** is the standard visualisation for meta-analysis --- the one figure almost every systematic review puts front and centre. Each study is shown as a square (size proportional to weight) with a horizontal line (95% CI). The pooled estimate is shown as a diamond.
 
 ```{r}
 #| label: fig-forest
@@ -180,6 +184,8 @@ forest(m1,
        print.pval.Q = TRUE)
 ```
 
+**What the code shows.** We take nine real statin trials, each summarised by the number of events and patients in the treated and control arms, and pool them into a single random-effects risk ratio using `metabin`. We chose `sm = "RR"` (risk ratio) because it is more interpretable than the odds ratio for a cohort-style comparison, and `method.tau = "REML"` to estimate the between-study variance $\tau^2$. The `forest()` call then draws the plot: each row is one trial showing its risk ratio and 95% confidence interval (the square and whisker), with the square's size reflecting how much weight that trial carries. The diamond at the bottom is the pooled risk ratio --- its centre is the best single estimate and its width is the 95% confidence interval. A diamond sitting entirely to the left of the vertical "no effect" line (RR = 1) means statins reduced cardiovascular events overall. Printed alongside are $\tau^2$, $I^2$, and the Q-test p-value, telling you how much the trials disagreed. With `prediction = TRUE`, the plot also draws a wider prediction-interval bar (see below), the honest range you would expect a *new* trial's true effect to fall in.
+
 ### Reading a forest plot
 
 Key elements to examine:
@@ -213,6 +219,8 @@ funnel(m1,
        pch = 16)
 ```
 
+**What the code shows.** This draws a funnel plot of our statin meta-analysis. Each dot is one study, plotted by its effect estimate (x-axis) against its precision (y-axis, with the most precise large studies near the top). Large studies cluster tightly near the pooled effect at the top; smaller, noisier studies scatter more widely towards the bottom, producing the characteristic inverted-funnel triangle. The key thing to look for is *symmetry*: if the dots fan out evenly on both sides, that is reassuring. A gap in one corner --- typically missing small studies with unimpressive results --- bends the funnel and hints that some studies may never have been published.
+
 Asymmetry (typically an excess of small studies with large positive effects) suggests publication bias --- but also other causes like genuine heterogeneity, methodological differences in small studies, or chance.
 
 ### Statistical tests for funnel plot asymmetry
@@ -225,6 +233,8 @@ Asymmetry (typically an excess of small studies with large positive effects) sug
 
 metabias(m1, method.bias = "Egger")
 ```
+
+**What the code shows.** `metabias` runs Egger's test, which formalises the "eyeball" judgement of funnel-plot symmetry into a number. It regresses each study's effect on its standard error; if small studies systematically report bigger effects, the regression line is tilted and the intercept is non-zero. The output gives a test statistic and a p-value --- a small p-value (say < 0.05) flags significant asymmetry that *might* reflect publication bias. Treat it as a warning light, not a verdict: asymmetry has several possible causes, and the test is unreliable with fewer than about 10 studies.
 
 **Peters' test**: Preferred for binary outcomes (Egger's test can be biased with odds ratios).
 
@@ -240,6 +250,8 @@ tf <- trimfill(m1)
 summary(tf)
 funnel(tf)
 ```
+
+**What the code shows.** `trimfill` asks a "what if" question: if publication bias has hidden some small unfavourable studies, what would the result look like once we add them back? It trims the asymmetric studies, estimates how many are likely missing, imputes mirror-image studies to restore symmetry, and recomputes the pooled effect. The `summary` printout reports the number of imputed studies and the adjusted pooled estimate; the new funnel plot shows the filled-in points as open circles. If the adjusted estimate is close to the original, your conclusion is robust to plausible publication bias; if it shrinks substantially towards the null, be cautious. This is a sensitivity analysis, not a correction --- it tells you how fragile the result is, not the "true" answer.
 
 ::: {.callout-note}
 ## Publication bias is not the only explanation for asymmetry
@@ -290,6 +302,8 @@ inf <- influence(res)
 plot(inf)
 ```
 
+**What the code shows.** This repeats the statin analysis using `metafor`, the most flexible meta-analysis package in R, and adds several diagnostic steps. `escalc` first converts the raw 2x2 counts into log risk ratios (`yi`) and their sampling variances (`vi`) --- the two quantities every meta-analysis actually works with. `rma` then fits the random-effects model, and `summary(res)` prints the pooled effect, its confidence interval, $\tau^2$, $I^2$, and the Q-test. `predict(res)` adds the prediction interval. The meta-regression (`mods = ~ year`) asks whether the treatment effect has drifted over calendar time --- a significant `year` coefficient would suggest newer trials show different effects. `leave1out` re-runs the pooling with each study removed in turn, so you can spot any single trial that is driving the result, and the influence plot flags outliers and high-leverage studies visually.
+
 ### Subgroup analysis
 
 ```{r}
@@ -309,6 +323,8 @@ summary(res_sub)
 update(m1, subgroup = statin_es$prevention, print.subgroup.name = TRUE) |>
   forest(sortvar = TE)
 ```
+
+**What the code shows.** Here we split the trials into primary-prevention (treating people without prior cardiovascular disease) and secondary-prevention (treating those who have already had an event) groups, because the treatment effect could plausibly differ between them. The `rma` model with `mods = ~ prevention` tests whether the two subgroups have statistically different pooled effects, and the updated forest plot draws a separate diamond for each subgroup plus an overall one. Reading it, you compare the two subgroup diamonds: if they sit in clearly different places with little overlap, prevention setting explains some of the heterogeneity. A key caution --- subgroups should be pre-specified before looking at the data, otherwise you risk finding spurious "significant" subgroups by chance.
 
 ## Network Meta-Analysis (Brief Overview)
 
@@ -360,6 +376,8 @@ forest(net, reference.group = "plac", sortvar = TE)
 netleague(net)
 ```
 
+**What the code shows.** This runs a network meta-analysis on a built-in dataset of antidepressant trials, all compared against placebo. `netmeta` pools the direct head-to-head comparisons together with indirect evidence to estimate every treatment-versus-treatment contrast, even pairs that were never tested directly. `netgraph` draws the network: each node is a treatment and each connecting line a set of trials that compared them directly, with thicker lines for better-evidenced comparisons --- a quick way to check the network is well connected. The forest plot then shows every drug versus the placebo reference, and `netleague` produces a "league table", a grid giving the pooled estimate for every possible pairing (the format you often see ranking treatments in a guideline). Interpret rankings cautiously: a drug can top the table on a point estimate while still having wide, overlapping intervals with its rivals.
+
 ## Individual Participant Data (IPD) Meta-Analysis
 
 In standard meta-analysis, you combine **aggregate data** (summary statistics from each study). In an **IPD meta-analysis**, you obtain the raw, individual-level data from each study and analyse it directly.
@@ -398,6 +416,8 @@ summary(ipd_model)
 # The fixed effect for 'treatment' is the pooled effect
 # The random slope for 'treatment' captures between-study heterogeneity
 ```
+
+**What the code shows.** This illustrates the *one-stage* IPD approach, where the raw patient-level records from every study are stacked into one dataset and analysed with a single mixed model. The `glmer` call fits a logistic regression for the binary outcome with `treatment`, `age`, and `sex` as fixed effects, and `(1 + treatment | study_id)` as random effects --- meaning each study gets its own baseline risk (random intercept) and its own treatment effect (random slope). The fixed-effect coefficient for `treatment` is the pooled treatment effect (analogous to the diamond in a forest plot), while the variance of the random treatment slope plays the role of $\tau^2$, quantifying how much the effect genuinely varies across studies. The pay-off of using individual data is that you can adjust for patient-level covariates directly and explore who benefits most without falling into the ecological fallacy described above.
 
 ### IPD meta-analysis of prediction models
 
@@ -474,6 +494,8 @@ print(f"tau^2: {tau2:.4f}, I^2: {I2:.1f}%")
 print(f"Q statistic: {Q:.2f}, p = {1 - stats.chi2.cdf(Q, k-1):.4f}")
 ```
 
+**What the code shows.** Because Python lacks a mature one-line meta-analysis package, this builds the whole analysis from first principles --- which is also a useful way to see the formulas in action. We start from the same statin counts, compute each study's log risk ratio and its variance, then form the inverse-variance weights. The first block produces the fixed-effect pooled estimate; the second implements the DerSimonian-Laird random-effects method, calculating Cochran's Q, the between-study variance $\tau^2$, and finally $I^2$. The printed output reports both pooled risk ratios (back-transformed from the log scale and shown with 95% confidence intervals), the $\tau^2$ and $I^2$ heterogeneity statistics, and the Q-test p-value. You should get essentially the same numbers as the R `meta`/`metafor` analyses above --- a good check that the methods, not the software, drive the result.
+
 ### Forest plot in Python
 
 ```{python}
@@ -522,6 +544,8 @@ forest_plot(studies, pooled_re, ci_re, w_re,
             title="Statins for CV Prevention: Random-Effects Meta-Analysis")
 ```
 
+**What the code shows.** This defines a `forest_plot` function and uses it to draw, by hand, the same kind of forest plot the R `meta` package produces automatically. Each study appears as a marker (sized by its weight) with a horizontal 95% confidence-interval line; the vertical line at RR = 1 marks "no effect", and the shaded diamond at the bottom is the random-effects pooled estimate. Reading it is identical to reading any published forest plot: studies whose intervals sit entirely left of the line favour statins, and a pooled diamond clear of the line indicates an overall benefit. The point of writing it out is to demystify the figure --- nothing about a forest plot is magic, it is just effect estimates and intervals stacked on a common axis.
+
 ### Using PythonMeta or PyMeta
 
 ```{python}
@@ -540,6 +564,8 @@ model = sm.WLS(studies['log_rr'], X, weights=w_fe).fit()
 print("Egger's test (intercept):")
 print(f"  Intercept: {model.params[0]:.4f}, p = {model.pvalues[0]:.4f}")
 ```
+
+**What the code shows.** This reproduces Egger's test for funnel-plot asymmetry using `statsmodels`. It runs a weighted regression of each study's effect on its standard error; the intercept of that line is what Egger's test cares about. The printout reports that intercept and its p-value --- an intercept far from zero with a small p-value points to small-study effects (possible publication bias). As with the R version, this is a screening tool to be used only when you have around 10 or more studies, and a "significant" result should prompt further investigation rather than an automatic conclusion of bias.
 
 ## Reporting a Meta-Analysis: PRISMA 2020
 

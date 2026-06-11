@@ -119,6 +119,13 @@ pmsampsize_binary(rsquared=0.10, parameters=10, prevalence=0.15)
 
 :::
 
+**What the code shows.** This runs a sample-size calculation *before* any data are collected. You supply the expected outcome prevalence (here 15%), the number of candidate predictors (10), and an anticipated model performance (expressed through the Cox-Snell R-squared). The function returns the minimum number of patients and the minimum number of events you would need, along with the implied events-per-variable (EPV). The point is feasibility: an underpowered study produces a model that looks impressive in development but falls apart in validation. In R, `pmsampsize` reports the maximum across all four Riley criteria; the simplified Python version prints each criterion separately so you can see which one is driving the requirement. If the required sample size is far larger than what you can realistically recruit, that is a signal to reduce the number of candidate predictors or reconsider the study.
+
+::: {.callout-note}
+## What is EPV?
+**Events per variable (EPV)** is the number of outcome events divided by the number of parameters you are estimating. If you have 80 events and 8 predictors, you have an EPV of 10. Low EPV is the single most common cause of overfitting in clinical models: with too few events, the model "memorises" the development sample rather than learning generalisable patterns.
+:::
+
 ## Step 3: Handle Missing Data
 
 Missing data is the norm in clinical research, not the exception. Laboratory values are missing because they were not ordered. Follow-up data is missing because patients moved. Lifestyle variables are missing because patients did not answer the questionnaire.
@@ -254,6 +261,8 @@ for name, coef in zip(names, pooled_mean):
 ```
 
 :::
+
+**What the code shows.** This demonstrates multiple imputation end-to-end on a simulated cohort where cholesterol and BMI are made deliberately missing in a way that depends on observed variables (MAR). In R, `md.pattern()` prints a table showing which combinations of variables are missing together — useful for spotting structure in the missingness. `mice()` then creates 20 filled-in datasets, the model is fitted in each, and `pool()` combines them with Rubin's rules so the reported standard errors honestly reflect the extra uncertainty from imputing. The pooled coefficients are what you would report. The key takeaway for a health researcher: you do not get a single "best guess" for each missing value — you get several plausible values, and the spread between them is folded into your confidence intervals. The Python version mimics this with `IterativeImputer`; note the comment that for fully correct pooling in Python you would reach for a dedicated MI package such as `miceforest`.
 
 ## Step 4: Variable Selection
 
@@ -416,6 +425,13 @@ for name, coef in zip(feature_names, model_lasso.coef_[0]):
 
 :::
 
+**What the code shows.** This fits the same model three ways and prints the coefficients side by side: an ordinary (unpenalised) logistic regression, ridge, and LASSO. The thing to look for is that the ridge and LASSO coefficients are pulled *closer to zero* than the unpenalised ones — that pulling-in is shrinkage in action, and it is deliberate: it trades a little bias for a lot less variance, so the model generalises better to new patients. LASSO goes further and sets some coefficients to *exactly* zero, effectively dropping those predictors. The two R plots show cross-validation error against $\log(\lambda)$, where $\lambda$ is the penalty strength; the left-hand dashed line marks the $\lambda$ that minimises error (`lambda.min`). The penalty is chosen by cross-validation rather than by hand so the data, not the analyst, decides how much shrinkage is appropriate.
+
+::: {.callout-note}
+## Shrinkage in plain terms
+A **shrinkage factor** is a number between 0 and 1 that you multiply coefficients by to make predictions less extreme. An overfitted model produces predictions that are too confident — very high risks too high, very low risks too low. Shrinkage pulls those predictions back toward the average event rate, which is usually closer to the truth for new patients. A shrinkage factor of 0.85 means the development model was about 15% too optimistic and its effects should be scaled back accordingly.
+:::
+
 ## Step 6: Build the Model --- A Framingham Example
 
 Let us now walk through a complete model development process using simulated data based on the Framingham Heart Study. We will predict 10-year CVD risk using established risk factors.
@@ -535,6 +551,8 @@ print(framingham['pred_prob'].describe())
 
 :::
 
+**What the code shows.** This builds the actual prediction model on a simulated Framingham-style cohort. The first printed lines report the event rate, the number of events, and the EPV — a sanity check that we have enough events for the number of predictors before trusting anything else. In R, `lrm()` fits the logistic model and `print(fit)` reports the coefficients plus the apparent C-statistic; `rcs(age, 4)` lets age have a flexible (non-straight-line) relationship with risk using restricted cubic splines with 4 knots. The `anova(fit)` output tests whether that flexibility is actually needed (a significant nonlinear term means a straight line would misfit), and `plot(Predict(...))` draws the fitted risk curve for a single predictor while holding the others fixed. The Python version fits the equivalent model with `statsmodels` and summarises the distribution of predicted risks, so you can see whether the model produces a useful spread of probabilities or bunches everyone near the average.
+
 ### Model Specification Decisions
 
 In the Framingham example above, several important decisions were made:
@@ -639,9 +657,16 @@ plt.show()
 
 :::
 
+**What the code shows.** This is a first critical look at the finished model. The C-statistic summarises discrimination (can the model rank a patient who has the event above one who does not?). The histogram of predicted risks shows whether the model meaningfully separates patients or squashes everyone into a narrow band — a model that predicts roughly the same risk for everyone is not clinically useful even if its C-statistic looks acceptable. The boxplot contrasts predicted risk in those who did and did not have CVD: good discrimination shows up as the "CVD" box sitting clearly higher. In R, `val.prob()` produces a calibration check, and `validate(fit, B = 200)` performs bootstrap internal validation — it re-runs the whole modelling process on 200 resamples to estimate how much the apparent performance is inflated by overfitting (the *optimism*), then reports an optimism-corrected C-statistic that is a more honest guide to how the model will behave on new patients. Internal validation is covered in full in the next chapter.
+
+::: {.callout-note}
+## Optimism
+**Optimism** is the gap between how well a model appears to perform on the data it was built from and how well it actually performs on new data. Because the model has partly fitted the noise in its own development sample, the apparent C-statistic is always a little too rosy. Bootstrap validation estimates this gap so you can subtract it off and report a realistic number.
+:::
+
 ## The Complete Workflow: A Summary
 
-@fig-workflow-summary outlines the complete prediction model development workflow.
+The complete prediction model development workflow can be summarised in the following steps:
 
 1. **Define** the clinical question (population, outcome, timing, intended use).
 2. **Design** the study with adequate sample size (Riley criteria).

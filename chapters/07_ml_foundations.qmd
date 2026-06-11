@@ -167,10 +167,12 @@ This gives a more stable and less biased estimate of performance than a single t
 
 ### Variants
 
-- **Stratified k-fold**: Ensures each fold has the same proportion of events/classes. Essential when the outcome is rare (e.g., 5% readmission rate).
-- **Repeated k-fold**: Repeat the entire k-fold procedure $m$ times with different random splits, then average. Reduces variance of the estimate. A common choice is 10-fold CV repeated 5 times.
+Plain k-fold works well when the outcome is balanced and every row is an independent patient. Clinical data often violate those assumptions, so several variants exist. Each one fixes a specific problem you are likely to meet:
+
+- **Stratified k-fold**: Ensures each fold has the same proportion of events/classes as the full dataset. *Why it matters:* with a rare outcome (say a 5% readmission rate and 10 folds), an ordinary random split could easily produce a fold with almost no events --- giving a meaningless performance estimate for that fold. Stratification guarantees every fold contains a fair share of events. **Use it by default for any classification problem.**
+- **Repeated k-fold**: Repeat the entire k-fold procedure $m$ times with different random splits, then average. *Why it matters:* a single 10-fold split is itself somewhat random --- shuffle the data differently and you get a slightly different number. Repeating (e.g. 10-fold repeated 5 times = 50 estimates) averages out that luck-of-the-draw and gives a more stable estimate.
 - **Leave-one-out (LOO)**: $k = n$ (each fold is a single observation). Nearly unbiased but high variance and computationally expensive. Useful only for very small datasets.
-- **Grouped/clustered CV**: When observations are not independent (e.g., multiple visits per patient), entire groups must be kept together. Never split a patient's data across training and validation sets.
+- **Grouped/clustered CV**: When observations are not independent (e.g., multiple visits per patient, or patients clustered within hospitals), entire groups must be kept together --- all of a patient's rows go into the *same* fold. *Why it matters:* if the same patient appears in both the training and validation folds, the model can "recognise" them at validation time and post an inflated score that will not hold up on genuinely new patients. This is one of the most common and most damaging mistakes in clinical ML. **Never split a patient's data across training and validation sets.**
 
 ::: {.panel-tabset}
 
@@ -251,6 +253,13 @@ print(f"Number of CV iterations: {len(scores)}")
 ```
 
 :::
+
+**What the code is showing.** This is a worked example of stratified, repeated cross-validation on simulated patient data. Walking through the output:
+
+- It builds 10 folds and repeats the whole process 5 times, so it reports **50 train/validate cycles** (`Number of resamples: 50`). Each cycle trains the model on 90% of patients and checks it on the held-out 10%, with stratification keeping the event rate steady across folds.
+- The headline result is the **mean AUC together with its spread** (mean ± standard deviation). The mean is your best single estimate of how well the model discriminates; the spread tells you how much that estimate wobbles depending on which patients land in which fold. A tight spread means the estimate is trustworthy; a wide spread is a warning that performance is fragile, often a sign of too little data.
+
+The point of the exercise is not the specific number (the data are random here, so the AUC will sit near 0.5) but the *workflow*: this is the template you reuse for real data, simply swapping in your own dataset and model.
 
 ## Feature Engineering in Clinical Data
 
@@ -377,19 +386,39 @@ print(f"\nRFE selected features: {list(selected)}")
 
 :::
 
+**What the code is telling you.** Both examples are a small experiment: we built a dataset where `age` and `bmi` genuinely relate to the outcome, while `noise1`, `noise2`, and `noise3` are pure random noise that we added on purpose. A good feature-selection method should *keep the real predictors and discard the noise*. That is exactly what you should see in the output:
+
+- The **LASSO** table lists each predictor with its coefficient, sorted by size. The L1 penalty shrinks unhelpful coefficients all the way to **exactly zero** --- so the noise variables drop out (coefficient = 0) while age and BMI survive with non-zero coefficients. Reading the table top-to-bottom tells you which variables the model considers most important.
+- The **RFE** line prints the handful of features it chose to keep; the noise variables should not be among them.
+
+The clinical point is reassurance: when you face a spreadsheet with dozens of candidate variables, these methods let the data tell you which ones carry signal, rather than you guessing or keeping everything (which invites overfitting). If a variable you *expected* to matter gets dropped, that is itself informative and worth investigating.
+
 ## Support Vector Machines
 
 **Support vector machines (SVMs)** are a supervised learning method that finds the optimal decision boundary between classes.
 
+::: {.callout-note}
+## Why a clinician should care about SVMs
+SVMs are not just a theoretical curiosity --- they shine in a situation that is increasingly common in clinical research: **many measurements on relatively few patients**. Think of a study with gene-expression levels for 20,000 genes measured on 80 tumour samples, or hundreds of radiomic features extracted from a few hundred scans. Classical logistic regression breaks down when there are more predictors than patients, but an SVM is specifically built to draw a sensible boundary in these "wide" datasets and tends to resist overfitting even when the number of features is enormous.
+
+Concrete clinical uses where SVMs have been successful include classifying tumour subtypes from gene-expression panels, distinguishing disease from healthy tissue on imaging-derived features, and flagging abnormal ECG or EEG patterns. The practical takeaway: when you have a binary question, a modest number of patients, and a large pile of measurements per patient, an SVM is a strong first thing to try.
+:::
+
 ### The Intuition: Maximum Margin
 
-Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that **maximizes the margin** — the distance between the boundary and the nearest points from each class.
+Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that **maximizes the margin** — the distance between the boundary and the nearest points from each class (@fig-svm-margin).
 
-The nearest points are called **support vectors** — they "support" (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary.
+![A support vector machine chooses the separating line with the widest possible margin (the gap between the dashed lines). Only the points sitting on the margin --- the circled **support vectors** --- determine where the boundary goes; the other patients could be moved freely without changing it. A wide margin is what gives the model its robustness: a new patient has to fall well inside the wrong territory before being misclassified.](../images/svm_max_margin.svg){#fig-svm-margin width="80%"}
+
+The nearest points are called **support vectors** — they "support" (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary. Clinically, this is reassuring: the decision rule hinges on the genuinely borderline patients (the hard cases near the boundary), not on the clear-cut ones far from it.
 
 ### The Kernel Trick
 
-What if the classes are not linearly separable? The **kernel trick** maps the data into a higher-dimensional space where a linear boundary *can* separate the classes. Common kernels include:
+What if the classes are not linearly separable? Consider a disease where risk is high both for *very low* and *very high* values of a biomarker, but low in the middle. No straight line can separate "diseased" from "healthy" in that picture (@fig-svm-kernel, left). The **kernel trick** maps the data into a higher-dimensional space where a linear boundary *can* separate the classes (@fig-svm-kernel, right) --- without ever having to compute those new coordinates explicitly.
+
+![Left: the diseased patients (red) surround the healthy ones (blue), so no straight line works in the original two measurements. Right: the kernel trick effectively adds a new dimension (here, roughly "distance from the centre"), lifting the red points up and the blue points down so that a simple flat boundary now separates them. The curved boundary we see back in the original 2D plot is the shadow of this flat boundary in the higher-dimensional space.](../images/svm_kernel_trick.svg){#fig-svm-kernel width="95%"}
+
+Common kernels include:
 
 - **Linear**: No transformation (works when data is linearly separable).
 - **Radial basis function (RBF)**: Maps to infinite-dimensional space. Very flexible, works well in many settings.
@@ -481,6 +510,8 @@ print(f"SVM AUC: {auc_scores.mean():.3f} (+/- {auc_scores.std():.3f})")
 
 :::
 
+**What the code is doing.** We deliberately simulate a dataset where the disease cases form a *ring* around the healthy cases (`x1^2 + x2^2 > 1.5`) --- exactly the non-linearly-separable situation from @fig-svm-kernel that a straight-line classifier cannot handle. We then fit an SVM with an **RBF kernel** and estimate its performance with 5-fold cross-validation. The printed accuracy and AUC (both should land well above 0.5, the no-information level) confirm that the RBF kernel successfully learned the curved boundary. The lesson for practice: the same two lines of code would have failed with a linear kernel here; switching to RBF is what makes it work.
+
 ## ML vs Traditional Statistics: What Is Actually Different?
 
 This is a question clinical researchers often ask, and the honest answer is: less than you think.
@@ -512,6 +543,9 @@ Using the simulated clinical dataset below, compare logistic regression and SVM 
 ```{r}
 #| label: ex1-ml-r
 #| eval: false
+library(tidyverse)  # tibble()
+library(tidymodels) # vfold_cv(), logistic_reg(), svm_rbf(), etc.
+
 set.seed(123)
 n <- 600
 ex_data <- tibble(
