@@ -1811,672 +1811,698 @@ I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 <span id="cb15-17"><a href="#cb15-17"></a></span>
 <span id="cb15-18"><a href="#cb15-18"></a>This chapter covers the statistical foundations of meta-analysis, practical implementation in R and Python, and critical appraisal of heterogeneity and publication bias.</span>
 <span id="cb15-19"><a href="#cb15-19"></a></span>
-<span id="cb15-20"><a href="#cb15-20"></a>::: {.callout-note}</span>
-<span id="cb15-21"><a href="#cb15-21"></a><span class="fu">## Systematic review vs meta-analysis</span></span>
-<span id="cb15-22"><a href="#cb15-22"></a>A **systematic review** is the process of comprehensively searching for, selecting, and appraising studies. A **meta-analysis** is the *statistical* component --- combining the numbers. You can have a systematic review without a meta-analysis (if studies are too heterogeneous to combine), but you should never have a meta-analysis without a systematic review.</span>
-<span id="cb15-23"><a href="#cb15-23"></a>:::</span>
-<span id="cb15-24"><a href="#cb15-24"></a></span>
-<span id="cb15-25"><a href="#cb15-25"></a><span class="fu">## What Does a Meta-Analysis Combine?</span></span>
+<span id="cb15-20"><a href="#cb15-20"></a>As a health researcher, you will encounter meta-analyses constantly --- they underpin clinical guidelines, inform treatment decisions, and are often the studies most cited by colleagues and policymakers. Whether you are conducting one yourself or critically reading one in a journal, understanding *how* the numbers are combined and *what can go wrong* is essential. This chapter is hands-on: each code block below shows how to run and read the standard outputs (forest plots, heterogeneity statistics, funnel plots) that appear in nearly every published systematic review. Note that the code chunks in this chapter are set to `eval: false`, so the rendered page shows the code but not live output --- the surrounding text describes what each output *would* show so you know what to expect when you run it yourself.</span>
+<span id="cb15-21"><a href="#cb15-21"></a></span>
+<span id="cb15-22"><a href="#cb15-22"></a>::: {.callout-note}</span>
+<span id="cb15-23"><a href="#cb15-23"></a><span class="fu">## Systematic review vs meta-analysis</span></span>
+<span id="cb15-24"><a href="#cb15-24"></a>A **systematic review** is the process of comprehensively searching for, selecting, and appraising studies. A **meta-analysis** is the *statistical* component --- combining the numbers. You can have a systematic review without a meta-analysis (if studies are too heterogeneous to combine), but you should never have a meta-analysis without a systematic review.</span>
+<span id="cb15-25"><a href="#cb15-25"></a>:::</span>
 <span id="cb15-26"><a href="#cb15-26"></a></span>
-<span id="cb15-27"><a href="#cb15-27"></a>Each study contributes an **effect estimate** and a measure of its **precision** (standard error or confidence interval). The meta-analysis computes a **weighted average**, where studies with greater precision (typically larger studies) receive more weight.</span>
+<span id="cb15-27"><a href="#cb15-27"></a><span class="fu">## What Does a Meta-Analysis Combine?</span></span>
 <span id="cb15-28"><a href="#cb15-28"></a></span>
-<span id="cb15-29"><a href="#cb15-29"></a>The general formula for a weighted average effect:</span>
+<span id="cb15-29"><a href="#cb15-29"></a>Each study contributes an **effect estimate** and a measure of its **precision** (standard error or confidence interval). The meta-analysis computes a **weighted average**, where studies with greater precision (typically larger studies) receive more weight.</span>
 <span id="cb15-30"><a href="#cb15-30"></a></span>
-<span id="cb15-31"><a href="#cb15-31"></a>$$</span>
-<span id="cb15-32"><a href="#cb15-32"></a>\hat{\theta}_{\text{pooled}} = \frac{\sum_{i=1}^{k} w_i \hat{\theta}_i}{\sum_{i=1}^{k} w_i}</span>
+<span id="cb15-31"><a href="#cb15-31"></a>The general formula for a weighted average effect:</span>
+<span id="cb15-32"><a href="#cb15-32"></a></span>
 <span id="cb15-33"><a href="#cb15-33"></a>$$</span>
-<span id="cb15-34"><a href="#cb15-34"></a></span>
-<span id="cb15-35"><a href="#cb15-35"></a>where $\hat{\theta}_i$ is the effect estimate from study $i$ and $w_i$ is its weight.</span>
+<span id="cb15-34"><a href="#cb15-34"></a>\hat{\theta}_{\text{pooled}} = \frac{\sum_{i=1}^{k} w_i \hat{\theta}_i}{\sum_{i=1}^{k} w_i}</span>
+<span id="cb15-35"><a href="#cb15-35"></a>$$</span>
 <span id="cb15-36"><a href="#cb15-36"></a></span>
-<span id="cb15-37"><a href="#cb15-37"></a><span class="fu">## Effect Measures</span></span>
+<span id="cb15-37"><a href="#cb15-37"></a>where $\hat{\theta}_i$ is the effect estimate from study $i$ and $w_i$ is its weight. The **pooled estimate** is simply this weighted average --- the single summary number a meta-analysis produces. In plain terms: a large, precise trial pulls the combined answer towards its own result more strongly than a small, imprecise one, exactly as your intuition would suggest when weighing evidence.</span>
 <span id="cb15-38"><a href="#cb15-38"></a></span>
-<span id="cb15-39"><a href="#cb15-39"></a>The choice of effect measure depends on the type of outcome:</span>
+<span id="cb15-39"><a href="#cb15-39"></a><span class="fu">## Effect Measures</span></span>
 <span id="cb15-40"><a href="#cb15-40"></a></span>
-<span id="cb15-41"><a href="#cb15-41"></a><span class="fu">### Binary outcomes</span></span>
+<span id="cb15-41"><a href="#cb15-41"></a>The choice of effect measure depends on the type of outcome:</span>
 <span id="cb15-42"><a href="#cb15-42"></a></span>
-<span id="cb15-43"><a href="#cb15-43"></a><span class="pp">|</span> Measure <span class="pp">|</span> Formula <span class="pp">|</span> When to use <span class="pp">|</span></span>
-<span id="cb15-44"><a href="#cb15-44"></a><span class="pp">|---|---|---|</span></span>
-<span id="cb15-45"><a href="#cb15-45"></a><span class="pp">|</span> **Odds ratio (OR)** <span class="pp">|</span> $\frac{a/c}{b/d} = \frac{ad}{bc}$ <span class="pp">|</span> Case-control studies; logistic regression <span class="pp">|</span></span>
-<span id="cb15-46"><a href="#cb15-46"></a><span class="pp">|</span> **Risk ratio (RR)** <span class="pp">|</span> $\frac{a/(a+b)}{c/(c+d)}$ <span class="pp">|</span> Cohort studies; more interpretable than OR <span class="pp">|</span></span>
-<span id="cb15-47"><a href="#cb15-47"></a><span class="pp">|</span> **Risk difference (RD)** <span class="pp">|</span> $\frac{a}{a+b} - \frac{c}{c+d}$ <span class="pp">|</span> When absolute risk is clinically relevant <span class="pp">|</span></span>
-<span id="cb15-48"><a href="#cb15-48"></a></span>
-<span id="cb15-49"><a href="#cb15-49"></a>Where $a$, $b$, $c$, $d$ are the cells of a 2x2 table (treatment events, treatment non-events, control events, control non-events).</span>
+<span id="cb15-43"><a href="#cb15-43"></a><span class="fu">### Binary outcomes</span></span>
+<span id="cb15-44"><a href="#cb15-44"></a></span>
+<span id="cb15-45"><a href="#cb15-45"></a><span class="pp">|</span> Measure <span class="pp">|</span> Formula <span class="pp">|</span> When to use <span class="pp">|</span></span>
+<span id="cb15-46"><a href="#cb15-46"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb15-47"><a href="#cb15-47"></a><span class="pp">|</span> **Odds ratio (OR)** <span class="pp">|</span> $\frac{a/c}{b/d} = \frac{ad}{bc}$ <span class="pp">|</span> Case-control studies; logistic regression <span class="pp">|</span></span>
+<span id="cb15-48"><a href="#cb15-48"></a><span class="pp">|</span> **Risk ratio (RR)** <span class="pp">|</span> $\frac{a/(a+b)}{c/(c+d)}$ <span class="pp">|</span> Cohort studies; more interpretable than OR <span class="pp">|</span></span>
+<span id="cb15-49"><a href="#cb15-49"></a><span class="pp">|</span> **Risk difference (RD)** <span class="pp">|</span> $\frac{a}{a+b} - \frac{c}{c+d}$ <span class="pp">|</span> When absolute risk is clinically relevant <span class="pp">|</span></span>
 <span id="cb15-50"><a href="#cb15-50"></a></span>
-<span id="cb15-51"><a href="#cb15-51"></a>ORs and RRs are typically meta-analysed on the **log scale** (because their sampling distributions are approximately normal on that scale) and then back-transformed for presentation.</span>
+<span id="cb15-51"><a href="#cb15-51"></a>Where $a$, $b$, $c$, $d$ are the cells of a 2x2 table (treatment events, treatment non-events, control events, control non-events).</span>
 <span id="cb15-52"><a href="#cb15-52"></a></span>
-<span id="cb15-53"><a href="#cb15-53"></a><span class="fu">### Continuous outcomes</span></span>
+<span id="cb15-53"><a href="#cb15-53"></a>ORs and RRs are typically meta-analysed on the **log scale** (because their sampling distributions are approximately normal on that scale) and then back-transformed for presentation.</span>
 <span id="cb15-54"><a href="#cb15-54"></a></span>
-<span id="cb15-55"><a href="#cb15-55"></a><span class="pp">|</span> Measure <span class="pp">|</span> Formula <span class="pp">|</span> When to use <span class="pp">|</span></span>
-<span id="cb15-56"><a href="#cb15-56"></a><span class="pp">|---|---|---|</span></span>
-<span id="cb15-57"><a href="#cb15-57"></a><span class="pp">|</span> **Mean difference (MD)** <span class="pp">|</span> $\bar{X}_T - \bar{X}_C$ <span class="pp">|</span> All studies use the same measurement scale <span class="pp">|</span></span>
-<span id="cb15-58"><a href="#cb15-58"></a><span class="pp">|</span> **Standardised mean difference (SMD)** <span class="pp">|</span> $\frac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ <span class="pp">|</span> Studies use different scales measuring the same construct (e.g., different depression questionnaires) <span class="pp">|</span></span>
-<span id="cb15-59"><a href="#cb15-59"></a></span>
-<span id="cb15-60"><a href="#cb15-60"></a>The SMD is also known as **Hedges' g** (with a small-sample correction) or **Cohen's d**.</span>
+<span id="cb15-55"><a href="#cb15-55"></a><span class="fu">### Continuous outcomes</span></span>
+<span id="cb15-56"><a href="#cb15-56"></a></span>
+<span id="cb15-57"><a href="#cb15-57"></a><span class="pp">|</span> Measure <span class="pp">|</span> Formula <span class="pp">|</span> When to use <span class="pp">|</span></span>
+<span id="cb15-58"><a href="#cb15-58"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb15-59"><a href="#cb15-59"></a><span class="pp">|</span> **Mean difference (MD)** <span class="pp">|</span> $\bar{X}_T - \bar{X}_C$ <span class="pp">|</span> All studies use the same measurement scale <span class="pp">|</span></span>
+<span id="cb15-60"><a href="#cb15-60"></a><span class="pp">|</span> **Standardised mean difference (SMD)** <span class="pp">|</span> $\frac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ <span class="pp">|</span> Studies use different scales measuring the same construct (e.g., different depression questionnaires) <span class="pp">|</span></span>
 <span id="cb15-61"><a href="#cb15-61"></a></span>
-<span id="cb15-62"><a href="#cb15-62"></a><span class="fu">## Fixed-Effect vs Random-Effects Models</span></span>
+<span id="cb15-62"><a href="#cb15-62"></a>The SMD is also known as **Hedges' g** (with a small-sample correction) or **Cohen's d**.</span>
 <span id="cb15-63"><a href="#cb15-63"></a></span>
-<span id="cb15-64"><a href="#cb15-64"></a><span class="fu">### Fixed-effect model</span></span>
+<span id="cb15-64"><a href="#cb15-64"></a><span class="fu">## Fixed-Effect vs Random-Effects Models</span></span>
 <span id="cb15-65"><a href="#cb15-65"></a></span>
-<span id="cb15-66"><a href="#cb15-66"></a>Assumes all studies estimate the **same true effect** $\theta$. Differences between study results are due solely to sampling variation.</span>
+<span id="cb15-66"><a href="#cb15-66"></a>The single most important modelling choice in a meta-analysis is whether to assume all the studies are estimating *one* true effect (**fixed-effect**) or a *range* of true effects (**random-effects**). This is not a technicality: it changes the weights, the width of the confidence interval, and how you interpret the result. The two models below answer the same underlying clinical question --- "does this treatment work?" --- but make different assumptions about how much the studies are allowed to genuinely disagree.</span>
 <span id="cb15-67"><a href="#cb15-67"></a></span>
-<span id="cb15-68"><a href="#cb15-68"></a>Weights are the inverse of the within-study variance:</span>
+<span id="cb15-68"><a href="#cb15-68"></a><span class="fu">### Fixed-effect model</span></span>
 <span id="cb15-69"><a href="#cb15-69"></a></span>
-<span id="cb15-70"><a href="#cb15-70"></a>$$</span>
-<span id="cb15-71"><a href="#cb15-71"></a>w_i^{FE} = \frac{1}{\hat{\sigma}_i^2}</span>
-<span id="cb15-72"><a href="#cb15-72"></a>$$</span>
+<span id="cb15-70"><a href="#cb15-70"></a>Assumes all studies estimate the **same true effect** $\theta$. Differences between study results are due solely to sampling variation.</span>
+<span id="cb15-71"><a href="#cb15-71"></a></span>
+<span id="cb15-72"><a href="#cb15-72"></a>Weights are the inverse of the within-study variance:</span>
 <span id="cb15-73"><a href="#cb15-73"></a></span>
-<span id="cb15-74"><a href="#cb15-74"></a>This model is appropriate when studies are clinically and methodologically very similar (e.g., exact replications).</span>
-<span id="cb15-75"><a href="#cb15-75"></a></span>
-<span id="cb15-76"><a href="#cb15-76"></a><span class="fu">### Random-effects model</span></span>
+<span id="cb15-74"><a href="#cb15-74"></a>$$</span>
+<span id="cb15-75"><a href="#cb15-75"></a>w_i^{FE} = \frac{1}{\hat{\sigma}_i^2}</span>
+<span id="cb15-76"><a href="#cb15-76"></a>$$</span>
 <span id="cb15-77"><a href="#cb15-77"></a></span>
-<span id="cb15-78"><a href="#cb15-78"></a>Assumes each study estimates its **own true effect** $\theta_i$, drawn from a distribution of true effects: $\theta_i \sim N(\mu, \tau^2)$.</span>
+<span id="cb15-78"><a href="#cb15-78"></a>This model is appropriate when studies are clinically and methodologically very similar (e.g., exact replications).</span>
 <span id="cb15-79"><a href="#cb15-79"></a></span>
-<span id="cb15-80"><a href="#cb15-80"></a>The between-study variance $\tau^2$ is estimated from the data (commonly using the DerSimonian-Laird, REML, or Paule-Mandel methods). Weights incorporate both within-study and between-study variance:</span>
+<span id="cb15-80"><a href="#cb15-80"></a><span class="fu">### Random-effects model</span></span>
 <span id="cb15-81"><a href="#cb15-81"></a></span>
-<span id="cb15-82"><a href="#cb15-82"></a>$$</span>
-<span id="cb15-83"><a href="#cb15-83"></a>w_i^{RE} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}</span>
-<span id="cb15-84"><a href="#cb15-84"></a>$$</span>
+<span id="cb15-82"><a href="#cb15-82"></a>Assumes each study estimates its **own true effect** $\theta_i$, drawn from a distribution of true effects: $\theta_i \sim N(\mu, \tau^2)$.</span>
+<span id="cb15-83"><a href="#cb15-83"></a></span>
+<span id="cb15-84"><a href="#cb15-84"></a>Here **$\tau^2$ (tau-squared)** is the *between-study variance* --- a number that captures how much the true effects genuinely scatter from study to study, over and above ordinary sampling noise. A $\tau^2$ of zero means every study is chasing the same target (and the random-effects model collapses back to the fixed-effect one); a large $\tau^2$ means the treatment effect really does differ across populations or settings. It is estimated from the data (commonly using the DerSimonian-Laird, REML, or Paule-Mandel methods). Weights incorporate both within-study and between-study variance:</span>
 <span id="cb15-85"><a href="#cb15-85"></a></span>
-<span id="cb15-86"><a href="#cb15-86"></a>The random-effects model is almost always more appropriate in clinical research, because studies differ in populations, interventions, settings, and outcome definitions.</span>
-<span id="cb15-87"><a href="#cb15-87"></a></span>
-<span id="cb15-88"><a href="#cb15-88"></a>::: {.callout-important}</span>
-<span id="cb15-89"><a href="#cb15-89"></a><span class="fu">## The random-effects model gives more weight to small studies</span></span>
-<span id="cb15-90"><a href="#cb15-90"></a>Because $\hat{\tau}^2$ is added to every study's variance, the relative weights become more equal. This means small (potentially biased or low-quality) studies have more influence in a random-effects analysis. This is a feature when heterogeneity is real, but a bug when small studies are biased (e.g., publication bias favoring small positive studies).</span>
-<span id="cb15-91"><a href="#cb15-91"></a>:::</span>
-<span id="cb15-92"><a href="#cb15-92"></a></span>
-<span id="cb15-93"><a href="#cb15-93"></a><span class="fu">### Prediction intervals</span></span>
-<span id="cb15-94"><a href="#cb15-94"></a></span>
-<span id="cb15-95"><a href="#cb15-95"></a>The confidence interval for the pooled effect tells you about the *average* true effect. The **prediction interval** tells you the range within which the true effect of a *future study* is likely to fall:</span>
+<span id="cb15-86"><a href="#cb15-86"></a>$$</span>
+<span id="cb15-87"><a href="#cb15-87"></a>w_i^{RE} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}</span>
+<span id="cb15-88"><a href="#cb15-88"></a>$$</span>
+<span id="cb15-89"><a href="#cb15-89"></a></span>
+<span id="cb15-90"><a href="#cb15-90"></a>The random-effects model is almost always more appropriate in clinical research, because studies differ in populations, interventions, settings, and outcome definitions.</span>
+<span id="cb15-91"><a href="#cb15-91"></a></span>
+<span id="cb15-92"><a href="#cb15-92"></a>::: {.callout-important}</span>
+<span id="cb15-93"><a href="#cb15-93"></a><span class="fu">## The random-effects model gives more weight to small studies</span></span>
+<span id="cb15-94"><a href="#cb15-94"></a>Because $\hat{\tau}^2$ is added to every study's variance, the relative weights become more equal. This means small (potentially biased or low-quality) studies have more influence in a random-effects analysis. This is a feature when heterogeneity is real, but a bug when small studies are biased (e.g., publication bias favoring small positive studies).</span>
+<span id="cb15-95"><a href="#cb15-95"></a>:::</span>
 <span id="cb15-96"><a href="#cb15-96"></a></span>
-<span id="cb15-97"><a href="#cb15-97"></a>$$</span>
-<span id="cb15-98"><a href="#cb15-98"></a>\hat{\mu} \pm t_{k-2, 0.975} \times \sqrt{\text{SE}(\hat{\mu})^2 + \hat{\tau}^2}</span>
-<span id="cb15-99"><a href="#cb15-99"></a>$$</span>
+<span id="cb15-97"><a href="#cb15-97"></a><span class="fu">### Prediction intervals</span></span>
+<span id="cb15-98"><a href="#cb15-98"></a></span>
+<span id="cb15-99"><a href="#cb15-99"></a>The confidence interval for the pooled effect tells you about the *average* true effect. The **prediction interval** tells you the range within which the true effect of a *future study* is likely to fall:</span>
 <span id="cb15-100"><a href="#cb15-100"></a></span>
-<span id="cb15-101"><a href="#cb15-101"></a>Prediction intervals are often much wider than confidence intervals and provide a more honest picture of the uncertainty. A pooled effect may be statistically significant while the prediction interval includes the null --- meaning that some settings may see no benefit or even harm.</span>
-<span id="cb15-102"><a href="#cb15-102"></a></span>
-<span id="cb15-103"><a href="#cb15-103"></a><span class="fu">## Heterogeneity</span></span>
+<span id="cb15-101"><a href="#cb15-101"></a>$$</span>
+<span id="cb15-102"><a href="#cb15-102"></a>\hat{\mu} \pm t_{k-2, 0.975} \times \sqrt{\text{SE}(\hat{\mu})^2 + \hat{\tau}^2}</span>
+<span id="cb15-103"><a href="#cb15-103"></a>$$</span>
 <span id="cb15-104"><a href="#cb15-104"></a></span>
-<span id="cb15-105"><a href="#cb15-105"></a><span class="fu">### Measuring heterogeneity</span></span>
+<span id="cb15-105"><a href="#cb15-105"></a>Prediction intervals are often much wider than confidence intervals and provide a more honest picture of the uncertainty. A pooled effect may be statistically significant while the prediction interval includes the null --- meaning that some settings may see no benefit or even harm.</span>
 <span id="cb15-106"><a href="#cb15-106"></a></span>
-<span id="cb15-107"><a href="#cb15-107"></a>**Cochran's Q test**: Tests $H_0$: all studies share the same true effect.</span>
+<span id="cb15-107"><a href="#cb15-107"></a><span class="fu">## Heterogeneity</span></span>
 <span id="cb15-108"><a href="#cb15-108"></a></span>
-<span id="cb15-109"><a href="#cb15-109"></a>$$</span>
-<span id="cb15-110"><a href="#cb15-110"></a>Q = \sum_{i=1}^{k} w_i^{FE} (\hat{\theta}_i - \hat{\theta}_{FE})^2</span>
-<span id="cb15-111"><a href="#cb15-111"></a>$$</span>
+<span id="cb15-109"><a href="#cb15-109"></a><span class="fu">### Measuring heterogeneity</span></span>
+<span id="cb15-110"><a href="#cb15-110"></a></span>
+<span id="cb15-111"><a href="#cb15-111"></a>**Cochran's Q test**: Tests $H_0$: all studies share the same true effect.</span>
 <span id="cb15-112"><a href="#cb15-112"></a></span>
-<span id="cb15-113"><a href="#cb15-113"></a>Under $H_0$, $Q \sim \chi^2_{k-1}$. The test has low power when $k$ is small.</span>
-<span id="cb15-114"><a href="#cb15-114"></a></span>
-<span id="cb15-115"><a href="#cb15-115"></a>**$I^2$ statistic**: The percentage of total variability due to between-study heterogeneity rather than chance.</span>
+<span id="cb15-113"><a href="#cb15-113"></a>$$</span>
+<span id="cb15-114"><a href="#cb15-114"></a>Q = \sum_{i=1}^{k} w_i^{FE} (\hat{\theta}_i - \hat{\theta}_{FE})^2</span>
+<span id="cb15-115"><a href="#cb15-115"></a>$$</span>
 <span id="cb15-116"><a href="#cb15-116"></a></span>
-<span id="cb15-117"><a href="#cb15-117"></a>$$</span>
-<span id="cb15-118"><a href="#cb15-118"></a>I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%</span>
-<span id="cb15-119"><a href="#cb15-119"></a>$$</span>
+<span id="cb15-117"><a href="#cb15-117"></a>Under $H_0$, $Q \sim \chi^2_{k-1}$. The test has low power when $k$ is small.</span>
+<span id="cb15-118"><a href="#cb15-118"></a></span>
+<span id="cb15-119"><a href="#cb15-119"></a>**$I^2$ statistic**: The percentage of total variability due to between-study heterogeneity rather than chance.</span>
 <span id="cb15-120"><a href="#cb15-120"></a></span>
-<span id="cb15-121"><a href="#cb15-121"></a>Rules of thumb (Higgins et al., 2003):</span>
-<span id="cb15-122"><a href="#cb15-122"></a></span>
-<span id="cb15-123"><a href="#cb15-123"></a><span class="ss">- </span>$I^2 \approx 25\%$: low heterogeneity</span>
-<span id="cb15-124"><a href="#cb15-124"></a><span class="ss">- </span>$I^2 \approx 50\%$: moderate heterogeneity</span>
-<span id="cb15-125"><a href="#cb15-125"></a><span class="ss">- </span>$I^2 \approx 75\%$: high heterogeneity</span>
+<span id="cb15-121"><a href="#cb15-121"></a>$$</span>
+<span id="cb15-122"><a href="#cb15-122"></a>I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%</span>
+<span id="cb15-123"><a href="#cb15-123"></a>$$</span>
+<span id="cb15-124"><a href="#cb15-124"></a></span>
+<span id="cb15-125"><a href="#cb15-125"></a>Rules of thumb (Higgins et al., 2003):</span>
 <span id="cb15-126"><a href="#cb15-126"></a></span>
-<span id="cb15-127"><a href="#cb15-127"></a>**$\tau^2$**: The estimated between-study variance on the effect scale. Unlike $I^2$, it is not influenced by study precision and is more interpretable for clinical decision-making.</span>
-<span id="cb15-128"><a href="#cb15-128"></a></span>
-<span id="cb15-129"><a href="#cb15-129"></a><span class="fu">### Investigating heterogeneity</span></span>
+<span id="cb15-127"><a href="#cb15-127"></a><span class="ss">- </span>$I^2 \approx 25\%$: low heterogeneity</span>
+<span id="cb15-128"><a href="#cb15-128"></a><span class="ss">- </span>$I^2 \approx 50\%$: moderate heterogeneity</span>
+<span id="cb15-129"><a href="#cb15-129"></a><span class="ss">- </span>$I^2 \approx 75\%$: high heterogeneity</span>
 <span id="cb15-130"><a href="#cb15-130"></a></span>
-<span id="cb15-131"><a href="#cb15-131"></a>When heterogeneity is substantial:</span>
+<span id="cb15-131"><a href="#cb15-131"></a>**$\tau^2$**: The estimated between-study variance on the effect scale. Unlike $I^2$, it is not influenced by study precision and is more interpretable for clinical decision-making.</span>
 <span id="cb15-132"><a href="#cb15-132"></a></span>
-<span id="cb15-133"><a href="#cb15-133"></a><span class="ss">1. </span>**Subgroup analysis**: Split studies by a pre-specified characteristic (e.g., drug dose, patient age group, study quality) and compare pooled effects.</span>
-<span id="cb15-134"><a href="#cb15-134"></a><span class="ss">2. </span>**Meta-regression**: Model the effect as a function of study-level covariates.</span>
-<span id="cb15-135"><a href="#cb15-135"></a><span class="ss">3. </span>**Sensitivity analysis**: Exclude outlier studies or studies at high risk of bias.</span>
+<span id="cb15-133"><a href="#cb15-133"></a><span class="fu">### Investigating heterogeneity</span></span>
+<span id="cb15-134"><a href="#cb15-134"></a></span>
+<span id="cb15-135"><a href="#cb15-135"></a>When heterogeneity is substantial:</span>
 <span id="cb15-136"><a href="#cb15-136"></a></span>
-<span id="cb15-137"><a href="#cb15-137"></a>::: {.callout-warning}</span>
-<span id="cb15-138"><a href="#cb15-138"></a><span class="fu">## Ecological fallacy in meta-regression</span></span>
-<span id="cb15-139"><a href="#cb15-139"></a>Study-level associations do not imply individual-level associations. If trials with older populations show larger treatment effects, this does NOT prove that older individuals benefit more --- the trials may also differ in other ways. This is the **ecological fallacy**, and it is a fundamental limitation of aggregate data meta-analysis.</span>
-<span id="cb15-140"><a href="#cb15-140"></a>:::</span>
-<span id="cb15-141"><a href="#cb15-141"></a></span>
-<span id="cb15-142"><a href="#cb15-142"></a><span class="fu">## Forest Plots</span></span>
-<span id="cb15-143"><a href="#cb15-143"></a></span>
-<span id="cb15-144"><a href="#cb15-144"></a>The **forest plot** is the standard visualisation for meta-analysis. Each study is shown as a square (size proportional to weight) with a horizontal line (95% CI). The pooled estimate is shown as a diamond.</span>
+<span id="cb15-137"><a href="#cb15-137"></a><span class="ss">1. </span>**Subgroup analysis**: Split studies by a pre-specified characteristic (e.g., drug dose, patient age group, study quality) and compare pooled effects.</span>
+<span id="cb15-138"><a href="#cb15-138"></a><span class="ss">2. </span>**Meta-regression**: Model the effect as a function of study-level covariates.</span>
+<span id="cb15-139"><a href="#cb15-139"></a><span class="ss">3. </span>**Sensitivity analysis**: Exclude outlier studies or studies at high risk of bias.</span>
+<span id="cb15-140"><a href="#cb15-140"></a></span>
+<span id="cb15-141"><a href="#cb15-141"></a>::: {.callout-warning}</span>
+<span id="cb15-142"><a href="#cb15-142"></a><span class="fu">## Ecological fallacy in meta-regression</span></span>
+<span id="cb15-143"><a href="#cb15-143"></a>Study-level associations do not imply individual-level associations. If trials with older populations show larger treatment effects, this does NOT prove that older individuals benefit more --- the trials may also differ in other ways. This is the **ecological fallacy**, and it is a fundamental limitation of aggregate data meta-analysis.</span>
+<span id="cb15-144"><a href="#cb15-144"></a>:::</span>
 <span id="cb15-145"><a href="#cb15-145"></a></span>
-<span id="cb15-148"><a href="#cb15-148"></a><span class="in">```{r}</span></span>
-<span id="cb15-149"><a href="#cb15-149"></a><span class="co">#| label: fig-forest</span></span>
-<span id="cb15-150"><a href="#cb15-150"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-151"><a href="#cb15-151"></a><span class="co">#| fig-cap: "Forest plot of a meta-analysis of statin therapy for secondary prevention of cardiovascular events."</span></span>
-<span id="cb15-152"><a href="#cb15-152"></a></span>
-<span id="cb15-153"><a href="#cb15-153"></a><span class="co"># Example data: RCTs of statins for secondary CV prevention</span></span>
-<span id="cb15-154"><a href="#cb15-154"></a>statin_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb15-155"><a href="#cb15-155"></a>  <span class="at">study =</span> <span class="fu">c</span>(<span class="st">"4S (1994)"</span>, <span class="st">"CARE (1996)"</span>, <span class="st">"LIPID (1998)"</span>, <span class="st">"HPS (2002)"</span>,</span>
-<span id="cb15-156"><a href="#cb15-156"></a>            <span class="st">"PROSPER (2002)"</span>, <span class="st">"PROVE-IT (2004)"</span>, <span class="st">"TNT (2005)"</span>,</span>
-<span id="cb15-157"><a href="#cb15-157"></a>            <span class="st">"JUPITER (2008)"</span>, <span class="st">"HOPE-3 (2016)"</span>),</span>
-<span id="cb15-158"><a href="#cb15-158"></a>  <span class="at">events_treat =</span> <span class="fu">c</span>(<span class="dv">111</span>, <span class="dv">212</span>, <span class="dv">287</span>, <span class="dv">1328</span>, <span class="dv">127</span>, <span class="dv">147</span>, <span class="dv">334</span>, <span class="dv">142</span>, <span class="dv">235</span>),</span>
-<span id="cb15-159"><a href="#cb15-159"></a>  <span class="at">n_treat      =</span> <span class="fu">c</span>(<span class="dv">2221</span>, <span class="dv">2081</span>, <span class="dv">4512</span>, <span class="dv">10269</span>, <span class="dv">2891</span>, <span class="dv">2099</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6361</span>),</span>
-<span id="cb15-160"><a href="#cb15-160"></a>  <span class="at">events_ctrl  =</span> <span class="fu">c</span>(<span class="dv">189</span>, <span class="dv">274</span>, <span class="dv">373</span>, <span class="dv">1507</span>, <span class="dv">143</span>, <span class="dv">172</span>, <span class="dv">418</span>, <span class="dv">251</span>, <span class="dv">260</span>),</span>
-<span id="cb15-161"><a href="#cb15-161"></a>  <span class="at">n_ctrl       =</span> <span class="fu">c</span>(<span class="dv">2223</span>, <span class="dv">2078</span>, <span class="dv">4502</span>, <span class="dv">10267</span>, <span class="dv">2913</span>, <span class="dv">2063</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6344</span>)</span>
-<span id="cb15-162"><a href="#cb15-162"></a>)</span>
-<span id="cb15-163"><a href="#cb15-163"></a></span>
-<span id="cb15-164"><a href="#cb15-164"></a><span class="co"># Run random-effects meta-analysis</span></span>
-<span id="cb15-165"><a href="#cb15-165"></a>m1 <span class="ot">&lt;-</span> <span class="fu">metabin</span>(</span>
-<span id="cb15-166"><a href="#cb15-166"></a>  <span class="at">event.e =</span> events_treat, <span class="at">n.e =</span> n_treat,</span>
-<span id="cb15-167"><a href="#cb15-167"></a>  <span class="at">event.c =</span> events_ctrl,  <span class="at">n.c =</span> n_ctrl,</span>
-<span id="cb15-168"><a href="#cb15-168"></a>  <span class="at">studlab =</span> study,</span>
-<span id="cb15-169"><a href="#cb15-169"></a>  <span class="at">data =</span> statin_data,</span>
-<span id="cb15-170"><a href="#cb15-170"></a>  <span class="at">sm =</span> <span class="st">"RR"</span>,                    <span class="co"># Risk ratio</span></span>
-<span id="cb15-171"><a href="#cb15-171"></a>  <span class="at">method.tau =</span> <span class="st">"REML"</span>,          <span class="co"># Restricted maximum likelihood for tau^2</span></span>
-<span id="cb15-172"><a href="#cb15-172"></a>  <span class="at">prediction =</span> <span class="cn">TRUE</span>             <span class="co"># Include prediction interval</span></span>
-<span id="cb15-173"><a href="#cb15-173"></a>)</span>
-<span id="cb15-174"><a href="#cb15-174"></a></span>
-<span id="cb15-175"><a href="#cb15-175"></a><span class="co"># Forest plot</span></span>
-<span id="cb15-176"><a href="#cb15-176"></a><span class="fu">forest</span>(m1,</span>
-<span id="cb15-177"><a href="#cb15-177"></a>       <span class="at">sortvar =</span> TE,</span>
-<span id="cb15-178"><a href="#cb15-178"></a>       <span class="at">label.left =</span> <span class="st">"Favours statins"</span>,</span>
-<span id="cb15-179"><a href="#cb15-179"></a>       <span class="at">label.right =</span> <span class="st">"Favours control"</span>,</span>
-<span id="cb15-180"><a href="#cb15-180"></a>       <span class="at">col.diamond =</span> <span class="st">"steelblue"</span>,</span>
-<span id="cb15-181"><a href="#cb15-181"></a>       <span class="at">col.square =</span> <span class="st">"darkblue"</span>,</span>
-<span id="cb15-182"><a href="#cb15-182"></a>       <span class="at">print.tau2 =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb15-183"><a href="#cb15-183"></a>       <span class="at">print.I2 =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb15-184"><a href="#cb15-184"></a>       <span class="at">print.pval.Q =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb15-185"><a href="#cb15-185"></a><span class="in">```</span></span>
-<span id="cb15-186"><a href="#cb15-186"></a></span>
-<span id="cb15-187"><a href="#cb15-187"></a><span class="fu">### Reading a forest plot</span></span>
-<span id="cb15-188"><a href="#cb15-188"></a></span>
-<span id="cb15-189"><a href="#cb15-189"></a>Key elements to examine:</span>
+<span id="cb15-146"><a href="#cb15-146"></a><span class="fu">## Forest Plots</span></span>
+<span id="cb15-147"><a href="#cb15-147"></a></span>
+<span id="cb15-148"><a href="#cb15-148"></a>The **forest plot** is the standard visualisation for meta-analysis --- the one figure almost every systematic review puts front and centre. Each study is shown as a square (size proportional to weight) with a horizontal line (95% CI). The pooled estimate is shown as a diamond.</span>
+<span id="cb15-149"><a href="#cb15-149"></a></span>
+<span id="cb15-152"><a href="#cb15-152"></a><span class="in">```{r}</span></span>
+<span id="cb15-153"><a href="#cb15-153"></a><span class="co">#| label: fig-forest</span></span>
+<span id="cb15-154"><a href="#cb15-154"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-155"><a href="#cb15-155"></a><span class="co">#| fig-cap: "Forest plot of a meta-analysis of statin therapy for secondary prevention of cardiovascular events."</span></span>
+<span id="cb15-156"><a href="#cb15-156"></a></span>
+<span id="cb15-157"><a href="#cb15-157"></a><span class="co"># Example data: RCTs of statins for secondary CV prevention</span></span>
+<span id="cb15-158"><a href="#cb15-158"></a>statin_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-159"><a href="#cb15-159"></a>  <span class="at">study =</span> <span class="fu">c</span>(<span class="st">"4S (1994)"</span>, <span class="st">"CARE (1996)"</span>, <span class="st">"LIPID (1998)"</span>, <span class="st">"HPS (2002)"</span>,</span>
+<span id="cb15-160"><a href="#cb15-160"></a>            <span class="st">"PROSPER (2002)"</span>, <span class="st">"PROVE-IT (2004)"</span>, <span class="st">"TNT (2005)"</span>,</span>
+<span id="cb15-161"><a href="#cb15-161"></a>            <span class="st">"JUPITER (2008)"</span>, <span class="st">"HOPE-3 (2016)"</span>),</span>
+<span id="cb15-162"><a href="#cb15-162"></a>  <span class="at">events_treat =</span> <span class="fu">c</span>(<span class="dv">111</span>, <span class="dv">212</span>, <span class="dv">287</span>, <span class="dv">1328</span>, <span class="dv">127</span>, <span class="dv">147</span>, <span class="dv">334</span>, <span class="dv">142</span>, <span class="dv">235</span>),</span>
+<span id="cb15-163"><a href="#cb15-163"></a>  <span class="at">n_treat      =</span> <span class="fu">c</span>(<span class="dv">2221</span>, <span class="dv">2081</span>, <span class="dv">4512</span>, <span class="dv">10269</span>, <span class="dv">2891</span>, <span class="dv">2099</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6361</span>),</span>
+<span id="cb15-164"><a href="#cb15-164"></a>  <span class="at">events_ctrl  =</span> <span class="fu">c</span>(<span class="dv">189</span>, <span class="dv">274</span>, <span class="dv">373</span>, <span class="dv">1507</span>, <span class="dv">143</span>, <span class="dv">172</span>, <span class="dv">418</span>, <span class="dv">251</span>, <span class="dv">260</span>),</span>
+<span id="cb15-165"><a href="#cb15-165"></a>  <span class="at">n_ctrl       =</span> <span class="fu">c</span>(<span class="dv">2223</span>, <span class="dv">2078</span>, <span class="dv">4502</span>, <span class="dv">10267</span>, <span class="dv">2913</span>, <span class="dv">2063</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6344</span>)</span>
+<span id="cb15-166"><a href="#cb15-166"></a>)</span>
+<span id="cb15-167"><a href="#cb15-167"></a></span>
+<span id="cb15-168"><a href="#cb15-168"></a><span class="co"># Run random-effects meta-analysis</span></span>
+<span id="cb15-169"><a href="#cb15-169"></a>m1 <span class="ot">&lt;-</span> <span class="fu">metabin</span>(</span>
+<span id="cb15-170"><a href="#cb15-170"></a>  <span class="at">event.e =</span> events_treat, <span class="at">n.e =</span> n_treat,</span>
+<span id="cb15-171"><a href="#cb15-171"></a>  <span class="at">event.c =</span> events_ctrl,  <span class="at">n.c =</span> n_ctrl,</span>
+<span id="cb15-172"><a href="#cb15-172"></a>  <span class="at">studlab =</span> study,</span>
+<span id="cb15-173"><a href="#cb15-173"></a>  <span class="at">data =</span> statin_data,</span>
+<span id="cb15-174"><a href="#cb15-174"></a>  <span class="at">sm =</span> <span class="st">"RR"</span>,                    <span class="co"># Risk ratio</span></span>
+<span id="cb15-175"><a href="#cb15-175"></a>  <span class="at">method.tau =</span> <span class="st">"REML"</span>,          <span class="co"># Restricted maximum likelihood for tau^2</span></span>
+<span id="cb15-176"><a href="#cb15-176"></a>  <span class="at">prediction =</span> <span class="cn">TRUE</span>             <span class="co"># Include prediction interval</span></span>
+<span id="cb15-177"><a href="#cb15-177"></a>)</span>
+<span id="cb15-178"><a href="#cb15-178"></a></span>
+<span id="cb15-179"><a href="#cb15-179"></a><span class="co"># Forest plot</span></span>
+<span id="cb15-180"><a href="#cb15-180"></a><span class="fu">forest</span>(m1,</span>
+<span id="cb15-181"><a href="#cb15-181"></a>       <span class="at">sortvar =</span> TE,</span>
+<span id="cb15-182"><a href="#cb15-182"></a>       <span class="at">label.left =</span> <span class="st">"Favours statins"</span>,</span>
+<span id="cb15-183"><a href="#cb15-183"></a>       <span class="at">label.right =</span> <span class="st">"Favours control"</span>,</span>
+<span id="cb15-184"><a href="#cb15-184"></a>       <span class="at">col.diamond =</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb15-185"><a href="#cb15-185"></a>       <span class="at">col.square =</span> <span class="st">"darkblue"</span>,</span>
+<span id="cb15-186"><a href="#cb15-186"></a>       <span class="at">print.tau2 =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-187"><a href="#cb15-187"></a>       <span class="at">print.I2 =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-188"><a href="#cb15-188"></a>       <span class="at">print.pval.Q =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-189"><a href="#cb15-189"></a><span class="in">```</span></span>
 <span id="cb15-190"><a href="#cb15-190"></a></span>
-<span id="cb15-191"><a href="#cb15-191"></a><span class="ss">1. </span>**Individual study estimates**: Are they all on the same side of the null?</span>
-<span id="cb15-192"><a href="#cb15-192"></a><span class="ss">2. </span>**Confidence intervals**: Do they overlap?</span>
-<span id="cb15-193"><a href="#cb15-193"></a><span class="ss">3. </span>**Pooled estimate (diamond)**: Where does it fall? Does the CI cross the null?</span>
-<span id="cb15-194"><a href="#cb15-194"></a><span class="ss">4. </span>**Prediction interval**: If shown, does it cross the null?</span>
-<span id="cb15-195"><a href="#cb15-195"></a><span class="ss">5. </span>**Heterogeneity statistics**: High $I^2$? Significant Q test?</span>
-<span id="cb15-196"><a href="#cb15-196"></a><span class="ss">6. </span>**Study weights**: Are results driven by one dominant study?</span>
-<span id="cb15-197"><a href="#cb15-197"></a></span>
-<span id="cb15-198"><a href="#cb15-198"></a><span class="fu">## Funnel Plots and Publication Bias</span></span>
-<span id="cb15-199"><a href="#cb15-199"></a></span>
-<span id="cb15-200"><a href="#cb15-200"></a><span class="fu">### The problem</span></span>
-<span id="cb15-201"><a href="#cb15-201"></a></span>
-<span id="cb15-202"><a href="#cb15-202"></a>Studies with statistically significant results are more likely to be published. This **publication bias** means the available evidence may overestimate the true effect.</span>
+<span id="cb15-191"><a href="#cb15-191"></a>**What the code shows.** We take nine real statin trials, each summarised by the number of events and patients in the treated and control arms, and pool them into a single random-effects risk ratio using <span class="in">`metabin`</span>. We chose <span class="in">`sm = "RR"`</span> (risk ratio) because it is more interpretable than the odds ratio for a cohort-style comparison, and <span class="in">`method.tau = "REML"`</span> to estimate the between-study variance $\tau^2$. The <span class="in">`forest()`</span> call then draws the plot: each row is one trial showing its risk ratio and 95% confidence interval (the square and whisker), with the square's size reflecting how much weight that trial carries. The diamond at the bottom is the pooled risk ratio --- its centre is the best single estimate and its width is the 95% confidence interval. A diamond sitting entirely to the left of the vertical "no effect" line (RR = 1) means statins reduced cardiovascular events overall. Printed alongside are $\tau^2$, $I^2$, and the Q-test p-value, telling you how much the trials disagreed. With <span class="in">`prediction = TRUE`</span>, the plot also draws a wider prediction-interval bar (see below), the honest range you would expect a *new* trial's true effect to fall in.</span>
+<span id="cb15-192"><a href="#cb15-192"></a></span>
+<span id="cb15-193"><a href="#cb15-193"></a><span class="fu">### Reading a forest plot</span></span>
+<span id="cb15-194"><a href="#cb15-194"></a></span>
+<span id="cb15-195"><a href="#cb15-195"></a>Key elements to examine:</span>
+<span id="cb15-196"><a href="#cb15-196"></a></span>
+<span id="cb15-197"><a href="#cb15-197"></a><span class="ss">1. </span>**Individual study estimates**: Are they all on the same side of the null?</span>
+<span id="cb15-198"><a href="#cb15-198"></a><span class="ss">2. </span>**Confidence intervals**: Do they overlap?</span>
+<span id="cb15-199"><a href="#cb15-199"></a><span class="ss">3. </span>**Pooled estimate (diamond)**: Where does it fall? Does the CI cross the null?</span>
+<span id="cb15-200"><a href="#cb15-200"></a><span class="ss">4. </span>**Prediction interval**: If shown, does it cross the null?</span>
+<span id="cb15-201"><a href="#cb15-201"></a><span class="ss">5. </span>**Heterogeneity statistics**: High $I^2$? Significant Q test?</span>
+<span id="cb15-202"><a href="#cb15-202"></a><span class="ss">6. </span>**Study weights**: Are results driven by one dominant study?</span>
 <span id="cb15-203"><a href="#cb15-203"></a></span>
-<span id="cb15-204"><a href="#cb15-204"></a><span class="fu">### Funnel plots</span></span>
+<span id="cb15-204"><a href="#cb15-204"></a><span class="fu">## Funnel Plots and Publication Bias</span></span>
 <span id="cb15-205"><a href="#cb15-205"></a></span>
-<span id="cb15-206"><a href="#cb15-206"></a>A **funnel plot** displays each study's effect estimate (x-axis) against its precision, typically the standard error (y-axis, inverted). In the absence of bias, the plot should resemble a symmetric inverted funnel.</span>
+<span id="cb15-206"><a href="#cb15-206"></a><span class="fu">### The problem</span></span>
 <span id="cb15-207"><a href="#cb15-207"></a></span>
-<span id="cb15-210"><a href="#cb15-210"></a><span class="in">```{r}</span></span>
-<span id="cb15-211"><a href="#cb15-211"></a><span class="co">#| label: fig-funnel</span></span>
-<span id="cb15-212"><a href="#cb15-212"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-213"><a href="#cb15-213"></a><span class="co">#| fig-cap: "Funnel plot with asymmetry suggesting potential publication bias."</span></span>
-<span id="cb15-214"><a href="#cb15-214"></a></span>
-<span id="cb15-215"><a href="#cb15-215"></a><span class="fu">funnel</span>(m1,</span>
-<span id="cb15-216"><a href="#cb15-216"></a>       <span class="at">xlab =</span> <span class="st">"Risk Ratio (log scale)"</span>,</span>
-<span id="cb15-217"><a href="#cb15-217"></a>       <span class="at">studlab =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb15-218"><a href="#cb15-218"></a>       <span class="at">col =</span> <span class="st">"steelblue"</span>,</span>
-<span id="cb15-219"><a href="#cb15-219"></a>       <span class="at">pch =</span> <span class="dv">16</span>)</span>
-<span id="cb15-220"><a href="#cb15-220"></a><span class="in">```</span></span>
-<span id="cb15-221"><a href="#cb15-221"></a></span>
-<span id="cb15-222"><a href="#cb15-222"></a>Asymmetry (typically an excess of small studies with large positive effects) suggests publication bias --- but also other causes like genuine heterogeneity, methodological differences in small studies, or chance.</span>
-<span id="cb15-223"><a href="#cb15-223"></a></span>
-<span id="cb15-224"><a href="#cb15-224"></a><span class="fu">### Statistical tests for funnel plot asymmetry</span></span>
-<span id="cb15-225"><a href="#cb15-225"></a></span>
-<span id="cb15-226"><a href="#cb15-226"></a>**Egger's test**: A weighted regression of the effect estimate on its standard error. A significant intercept suggests asymmetry.</span>
+<span id="cb15-208"><a href="#cb15-208"></a>Studies with statistically significant results are more likely to be published. This **publication bias** means the available evidence may overestimate the true effect.</span>
+<span id="cb15-209"><a href="#cb15-209"></a></span>
+<span id="cb15-210"><a href="#cb15-210"></a><span class="fu">### Funnel plots</span></span>
+<span id="cb15-211"><a href="#cb15-211"></a></span>
+<span id="cb15-212"><a href="#cb15-212"></a>A **funnel plot** displays each study's effect estimate (x-axis) against its precision, typically the standard error (y-axis, inverted). In the absence of bias, the plot should resemble a symmetric inverted funnel.</span>
+<span id="cb15-213"><a href="#cb15-213"></a></span>
+<span id="cb15-216"><a href="#cb15-216"></a><span class="in">```{r}</span></span>
+<span id="cb15-217"><a href="#cb15-217"></a><span class="co">#| label: fig-funnel</span></span>
+<span id="cb15-218"><a href="#cb15-218"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-219"><a href="#cb15-219"></a><span class="co">#| fig-cap: "Funnel plot with asymmetry suggesting potential publication bias."</span></span>
+<span id="cb15-220"><a href="#cb15-220"></a></span>
+<span id="cb15-221"><a href="#cb15-221"></a><span class="fu">funnel</span>(m1,</span>
+<span id="cb15-222"><a href="#cb15-222"></a>       <span class="at">xlab =</span> <span class="st">"Risk Ratio (log scale)"</span>,</span>
+<span id="cb15-223"><a href="#cb15-223"></a>       <span class="at">studlab =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-224"><a href="#cb15-224"></a>       <span class="at">col =</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb15-225"><a href="#cb15-225"></a>       <span class="at">pch =</span> <span class="dv">16</span>)</span>
+<span id="cb15-226"><a href="#cb15-226"></a><span class="in">```</span></span>
 <span id="cb15-227"><a href="#cb15-227"></a></span>
-<span id="cb15-230"><a href="#cb15-230"></a><span class="in">```{r}</span></span>
-<span id="cb15-231"><a href="#cb15-231"></a><span class="co">#| label: egger-test</span></span>
-<span id="cb15-232"><a href="#cb15-232"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-228"><a href="#cb15-228"></a>**What the code shows.** This draws a funnel plot of our statin meta-analysis. Each dot is one study, plotted by its effect estimate (x-axis) against its precision (y-axis, with the most precise large studies near the top). Large studies cluster tightly near the pooled effect at the top; smaller, noisier studies scatter more widely towards the bottom, producing the characteristic inverted-funnel triangle. The key thing to look for is *symmetry*: if the dots fan out evenly on both sides, that is reassuring. A gap in one corner --- typically missing small studies with unimpressive results --- bends the funnel and hints that some studies may never have been published.</span>
+<span id="cb15-229"><a href="#cb15-229"></a></span>
+<span id="cb15-230"><a href="#cb15-230"></a>Asymmetry (typically an excess of small studies with large positive effects) suggests publication bias --- but also other causes like genuine heterogeneity, methodological differences in small studies, or chance.</span>
+<span id="cb15-231"><a href="#cb15-231"></a></span>
+<span id="cb15-232"><a href="#cb15-232"></a><span class="fu">### Statistical tests for funnel plot asymmetry</span></span>
 <span id="cb15-233"><a href="#cb15-233"></a></span>
-<span id="cb15-234"><a href="#cb15-234"></a><span class="fu">metabias</span>(m1, <span class="at">method.bias =</span> <span class="st">"Egger"</span>)</span>
-<span id="cb15-235"><a href="#cb15-235"></a><span class="in">```</span></span>
-<span id="cb15-236"><a href="#cb15-236"></a></span>
-<span id="cb15-237"><a href="#cb15-237"></a>**Peters' test**: Preferred for binary outcomes (Egger's test can be biased with odds ratios).</span>
-<span id="cb15-238"><a href="#cb15-238"></a></span>
-<span id="cb15-239"><a href="#cb15-239"></a><span class="fu">### Trim-and-fill method</span></span>
-<span id="cb15-240"><a href="#cb15-240"></a></span>
-<span id="cb15-241"><a href="#cb15-241"></a>The **trim-and-fill** method estimates the number of "missing" studies, imputes them, and recalculates the pooled effect. It provides a sensitivity analysis rather than a definitive correction.</span>
-<span id="cb15-242"><a href="#cb15-242"></a></span>
-<span id="cb15-245"><a href="#cb15-245"></a><span class="in">```{r}</span></span>
-<span id="cb15-246"><a href="#cb15-246"></a><span class="co">#| label: trim-fill</span></span>
-<span id="cb15-247"><a href="#cb15-247"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-234"><a href="#cb15-234"></a>**Egger's test**: A weighted regression of the effect estimate on its standard error. A significant intercept suggests asymmetry.</span>
+<span id="cb15-235"><a href="#cb15-235"></a></span>
+<span id="cb15-238"><a href="#cb15-238"></a><span class="in">```{r}</span></span>
+<span id="cb15-239"><a href="#cb15-239"></a><span class="co">#| label: egger-test</span></span>
+<span id="cb15-240"><a href="#cb15-240"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-241"><a href="#cb15-241"></a></span>
+<span id="cb15-242"><a href="#cb15-242"></a><span class="fu">metabias</span>(m1, <span class="at">method.bias =</span> <span class="st">"Egger"</span>)</span>
+<span id="cb15-243"><a href="#cb15-243"></a><span class="in">```</span></span>
+<span id="cb15-244"><a href="#cb15-244"></a></span>
+<span id="cb15-245"><a href="#cb15-245"></a>**What the code shows.** <span class="in">`metabias`</span> runs Egger's test, which formalises the "eyeball" judgement of funnel-plot symmetry into a number. It regresses each study's effect on its standard error; if small studies systematically report bigger effects, the regression line is tilted and the intercept is non-zero. The output gives a test statistic and a p-value --- a small p-value (say &lt; 0.05) flags significant asymmetry that *might* reflect publication bias. Treat it as a warning light, not a verdict: asymmetry has several possible causes, and the test is unreliable with fewer than about 10 studies.</span>
+<span id="cb15-246"><a href="#cb15-246"></a></span>
+<span id="cb15-247"><a href="#cb15-247"></a>**Peters' test**: Preferred for binary outcomes (Egger's test can be biased with odds ratios).</span>
 <span id="cb15-248"><a href="#cb15-248"></a></span>
-<span id="cb15-249"><a href="#cb15-249"></a>tf <span class="ot">&lt;-</span> <span class="fu">trimfill</span>(m1)</span>
-<span id="cb15-250"><a href="#cb15-250"></a><span class="fu">summary</span>(tf)</span>
-<span id="cb15-251"><a href="#cb15-251"></a><span class="fu">funnel</span>(tf)</span>
-<span id="cb15-252"><a href="#cb15-252"></a><span class="in">```</span></span>
-<span id="cb15-253"><a href="#cb15-253"></a></span>
-<span id="cb15-254"><a href="#cb15-254"></a>::: {.callout-note}</span>
-<span id="cb15-255"><a href="#cb15-255"></a><span class="fu">## Publication bias is not the only explanation for asymmetry</span></span>
-<span id="cb15-256"><a href="#cb15-256"></a>Small-study effects can also arise from:</span>
-<span id="cb15-257"><a href="#cb15-257"></a></span>
-<span id="cb15-258"><a href="#cb15-258"></a><span class="ss">- </span>Genuine heterogeneity (treatment works better in specific populations studied in smaller trials)</span>
-<span id="cb15-259"><a href="#cb15-259"></a><span class="ss">- </span>Methodological flaws in smaller studies (less rigorous protocols)</span>
-<span id="cb15-260"><a href="#cb15-260"></a><span class="ss">- </span>Chance (especially with fewer than 10 studies)</span>
-<span id="cb15-261"><a href="#cb15-261"></a></span>
-<span id="cb15-262"><a href="#cb15-262"></a>Egger's test should only be applied when there are at least 10 studies.</span>
-<span id="cb15-263"><a href="#cb15-263"></a>:::</span>
-<span id="cb15-264"><a href="#cb15-264"></a></span>
-<span id="cb15-265"><a href="#cb15-265"></a><span class="fu">## Advanced Meta-Analysis using metafor</span></span>
-<span id="cb15-266"><a href="#cb15-266"></a></span>
-<span id="cb15-267"><a href="#cb15-267"></a>The <span class="in">`metafor`</span> package provides the most comprehensive and flexible meta-analysis framework in R.</span>
-<span id="cb15-268"><a href="#cb15-268"></a></span>
-<span id="cb15-271"><a href="#cb15-271"></a><span class="in">```{r}</span></span>
-<span id="cb15-272"><a href="#cb15-272"></a><span class="co">#| label: metafor-example</span></span>
-<span id="cb15-273"><a href="#cb15-273"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-274"><a href="#cb15-274"></a></span>
-<span id="cb15-275"><a href="#cb15-275"></a><span class="fu">library</span>(metafor)</span>
+<span id="cb15-249"><a href="#cb15-249"></a><span class="fu">### Trim-and-fill method</span></span>
+<span id="cb15-250"><a href="#cb15-250"></a></span>
+<span id="cb15-251"><a href="#cb15-251"></a>The **trim-and-fill** method estimates the number of "missing" studies, imputes them, and recalculates the pooled effect. It provides a sensitivity analysis rather than a definitive correction.</span>
+<span id="cb15-252"><a href="#cb15-252"></a></span>
+<span id="cb15-255"><a href="#cb15-255"></a><span class="in">```{r}</span></span>
+<span id="cb15-256"><a href="#cb15-256"></a><span class="co">#| label: trim-fill</span></span>
+<span id="cb15-257"><a href="#cb15-257"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-258"><a href="#cb15-258"></a></span>
+<span id="cb15-259"><a href="#cb15-259"></a>tf <span class="ot">&lt;-</span> <span class="fu">trimfill</span>(m1)</span>
+<span id="cb15-260"><a href="#cb15-260"></a><span class="fu">summary</span>(tf)</span>
+<span id="cb15-261"><a href="#cb15-261"></a><span class="fu">funnel</span>(tf)</span>
+<span id="cb15-262"><a href="#cb15-262"></a><span class="in">```</span></span>
+<span id="cb15-263"><a href="#cb15-263"></a></span>
+<span id="cb15-264"><a href="#cb15-264"></a>**What the code shows.** <span class="in">`trimfill`</span> asks a "what if" question: if publication bias has hidden some small unfavourable studies, what would the result look like once we add them back? It trims the asymmetric studies, estimates how many are likely missing, imputes mirror-image studies to restore symmetry, and recomputes the pooled effect. The <span class="in">`summary`</span> printout reports the number of imputed studies and the adjusted pooled estimate; the new funnel plot shows the filled-in points as open circles. If the adjusted estimate is close to the original, your conclusion is robust to plausible publication bias; if it shrinks substantially towards the null, be cautious. This is a sensitivity analysis, not a correction --- it tells you how fragile the result is, not the "true" answer.</span>
+<span id="cb15-265"><a href="#cb15-265"></a></span>
+<span id="cb15-266"><a href="#cb15-266"></a>::: {.callout-note}</span>
+<span id="cb15-267"><a href="#cb15-267"></a><span class="fu">## Publication bias is not the only explanation for asymmetry</span></span>
+<span id="cb15-268"><a href="#cb15-268"></a>Small-study effects can also arise from:</span>
+<span id="cb15-269"><a href="#cb15-269"></a></span>
+<span id="cb15-270"><a href="#cb15-270"></a><span class="ss">- </span>Genuine heterogeneity (treatment works better in specific populations studied in smaller trials)</span>
+<span id="cb15-271"><a href="#cb15-271"></a><span class="ss">- </span>Methodological flaws in smaller studies (less rigorous protocols)</span>
+<span id="cb15-272"><a href="#cb15-272"></a><span class="ss">- </span>Chance (especially with fewer than 10 studies)</span>
+<span id="cb15-273"><a href="#cb15-273"></a></span>
+<span id="cb15-274"><a href="#cb15-274"></a>Egger's test should only be applied when there are at least 10 studies.</span>
+<span id="cb15-275"><a href="#cb15-275"></a>:::</span>
 <span id="cb15-276"><a href="#cb15-276"></a></span>
-<span id="cb15-277"><a href="#cb15-277"></a><span class="co"># Compute log risk ratios and sampling variances</span></span>
-<span id="cb15-278"><a href="#cb15-278"></a>statin_es <span class="ot">&lt;-</span> <span class="fu">escalc</span>(</span>
-<span id="cb15-279"><a href="#cb15-279"></a>  <span class="at">measure =</span> <span class="st">"RR"</span>,</span>
-<span id="cb15-280"><a href="#cb15-280"></a>  <span class="at">ai =</span> events_treat, <span class="at">n1i =</span> n_treat,</span>
-<span id="cb15-281"><a href="#cb15-281"></a>  <span class="at">ci =</span> events_ctrl,  <span class="at">n2i =</span> n_ctrl,</span>
-<span id="cb15-282"><a href="#cb15-282"></a>  <span class="at">data =</span> statin_data</span>
-<span id="cb15-283"><a href="#cb15-283"></a>)</span>
-<span id="cb15-284"><a href="#cb15-284"></a></span>
-<span id="cb15-285"><a href="#cb15-285"></a><span class="co"># Random-effects model with REML</span></span>
-<span id="cb15-286"><a href="#cb15-286"></a>res <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> statin_es, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
-<span id="cb15-287"><a href="#cb15-287"></a><span class="fu">summary</span>(res)</span>
+<span id="cb15-277"><a href="#cb15-277"></a><span class="fu">## Advanced Meta-Analysis using metafor</span></span>
+<span id="cb15-278"><a href="#cb15-278"></a></span>
+<span id="cb15-279"><a href="#cb15-279"></a>The <span class="in">`metafor`</span> package provides the most comprehensive and flexible meta-analysis framework in R.</span>
+<span id="cb15-280"><a href="#cb15-280"></a></span>
+<span id="cb15-283"><a href="#cb15-283"></a><span class="in">```{r}</span></span>
+<span id="cb15-284"><a href="#cb15-284"></a><span class="co">#| label: metafor-example</span></span>
+<span id="cb15-285"><a href="#cb15-285"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-286"><a href="#cb15-286"></a></span>
+<span id="cb15-287"><a href="#cb15-287"></a><span class="fu">library</span>(metafor)</span>
 <span id="cb15-288"><a href="#cb15-288"></a></span>
-<span id="cb15-289"><a href="#cb15-289"></a><span class="co"># Prediction interval</span></span>
-<span id="cb15-290"><a href="#cb15-290"></a><span class="fu">predict</span>(res)</span>
-<span id="cb15-291"><a href="#cb15-291"></a></span>
-<span id="cb15-292"><a href="#cb15-292"></a><span class="co"># Meta-regression: effect of year of publication</span></span>
-<span id="cb15-293"><a href="#cb15-293"></a>statin_es<span class="sc">$</span>year <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1994</span>, <span class="dv">1996</span>, <span class="dv">1998</span>, <span class="dv">2002</span>, <span class="dv">2002</span>, <span class="dv">2004</span>, <span class="dv">2005</span>, <span class="dv">2008</span>, <span class="dv">2016</span>)</span>
-<span id="cb15-294"><a href="#cb15-294"></a>res_mr <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">mods =</span> <span class="sc">~</span> year, <span class="at">data =</span> statin_es, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
-<span id="cb15-295"><a href="#cb15-295"></a><span class="fu">summary</span>(res_mr)</span>
+<span id="cb15-289"><a href="#cb15-289"></a><span class="co"># Compute log risk ratios and sampling variances</span></span>
+<span id="cb15-290"><a href="#cb15-290"></a>statin_es <span class="ot">&lt;-</span> <span class="fu">escalc</span>(</span>
+<span id="cb15-291"><a href="#cb15-291"></a>  <span class="at">measure =</span> <span class="st">"RR"</span>,</span>
+<span id="cb15-292"><a href="#cb15-292"></a>  <span class="at">ai =</span> events_treat, <span class="at">n1i =</span> n_treat,</span>
+<span id="cb15-293"><a href="#cb15-293"></a>  <span class="at">ci =</span> events_ctrl,  <span class="at">n2i =</span> n_ctrl,</span>
+<span id="cb15-294"><a href="#cb15-294"></a>  <span class="at">data =</span> statin_data</span>
+<span id="cb15-295"><a href="#cb15-295"></a>)</span>
 <span id="cb15-296"><a href="#cb15-296"></a></span>
-<span id="cb15-297"><a href="#cb15-297"></a><span class="co"># Leave-one-out sensitivity analysis</span></span>
-<span id="cb15-298"><a href="#cb15-298"></a><span class="fu">leave1out</span>(res)</span>
-<span id="cb15-299"><a href="#cb15-299"></a></span>
-<span id="cb15-300"><a href="#cb15-300"></a><span class="co"># Influence diagnostics</span></span>
-<span id="cb15-301"><a href="#cb15-301"></a>inf <span class="ot">&lt;-</span> <span class="fu">influence</span>(res)</span>
-<span id="cb15-302"><a href="#cb15-302"></a><span class="fu">plot</span>(inf)</span>
-<span id="cb15-303"><a href="#cb15-303"></a><span class="in">```</span></span>
-<span id="cb15-304"><a href="#cb15-304"></a></span>
-<span id="cb15-305"><a href="#cb15-305"></a><span class="fu">### Subgroup analysis</span></span>
-<span id="cb15-306"><a href="#cb15-306"></a></span>
-<span id="cb15-309"><a href="#cb15-309"></a><span class="in">```{r}</span></span>
-<span id="cb15-310"><a href="#cb15-310"></a><span class="co">#| label: subgroup-analysis</span></span>
-<span id="cb15-311"><a href="#cb15-311"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-312"><a href="#cb15-312"></a></span>
-<span id="cb15-313"><a href="#cb15-313"></a><span class="co"># Classify as primary vs secondary prevention</span></span>
-<span id="cb15-314"><a href="#cb15-314"></a>statin_es<span class="sc">$</span>prevention <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"secondary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>,</span>
-<span id="cb15-315"><a href="#cb15-315"></a>                           <span class="st">"primary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>,</span>
-<span id="cb15-316"><a href="#cb15-316"></a>                           <span class="st">"primary"</span>, <span class="st">"primary"</span>)</span>
-<span id="cb15-317"><a href="#cb15-317"></a></span>
-<span id="cb15-318"><a href="#cb15-318"></a><span class="co"># Subgroup analysis</span></span>
-<span id="cb15-319"><a href="#cb15-319"></a>res_sub <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">mods =</span> <span class="sc">~</span> prevention, <span class="at">data =</span> statin_es, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
-<span id="cb15-320"><a href="#cb15-320"></a><span class="fu">summary</span>(res_sub)</span>
-<span id="cb15-321"><a href="#cb15-321"></a></span>
-<span id="cb15-322"><a href="#cb15-322"></a><span class="co"># Forest plot by subgroup using meta package</span></span>
-<span id="cb15-323"><a href="#cb15-323"></a><span class="fu">update</span>(m1, <span class="at">subgroup =</span> statin_es<span class="sc">$</span>prevention, <span class="at">print.subgroup.name =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-324"><a href="#cb15-324"></a>  <span class="fu">forest</span>(<span class="at">sortvar =</span> TE)</span>
-<span id="cb15-325"><a href="#cb15-325"></a><span class="in">```</span></span>
+<span id="cb15-297"><a href="#cb15-297"></a><span class="co"># Random-effects model with REML</span></span>
+<span id="cb15-298"><a href="#cb15-298"></a>res <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">data =</span> statin_es, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb15-299"><a href="#cb15-299"></a><span class="fu">summary</span>(res)</span>
+<span id="cb15-300"><a href="#cb15-300"></a></span>
+<span id="cb15-301"><a href="#cb15-301"></a><span class="co"># Prediction interval</span></span>
+<span id="cb15-302"><a href="#cb15-302"></a><span class="fu">predict</span>(res)</span>
+<span id="cb15-303"><a href="#cb15-303"></a></span>
+<span id="cb15-304"><a href="#cb15-304"></a><span class="co"># Meta-regression: effect of year of publication</span></span>
+<span id="cb15-305"><a href="#cb15-305"></a>statin_es<span class="sc">$</span>year <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1994</span>, <span class="dv">1996</span>, <span class="dv">1998</span>, <span class="dv">2002</span>, <span class="dv">2002</span>, <span class="dv">2004</span>, <span class="dv">2005</span>, <span class="dv">2008</span>, <span class="dv">2016</span>)</span>
+<span id="cb15-306"><a href="#cb15-306"></a>res_mr <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">mods =</span> <span class="sc">~</span> year, <span class="at">data =</span> statin_es, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb15-307"><a href="#cb15-307"></a><span class="fu">summary</span>(res_mr)</span>
+<span id="cb15-308"><a href="#cb15-308"></a></span>
+<span id="cb15-309"><a href="#cb15-309"></a><span class="co"># Leave-one-out sensitivity analysis</span></span>
+<span id="cb15-310"><a href="#cb15-310"></a><span class="fu">leave1out</span>(res)</span>
+<span id="cb15-311"><a href="#cb15-311"></a></span>
+<span id="cb15-312"><a href="#cb15-312"></a><span class="co"># Influence diagnostics</span></span>
+<span id="cb15-313"><a href="#cb15-313"></a>inf <span class="ot">&lt;-</span> <span class="fu">influence</span>(res)</span>
+<span id="cb15-314"><a href="#cb15-314"></a><span class="fu">plot</span>(inf)</span>
+<span id="cb15-315"><a href="#cb15-315"></a><span class="in">```</span></span>
+<span id="cb15-316"><a href="#cb15-316"></a></span>
+<span id="cb15-317"><a href="#cb15-317"></a>**What the code shows.** This repeats the statin analysis using <span class="in">`metafor`</span>, the most flexible meta-analysis package in R, and adds several diagnostic steps. <span class="in">`escalc`</span> first converts the raw 2x2 counts into log risk ratios (<span class="in">`yi`</span>) and their sampling variances (<span class="in">`vi`</span>) --- the two quantities every meta-analysis actually works with. <span class="in">`rma`</span> then fits the random-effects model, and <span class="in">`summary(res)`</span> prints the pooled effect, its confidence interval, $\tau^2$, $I^2$, and the Q-test. <span class="in">`predict(res)`</span> adds the prediction interval. The meta-regression (<span class="in">`mods = ~ year`</span>) asks whether the treatment effect has drifted over calendar time --- a significant <span class="in">`year`</span> coefficient would suggest newer trials show different effects. <span class="in">`leave1out`</span> re-runs the pooling with each study removed in turn, so you can spot any single trial that is driving the result, and the influence plot flags outliers and high-leverage studies visually.</span>
+<span id="cb15-318"><a href="#cb15-318"></a></span>
+<span id="cb15-319"><a href="#cb15-319"></a><span class="fu">### Subgroup analysis</span></span>
+<span id="cb15-320"><a href="#cb15-320"></a></span>
+<span id="cb15-323"><a href="#cb15-323"></a><span class="in">```{r}</span></span>
+<span id="cb15-324"><a href="#cb15-324"></a><span class="co">#| label: subgroup-analysis</span></span>
+<span id="cb15-325"><a href="#cb15-325"></a><span class="co">#| eval: false</span></span>
 <span id="cb15-326"><a href="#cb15-326"></a></span>
-<span id="cb15-327"><a href="#cb15-327"></a><span class="fu">## Network Meta-Analysis (Brief Overview)</span></span>
-<span id="cb15-328"><a href="#cb15-328"></a></span>
-<span id="cb15-329"><a href="#cb15-329"></a>Standard pairwise meta-analysis can only compare treatments that have been directly compared in head-to-head trials. **Network meta-analysis (NMA)**, also called mixed-treatment comparison, simultaneously compares multiple treatments using both **direct evidence** (from head-to-head trials) and **indirect evidence** (inferred through a common comparator).</span>
-<span id="cb15-330"><a href="#cb15-330"></a></span>
-<span id="cb15-331"><a href="#cb15-331"></a><span class="fu">### When is NMA useful?</span></span>
-<span id="cb15-332"><a href="#cb15-332"></a></span>
-<span id="cb15-333"><a href="#cb15-333"></a>Consider three antihypertensive drugs: A, B, and C. If trials have compared A vs B and B vs C, but never A vs C, NMA can provide an indirect estimate for A vs C:</span>
-<span id="cb15-334"><a href="#cb15-334"></a></span>
-<span id="cb15-335"><a href="#cb15-335"></a>$$</span>
-<span id="cb15-336"><a href="#cb15-336"></a>\hat{d}_{AC} = \hat{d}_{AB} + \hat{d}_{BC}</span>
-<span id="cb15-337"><a href="#cb15-337"></a>$$</span>
-<span id="cb15-338"><a href="#cb15-338"></a></span>
-<span id="cb15-339"><a href="#cb15-339"></a>This relies on the **transitivity assumption**: the studies comparing A vs B and those comparing B vs C are similar enough that indirect comparison is valid.</span>
+<span id="cb15-327"><a href="#cb15-327"></a><span class="co"># Classify as primary vs secondary prevention</span></span>
+<span id="cb15-328"><a href="#cb15-328"></a>statin_es<span class="sc">$</span>prevention <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"secondary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>,</span>
+<span id="cb15-329"><a href="#cb15-329"></a>                           <span class="st">"primary"</span>, <span class="st">"secondary"</span>, <span class="st">"secondary"</span>,</span>
+<span id="cb15-330"><a href="#cb15-330"></a>                           <span class="st">"primary"</span>, <span class="st">"primary"</span>)</span>
+<span id="cb15-331"><a href="#cb15-331"></a></span>
+<span id="cb15-332"><a href="#cb15-332"></a><span class="co"># Subgroup analysis</span></span>
+<span id="cb15-333"><a href="#cb15-333"></a>res_sub <span class="ot">&lt;-</span> <span class="fu">rma</span>(yi, vi, <span class="at">mods =</span> <span class="sc">~</span> prevention, <span class="at">data =</span> statin_es, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb15-334"><a href="#cb15-334"></a><span class="fu">summary</span>(res_sub)</span>
+<span id="cb15-335"><a href="#cb15-335"></a></span>
+<span id="cb15-336"><a href="#cb15-336"></a><span class="co"># Forest plot by subgroup using meta package</span></span>
+<span id="cb15-337"><a href="#cb15-337"></a><span class="fu">update</span>(m1, <span class="at">subgroup =</span> statin_es<span class="sc">$</span>prevention, <span class="at">print.subgroup.name =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-338"><a href="#cb15-338"></a>  <span class="fu">forest</span>(<span class="at">sortvar =</span> TE)</span>
+<span id="cb15-339"><a href="#cb15-339"></a><span class="in">```</span></span>
 <span id="cb15-340"><a href="#cb15-340"></a></span>
-<span id="cb15-341"><a href="#cb15-341"></a><span class="fu">### Key concepts</span></span>
+<span id="cb15-341"><a href="#cb15-341"></a>**What the code shows.** Here we split the trials into primary-prevention (treating people without prior cardiovascular disease) and secondary-prevention (treating those who have already had an event) groups, because the treatment effect could plausibly differ between them. The <span class="in">`rma`</span> model with <span class="in">`mods = ~ prevention`</span> tests whether the two subgroups have statistically different pooled effects, and the updated forest plot draws a separate diamond for each subgroup plus an overall one. Reading it, you compare the two subgroup diamonds: if they sit in clearly different places with little overlap, prevention setting explains some of the heterogeneity. A key caution --- subgroups should be pre-specified before looking at the data, otherwise you risk finding spurious "significant" subgroups by chance.</span>
 <span id="cb15-342"><a href="#cb15-342"></a></span>
-<span id="cb15-343"><a href="#cb15-343"></a><span class="ss">- </span>**Network geometry**: Nodes represent treatments, edges represent direct comparisons. The network should be well connected.</span>
-<span id="cb15-344"><a href="#cb15-344"></a><span class="ss">- </span>**Consistency**: Direct and indirect evidence agree. Inconsistency suggests the transitivity assumption is violated.</span>
-<span id="cb15-345"><a href="#cb15-345"></a><span class="ss">- </span>**Ranking**: NMA can rank treatments using the surface under the cumulative ranking curve (SUCRA) or P-scores, though rankings should be interpreted cautiously.</span>
+<span id="cb15-343"><a href="#cb15-343"></a><span class="fu">## Network Meta-Analysis (Brief Overview)</span></span>
+<span id="cb15-344"><a href="#cb15-344"></a></span>
+<span id="cb15-345"><a href="#cb15-345"></a>Standard pairwise meta-analysis can only compare treatments that have been directly compared in head-to-head trials. **Network meta-analysis (NMA)**, also called mixed-treatment comparison, simultaneously compares multiple treatments using both **direct evidence** (from head-to-head trials) and **indirect evidence** (inferred through a common comparator).</span>
 <span id="cb15-346"><a href="#cb15-346"></a></span>
-<span id="cb15-349"><a href="#cb15-349"></a><span class="in">```{r}</span></span>
-<span id="cb15-350"><a href="#cb15-350"></a><span class="co">#| label: nma-example</span></span>
-<span id="cb15-351"><a href="#cb15-351"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-352"><a href="#cb15-352"></a></span>
-<span id="cb15-353"><a href="#cb15-353"></a><span class="fu">library</span>(netmeta)</span>
+<span id="cb15-347"><a href="#cb15-347"></a><span class="fu">### When is NMA useful?</span></span>
+<span id="cb15-348"><a href="#cb15-348"></a></span>
+<span id="cb15-349"><a href="#cb15-349"></a>Consider three antihypertensive drugs: A, B, and C. If trials have compared A vs B and B vs C, but never A vs C, NMA can provide an indirect estimate for A vs C:</span>
+<span id="cb15-350"><a href="#cb15-350"></a></span>
+<span id="cb15-351"><a href="#cb15-351"></a>$$</span>
+<span id="cb15-352"><a href="#cb15-352"></a>\hat{d}_{AC} = \hat{d}_{AB} + \hat{d}_{BC}</span>
+<span id="cb15-353"><a href="#cb15-353"></a>$$</span>
 <span id="cb15-354"><a href="#cb15-354"></a></span>
-<span id="cb15-355"><a href="#cb15-355"></a><span class="co"># Example: network meta-analysis of antidepressants</span></span>
-<span id="cb15-356"><a href="#cb15-356"></a><span class="co"># (using built-in dataset)</span></span>
-<span id="cb15-357"><a href="#cb15-357"></a><span class="fu">data</span>(Senn2013)</span>
+<span id="cb15-355"><a href="#cb15-355"></a>This relies on the **transitivity assumption**: the studies comparing A vs B and those comparing B vs C are similar enough that indirect comparison is valid.</span>
+<span id="cb15-356"><a href="#cb15-356"></a></span>
+<span id="cb15-357"><a href="#cb15-357"></a><span class="fu">### Key concepts</span></span>
 <span id="cb15-358"><a href="#cb15-358"></a></span>
-<span id="cb15-359"><a href="#cb15-359"></a><span class="co"># Run NMA</span></span>
-<span id="cb15-360"><a href="#cb15-360"></a>net <span class="ot">&lt;-</span> <span class="fu">netmeta</span>(TE, seTE, treat1, treat2, studlab,</span>
-<span id="cb15-361"><a href="#cb15-361"></a>               <span class="at">data =</span> Senn2013,</span>
-<span id="cb15-362"><a href="#cb15-362"></a>               <span class="at">sm =</span> <span class="st">"MD"</span>,</span>
-<span id="cb15-363"><a href="#cb15-363"></a>               <span class="at">random =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb15-364"><a href="#cb15-364"></a>               <span class="at">reference.group =</span> <span class="st">"plac"</span>)</span>
-<span id="cb15-365"><a href="#cb15-365"></a></span>
-<span id="cb15-366"><a href="#cb15-366"></a><span class="fu">summary</span>(net)</span>
-<span id="cb15-367"><a href="#cb15-367"></a></span>
-<span id="cb15-368"><a href="#cb15-368"></a><span class="co"># Network graph</span></span>
-<span id="cb15-369"><a href="#cb15-369"></a><span class="fu">netgraph</span>(net, <span class="at">plastic =</span> <span class="cn">FALSE</span>, <span class="at">thickness =</span> <span class="st">"w.random"</span>,</span>
-<span id="cb15-370"><a href="#cb15-370"></a>         <span class="at">col =</span> <span class="st">"steelblue"</span>)</span>
-<span id="cb15-371"><a href="#cb15-371"></a></span>
-<span id="cb15-372"><a href="#cb15-372"></a><span class="co"># Forest plot of all comparisons vs reference</span></span>
-<span id="cb15-373"><a href="#cb15-373"></a><span class="fu">forest</span>(net, <span class="at">reference.group =</span> <span class="st">"plac"</span>, <span class="at">sortvar =</span> TE)</span>
+<span id="cb15-359"><a href="#cb15-359"></a><span class="ss">- </span>**Network geometry**: Nodes represent treatments, edges represent direct comparisons. The network should be well connected.</span>
+<span id="cb15-360"><a href="#cb15-360"></a><span class="ss">- </span>**Consistency**: Direct and indirect evidence agree. Inconsistency suggests the transitivity assumption is violated.</span>
+<span id="cb15-361"><a href="#cb15-361"></a><span class="ss">- </span>**Ranking**: NMA can rank treatments using the surface under the cumulative ranking curve (SUCRA) or P-scores, though rankings should be interpreted cautiously.</span>
+<span id="cb15-362"><a href="#cb15-362"></a></span>
+<span id="cb15-365"><a href="#cb15-365"></a><span class="in">```{r}</span></span>
+<span id="cb15-366"><a href="#cb15-366"></a><span class="co">#| label: nma-example</span></span>
+<span id="cb15-367"><a href="#cb15-367"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-368"><a href="#cb15-368"></a></span>
+<span id="cb15-369"><a href="#cb15-369"></a><span class="fu">library</span>(netmeta)</span>
+<span id="cb15-370"><a href="#cb15-370"></a></span>
+<span id="cb15-371"><a href="#cb15-371"></a><span class="co"># Example: network meta-analysis of antidepressants</span></span>
+<span id="cb15-372"><a href="#cb15-372"></a><span class="co"># (using built-in dataset)</span></span>
+<span id="cb15-373"><a href="#cb15-373"></a><span class="fu">data</span>(Senn2013)</span>
 <span id="cb15-374"><a href="#cb15-374"></a></span>
-<span id="cb15-375"><a href="#cb15-375"></a><span class="co"># League table</span></span>
-<span id="cb15-376"><a href="#cb15-376"></a><span class="fu">netleague</span>(net)</span>
-<span id="cb15-377"><a href="#cb15-377"></a><span class="in">```</span></span>
-<span id="cb15-378"><a href="#cb15-378"></a></span>
-<span id="cb15-379"><a href="#cb15-379"></a><span class="fu">## Individual Participant Data (IPD) Meta-Analysis</span></span>
-<span id="cb15-380"><a href="#cb15-380"></a></span>
-<span id="cb15-381"><a href="#cb15-381"></a>In standard meta-analysis, you combine **aggregate data** (summary statistics from each study). In an **IPD meta-analysis**, you obtain the raw, individual-level data from each study and analyse it directly.</span>
-<span id="cb15-382"><a href="#cb15-382"></a></span>
-<span id="cb15-383"><a href="#cb15-383"></a><span class="fu">### Advantages of IPD meta-analysis</span></span>
-<span id="cb15-384"><a href="#cb15-384"></a></span>
-<span id="cb15-385"><a href="#cb15-385"></a><span class="ss">1. </span>**Patient-level subgroup analyses** without ecological fallacy</span>
-<span id="cb15-386"><a href="#cb15-386"></a><span class="ss">2. </span>**Standardised outcome definitions** and follow-up times</span>
-<span id="cb15-387"><a href="#cb15-387"></a><span class="ss">3. </span>**Updated analyses** with extended follow-up</span>
-<span id="cb15-388"><a href="#cb15-388"></a><span class="ss">4. </span>**Prediction model development** and validation across multiple settings</span>
-<span id="cb15-389"><a href="#cb15-389"></a></span>
-<span id="cb15-390"><a href="#cb15-390"></a><span class="fu">### Two-stage vs one-stage approaches</span></span>
-<span id="cb15-391"><a href="#cb15-391"></a></span>
-<span id="cb15-392"><a href="#cb15-392"></a><span class="ss">- </span>**Two-stage**: Analyse each study separately, then combine study-level estimates using standard meta-analysis. Familiar and transparent.</span>
-<span id="cb15-393"><a href="#cb15-393"></a><span class="ss">- </span>**One-stage**: Fit a single model to all individual data, accounting for study clustering. More flexible, especially with sparse data.</span>
+<span id="cb15-375"><a href="#cb15-375"></a><span class="co"># Run NMA</span></span>
+<span id="cb15-376"><a href="#cb15-376"></a>net <span class="ot">&lt;-</span> <span class="fu">netmeta</span>(TE, seTE, treat1, treat2, studlab,</span>
+<span id="cb15-377"><a href="#cb15-377"></a>               <span class="at">data =</span> Senn2013,</span>
+<span id="cb15-378"><a href="#cb15-378"></a>               <span class="at">sm =</span> <span class="st">"MD"</span>,</span>
+<span id="cb15-379"><a href="#cb15-379"></a>               <span class="at">random =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-380"><a href="#cb15-380"></a>               <span class="at">reference.group =</span> <span class="st">"plac"</span>)</span>
+<span id="cb15-381"><a href="#cb15-381"></a></span>
+<span id="cb15-382"><a href="#cb15-382"></a><span class="fu">summary</span>(net)</span>
+<span id="cb15-383"><a href="#cb15-383"></a></span>
+<span id="cb15-384"><a href="#cb15-384"></a><span class="co"># Network graph</span></span>
+<span id="cb15-385"><a href="#cb15-385"></a><span class="fu">netgraph</span>(net, <span class="at">plastic =</span> <span class="cn">FALSE</span>, <span class="at">thickness =</span> <span class="st">"w.random"</span>,</span>
+<span id="cb15-386"><a href="#cb15-386"></a>         <span class="at">col =</span> <span class="st">"steelblue"</span>)</span>
+<span id="cb15-387"><a href="#cb15-387"></a></span>
+<span id="cb15-388"><a href="#cb15-388"></a><span class="co"># Forest plot of all comparisons vs reference</span></span>
+<span id="cb15-389"><a href="#cb15-389"></a><span class="fu">forest</span>(net, <span class="at">reference.group =</span> <span class="st">"plac"</span>, <span class="at">sortvar =</span> TE)</span>
+<span id="cb15-390"><a href="#cb15-390"></a></span>
+<span id="cb15-391"><a href="#cb15-391"></a><span class="co"># League table</span></span>
+<span id="cb15-392"><a href="#cb15-392"></a><span class="fu">netleague</span>(net)</span>
+<span id="cb15-393"><a href="#cb15-393"></a><span class="in">```</span></span>
 <span id="cb15-394"><a href="#cb15-394"></a></span>
-<span id="cb15-397"><a href="#cb15-397"></a><span class="in">```{r}</span></span>
-<span id="cb15-398"><a href="#cb15-398"></a><span class="co">#| label: ipd-meta</span></span>
-<span id="cb15-399"><a href="#cb15-399"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-395"><a href="#cb15-395"></a>**What the code shows.** This runs a network meta-analysis on a built-in dataset of antidepressant trials, all compared against placebo. <span class="in">`netmeta`</span> pools the direct head-to-head comparisons together with indirect evidence to estimate every treatment-versus-treatment contrast, even pairs that were never tested directly. <span class="in">`netgraph`</span> draws the network: each node is a treatment and each connecting line a set of trials that compared them directly, with thicker lines for better-evidenced comparisons --- a quick way to check the network is well connected. The forest plot then shows every drug versus the placebo reference, and <span class="in">`netleague`</span> produces a "league table", a grid giving the pooled estimate for every possible pairing (the format you often see ranking treatments in a guideline). Interpret rankings cautiously: a drug can top the table on a point estimate while still having wide, overlapping intervals with its rivals.</span>
+<span id="cb15-396"><a href="#cb15-396"></a></span>
+<span id="cb15-397"><a href="#cb15-397"></a><span class="fu">## Individual Participant Data (IPD) Meta-Analysis</span></span>
+<span id="cb15-398"><a href="#cb15-398"></a></span>
+<span id="cb15-399"><a href="#cb15-399"></a>In standard meta-analysis, you combine **aggregate data** (summary statistics from each study). In an **IPD meta-analysis**, you obtain the raw, individual-level data from each study and analyse it directly.</span>
 <span id="cb15-400"><a href="#cb15-400"></a></span>
-<span id="cb15-401"><a href="#cb15-401"></a><span class="co"># Two-stage IPD meta-analysis example</span></span>
-<span id="cb15-402"><a href="#cb15-402"></a><span class="co"># Suppose we have a stacked dataset with individual data from 5 studies</span></span>
-<span id="cb15-403"><a href="#cb15-403"></a></span>
-<span id="cb15-404"><a href="#cb15-404"></a><span class="co"># Stage 1: Fit model in each study</span></span>
-<span id="cb15-405"><a href="#cb15-405"></a><span class="fu">library</span>(lme4)</span>
-<span id="cb15-406"><a href="#cb15-406"></a></span>
-<span id="cb15-407"><a href="#cb15-407"></a><span class="co"># One-stage approach (mixed model with random study effects)</span></span>
-<span id="cb15-408"><a href="#cb15-408"></a>ipd_model <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
-<span id="cb15-409"><a href="#cb15-409"></a>  event <span class="sc">~</span> treatment <span class="sc">+</span> age <span class="sc">+</span> sex <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> treatment <span class="sc">|</span> study_id),</span>
-<span id="cb15-410"><a href="#cb15-410"></a>  <span class="at">data =</span> ipd_data,</span>
-<span id="cb15-411"><a href="#cb15-411"></a>  <span class="at">family =</span> binomial</span>
-<span id="cb15-412"><a href="#cb15-412"></a>)</span>
-<span id="cb15-413"><a href="#cb15-413"></a></span>
-<span id="cb15-414"><a href="#cb15-414"></a><span class="fu">summary</span>(ipd_model)</span>
-<span id="cb15-415"><a href="#cb15-415"></a></span>
-<span id="cb15-416"><a href="#cb15-416"></a><span class="co"># The fixed effect for 'treatment' is the pooled effect</span></span>
-<span id="cb15-417"><a href="#cb15-417"></a><span class="co"># The random slope for 'treatment' captures between-study heterogeneity</span></span>
-<span id="cb15-418"><a href="#cb15-418"></a><span class="in">```</span></span>
-<span id="cb15-419"><a href="#cb15-419"></a></span>
-<span id="cb15-420"><a href="#cb15-420"></a><span class="fu">### IPD meta-analysis of prediction models</span></span>
+<span id="cb15-401"><a href="#cb15-401"></a><span class="fu">### Advantages of IPD meta-analysis</span></span>
+<span id="cb15-402"><a href="#cb15-402"></a></span>
+<span id="cb15-403"><a href="#cb15-403"></a><span class="ss">1. </span>**Patient-level subgroup analyses** without ecological fallacy</span>
+<span id="cb15-404"><a href="#cb15-404"></a><span class="ss">2. </span>**Standardised outcome definitions** and follow-up times</span>
+<span id="cb15-405"><a href="#cb15-405"></a><span class="ss">3. </span>**Updated analyses** with extended follow-up</span>
+<span id="cb15-406"><a href="#cb15-406"></a><span class="ss">4. </span>**Prediction model development** and validation across multiple settings</span>
+<span id="cb15-407"><a href="#cb15-407"></a></span>
+<span id="cb15-408"><a href="#cb15-408"></a><span class="fu">### Two-stage vs one-stage approaches</span></span>
+<span id="cb15-409"><a href="#cb15-409"></a></span>
+<span id="cb15-410"><a href="#cb15-410"></a><span class="ss">- </span>**Two-stage**: Analyse each study separately, then combine study-level estimates using standard meta-analysis. Familiar and transparent.</span>
+<span id="cb15-411"><a href="#cb15-411"></a><span class="ss">- </span>**One-stage**: Fit a single model to all individual data, accounting for study clustering. More flexible, especially with sparse data.</span>
+<span id="cb15-412"><a href="#cb15-412"></a></span>
+<span id="cb15-415"><a href="#cb15-415"></a><span class="in">```{r}</span></span>
+<span id="cb15-416"><a href="#cb15-416"></a><span class="co">#| label: ipd-meta</span></span>
+<span id="cb15-417"><a href="#cb15-417"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-418"><a href="#cb15-418"></a></span>
+<span id="cb15-419"><a href="#cb15-419"></a><span class="co"># Two-stage IPD meta-analysis example</span></span>
+<span id="cb15-420"><a href="#cb15-420"></a><span class="co"># Suppose we have a stacked dataset with individual data from 5 studies</span></span>
 <span id="cb15-421"><a href="#cb15-421"></a></span>
-<span id="cb15-422"><a href="#cb15-422"></a>Riley et al. (2010, 2021) describe frameworks for developing and validating clinical prediction models across multiple studies using IPD:</span>
-<span id="cb15-423"><a href="#cb15-423"></a></span>
-<span id="cb15-424"><a href="#cb15-424"></a><span class="ss">1. </span>Develop the model using one-stage IPD-MA (internal-external cross-validation)</span>
-<span id="cb15-425"><a href="#cb15-425"></a><span class="ss">2. </span>Assess calibration and discrimination in each study</span>
-<span id="cb15-426"><a href="#cb15-426"></a><span class="ss">3. </span>Examine heterogeneity in model performance across settings</span>
-<span id="cb15-427"><a href="#cb15-427"></a><span class="ss">4. </span>Update model intercept or recalibrate for new settings</span>
-<span id="cb15-428"><a href="#cb15-428"></a></span>
-<span id="cb15-429"><a href="#cb15-429"></a><span class="fu">## Implementation in Python</span></span>
-<span id="cb15-430"><a href="#cb15-430"></a></span>
-<span id="cb15-431"><a href="#cb15-431"></a>Python's meta-analysis ecosystem is less mature than R's, but basic analyses are feasible.</span>
-<span id="cb15-432"><a href="#cb15-432"></a></span>
-<span id="cb15-435"><a href="#cb15-435"></a><span class="in">```{python}</span></span>
-<span id="cb15-436"><a href="#cb15-436"></a><span class="co">#| label: python-meta</span></span>
-<span id="cb15-437"><a href="#cb15-437"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-438"><a href="#cb15-438"></a></span>
-<span id="cb15-439"><a href="#cb15-439"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb15-440"><a href="#cb15-440"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb15-441"><a href="#cb15-441"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb15-442"><a href="#cb15-442"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb15-422"><a href="#cb15-422"></a><span class="co"># Stage 1: Fit model in each study</span></span>
+<span id="cb15-423"><a href="#cb15-423"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb15-424"><a href="#cb15-424"></a></span>
+<span id="cb15-425"><a href="#cb15-425"></a><span class="co"># One-stage approach (mixed model with random study effects)</span></span>
+<span id="cb15-426"><a href="#cb15-426"></a>ipd_model <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb15-427"><a href="#cb15-427"></a>  event <span class="sc">~</span> treatment <span class="sc">+</span> age <span class="sc">+</span> sex <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> treatment <span class="sc">|</span> study_id),</span>
+<span id="cb15-428"><a href="#cb15-428"></a>  <span class="at">data =</span> ipd_data,</span>
+<span id="cb15-429"><a href="#cb15-429"></a>  <span class="at">family =</span> binomial</span>
+<span id="cb15-430"><a href="#cb15-430"></a>)</span>
+<span id="cb15-431"><a href="#cb15-431"></a></span>
+<span id="cb15-432"><a href="#cb15-432"></a><span class="fu">summary</span>(ipd_model)</span>
+<span id="cb15-433"><a href="#cb15-433"></a></span>
+<span id="cb15-434"><a href="#cb15-434"></a><span class="co"># The fixed effect for 'treatment' is the pooled effect</span></span>
+<span id="cb15-435"><a href="#cb15-435"></a><span class="co"># The random slope for 'treatment' captures between-study heterogeneity</span></span>
+<span id="cb15-436"><a href="#cb15-436"></a><span class="in">```</span></span>
+<span id="cb15-437"><a href="#cb15-437"></a></span>
+<span id="cb15-438"><a href="#cb15-438"></a>**What the code shows.** This illustrates the *one-stage* IPD approach, where the raw patient-level records from every study are stacked into one dataset and analysed with a single mixed model. The <span class="in">`glmer`</span> call fits a logistic regression for the binary outcome with <span class="in">`treatment`</span>, <span class="in">`age`</span>, and <span class="in">`sex`</span> as fixed effects, and <span class="in">`(1 + treatment | study_id)`</span> as random effects --- meaning each study gets its own baseline risk (random intercept) and its own treatment effect (random slope). The fixed-effect coefficient for <span class="in">`treatment`</span> is the pooled treatment effect (analogous to the diamond in a forest plot), while the variance of the random treatment slope plays the role of $\tau^2$, quantifying how much the effect genuinely varies across studies. The pay-off of using individual data is that you can adjust for patient-level covariates directly and explore who benefits most without falling into the ecological fallacy described above.</span>
+<span id="cb15-439"><a href="#cb15-439"></a></span>
+<span id="cb15-440"><a href="#cb15-440"></a><span class="fu">### IPD meta-analysis of prediction models</span></span>
+<span id="cb15-441"><a href="#cb15-441"></a></span>
+<span id="cb15-442"><a href="#cb15-442"></a>Riley et al. (2010, 2021) describe frameworks for developing and validating clinical prediction models across multiple studies using IPD:</span>
 <span id="cb15-443"><a href="#cb15-443"></a></span>
-<span id="cb15-444"><a href="#cb15-444"></a><span class="co"># Study data: log risk ratios and standard errors</span></span>
-<span id="cb15-445"><a href="#cb15-445"></a>studies <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb15-446"><a href="#cb15-446"></a>    <span class="st">'study'</span>: [<span class="st">'4S (1994)'</span>, <span class="st">'CARE (1996)'</span>, <span class="st">'LIPID (1998)'</span>, <span class="st">'HPS (2002)'</span>,</span>
-<span id="cb15-447"><a href="#cb15-447"></a>              <span class="st">'PROSPER (2002)'</span>, <span class="st">'PROVE-IT (2004)'</span>, <span class="st">'TNT (2005)'</span>,</span>
-<span id="cb15-448"><a href="#cb15-448"></a>              <span class="st">'JUPITER (2008)'</span>, <span class="st">'HOPE-3 (2016)'</span>],</span>
-<span id="cb15-449"><a href="#cb15-449"></a>    <span class="st">'events_t'</span>: [<span class="dv">111</span>, <span class="dv">212</span>, <span class="dv">287</span>, <span class="dv">1328</span>, <span class="dv">127</span>, <span class="dv">147</span>, <span class="dv">334</span>, <span class="dv">142</span>, <span class="dv">235</span>],</span>
-<span id="cb15-450"><a href="#cb15-450"></a>    <span class="st">'n_t'</span>: [<span class="dv">2221</span>, <span class="dv">2081</span>, <span class="dv">4512</span>, <span class="dv">10269</span>, <span class="dv">2891</span>, <span class="dv">2099</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6361</span>],</span>
-<span id="cb15-451"><a href="#cb15-451"></a>    <span class="st">'events_c'</span>: [<span class="dv">189</span>, <span class="dv">274</span>, <span class="dv">373</span>, <span class="dv">1507</span>, <span class="dv">143</span>, <span class="dv">172</span>, <span class="dv">418</span>, <span class="dv">251</span>, <span class="dv">260</span>],</span>
-<span id="cb15-452"><a href="#cb15-452"></a>    <span class="st">'n_c'</span>: [<span class="dv">2223</span>, <span class="dv">2078</span>, <span class="dv">4502</span>, <span class="dv">10267</span>, <span class="dv">2913</span>, <span class="dv">2063</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6344</span>]</span>
-<span id="cb15-453"><a href="#cb15-453"></a>})</span>
-<span id="cb15-454"><a href="#cb15-454"></a></span>
-<span id="cb15-455"><a href="#cb15-455"></a><span class="co"># Compute log risk ratios and variances</span></span>
-<span id="cb15-456"><a href="#cb15-456"></a>studies[<span class="st">'rr'</span>] <span class="op">=</span> (studies[<span class="st">'events_t'</span>] <span class="op">/</span> studies[<span class="st">'n_t'</span>]) <span class="op">/</span> <span class="op">\</span></span>
-<span id="cb15-457"><a href="#cb15-457"></a>                (studies[<span class="st">'events_c'</span>] <span class="op">/</span> studies[<span class="st">'n_c'</span>])</span>
-<span id="cb15-458"><a href="#cb15-458"></a>studies[<span class="st">'log_rr'</span>] <span class="op">=</span> np.log(studies[<span class="st">'rr'</span>])</span>
-<span id="cb15-459"><a href="#cb15-459"></a></span>
-<span id="cb15-460"><a href="#cb15-460"></a><span class="co"># Variance of log RR</span></span>
-<span id="cb15-461"><a href="#cb15-461"></a>studies[<span class="st">'var_log_rr'</span>] <span class="op">=</span> (</span>
-<span id="cb15-462"><a href="#cb15-462"></a>    <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'events_t'</span>] <span class="op">-</span> <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'n_t'</span>] <span class="op">+</span></span>
-<span id="cb15-463"><a href="#cb15-463"></a>    <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'events_c'</span>] <span class="op">-</span> <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'n_c'</span>]</span>
-<span id="cb15-464"><a href="#cb15-464"></a>)</span>
-<span id="cb15-465"><a href="#cb15-465"></a>studies[<span class="st">'se_log_rr'</span>] <span class="op">=</span> np.sqrt(studies[<span class="st">'var_log_rr'</span>])</span>
-<span id="cb15-466"><a href="#cb15-466"></a></span>
-<span id="cb15-467"><a href="#cb15-467"></a><span class="co"># --- Fixed-effect meta-analysis (inverse variance) ---</span></span>
-<span id="cb15-468"><a href="#cb15-468"></a>w_fe <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> studies[<span class="st">'var_log_rr'</span>]</span>
-<span id="cb15-469"><a href="#cb15-469"></a>pooled_fe <span class="op">=</span> np.<span class="bu">sum</span>(w_fe <span class="op">*</span> studies[<span class="st">'log_rr'</span>]) <span class="op">/</span> np.<span class="bu">sum</span>(w_fe)</span>
-<span id="cb15-470"><a href="#cb15-470"></a>se_fe <span class="op">=</span> np.sqrt(<span class="dv">1</span> <span class="op">/</span> np.<span class="bu">sum</span>(w_fe))</span>
-<span id="cb15-471"><a href="#cb15-471"></a>ci_fe <span class="op">=</span> (pooled_fe <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>se_fe, pooled_fe <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>se_fe)</span>
-<span id="cb15-472"><a href="#cb15-472"></a></span>
-<span id="cb15-473"><a href="#cb15-473"></a><span class="bu">print</span>(<span class="ss">f"Fixed-effect pooled log RR: </span><span class="sc">{</span>pooled_fe<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
-<span id="cb15-474"><a href="#cb15-474"></a><span class="bu">print</span>(<span class="ss">f"Fixed-effect pooled RR: </span><span class="sc">{</span>np<span class="sc">.</span>exp(pooled_fe)<span class="sc">:.4f}</span><span class="ss"> "</span></span>
-<span id="cb15-475"><a href="#cb15-475"></a>      <span class="ss">f"(95% CI: </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_fe[<span class="dv">0</span>])<span class="sc">:.4f}</span><span class="ss"> - </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_fe[<span class="dv">1</span>])<span class="sc">:.4f}</span><span class="ss">)"</span>)</span>
-<span id="cb15-476"><a href="#cb15-476"></a></span>
-<span id="cb15-477"><a href="#cb15-477"></a><span class="co"># --- Random-effects: DerSimonian-Laird ---</span></span>
-<span id="cb15-478"><a href="#cb15-478"></a>k <span class="op">=</span> <span class="bu">len</span>(studies)</span>
-<span id="cb15-479"><a href="#cb15-479"></a>Q <span class="op">=</span> np.<span class="bu">sum</span>(w_fe <span class="op">*</span> (studies[<span class="st">'log_rr'</span>] <span class="op">-</span> pooled_fe)<span class="op">**</span><span class="dv">2</span>)</span>
-<span id="cb15-480"><a href="#cb15-480"></a>C <span class="op">=</span> np.<span class="bu">sum</span>(w_fe) <span class="op">-</span> np.<span class="bu">sum</span>(w_fe<span class="op">**</span><span class="dv">2</span>) <span class="op">/</span> np.<span class="bu">sum</span>(w_fe)</span>
-<span id="cb15-481"><a href="#cb15-481"></a>tau2 <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, (Q <span class="op">-</span> (k <span class="op">-</span> <span class="dv">1</span>)) <span class="op">/</span> C)</span>
-<span id="cb15-482"><a href="#cb15-482"></a></span>
-<span id="cb15-483"><a href="#cb15-483"></a>w_re <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> (studies[<span class="st">'var_log_rr'</span>] <span class="op">+</span> tau2)</span>
-<span id="cb15-484"><a href="#cb15-484"></a>pooled_re <span class="op">=</span> np.<span class="bu">sum</span>(w_re <span class="op">*</span> studies[<span class="st">'log_rr'</span>]) <span class="op">/</span> np.<span class="bu">sum</span>(w_re)</span>
-<span id="cb15-485"><a href="#cb15-485"></a>se_re <span class="op">=</span> np.sqrt(<span class="dv">1</span> <span class="op">/</span> np.<span class="bu">sum</span>(w_re))</span>
-<span id="cb15-486"><a href="#cb15-486"></a>ci_re <span class="op">=</span> (pooled_re <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>se_re, pooled_re <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>se_re)</span>
-<span id="cb15-487"><a href="#cb15-487"></a></span>
-<span id="cb15-488"><a href="#cb15-488"></a>I2 <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, (Q <span class="op">-</span> (k<span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> Q) <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb15-489"><a href="#cb15-489"></a></span>
-<span id="cb15-490"><a href="#cb15-490"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Random-effects pooled log RR: </span><span class="sc">{</span>pooled_re<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
-<span id="cb15-491"><a href="#cb15-491"></a><span class="bu">print</span>(<span class="ss">f"Random-effects pooled RR: </span><span class="sc">{</span>np<span class="sc">.</span>exp(pooled_re)<span class="sc">:.4f}</span><span class="ss"> "</span></span>
-<span id="cb15-492"><a href="#cb15-492"></a>      <span class="ss">f"(95% CI: </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_re[<span class="dv">0</span>])<span class="sc">:.4f}</span><span class="ss"> - </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_re[<span class="dv">1</span>])<span class="sc">:.4f}</span><span class="ss">)"</span>)</span>
-<span id="cb15-493"><a href="#cb15-493"></a><span class="bu">print</span>(<span class="ss">f"tau^2: </span><span class="sc">{</span>tau2<span class="sc">:.4f}</span><span class="ss">, I^2: </span><span class="sc">{</span>I2<span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
-<span id="cb15-494"><a href="#cb15-494"></a><span class="bu">print</span>(<span class="ss">f"Q statistic: </span><span class="sc">{</span>Q<span class="sc">:.2f}</span><span class="ss">, p = </span><span class="sc">{</span><span class="dv">1</span> <span class="op">-</span> stats<span class="sc">.</span>chi2<span class="sc">.</span>cdf(Q, k<span class="op">-</span><span class="dv">1</span>)<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
-<span id="cb15-495"><a href="#cb15-495"></a><span class="in">```</span></span>
+<span id="cb15-444"><a href="#cb15-444"></a><span class="ss">1. </span>Develop the model using one-stage IPD-MA (internal-external cross-validation)</span>
+<span id="cb15-445"><a href="#cb15-445"></a><span class="ss">2. </span>Assess calibration and discrimination in each study</span>
+<span id="cb15-446"><a href="#cb15-446"></a><span class="ss">3. </span>Examine heterogeneity in model performance across settings</span>
+<span id="cb15-447"><a href="#cb15-447"></a><span class="ss">4. </span>Update model intercept or recalibrate for new settings</span>
+<span id="cb15-448"><a href="#cb15-448"></a></span>
+<span id="cb15-449"><a href="#cb15-449"></a><span class="fu">## Implementation in Python</span></span>
+<span id="cb15-450"><a href="#cb15-450"></a></span>
+<span id="cb15-451"><a href="#cb15-451"></a>Python's meta-analysis ecosystem is less mature than R's, but basic analyses are feasible.</span>
+<span id="cb15-452"><a href="#cb15-452"></a></span>
+<span id="cb15-455"><a href="#cb15-455"></a><span class="in">```{python}</span></span>
+<span id="cb15-456"><a href="#cb15-456"></a><span class="co">#| label: python-meta</span></span>
+<span id="cb15-457"><a href="#cb15-457"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-458"><a href="#cb15-458"></a></span>
+<span id="cb15-459"><a href="#cb15-459"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb15-460"><a href="#cb15-460"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb15-461"><a href="#cb15-461"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb15-462"><a href="#cb15-462"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb15-463"><a href="#cb15-463"></a></span>
+<span id="cb15-464"><a href="#cb15-464"></a><span class="co"># Study data: log risk ratios and standard errors</span></span>
+<span id="cb15-465"><a href="#cb15-465"></a>studies <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb15-466"><a href="#cb15-466"></a>    <span class="st">'study'</span>: [<span class="st">'4S (1994)'</span>, <span class="st">'CARE (1996)'</span>, <span class="st">'LIPID (1998)'</span>, <span class="st">'HPS (2002)'</span>,</span>
+<span id="cb15-467"><a href="#cb15-467"></a>              <span class="st">'PROSPER (2002)'</span>, <span class="st">'PROVE-IT (2004)'</span>, <span class="st">'TNT (2005)'</span>,</span>
+<span id="cb15-468"><a href="#cb15-468"></a>              <span class="st">'JUPITER (2008)'</span>, <span class="st">'HOPE-3 (2016)'</span>],</span>
+<span id="cb15-469"><a href="#cb15-469"></a>    <span class="st">'events_t'</span>: [<span class="dv">111</span>, <span class="dv">212</span>, <span class="dv">287</span>, <span class="dv">1328</span>, <span class="dv">127</span>, <span class="dv">147</span>, <span class="dv">334</span>, <span class="dv">142</span>, <span class="dv">235</span>],</span>
+<span id="cb15-470"><a href="#cb15-470"></a>    <span class="st">'n_t'</span>: [<span class="dv">2221</span>, <span class="dv">2081</span>, <span class="dv">4512</span>, <span class="dv">10269</span>, <span class="dv">2891</span>, <span class="dv">2099</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6361</span>],</span>
+<span id="cb15-471"><a href="#cb15-471"></a>    <span class="st">'events_c'</span>: [<span class="dv">189</span>, <span class="dv">274</span>, <span class="dv">373</span>, <span class="dv">1507</span>, <span class="dv">143</span>, <span class="dv">172</span>, <span class="dv">418</span>, <span class="dv">251</span>, <span class="dv">260</span>],</span>
+<span id="cb15-472"><a href="#cb15-472"></a>    <span class="st">'n_c'</span>: [<span class="dv">2223</span>, <span class="dv">2078</span>, <span class="dv">4502</span>, <span class="dv">10267</span>, <span class="dv">2913</span>, <span class="dv">2063</span>, <span class="dv">5006</span>, <span class="dv">8901</span>, <span class="dv">6344</span>]</span>
+<span id="cb15-473"><a href="#cb15-473"></a>})</span>
+<span id="cb15-474"><a href="#cb15-474"></a></span>
+<span id="cb15-475"><a href="#cb15-475"></a><span class="co"># Compute log risk ratios and variances</span></span>
+<span id="cb15-476"><a href="#cb15-476"></a>studies[<span class="st">'rr'</span>] <span class="op">=</span> (studies[<span class="st">'events_t'</span>] <span class="op">/</span> studies[<span class="st">'n_t'</span>]) <span class="op">/</span> <span class="op">\</span></span>
+<span id="cb15-477"><a href="#cb15-477"></a>                (studies[<span class="st">'events_c'</span>] <span class="op">/</span> studies[<span class="st">'n_c'</span>])</span>
+<span id="cb15-478"><a href="#cb15-478"></a>studies[<span class="st">'log_rr'</span>] <span class="op">=</span> np.log(studies[<span class="st">'rr'</span>])</span>
+<span id="cb15-479"><a href="#cb15-479"></a></span>
+<span id="cb15-480"><a href="#cb15-480"></a><span class="co"># Variance of log RR</span></span>
+<span id="cb15-481"><a href="#cb15-481"></a>studies[<span class="st">'var_log_rr'</span>] <span class="op">=</span> (</span>
+<span id="cb15-482"><a href="#cb15-482"></a>    <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'events_t'</span>] <span class="op">-</span> <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'n_t'</span>] <span class="op">+</span></span>
+<span id="cb15-483"><a href="#cb15-483"></a>    <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'events_c'</span>] <span class="op">-</span> <span class="dv">1</span><span class="op">/</span>studies[<span class="st">'n_c'</span>]</span>
+<span id="cb15-484"><a href="#cb15-484"></a>)</span>
+<span id="cb15-485"><a href="#cb15-485"></a>studies[<span class="st">'se_log_rr'</span>] <span class="op">=</span> np.sqrt(studies[<span class="st">'var_log_rr'</span>])</span>
+<span id="cb15-486"><a href="#cb15-486"></a></span>
+<span id="cb15-487"><a href="#cb15-487"></a><span class="co"># --- Fixed-effect meta-analysis (inverse variance) ---</span></span>
+<span id="cb15-488"><a href="#cb15-488"></a>w_fe <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> studies[<span class="st">'var_log_rr'</span>]</span>
+<span id="cb15-489"><a href="#cb15-489"></a>pooled_fe <span class="op">=</span> np.<span class="bu">sum</span>(w_fe <span class="op">*</span> studies[<span class="st">'log_rr'</span>]) <span class="op">/</span> np.<span class="bu">sum</span>(w_fe)</span>
+<span id="cb15-490"><a href="#cb15-490"></a>se_fe <span class="op">=</span> np.sqrt(<span class="dv">1</span> <span class="op">/</span> np.<span class="bu">sum</span>(w_fe))</span>
+<span id="cb15-491"><a href="#cb15-491"></a>ci_fe <span class="op">=</span> (pooled_fe <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>se_fe, pooled_fe <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>se_fe)</span>
+<span id="cb15-492"><a href="#cb15-492"></a></span>
+<span id="cb15-493"><a href="#cb15-493"></a><span class="bu">print</span>(<span class="ss">f"Fixed-effect pooled log RR: </span><span class="sc">{</span>pooled_fe<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb15-494"><a href="#cb15-494"></a><span class="bu">print</span>(<span class="ss">f"Fixed-effect pooled RR: </span><span class="sc">{</span>np<span class="sc">.</span>exp(pooled_fe)<span class="sc">:.4f}</span><span class="ss"> "</span></span>
+<span id="cb15-495"><a href="#cb15-495"></a>      <span class="ss">f"(95% CI: </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_fe[<span class="dv">0</span>])<span class="sc">:.4f}</span><span class="ss"> - </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_fe[<span class="dv">1</span>])<span class="sc">:.4f}</span><span class="ss">)"</span>)</span>
 <span id="cb15-496"><a href="#cb15-496"></a></span>
-<span id="cb15-497"><a href="#cb15-497"></a><span class="fu">### Forest plot in Python</span></span>
-<span id="cb15-498"><a href="#cb15-498"></a></span>
-<span id="cb15-501"><a href="#cb15-501"></a><span class="in">```{python}</span></span>
-<span id="cb15-502"><a href="#cb15-502"></a><span class="co">#| label: python-forest</span></span>
-<span id="cb15-503"><a href="#cb15-503"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-504"><a href="#cb15-504"></a></span>
-<span id="cb15-505"><a href="#cb15-505"></a><span class="kw">def</span> forest_plot(studies, pooled_est, pooled_ci, weights, title<span class="op">=</span><span class="st">"Forest Plot"</span>):</span>
-<span id="cb15-506"><a href="#cb15-506"></a>    <span class="co">"""Create a basic forest plot."""</span></span>
-<span id="cb15-507"><a href="#cb15-507"></a>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
-<span id="cb15-508"><a href="#cb15-508"></a></span>
-<span id="cb15-509"><a href="#cb15-509"></a>    k <span class="op">=</span> <span class="bu">len</span>(studies)</span>
-<span id="cb15-510"><a href="#cb15-510"></a>    y_pos <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(k, <span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>))</span>
-<span id="cb15-511"><a href="#cb15-511"></a></span>
-<span id="cb15-512"><a href="#cb15-512"></a>    <span class="co"># Individual studies</span></span>
-<span id="cb15-513"><a href="#cb15-513"></a>    <span class="cf">for</span> i, (_, row) <span class="kw">in</span> <span class="bu">enumerate</span>(studies.iterrows()):</span>
-<span id="cb15-514"><a href="#cb15-514"></a>        ci_lo <span class="op">=</span> row[<span class="st">'log_rr'</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> row[<span class="st">'se_log_rr'</span>]</span>
-<span id="cb15-515"><a href="#cb15-515"></a>        ci_hi <span class="op">=</span> row[<span class="st">'log_rr'</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> row[<span class="st">'se_log_rr'</span>]</span>
-<span id="cb15-516"><a href="#cb15-516"></a>        ax.plot([np.exp(ci_lo), np.exp(ci_hi)], [y_pos[i], y_pos[i]],</span>
-<span id="cb15-517"><a href="#cb15-517"></a>                <span class="st">'k-'</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb15-518"><a href="#cb15-518"></a>        size <span class="op">=</span> weights[i] <span class="op">/</span> weights.<span class="bu">max</span>() <span class="op">*</span> <span class="dv">200</span></span>
-<span id="cb15-519"><a href="#cb15-519"></a>        ax.scatter(np.exp(row[<span class="st">'log_rr'</span>]), y_pos[i],</span>
-<span id="cb15-520"><a href="#cb15-520"></a>                   s<span class="op">=</span>size, c<span class="op">=</span><span class="st">'steelblue'</span>, zorder<span class="op">=</span><span class="dv">5</span>, edgecolors<span class="op">=</span><span class="st">'darkblue'</span>)</span>
-<span id="cb15-521"><a href="#cb15-521"></a></span>
-<span id="cb15-522"><a href="#cb15-522"></a>    <span class="co"># Pooled estimate (diamond)</span></span>
-<span id="cb15-523"><a href="#cb15-523"></a>    ax.axvline(x<span class="op">=</span>np.exp(pooled_est), color<span class="op">=</span><span class="st">'steelblue'</span>,</span>
-<span id="cb15-524"><a href="#cb15-524"></a>               linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
-<span id="cb15-525"><a href="#cb15-525"></a>    ax.axvline(x<span class="op">=</span><span class="dv">1</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb15-497"><a href="#cb15-497"></a><span class="co"># --- Random-effects: DerSimonian-Laird ---</span></span>
+<span id="cb15-498"><a href="#cb15-498"></a>k <span class="op">=</span> <span class="bu">len</span>(studies)</span>
+<span id="cb15-499"><a href="#cb15-499"></a>Q <span class="op">=</span> np.<span class="bu">sum</span>(w_fe <span class="op">*</span> (studies[<span class="st">'log_rr'</span>] <span class="op">-</span> pooled_fe)<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb15-500"><a href="#cb15-500"></a>C <span class="op">=</span> np.<span class="bu">sum</span>(w_fe) <span class="op">-</span> np.<span class="bu">sum</span>(w_fe<span class="op">**</span><span class="dv">2</span>) <span class="op">/</span> np.<span class="bu">sum</span>(w_fe)</span>
+<span id="cb15-501"><a href="#cb15-501"></a>tau2 <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, (Q <span class="op">-</span> (k <span class="op">-</span> <span class="dv">1</span>)) <span class="op">/</span> C)</span>
+<span id="cb15-502"><a href="#cb15-502"></a></span>
+<span id="cb15-503"><a href="#cb15-503"></a>w_re <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> (studies[<span class="st">'var_log_rr'</span>] <span class="op">+</span> tau2)</span>
+<span id="cb15-504"><a href="#cb15-504"></a>pooled_re <span class="op">=</span> np.<span class="bu">sum</span>(w_re <span class="op">*</span> studies[<span class="st">'log_rr'</span>]) <span class="op">/</span> np.<span class="bu">sum</span>(w_re)</span>
+<span id="cb15-505"><a href="#cb15-505"></a>se_re <span class="op">=</span> np.sqrt(<span class="dv">1</span> <span class="op">/</span> np.<span class="bu">sum</span>(w_re))</span>
+<span id="cb15-506"><a href="#cb15-506"></a>ci_re <span class="op">=</span> (pooled_re <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>se_re, pooled_re <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>se_re)</span>
+<span id="cb15-507"><a href="#cb15-507"></a></span>
+<span id="cb15-508"><a href="#cb15-508"></a>I2 <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, (Q <span class="op">-</span> (k<span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> Q) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb15-509"><a href="#cb15-509"></a></span>
+<span id="cb15-510"><a href="#cb15-510"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Random-effects pooled log RR: </span><span class="sc">{</span>pooled_re<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb15-511"><a href="#cb15-511"></a><span class="bu">print</span>(<span class="ss">f"Random-effects pooled RR: </span><span class="sc">{</span>np<span class="sc">.</span>exp(pooled_re)<span class="sc">:.4f}</span><span class="ss"> "</span></span>
+<span id="cb15-512"><a href="#cb15-512"></a>      <span class="ss">f"(95% CI: </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_re[<span class="dv">0</span>])<span class="sc">:.4f}</span><span class="ss"> - </span><span class="sc">{</span>np<span class="sc">.</span>exp(ci_re[<span class="dv">1</span>])<span class="sc">:.4f}</span><span class="ss">)"</span>)</span>
+<span id="cb15-513"><a href="#cb15-513"></a><span class="bu">print</span>(<span class="ss">f"tau^2: </span><span class="sc">{</span>tau2<span class="sc">:.4f}</span><span class="ss">, I^2: </span><span class="sc">{</span>I2<span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
+<span id="cb15-514"><a href="#cb15-514"></a><span class="bu">print</span>(<span class="ss">f"Q statistic: </span><span class="sc">{</span>Q<span class="sc">:.2f}</span><span class="ss">, p = </span><span class="sc">{</span><span class="dv">1</span> <span class="op">-</span> stats<span class="sc">.</span>chi2<span class="sc">.</span>cdf(Q, k<span class="op">-</span><span class="dv">1</span>)<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb15-515"><a href="#cb15-515"></a><span class="in">```</span></span>
+<span id="cb15-516"><a href="#cb15-516"></a></span>
+<span id="cb15-517"><a href="#cb15-517"></a>**What the code shows.** Because Python lacks a mature one-line meta-analysis package, this builds the whole analysis from first principles --- which is also a useful way to see the formulas in action. We start from the same statin counts, compute each study's log risk ratio and its variance, then form the inverse-variance weights. The first block produces the fixed-effect pooled estimate; the second implements the DerSimonian-Laird random-effects method, calculating Cochran's Q, the between-study variance $\tau^2$, and finally $I^2$. The printed output reports both pooled risk ratios (back-transformed from the log scale and shown with 95% confidence intervals), the $\tau^2$ and $I^2$ heterogeneity statistics, and the Q-test p-value. You should get essentially the same numbers as the R <span class="in">`meta`</span>/<span class="in">`metafor`</span> analyses above --- a good check that the methods, not the software, drive the result.</span>
+<span id="cb15-518"><a href="#cb15-518"></a></span>
+<span id="cb15-519"><a href="#cb15-519"></a><span class="fu">### Forest plot in Python</span></span>
+<span id="cb15-520"><a href="#cb15-520"></a></span>
+<span id="cb15-523"><a href="#cb15-523"></a><span class="in">```{python}</span></span>
+<span id="cb15-524"><a href="#cb15-524"></a><span class="co">#| label: python-forest</span></span>
+<span id="cb15-525"><a href="#cb15-525"></a><span class="co">#| eval: false</span></span>
 <span id="cb15-526"><a href="#cb15-526"></a></span>
-<span id="cb15-527"><a href="#cb15-527"></a>    <span class="co"># Pooled diamond</span></span>
-<span id="cb15-528"><a href="#cb15-528"></a>    diamond_y <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb15-529"><a href="#cb15-529"></a>    diamond_x <span class="op">=</span> [np.exp(pooled_ci[<span class="dv">0</span>]), np.exp(pooled_est),</span>
-<span id="cb15-530"><a href="#cb15-530"></a>                 np.exp(pooled_ci[<span class="dv">1</span>]), np.exp(pooled_est)]</span>
-<span id="cb15-531"><a href="#cb15-531"></a>    diamond_yy <span class="op">=</span> [diamond_y, diamond_y <span class="op">+</span> <span class="fl">0.3</span>, diamond_y, diamond_y <span class="op">-</span> <span class="fl">0.3</span>]</span>
-<span id="cb15-532"><a href="#cb15-532"></a>    ax.fill(diamond_x, diamond_yy, color<span class="op">=</span><span class="st">'steelblue'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb15-527"><a href="#cb15-527"></a><span class="kw">def</span> forest_plot(studies, pooled_est, pooled_ci, weights, title<span class="op">=</span><span class="st">"Forest Plot"</span>):</span>
+<span id="cb15-528"><a href="#cb15-528"></a>    <span class="co">"""Create a basic forest plot."""</span></span>
+<span id="cb15-529"><a href="#cb15-529"></a>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb15-530"><a href="#cb15-530"></a></span>
+<span id="cb15-531"><a href="#cb15-531"></a>    k <span class="op">=</span> <span class="bu">len</span>(studies)</span>
+<span id="cb15-532"><a href="#cb15-532"></a>    y_pos <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(k, <span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>))</span>
 <span id="cb15-533"><a href="#cb15-533"></a></span>
-<span id="cb15-534"><a href="#cb15-534"></a>    <span class="co"># Labels</span></span>
-<span id="cb15-535"><a href="#cb15-535"></a>    ax.set_yticks(y_pos <span class="op">+</span> [<span class="dv">0</span>])</span>
-<span id="cb15-536"><a href="#cb15-536"></a>    ax.set_yticklabels(<span class="bu">list</span>(studies[<span class="st">'study'</span>]) <span class="op">+</span> [<span class="st">'Pooled'</span>])</span>
-<span id="cb15-537"><a href="#cb15-537"></a>    ax.set_xlabel(<span class="st">'Risk Ratio'</span>)</span>
-<span id="cb15-538"><a href="#cb15-538"></a>    ax.set_title(title)</span>
-<span id="cb15-539"><a href="#cb15-539"></a>    ax.set_xscale(<span class="st">'log'</span>)</span>
-<span id="cb15-540"><a href="#cb15-540"></a>    plt.tight_layout()</span>
-<span id="cb15-541"><a href="#cb15-541"></a>    plt.show()</span>
-<span id="cb15-542"><a href="#cb15-542"></a></span>
-<span id="cb15-543"><a href="#cb15-543"></a>forest_plot(studies, pooled_re, ci_re, w_re,</span>
-<span id="cb15-544"><a href="#cb15-544"></a>            title<span class="op">=</span><span class="st">"Statins for CV Prevention: Random-Effects Meta-Analysis"</span>)</span>
-<span id="cb15-545"><a href="#cb15-545"></a><span class="in">```</span></span>
-<span id="cb15-546"><a href="#cb15-546"></a></span>
-<span id="cb15-547"><a href="#cb15-547"></a><span class="fu">### Using PythonMeta or PyMeta</span></span>
+<span id="cb15-534"><a href="#cb15-534"></a>    <span class="co"># Individual studies</span></span>
+<span id="cb15-535"><a href="#cb15-535"></a>    <span class="cf">for</span> i, (_, row) <span class="kw">in</span> <span class="bu">enumerate</span>(studies.iterrows()):</span>
+<span id="cb15-536"><a href="#cb15-536"></a>        ci_lo <span class="op">=</span> row[<span class="st">'log_rr'</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> row[<span class="st">'se_log_rr'</span>]</span>
+<span id="cb15-537"><a href="#cb15-537"></a>        ci_hi <span class="op">=</span> row[<span class="st">'log_rr'</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> row[<span class="st">'se_log_rr'</span>]</span>
+<span id="cb15-538"><a href="#cb15-538"></a>        ax.plot([np.exp(ci_lo), np.exp(ci_hi)], [y_pos[i], y_pos[i]],</span>
+<span id="cb15-539"><a href="#cb15-539"></a>                <span class="st">'k-'</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb15-540"><a href="#cb15-540"></a>        size <span class="op">=</span> weights[i] <span class="op">/</span> weights.<span class="bu">max</span>() <span class="op">*</span> <span class="dv">200</span></span>
+<span id="cb15-541"><a href="#cb15-541"></a>        ax.scatter(np.exp(row[<span class="st">'log_rr'</span>]), y_pos[i],</span>
+<span id="cb15-542"><a href="#cb15-542"></a>                   s<span class="op">=</span>size, c<span class="op">=</span><span class="st">'steelblue'</span>, zorder<span class="op">=</span><span class="dv">5</span>, edgecolors<span class="op">=</span><span class="st">'darkblue'</span>)</span>
+<span id="cb15-543"><a href="#cb15-543"></a></span>
+<span id="cb15-544"><a href="#cb15-544"></a>    <span class="co"># Pooled estimate (diamond)</span></span>
+<span id="cb15-545"><a href="#cb15-545"></a>    ax.axvline(x<span class="op">=</span>np.exp(pooled_est), color<span class="op">=</span><span class="st">'steelblue'</span>,</span>
+<span id="cb15-546"><a href="#cb15-546"></a>               linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb15-547"><a href="#cb15-547"></a>    ax.axvline(x<span class="op">=</span><span class="dv">1</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)</span>
 <span id="cb15-548"><a href="#cb15-548"></a></span>
-<span id="cb15-551"><a href="#cb15-551"></a><span class="in">```{python}</span></span>
-<span id="cb15-552"><a href="#cb15-552"></a><span class="co">#| label: python-meta-pkg</span></span>
-<span id="cb15-553"><a href="#cb15-553"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-554"><a href="#cb15-554"></a></span>
-<span id="cb15-555"><a href="#cb15-555"></a><span class="co"># For more complete meta-analysis in Python, consider the 'meta-analysis' package</span></span>
-<span id="cb15-556"><a href="#cb15-556"></a><span class="co"># Install: pip install meta-analysis</span></span>
-<span id="cb15-557"><a href="#cb15-557"></a></span>
-<span id="cb15-558"><a href="#cb15-558"></a><span class="co"># Alternatively, statsmodels has some capabilities</span></span>
-<span id="cb15-559"><a href="#cb15-559"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
-<span id="cb15-560"><a href="#cb15-560"></a></span>
-<span id="cb15-561"><a href="#cb15-561"></a><span class="co"># Egger's test equivalent: weighted regression of effect on SE</span></span>
-<span id="cb15-562"><a href="#cb15-562"></a>X <span class="op">=</span> sm.add_constant(studies[<span class="st">'se_log_rr'</span>])</span>
-<span id="cb15-563"><a href="#cb15-563"></a>model <span class="op">=</span> sm.WLS(studies[<span class="st">'log_rr'</span>], X, weights<span class="op">=</span>w_fe).fit()</span>
-<span id="cb15-564"><a href="#cb15-564"></a><span class="bu">print</span>(<span class="st">"Egger's test (intercept):"</span>)</span>
-<span id="cb15-565"><a href="#cb15-565"></a><span class="bu">print</span>(<span class="ss">f"  Intercept: </span><span class="sc">{</span>model<span class="sc">.</span>params[<span class="dv">0</span>]<span class="sc">:.4f}</span><span class="ss">, p = </span><span class="sc">{</span>model<span class="sc">.</span>pvalues[<span class="dv">0</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
-<span id="cb15-566"><a href="#cb15-566"></a><span class="in">```</span></span>
-<span id="cb15-567"><a href="#cb15-567"></a></span>
-<span id="cb15-568"><a href="#cb15-568"></a><span class="fu">## Reporting a Meta-Analysis: PRISMA 2020</span></span>
-<span id="cb15-569"><a href="#cb15-569"></a></span>
-<span id="cb15-570"><a href="#cb15-570"></a>The **PRISMA 2020** statement (Page et al., 2021) provides an updated checklist for reporting systematic reviews and meta-analyses. Key statistical reporting requirements:</span>
-<span id="cb15-571"><a href="#cb15-571"></a></span>
-<span id="cb15-572"><a href="#cb15-572"></a><span class="ss">1. </span>**Describe the effect measure** and its rationale</span>
-<span id="cb15-573"><a href="#cb15-573"></a><span class="ss">2. </span>**Specify the synthesis model** (fixed/random) and estimation method</span>
-<span id="cb15-574"><a href="#cb15-574"></a><span class="ss">3. </span>**Present heterogeneity statistics** ($\tau^2$, $I^2$, prediction interval)</span>
-<span id="cb15-575"><a href="#cb15-575"></a><span class="ss">4. </span>**Report assessments of bias** (risk of bias, publication bias)</span>
-<span id="cb15-576"><a href="#cb15-576"></a><span class="ss">5. </span>**Include a forest plot** for the primary outcome</span>
-<span id="cb15-577"><a href="#cb15-577"></a><span class="ss">6. </span>**Describe sensitivity analyses** and their results</span>
-<span id="cb15-578"><a href="#cb15-578"></a><span class="ss">7. </span>**Register the protocol** (PROSPERO) and follow it</span>
-<span id="cb15-579"><a href="#cb15-579"></a></span>
-<span id="cb15-580"><a href="#cb15-580"></a><span class="fu">## Exercises</span></span>
+<span id="cb15-549"><a href="#cb15-549"></a>    <span class="co"># Pooled diamond</span></span>
+<span id="cb15-550"><a href="#cb15-550"></a>    diamond_y <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb15-551"><a href="#cb15-551"></a>    diamond_x <span class="op">=</span> [np.exp(pooled_ci[<span class="dv">0</span>]), np.exp(pooled_est),</span>
+<span id="cb15-552"><a href="#cb15-552"></a>                 np.exp(pooled_ci[<span class="dv">1</span>]), np.exp(pooled_est)]</span>
+<span id="cb15-553"><a href="#cb15-553"></a>    diamond_yy <span class="op">=</span> [diamond_y, diamond_y <span class="op">+</span> <span class="fl">0.3</span>, diamond_y, diamond_y <span class="op">-</span> <span class="fl">0.3</span>]</span>
+<span id="cb15-554"><a href="#cb15-554"></a>    ax.fill(diamond_x, diamond_yy, color<span class="op">=</span><span class="st">'steelblue'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb15-555"><a href="#cb15-555"></a></span>
+<span id="cb15-556"><a href="#cb15-556"></a>    <span class="co"># Labels</span></span>
+<span id="cb15-557"><a href="#cb15-557"></a>    ax.set_yticks(y_pos <span class="op">+</span> [<span class="dv">0</span>])</span>
+<span id="cb15-558"><a href="#cb15-558"></a>    ax.set_yticklabels(<span class="bu">list</span>(studies[<span class="st">'study'</span>]) <span class="op">+</span> [<span class="st">'Pooled'</span>])</span>
+<span id="cb15-559"><a href="#cb15-559"></a>    ax.set_xlabel(<span class="st">'Risk Ratio'</span>)</span>
+<span id="cb15-560"><a href="#cb15-560"></a>    ax.set_title(title)</span>
+<span id="cb15-561"><a href="#cb15-561"></a>    ax.set_xscale(<span class="st">'log'</span>)</span>
+<span id="cb15-562"><a href="#cb15-562"></a>    plt.tight_layout()</span>
+<span id="cb15-563"><a href="#cb15-563"></a>    plt.show()</span>
+<span id="cb15-564"><a href="#cb15-564"></a></span>
+<span id="cb15-565"><a href="#cb15-565"></a>forest_plot(studies, pooled_re, ci_re, w_re,</span>
+<span id="cb15-566"><a href="#cb15-566"></a>            title<span class="op">=</span><span class="st">"Statins for CV Prevention: Random-Effects Meta-Analysis"</span>)</span>
+<span id="cb15-567"><a href="#cb15-567"></a><span class="in">```</span></span>
+<span id="cb15-568"><a href="#cb15-568"></a></span>
+<span id="cb15-569"><a href="#cb15-569"></a>**What the code shows.** This defines a <span class="in">`forest_plot`</span> function and uses it to draw, by hand, the same kind of forest plot the R <span class="in">`meta`</span> package produces automatically. Each study appears as a marker (sized by its weight) with a horizontal 95% confidence-interval line; the vertical line at RR = 1 marks "no effect", and the shaded diamond at the bottom is the random-effects pooled estimate. Reading it is identical to reading any published forest plot: studies whose intervals sit entirely left of the line favour statins, and a pooled diamond clear of the line indicates an overall benefit. The point of writing it out is to demystify the figure --- nothing about a forest plot is magic, it is just effect estimates and intervals stacked on a common axis.</span>
+<span id="cb15-570"><a href="#cb15-570"></a></span>
+<span id="cb15-571"><a href="#cb15-571"></a><span class="fu">### Using PythonMeta or PyMeta</span></span>
+<span id="cb15-572"><a href="#cb15-572"></a></span>
+<span id="cb15-575"><a href="#cb15-575"></a><span class="in">```{python}</span></span>
+<span id="cb15-576"><a href="#cb15-576"></a><span class="co">#| label: python-meta-pkg</span></span>
+<span id="cb15-577"><a href="#cb15-577"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-578"><a href="#cb15-578"></a></span>
+<span id="cb15-579"><a href="#cb15-579"></a><span class="co"># For more complete meta-analysis in Python, consider the 'meta-analysis' package</span></span>
+<span id="cb15-580"><a href="#cb15-580"></a><span class="co"># Install: pip install meta-analysis</span></span>
 <span id="cb15-581"><a href="#cb15-581"></a></span>
-<span id="cb15-582"><a href="#cb15-582"></a><span class="fu">### Exercise 1: Basic meta-analysis in R</span></span>
-<span id="cb15-583"><a href="#cb15-583"></a></span>
-<span id="cb15-584"><a href="#cb15-584"></a>The following data come from randomised trials of a hypothetical new anticoagulant vs warfarin for stroke prevention in atrial fibrillation.</span>
-<span id="cb15-585"><a href="#cb15-585"></a></span>
-<span id="cb15-588"><a href="#cb15-588"></a><span class="in">```{r}</span></span>
-<span id="cb15-589"><a href="#cb15-589"></a><span class="co">#| label: exercise-1-data</span></span>
-<span id="cb15-590"><a href="#cb15-590"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-582"><a href="#cb15-582"></a><span class="co"># Alternatively, statsmodels has some capabilities</span></span>
+<span id="cb15-583"><a href="#cb15-583"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb15-584"><a href="#cb15-584"></a></span>
+<span id="cb15-585"><a href="#cb15-585"></a><span class="co"># Egger's test equivalent: weighted regression of effect on SE</span></span>
+<span id="cb15-586"><a href="#cb15-586"></a>X <span class="op">=</span> sm.add_constant(studies[<span class="st">'se_log_rr'</span>])</span>
+<span id="cb15-587"><a href="#cb15-587"></a>model <span class="op">=</span> sm.WLS(studies[<span class="st">'log_rr'</span>], X, weights<span class="op">=</span>w_fe).fit()</span>
+<span id="cb15-588"><a href="#cb15-588"></a><span class="bu">print</span>(<span class="st">"Egger's test (intercept):"</span>)</span>
+<span id="cb15-589"><a href="#cb15-589"></a><span class="bu">print</span>(<span class="ss">f"  Intercept: </span><span class="sc">{</span>model<span class="sc">.</span>params[<span class="dv">0</span>]<span class="sc">:.4f}</span><span class="ss">, p = </span><span class="sc">{</span>model<span class="sc">.</span>pvalues[<span class="dv">0</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb15-590"><a href="#cb15-590"></a><span class="in">```</span></span>
 <span id="cb15-591"><a href="#cb15-591"></a></span>
-<span id="cb15-592"><a href="#cb15-592"></a>af_trials <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb15-593"><a href="#cb15-593"></a>  <span class="at">study =</span> <span class="fu">c</span>(<span class="st">"TRAIL-1"</span>, <span class="st">"GUARD-AF"</span>, <span class="st">"SHIELD"</span>, <span class="st">"ORBIT-AF"</span>,</span>
-<span id="cb15-594"><a href="#cb15-594"></a>            <span class="st">"VENTURE"</span>, <span class="st">"COMPASS-AF"</span>, <span class="st">"PIONEER-2"</span>, <span class="st">"ATLAS-AF"</span>),</span>
-<span id="cb15-595"><a href="#cb15-595"></a>  <span class="at">events_new =</span> <span class="fu">c</span>(<span class="dv">28</span>, <span class="dv">45</span>, <span class="dv">112</span>, <span class="dv">67</span>, <span class="dv">33</span>, <span class="dv">89</span>, <span class="dv">52</span>, <span class="dv">41</span>),</span>
-<span id="cb15-596"><a href="#cb15-596"></a>  <span class="at">n_new      =</span> <span class="fu">c</span>(<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>),</span>
-<span id="cb15-597"><a href="#cb15-597"></a>  <span class="at">events_warf =</span> <span class="fu">c</span>(<span class="dv">42</span>, <span class="dv">58</span>, <span class="dv">148</span>, <span class="dv">84</span>, <span class="dv">29</span>, <span class="dv">102</span>, <span class="dv">61</span>, <span class="dv">53</span>),</span>
-<span id="cb15-598"><a href="#cb15-598"></a>  <span class="at">n_warf      =</span> <span class="fu">c</span>(<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>)</span>
-<span id="cb15-599"><a href="#cb15-599"></a>)</span>
-<span id="cb15-600"><a href="#cb15-600"></a><span class="in">```</span></span>
-<span id="cb15-601"><a href="#cb15-601"></a></span>
-<span id="cb15-602"><a href="#cb15-602"></a>a) Compute the risk ratio and 95% CI for each trial by hand (or using <span class="in">`escalc`</span>).</span>
-<span id="cb15-603"><a href="#cb15-603"></a>b) Perform a random-effects meta-analysis using the <span class="in">`meta`</span> or <span class="in">`metafor`</span> package.</span>
-<span id="cb15-604"><a href="#cb15-604"></a>c) Create a forest plot. Does the pooled effect favour the new anticoagulant?</span>
-<span id="cb15-605"><a href="#cb15-605"></a>d) Calculate and interpret $I^2$ and the prediction interval.</span>
-<span id="cb15-606"><a href="#cb15-606"></a>e) Create a funnel plot and perform Egger's test. Is there evidence of publication bias?</span>
-<span id="cb15-607"><a href="#cb15-607"></a>f) Perform a leave-one-out sensitivity analysis. Is the result robust?</span>
-<span id="cb15-608"><a href="#cb15-608"></a></span>
-<span id="cb15-609"><a href="#cb15-609"></a><span class="fu">### Exercise 2: Meta-analysis from scratch in Python</span></span>
-<span id="cb15-610"><a href="#cb15-610"></a></span>
-<span id="cb15-611"><a href="#cb15-611"></a>Using the same trial data as Exercise 1:</span>
-<span id="cb15-612"><a href="#cb15-612"></a></span>
-<span id="cb15-615"><a href="#cb15-615"></a><span class="in">```{python}</span></span>
-<span id="cb15-616"><a href="#cb15-616"></a><span class="co">#| label: exercise-2-data</span></span>
-<span id="cb15-617"><a href="#cb15-617"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-618"><a href="#cb15-618"></a></span>
-<span id="cb15-619"><a href="#cb15-619"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb15-620"><a href="#cb15-620"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb15-621"><a href="#cb15-621"></a></span>
-<span id="cb15-622"><a href="#cb15-622"></a>af_trials <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb15-623"><a href="#cb15-623"></a>    <span class="st">'study'</span>: [<span class="st">'TRAIL-1'</span>, <span class="st">'GUARD-AF'</span>, <span class="st">'SHIELD'</span>, <span class="st">'ORBIT-AF'</span>,</span>
-<span id="cb15-624"><a href="#cb15-624"></a>              <span class="st">'VENTURE'</span>, <span class="st">'COMPASS-AF'</span>, <span class="st">'PIONEER-2'</span>, <span class="st">'ATLAS-AF'</span>],</span>
-<span id="cb15-625"><a href="#cb15-625"></a>    <span class="st">'events_new'</span>:  [<span class="dv">28</span>, <span class="dv">45</span>, <span class="dv">112</span>, <span class="dv">67</span>, <span class="dv">33</span>, <span class="dv">89</span>, <span class="dv">52</span>, <span class="dv">41</span>],</span>
-<span id="cb15-626"><a href="#cb15-626"></a>    <span class="st">'n_new'</span>:       [<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>],</span>
-<span id="cb15-627"><a href="#cb15-627"></a>    <span class="st">'events_warf'</span>: [<span class="dv">42</span>, <span class="dv">58</span>, <span class="dv">148</span>, <span class="dv">84</span>, <span class="dv">29</span>, <span class="dv">102</span>, <span class="dv">61</span>, <span class="dv">53</span>],</span>
-<span id="cb15-628"><a href="#cb15-628"></a>    <span class="st">'n_warf'</span>:      [<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>]</span>
-<span id="cb15-629"><a href="#cb15-629"></a>})</span>
-<span id="cb15-630"><a href="#cb15-630"></a><span class="in">```</span></span>
-<span id="cb15-631"><a href="#cb15-631"></a></span>
-<span id="cb15-632"><a href="#cb15-632"></a>a) Compute log risk ratios and their variances for each study.</span>
-<span id="cb15-633"><a href="#cb15-633"></a>b) Implement the fixed-effect inverse-variance method.</span>
-<span id="cb15-634"><a href="#cb15-634"></a>c) Implement the DerSimonian-Laird random-effects method.</span>
-<span id="cb15-635"><a href="#cb15-635"></a>d) Compute $Q$, $I^2$, and $\tau^2$.</span>
-<span id="cb15-636"><a href="#cb15-636"></a>e) Create a forest plot using matplotlib.</span>
-<span id="cb15-637"><a href="#cb15-637"></a>f) Create a funnel plot and implement Egger's regression test.</span>
+<span id="cb15-592"><a href="#cb15-592"></a>**What the code shows.** This reproduces Egger's test for funnel-plot asymmetry using <span class="in">`statsmodels`</span>. It runs a weighted regression of each study's effect on its standard error; the intercept of that line is what Egger's test cares about. The printout reports that intercept and its p-value --- an intercept far from zero with a small p-value points to small-study effects (possible publication bias). As with the R version, this is a screening tool to be used only when you have around 10 or more studies, and a "significant" result should prompt further investigation rather than an automatic conclusion of bias.</span>
+<span id="cb15-593"><a href="#cb15-593"></a></span>
+<span id="cb15-594"><a href="#cb15-594"></a><span class="fu">## Reporting a Meta-Analysis: PRISMA 2020</span></span>
+<span id="cb15-595"><a href="#cb15-595"></a></span>
+<span id="cb15-596"><a href="#cb15-596"></a>The **PRISMA 2020** statement (Page et al., 2021) provides an updated checklist for reporting systematic reviews and meta-analyses. Key statistical reporting requirements:</span>
+<span id="cb15-597"><a href="#cb15-597"></a></span>
+<span id="cb15-598"><a href="#cb15-598"></a><span class="ss">1. </span>**Describe the effect measure** and its rationale</span>
+<span id="cb15-599"><a href="#cb15-599"></a><span class="ss">2. </span>**Specify the synthesis model** (fixed/random) and estimation method</span>
+<span id="cb15-600"><a href="#cb15-600"></a><span class="ss">3. </span>**Present heterogeneity statistics** ($\tau^2$, $I^2$, prediction interval)</span>
+<span id="cb15-601"><a href="#cb15-601"></a><span class="ss">4. </span>**Report assessments of bias** (risk of bias, publication bias)</span>
+<span id="cb15-602"><a href="#cb15-602"></a><span class="ss">5. </span>**Include a forest plot** for the primary outcome</span>
+<span id="cb15-603"><a href="#cb15-603"></a><span class="ss">6. </span>**Describe sensitivity analyses** and their results</span>
+<span id="cb15-604"><a href="#cb15-604"></a><span class="ss">7. </span>**Register the protocol** (PROSPERO) and follow it</span>
+<span id="cb15-605"><a href="#cb15-605"></a></span>
+<span id="cb15-606"><a href="#cb15-606"></a><span class="fu">## Exercises</span></span>
+<span id="cb15-607"><a href="#cb15-607"></a></span>
+<span id="cb15-608"><a href="#cb15-608"></a><span class="fu">### Exercise 1: Basic meta-analysis in R</span></span>
+<span id="cb15-609"><a href="#cb15-609"></a></span>
+<span id="cb15-610"><a href="#cb15-610"></a>The following data come from randomised trials of a hypothetical new anticoagulant vs warfarin for stroke prevention in atrial fibrillation.</span>
+<span id="cb15-611"><a href="#cb15-611"></a></span>
+<span id="cb15-614"><a href="#cb15-614"></a><span class="in">```{r}</span></span>
+<span id="cb15-615"><a href="#cb15-615"></a><span class="co">#| label: exercise-1-data</span></span>
+<span id="cb15-616"><a href="#cb15-616"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-617"><a href="#cb15-617"></a></span>
+<span id="cb15-618"><a href="#cb15-618"></a>af_trials <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-619"><a href="#cb15-619"></a>  <span class="at">study =</span> <span class="fu">c</span>(<span class="st">"TRAIL-1"</span>, <span class="st">"GUARD-AF"</span>, <span class="st">"SHIELD"</span>, <span class="st">"ORBIT-AF"</span>,</span>
+<span id="cb15-620"><a href="#cb15-620"></a>            <span class="st">"VENTURE"</span>, <span class="st">"COMPASS-AF"</span>, <span class="st">"PIONEER-2"</span>, <span class="st">"ATLAS-AF"</span>),</span>
+<span id="cb15-621"><a href="#cb15-621"></a>  <span class="at">events_new =</span> <span class="fu">c</span>(<span class="dv">28</span>, <span class="dv">45</span>, <span class="dv">112</span>, <span class="dv">67</span>, <span class="dv">33</span>, <span class="dv">89</span>, <span class="dv">52</span>, <span class="dv">41</span>),</span>
+<span id="cb15-622"><a href="#cb15-622"></a>  <span class="at">n_new      =</span> <span class="fu">c</span>(<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>),</span>
+<span id="cb15-623"><a href="#cb15-623"></a>  <span class="at">events_warf =</span> <span class="fu">c</span>(<span class="dv">42</span>, <span class="dv">58</span>, <span class="dv">148</span>, <span class="dv">84</span>, <span class="dv">29</span>, <span class="dv">102</span>, <span class="dv">61</span>, <span class="dv">53</span>),</span>
+<span id="cb15-624"><a href="#cb15-624"></a>  <span class="at">n_warf      =</span> <span class="fu">c</span>(<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>)</span>
+<span id="cb15-625"><a href="#cb15-625"></a>)</span>
+<span id="cb15-626"><a href="#cb15-626"></a><span class="in">```</span></span>
+<span id="cb15-627"><a href="#cb15-627"></a></span>
+<span id="cb15-628"><a href="#cb15-628"></a>a) Compute the risk ratio and 95% CI for each trial by hand (or using <span class="in">`escalc`</span>).</span>
+<span id="cb15-629"><a href="#cb15-629"></a>b) Perform a random-effects meta-analysis using the <span class="in">`meta`</span> or <span class="in">`metafor`</span> package.</span>
+<span id="cb15-630"><a href="#cb15-630"></a>c) Create a forest plot. Does the pooled effect favour the new anticoagulant?</span>
+<span id="cb15-631"><a href="#cb15-631"></a>d) Calculate and interpret $I^2$ and the prediction interval.</span>
+<span id="cb15-632"><a href="#cb15-632"></a>e) Create a funnel plot and perform Egger's test. Is there evidence of publication bias?</span>
+<span id="cb15-633"><a href="#cb15-633"></a>f) Perform a leave-one-out sensitivity analysis. Is the result robust?</span>
+<span id="cb15-634"><a href="#cb15-634"></a></span>
+<span id="cb15-635"><a href="#cb15-635"></a><span class="fu">### Exercise 2: Meta-analysis from scratch in Python</span></span>
+<span id="cb15-636"><a href="#cb15-636"></a></span>
+<span id="cb15-637"><a href="#cb15-637"></a>Using the same trial data as Exercise 1:</span>
 <span id="cb15-638"><a href="#cb15-638"></a></span>
-<span id="cb15-639"><a href="#cb15-639"></a><span class="fu">### Exercise 3: Subgroup analysis and meta-regression in R</span></span>
-<span id="cb15-640"><a href="#cb15-640"></a></span>
-<span id="cb15-641"><a href="#cb15-641"></a>Suppose the trials in Exercise 1 were conducted in different settings:</span>
-<span id="cb15-642"><a href="#cb15-642"></a></span>
-<span id="cb15-645"><a href="#cb15-645"></a><span class="in">```{r}</span></span>
-<span id="cb15-646"><a href="#cb15-646"></a><span class="co">#| label: exercise-3-data</span></span>
-<span id="cb15-647"><a href="#cb15-647"></a><span class="co">#| eval: false</span></span>
-<span id="cb15-648"><a href="#cb15-648"></a></span>
-<span id="cb15-649"><a href="#cb15-649"></a>af_trials<span class="sc">$</span>region <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Europe"</span>, <span class="st">"North America"</span>, <span class="st">"Europe"</span>, <span class="st">"Asia"</span>,</span>
-<span id="cb15-650"><a href="#cb15-650"></a>                       <span class="st">"North America"</span>, <span class="st">"Europe"</span>, <span class="st">"Asia"</span>, <span class="st">"North America"</span>)</span>
-<span id="cb15-651"><a href="#cb15-651"></a>af_trials<span class="sc">$</span>mean_age <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">72</span>, <span class="dv">68</span>, <span class="dv">74</span>, <span class="dv">65</span>, <span class="dv">70</span>, <span class="dv">71</span>, <span class="dv">63</span>, <span class="dv">69</span>)</span>
-<span id="cb15-652"><a href="#cb15-652"></a>af_trials<span class="sc">$</span>pct_female <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">38</span>, <span class="dv">42</span>, <span class="dv">35</span>, <span class="dv">48</span>, <span class="dv">40</span>, <span class="dv">37</span>, <span class="dv">52</span>, <span class="dv">44</span>)</span>
-<span id="cb15-653"><a href="#cb15-653"></a><span class="in">```</span></span>
-<span id="cb15-654"><a href="#cb15-654"></a></span>
-<span id="cb15-655"><a href="#cb15-655"></a>a) Perform a subgroup analysis by region. Do treatment effects differ by region?</span>
-<span id="cb15-656"><a href="#cb15-656"></a>b) Perform meta-regression with mean age as a moderator. Is there a relationship between mean age and treatment effect?</span>
-<span id="cb15-657"><a href="#cb15-657"></a>c) Perform meta-regression with percentage female. Interpret the result, noting the ecological fallacy.</span>
-<span id="cb15-658"><a href="#cb15-658"></a>d) Create a bubble plot showing the meta-regression of effect size on mean age.</span>
-<span id="cb15-659"><a href="#cb15-659"></a></span>
-<span id="cb15-660"><a href="#cb15-660"></a><span class="fu">### Exercise 4: Critical appraisal (Conceptual)</span></span>
-<span id="cb15-661"><a href="#cb15-661"></a></span>
-<span id="cb15-662"><a href="#cb15-662"></a>You are reviewing a published meta-analysis of 12 trials comparing a new surgical technique to standard care for knee osteoarthritis. The reported results are:</span>
-<span id="cb15-663"><a href="#cb15-663"></a></span>
-<span id="cb15-664"><a href="#cb15-664"></a><span class="ss">- </span>Pooled standardised mean difference for pain: -0.62 (95% CI: -0.89 to -0.35), p &lt; 0.001</span>
-<span id="cb15-665"><a href="#cb15-665"></a><span class="ss">- </span>$I^2 = 78\%$, $\tau^2 = 0.15$, Q test p &lt; 0.001</span>
-<span id="cb15-666"><a href="#cb15-666"></a><span class="ss">- </span>Prediction interval: -1.42 to 0.18</span>
-<span id="cb15-667"><a href="#cb15-667"></a><span class="ss">- </span>Egger's test: p = 0.03</span>
-<span id="cb15-668"><a href="#cb15-668"></a><span class="ss">- </span>8 of 12 trials were single-centre with fewer than 100 participants</span>
-<span id="cb15-669"><a href="#cb15-669"></a></span>
-<span id="cb15-670"><a href="#cb15-670"></a>a) Interpret the pooled effect and its clinical significance.</span>
-<span id="cb15-671"><a href="#cb15-671"></a>b) What does the prediction interval tell you that the confidence interval does not?</span>
-<span id="cb15-672"><a href="#cb15-672"></a>c) What are the implications of $I^2 = 78\%$?</span>
-<span id="cb15-673"><a href="#cb15-673"></a>d) Given the Egger's test and the predominance of small trials, what concerns do you have?</span>
-<span id="cb15-674"><a href="#cb15-674"></a>e) What additional analyses would you want to see?</span>
-<span id="cb15-675"><a href="#cb15-675"></a>f) Would you change clinical practice based on this meta-analysis? Why or why not?</span>
-<span id="cb15-676"><a href="#cb15-676"></a></span>
-<span id="cb15-677"><a href="#cb15-677"></a><span class="fu">## Summary</span></span>
-<span id="cb15-678"><a href="#cb15-678"></a></span>
-<span id="cb15-679"><a href="#cb15-679"></a><span class="pp">|</span> Concept <span class="pp">|</span> Key point <span class="pp">|</span></span>
-<span id="cb15-680"><a href="#cb15-680"></a><span class="pp">|---|---|</span></span>
-<span id="cb15-681"><a href="#cb15-681"></a><span class="pp">|</span> Fixed-effect model <span class="pp">|</span> Assumes one true effect; weights = $1/\sigma_i^2$ <span class="pp">|</span></span>
-<span id="cb15-682"><a href="#cb15-682"></a><span class="pp">|</span> Random-effects model <span class="pp">|</span> Allows varying true effects; weights = $1/(\sigma_i^2 + \tau^2)$ <span class="pp">|</span></span>
-<span id="cb15-683"><a href="#cb15-683"></a><span class="pp">|</span> $I^2$ <span class="pp">|</span> Proportion of variability due to heterogeneity (25/50/75% thresholds) <span class="pp">|</span></span>
-<span id="cb15-684"><a href="#cb15-684"></a><span class="pp">|</span> Prediction interval <span class="pp">|</span> Range for the true effect in a future setting --- often wider than CI <span class="pp">|</span></span>
-<span id="cb15-685"><a href="#cb15-685"></a><span class="pp">|</span> Forest plot <span class="pp">|</span> The primary visualisation; always include one <span class="pp">|</span></span>
-<span id="cb15-686"><a href="#cb15-686"></a><span class="pp">|</span> Funnel plot <span class="pp">|</span> Checks for small-study effects / publication bias <span class="pp">|</span></span>
-<span id="cb15-687"><a href="#cb15-687"></a><span class="pp">|</span> Network meta-analysis <span class="pp">|</span> Combines direct and indirect evidence across multiple treatments <span class="pp">|</span></span>
-<span id="cb15-688"><a href="#cb15-688"></a><span class="pp">|</span> IPD meta-analysis <span class="pp">|</span> Uses individual data; avoids ecological fallacy <span class="pp">|</span></span>
-<span id="cb15-689"><a href="#cb15-689"></a><span class="pp">|</span> PRISMA 2020 <span class="pp">|</span> The reporting guideline for systematic reviews <span class="pp">|</span></span>
-<span id="cb15-690"><a href="#cb15-690"></a></span>
-<span id="cb15-691"><a href="#cb15-691"></a><span class="fu">## References and Further Reading</span></span>
-<span id="cb15-692"><a href="#cb15-692"></a></span>
-<span id="cb15-693"><a href="#cb15-693"></a><span class="ss">1. </span>**Higgins JPT, Thomas J, Chandler J, et al.** (eds). *Cochrane Handbook for Systematic Reviews of Interventions.* Version 6.4, 2024. Available at <span class="co">[</span><span class="ot">https://training.cochrane.org/handbook</span><span class="co">](https://training.cochrane.org/handbook)</span>. The authoritative guide to systematic review methodology.</span>
-<span id="cb15-694"><a href="#cb15-694"></a></span>
-<span id="cb15-695"><a href="#cb15-695"></a><span class="ss">2. </span>**Riley RD, Debray TPA, Collins GS, et al.** Individual participant data meta-analysis to examine interactions between treatment effect and participant-level covariates. *Statistical Methods in Medical Research.* 2020;29(12):3531--3556.</span>
-<span id="cb15-696"><a href="#cb15-696"></a></span>
-<span id="cb15-697"><a href="#cb15-697"></a><span class="ss">3. </span>**Riley RD, Moons KGM, Snell KIE, et al.** A guide to systematic review and meta-analysis of prognostic factor studies. *BMJ.* 2019;364:k4597.</span>
-<span id="cb15-698"><a href="#cb15-698"></a></span>
-<span id="cb15-699"><a href="#cb15-699"></a><span class="ss">4. </span>**Page MJ, McKenzie JE, Bossuyt PM, et al.** The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. *BMJ.* 2021;372:n71.</span>
-<span id="cb15-700"><a href="#cb15-700"></a></span>
-<span id="cb15-701"><a href="#cb15-701"></a><span class="ss">5. </span>**Viechtbauer W.** Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software.* 2010;36(3):1--48.</span>
+<span id="cb15-641"><a href="#cb15-641"></a><span class="in">```{python}</span></span>
+<span id="cb15-642"><a href="#cb15-642"></a><span class="co">#| label: exercise-2-data</span></span>
+<span id="cb15-643"><a href="#cb15-643"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-644"><a href="#cb15-644"></a></span>
+<span id="cb15-645"><a href="#cb15-645"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb15-646"><a href="#cb15-646"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb15-647"><a href="#cb15-647"></a></span>
+<span id="cb15-648"><a href="#cb15-648"></a>af_trials <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb15-649"><a href="#cb15-649"></a>    <span class="st">'study'</span>: [<span class="st">'TRAIL-1'</span>, <span class="st">'GUARD-AF'</span>, <span class="st">'SHIELD'</span>, <span class="st">'ORBIT-AF'</span>,</span>
+<span id="cb15-650"><a href="#cb15-650"></a>              <span class="st">'VENTURE'</span>, <span class="st">'COMPASS-AF'</span>, <span class="st">'PIONEER-2'</span>, <span class="st">'ATLAS-AF'</span>],</span>
+<span id="cb15-651"><a href="#cb15-651"></a>    <span class="st">'events_new'</span>:  [<span class="dv">28</span>, <span class="dv">45</span>, <span class="dv">112</span>, <span class="dv">67</span>, <span class="dv">33</span>, <span class="dv">89</span>, <span class="dv">52</span>, <span class="dv">41</span>],</span>
+<span id="cb15-652"><a href="#cb15-652"></a>    <span class="st">'n_new'</span>:       [<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>],</span>
+<span id="cb15-653"><a href="#cb15-653"></a>    <span class="st">'events_warf'</span>: [<span class="dv">42</span>, <span class="dv">58</span>, <span class="dv">148</span>, <span class="dv">84</span>, <span class="dv">29</span>, <span class="dv">102</span>, <span class="dv">61</span>, <span class="dv">53</span>],</span>
+<span id="cb15-654"><a href="#cb15-654"></a>    <span class="st">'n_warf'</span>:      [<span class="dv">1200</span>, <span class="dv">2500</span>, <span class="dv">5400</span>, <span class="dv">3100</span>, <span class="dv">1800</span>, <span class="dv">4200</span>, <span class="dv">2800</span>, <span class="dv">2100</span>]</span>
+<span id="cb15-655"><a href="#cb15-655"></a>})</span>
+<span id="cb15-656"><a href="#cb15-656"></a><span class="in">```</span></span>
+<span id="cb15-657"><a href="#cb15-657"></a></span>
+<span id="cb15-658"><a href="#cb15-658"></a>a) Compute log risk ratios and their variances for each study.</span>
+<span id="cb15-659"><a href="#cb15-659"></a>b) Implement the fixed-effect inverse-variance method.</span>
+<span id="cb15-660"><a href="#cb15-660"></a>c) Implement the DerSimonian-Laird random-effects method.</span>
+<span id="cb15-661"><a href="#cb15-661"></a>d) Compute $Q$, $I^2$, and $\tau^2$.</span>
+<span id="cb15-662"><a href="#cb15-662"></a>e) Create a forest plot using matplotlib.</span>
+<span id="cb15-663"><a href="#cb15-663"></a>f) Create a funnel plot and implement Egger's regression test.</span>
+<span id="cb15-664"><a href="#cb15-664"></a></span>
+<span id="cb15-665"><a href="#cb15-665"></a><span class="fu">### Exercise 3: Subgroup analysis and meta-regression in R</span></span>
+<span id="cb15-666"><a href="#cb15-666"></a></span>
+<span id="cb15-667"><a href="#cb15-667"></a>Suppose the trials in Exercise 1 were conducted in different settings:</span>
+<span id="cb15-668"><a href="#cb15-668"></a></span>
+<span id="cb15-671"><a href="#cb15-671"></a><span class="in">```{r}</span></span>
+<span id="cb15-672"><a href="#cb15-672"></a><span class="co">#| label: exercise-3-data</span></span>
+<span id="cb15-673"><a href="#cb15-673"></a><span class="co">#| eval: false</span></span>
+<span id="cb15-674"><a href="#cb15-674"></a></span>
+<span id="cb15-675"><a href="#cb15-675"></a>af_trials<span class="sc">$</span>region <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Europe"</span>, <span class="st">"North America"</span>, <span class="st">"Europe"</span>, <span class="st">"Asia"</span>,</span>
+<span id="cb15-676"><a href="#cb15-676"></a>                       <span class="st">"North America"</span>, <span class="st">"Europe"</span>, <span class="st">"Asia"</span>, <span class="st">"North America"</span>)</span>
+<span id="cb15-677"><a href="#cb15-677"></a>af_trials<span class="sc">$</span>mean_age <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">72</span>, <span class="dv">68</span>, <span class="dv">74</span>, <span class="dv">65</span>, <span class="dv">70</span>, <span class="dv">71</span>, <span class="dv">63</span>, <span class="dv">69</span>)</span>
+<span id="cb15-678"><a href="#cb15-678"></a>af_trials<span class="sc">$</span>pct_female <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">38</span>, <span class="dv">42</span>, <span class="dv">35</span>, <span class="dv">48</span>, <span class="dv">40</span>, <span class="dv">37</span>, <span class="dv">52</span>, <span class="dv">44</span>)</span>
+<span id="cb15-679"><a href="#cb15-679"></a><span class="in">```</span></span>
+<span id="cb15-680"><a href="#cb15-680"></a></span>
+<span id="cb15-681"><a href="#cb15-681"></a>a) Perform a subgroup analysis by region. Do treatment effects differ by region?</span>
+<span id="cb15-682"><a href="#cb15-682"></a>b) Perform meta-regression with mean age as a moderator. Is there a relationship between mean age and treatment effect?</span>
+<span id="cb15-683"><a href="#cb15-683"></a>c) Perform meta-regression with percentage female. Interpret the result, noting the ecological fallacy.</span>
+<span id="cb15-684"><a href="#cb15-684"></a>d) Create a bubble plot showing the meta-regression of effect size on mean age.</span>
+<span id="cb15-685"><a href="#cb15-685"></a></span>
+<span id="cb15-686"><a href="#cb15-686"></a><span class="fu">### Exercise 4: Critical appraisal (Conceptual)</span></span>
+<span id="cb15-687"><a href="#cb15-687"></a></span>
+<span id="cb15-688"><a href="#cb15-688"></a>You are reviewing a published meta-analysis of 12 trials comparing a new surgical technique to standard care for knee osteoarthritis. The reported results are:</span>
+<span id="cb15-689"><a href="#cb15-689"></a></span>
+<span id="cb15-690"><a href="#cb15-690"></a><span class="ss">- </span>Pooled standardised mean difference for pain: -0.62 (95% CI: -0.89 to -0.35), p &lt; 0.001</span>
+<span id="cb15-691"><a href="#cb15-691"></a><span class="ss">- </span>$I^2 = 78\%$, $\tau^2 = 0.15$, Q test p &lt; 0.001</span>
+<span id="cb15-692"><a href="#cb15-692"></a><span class="ss">- </span>Prediction interval: -1.42 to 0.18</span>
+<span id="cb15-693"><a href="#cb15-693"></a><span class="ss">- </span>Egger's test: p = 0.03</span>
+<span id="cb15-694"><a href="#cb15-694"></a><span class="ss">- </span>8 of 12 trials were single-centre with fewer than 100 participants</span>
+<span id="cb15-695"><a href="#cb15-695"></a></span>
+<span id="cb15-696"><a href="#cb15-696"></a>a) Interpret the pooled effect and its clinical significance.</span>
+<span id="cb15-697"><a href="#cb15-697"></a>b) What does the prediction interval tell you that the confidence interval does not?</span>
+<span id="cb15-698"><a href="#cb15-698"></a>c) What are the implications of $I^2 = 78\%$?</span>
+<span id="cb15-699"><a href="#cb15-699"></a>d) Given the Egger's test and the predominance of small trials, what concerns do you have?</span>
+<span id="cb15-700"><a href="#cb15-700"></a>e) What additional analyses would you want to see?</span>
+<span id="cb15-701"><a href="#cb15-701"></a>f) Would you change clinical practice based on this meta-analysis? Why or why not?</span>
 <span id="cb15-702"><a href="#cb15-702"></a></span>
-<span id="cb15-703"><a href="#cb15-703"></a><span class="ss">6. </span>**Schwarzer G, Carpenter JR, Rucker G.** *Meta-Analysis with R.* Springer, 2015. Comprehensive practical guide using the <span class="in">`meta`</span> and <span class="in">`metafor`</span> packages.</span>
+<span id="cb15-703"><a href="#cb15-703"></a><span class="fu">## Summary</span></span>
 <span id="cb15-704"><a href="#cb15-704"></a></span>
-<span id="cb15-705"><a href="#cb15-705"></a><span class="ss">7. </span>**DerSimonian R, Laird N.** Meta-analysis in clinical trials. *Controlled Clinical Trials.* 1986;7(3):177--188.</span>
-<span id="cb15-706"><a href="#cb15-706"></a></span>
-<span id="cb15-707"><a href="#cb15-707"></a><span class="ss">8. </span>**Higgins JPT, Thompson SG, Deeks JJ, Altman DG.** Measuring inconsistency in meta-analyses. *BMJ.* 2003;327(7414):557--560.</span>
-<span id="cb15-708"><a href="#cb15-708"></a></span>
-<span id="cb15-709"><a href="#cb15-709"></a><span class="ss">9. </span>**Egger M, Davey Smith G, Schneider M, Minder C.** Bias in meta-analysis detected by a simple, graphical test. *BMJ.* 1997;315(7109):629--634.</span>
-<span id="cb15-710"><a href="#cb15-710"></a></span>
-<span id="cb15-711"><a href="#cb15-711"></a><span class="ss">10. </span>**Salanti G.** Indirect and mixed-treatment comparison, network, or multiple-treatments meta-analysis: many names, many benefits, many concerns for the next generation evidence synthesis tool. *Research Synthesis Methods.* 2012;3(2):80--97.</span>
-<span id="cb15-712"><a href="#cb15-712"></a></span>
-<span id="cb15-713"><a href="#cb15-713"></a><span class="ss">11. </span>**IntHout J, Ioannidis JPA, Rovers MM, Goeman JJ.** Plea for routinely presenting prediction intervals in meta-analysis. *BMJ Open.* 2016;6(7):e010247.</span>
+<span id="cb15-705"><a href="#cb15-705"></a><span class="pp">|</span> Concept <span class="pp">|</span> Key point <span class="pp">|</span></span>
+<span id="cb15-706"><a href="#cb15-706"></a><span class="pp">|---|---|</span></span>
+<span id="cb15-707"><a href="#cb15-707"></a><span class="pp">|</span> Fixed-effect model <span class="pp">|</span> Assumes one true effect; weights = $1/\sigma_i^2$ <span class="pp">|</span></span>
+<span id="cb15-708"><a href="#cb15-708"></a><span class="pp">|</span> Random-effects model <span class="pp">|</span> Allows varying true effects; weights = $1/(\sigma_i^2 + \tau^2)$ <span class="pp">|</span></span>
+<span id="cb15-709"><a href="#cb15-709"></a><span class="pp">|</span> $I^2$ <span class="pp">|</span> Proportion of variability due to heterogeneity (25/50/75% thresholds) <span class="pp">|</span></span>
+<span id="cb15-710"><a href="#cb15-710"></a><span class="pp">|</span> Prediction interval <span class="pp">|</span> Range for the true effect in a future setting --- often wider than CI <span class="pp">|</span></span>
+<span id="cb15-711"><a href="#cb15-711"></a><span class="pp">|</span> Forest plot <span class="pp">|</span> The primary visualisation; always include one <span class="pp">|</span></span>
+<span id="cb15-712"><a href="#cb15-712"></a><span class="pp">|</span> Funnel plot <span class="pp">|</span> Checks for small-study effects / publication bias <span class="pp">|</span></span>
+<span id="cb15-713"><a href="#cb15-713"></a><span class="pp">|</span> Network meta-analysis <span class="pp">|</span> Combines direct and indirect evidence across multiple treatments <span class="pp">|</span></span>
+<span id="cb15-714"><a href="#cb15-714"></a><span class="pp">|</span> IPD meta-analysis <span class="pp">|</span> Uses individual data; avoids ecological fallacy <span class="pp">|</span></span>
+<span id="cb15-715"><a href="#cb15-715"></a><span class="pp">|</span> PRISMA 2020 <span class="pp">|</span> The reporting guideline for systematic reviews <span class="pp">|</span></span>
+<span id="cb15-716"><a href="#cb15-716"></a></span>
+<span id="cb15-717"><a href="#cb15-717"></a><span class="fu">## References and Further Reading</span></span>
+<span id="cb15-718"><a href="#cb15-718"></a></span>
+<span id="cb15-719"><a href="#cb15-719"></a><span class="ss">1. </span>**Higgins JPT, Thomas J, Chandler J, et al.** (eds). *Cochrane Handbook for Systematic Reviews of Interventions.* Version 6.4, 2024. Available at <span class="co">[</span><span class="ot">https://training.cochrane.org/handbook</span><span class="co">](https://training.cochrane.org/handbook)</span>. The authoritative guide to systematic review methodology.</span>
+<span id="cb15-720"><a href="#cb15-720"></a></span>
+<span id="cb15-721"><a href="#cb15-721"></a><span class="ss">2. </span>**Riley RD, Debray TPA, Collins GS, et al.** Individual participant data meta-analysis to examine interactions between treatment effect and participant-level covariates. *Statistical Methods in Medical Research.* 2020;29(12):3531--3556.</span>
+<span id="cb15-722"><a href="#cb15-722"></a></span>
+<span id="cb15-723"><a href="#cb15-723"></a><span class="ss">3. </span>**Riley RD, Moons KGM, Snell KIE, et al.** A guide to systematic review and meta-analysis of prognostic factor studies. *BMJ.* 2019;364:k4597.</span>
+<span id="cb15-724"><a href="#cb15-724"></a></span>
+<span id="cb15-725"><a href="#cb15-725"></a><span class="ss">4. </span>**Page MJ, McKenzie JE, Bossuyt PM, et al.** The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. *BMJ.* 2021;372:n71.</span>
+<span id="cb15-726"><a href="#cb15-726"></a></span>
+<span id="cb15-727"><a href="#cb15-727"></a><span class="ss">5. </span>**Viechtbauer W.** Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software.* 2010;36(3):1--48.</span>
+<span id="cb15-728"><a href="#cb15-728"></a></span>
+<span id="cb15-729"><a href="#cb15-729"></a><span class="ss">6. </span>**Schwarzer G, Carpenter JR, Rucker G.** *Meta-Analysis with R.* Springer, 2015. Comprehensive practical guide using the <span class="in">`meta`</span> and <span class="in">`metafor`</span> packages.</span>
+<span id="cb15-730"><a href="#cb15-730"></a></span>
+<span id="cb15-731"><a href="#cb15-731"></a><span class="ss">7. </span>**DerSimonian R, Laird N.** Meta-analysis in clinical trials. *Controlled Clinical Trials.* 1986;7(3):177--188.</span>
+<span id="cb15-732"><a href="#cb15-732"></a></span>
+<span id="cb15-733"><a href="#cb15-733"></a><span class="ss">8. </span>**Higgins JPT, Thompson SG, Deeks JJ, Altman DG.** Measuring inconsistency in meta-analyses. *BMJ.* 2003;327(7414):557--560.</span>
+<span id="cb15-734"><a href="#cb15-734"></a></span>
+<span id="cb15-735"><a href="#cb15-735"></a><span class="ss">9. </span>**Egger M, Davey Smith G, Schneider M, Minder C.** Bias in meta-analysis detected by a simple, graphical test. *BMJ.* 1997;315(7109):629--634.</span>
+<span id="cb15-736"><a href="#cb15-736"></a></span>
+<span id="cb15-737"><a href="#cb15-737"></a><span class="ss">10. </span>**Salanti G.** Indirect and mixed-treatment comparison, network, or multiple-treatments meta-analysis: many names, many benefits, many concerns for the next generation evidence synthesis tool. *Research Synthesis Methods.* 2012;3(2):80--97.</span>
+<span id="cb15-738"><a href="#cb15-738"></a></span>
+<span id="cb15-739"><a href="#cb15-739"></a><span class="ss">11. </span>**IntHout J, Ioannidis JPA, Rovers MM, Goeman JJ.** Plea for routinely presenting prediction intervals in meta-analysis. *BMJ Open.* 2016;6(7):e010247.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

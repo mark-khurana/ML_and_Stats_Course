@@ -549,7 +549,7 @@ window.Quarto = {
 
 <section id="what-machine-learning-is-and-is-not" class="level2" data-number="11.1">
 <h2 data-number="11.1" class="anchored" data-anchor-id="what-machine-learning-is-and-is-not"><span class="header-section-number">11.1</span> What Machine Learning Is (and Is Not)</h2>
-<p>You have already done machine learning — you just did not call it that. The dimensionality reduction (PCA, t-SNE, UMAP) and clustering (K-means, hierarchical, DBSCAN) methods from the previous chapters are forms of <strong>unsupervised</strong> machine learning. This part of the course focuses on <strong>supervised</strong> machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.</p>
+<p>If you have worked through the regression and Bayesian chapters, you already understand the core of machine learning — you just did not call it that. This part of the course focuses on <strong>supervised</strong> machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.</p>
 <p>Machine learning (ML) is a collection of algorithms that learn patterns from data to make predictions or discover structure — without being explicitly programmed with rules. That is the textbook definition. Here is a more practical one for clinical researchers:</p>
 <p><strong>Machine learning is pattern recognition at scale.</strong> Given enough examples of inputs and outputs, an ML algorithm finds the mapping between them. A logistic regression that predicts 30-day readmission from 5 clinical variables is, technically, machine learning. An algorithm that reads chest X-rays and flags pneumonia is also machine learning. The difference is one of complexity and scale, not of kind.</p>
 <section id="common-misconceptions" class="level3" data-number="11.1.1">
@@ -586,13 +586,13 @@ window.Quarto = {
 </section>
 <section id="unsupervised-learning" class="level3" data-number="11.2.2">
 <h3 data-number="11.2.2" class="anchored" data-anchor-id="unsupervised-learning"><span class="header-section-number">11.2.2</span> Unsupervised Learning</h3>
-<p>In <strong>unsupervised learning</strong>, there are no labels. The algorithm discovers structure in the data on its own. You have already encountered the two most important families of unsupervised methods in earlier chapters:</p>
+<p>In <strong>unsupervised learning</strong>, there are no labels. The algorithm discovers structure in the data on its own.</p>
 <ul>
-<li><strong>Dimensionality reduction</strong> (PCA, t-SNE, UMAP): Compress high-dimensional data into fewer dimensions for visualization or preprocessing. You covered these in <a href="15_dimensionality_reduction.html" class="quarto-xref"><span>Chapter 15</span></a>.</li>
-<li><strong>Clustering</strong> (K-means, hierarchical, DBSCAN): Group patients into subgroups based on similarity. You covered these in <a href="16_clustering.html" class="quarto-xref"><span>Chapter 16</span></a>.</li>
+<li><strong>Clustering</strong>: Group patients into subgroups based on similarity. <em>Are there distinct phenotypes of sepsis patients?</em></li>
+<li><strong>Dimensionality reduction</strong>: Compress high-dimensional data into fewer dimensions for visualization or preprocessing. <em>Can we summarize 50 lab values into a few meaningful components?</em></li>
 <li><strong>Anomaly detection</strong>: Identify unusual observations. <em>Which patients have lab value patterns that are outliers?</em></li>
 </ul>
-<p>This part of the course focuses on <strong>supervised learning</strong> — the prediction-oriented methods that build on the regression foundations you already know.</p>
+<p>We cover dimensionality reduction and clustering in detail later in the course. This part focuses on <strong>supervised learning</strong> — the prediction-oriented methods that build on the regression foundations you already know.</p>
 </section>
 <section id="reinforcement-learning" class="level3" data-number="11.2.3">
 <h3 data-number="11.2.3" class="anchored" data-anchor-id="reinforcement-learning"><span class="header-section-number">11.2.3</span> Reinforcement Learning</h3>
@@ -723,11 +723,12 @@ window.Quarto = {
 </section>
 <section id="variants" class="level3" data-number="11.5.2">
 <h3 data-number="11.5.2" class="anchored" data-anchor-id="variants"><span class="header-section-number">11.5.2</span> Variants</h3>
+<p>Plain k-fold works well when the outcome is balanced and every row is an independent patient. Clinical data often violate those assumptions, so several variants exist. Each one fixes a specific problem you are likely to meet:</p>
 <ul>
-<li><strong>Stratified k-fold</strong>: Ensures each fold has the same proportion of events/classes. Essential when the outcome is rare (e.g., 5% readmission rate).</li>
-<li><strong>Repeated k-fold</strong>: Repeat the entire k-fold procedure <span class="math inline">\(m\)</span> times with different random splits, then average. Reduces variance of the estimate. A common choice is 10-fold CV repeated 5 times.</li>
+<li><strong>Stratified k-fold</strong>: Ensures each fold has the same proportion of events/classes as the full dataset. <em>Why it matters:</em> with a rare outcome (say a 5% readmission rate and 10 folds), an ordinary random split could easily produce a fold with almost no events — giving a meaningless performance estimate for that fold. Stratification guarantees every fold contains a fair share of events. <strong>Use it by default for any classification problem.</strong></li>
+<li><strong>Repeated k-fold</strong>: Repeat the entire k-fold procedure <span class="math inline">\(m\)</span> times with different random splits, then average. <em>Why it matters:</em> a single 10-fold split is itself somewhat random — shuffle the data differently and you get a slightly different number. Repeating (e.g.&nbsp;10-fold repeated 5 times = 50 estimates) averages out that luck-of-the-draw and gives a more stable estimate.</li>
 <li><strong>Leave-one-out (LOO)</strong>: <span class="math inline">\(k = n\)</span> (each fold is a single observation). Nearly unbiased but high variance and computationally expensive. Useful only for very small datasets.</li>
-<li><strong>Grouped/clustered CV</strong>: When observations are not independent (e.g., multiple visits per patient), entire groups must be kept together. Never split a patient’s data across training and validation sets.</li>
+<li><strong>Grouped/clustered CV</strong>: When observations are not independent (e.g., multiple visits per patient, or patients clustered within hospitals), entire groups must be kept together — all of a patient’s rows go into the <em>same</em> fold. <em>Why it matters:</em> if the same patient appears in both the training and validation folds, the model can “recognise” them at validation time and post an inflated score that will not hold up on genuinely new patients. This is one of the most common and most damaging mistakes in clinical ML. <strong>Never split a patient’s data across training and validation sets.</strong></li>
 </ul>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="" aria-current="page">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Python</a></li></ul>
@@ -812,6 +813,12 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<p><strong>What the code is showing.</strong> This is a worked example of stratified, repeated cross-validation on simulated patient data. Walking through the output:</p>
+<ul>
+<li>It builds 10 folds and repeats the whole process 5 times, so it reports <strong>50 train/validate cycles</strong> (<code>Number of resamples: 50</code>). Each cycle trains the model on 90% of patients and checks it on the held-out 10%, with stratification keeping the event rate steady across folds.</li>
+<li>The headline result is the <strong>mean AUC together with its spread</strong> (mean ± standard deviation). The mean is your best single estimate of how well the model discriminates; the spread tells you how much that estimate wobbles depending on which patients land in which fold. A tight spread means the estimate is trustworthy; a wide spread is a warning that performance is fragile, often a sign of too little data.</li>
+</ul>
+<p>The point of the exercise is not the specific number (the data are random here, so the AUC will sit near 0.5) but the <em>workflow</em>: this is the template you reuse for real data, simply swapping in your own dataset and model.</p>
 </section>
 </section>
 <section id="feature-engineering-in-clinical-data" class="level2" data-number="11.6">
@@ -988,19 +995,60 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<p><strong>What the code is telling you.</strong> Both examples are a small experiment: we built a dataset where <code>age</code> and <code>bmi</code> genuinely relate to the outcome, while <code>noise1</code>, <code>noise2</code>, and <code>noise3</code> are pure random noise that we added on purpose. A good feature-selection method should <em>keep the real predictors and discard the noise</em>. That is exactly what you should see in the output:</p>
+<ul>
+<li>The <strong>LASSO</strong> table lists each predictor with its coefficient, sorted by size. The L1 penalty shrinks unhelpful coefficients all the way to <strong>exactly zero</strong> — so the noise variables drop out (coefficient = 0) while age and BMI survive with non-zero coefficients. Reading the table top-to-bottom tells you which variables the model considers most important.</li>
+<li>The <strong>RFE</strong> line prints the handful of features it chose to keep; the noise variables should not be among them.</li>
+</ul>
+<p>The clinical point is reassurance: when you face a spreadsheet with dozens of candidate variables, these methods let the data tell you which ones carry signal, rather than you guessing or keeping everything (which invites overfitting). If a variable you <em>expected</em> to matter gets dropped, that is itself informative and worth investigating.</p>
 </section>
 </section>
 <section id="support-vector-machines" class="level2" data-number="11.8">
 <h2 data-number="11.8" class="anchored" data-anchor-id="support-vector-machines"><span class="header-section-number">11.8</span> Support Vector Machines</h2>
 <p><strong>Support vector machines (SVMs)</strong> are a supervised learning method that finds the optimal decision boundary between classes.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why a clinician should care about SVMs
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>SVMs are not just a theoretical curiosity — they shine in a situation that is increasingly common in clinical research: <strong>many measurements on relatively few patients</strong>. Think of a study with gene-expression levels for 20,000 genes measured on 80 tumour samples, or hundreds of radiomic features extracted from a few hundred scans. Classical logistic regression breaks down when there are more predictors than patients, but an SVM is specifically built to draw a sensible boundary in these “wide” datasets and tends to resist overfitting even when the number of features is enormous.</p>
+<p>Concrete clinical uses where SVMs have been successful include classifying tumour subtypes from gene-expression panels, distinguishing disease from healthy tissue on imaging-derived features, and flagging abnormal ECG or EEG patterns. The practical takeaway: when you have a binary question, a modest number of patients, and a large pile of measurements per patient, an SVM is a strong first thing to try.</p>
+</div>
+</div>
 <section id="the-intuition-maximum-margin" class="level3" data-number="11.8.1">
 <h3 data-number="11.8.1" class="anchored" data-anchor-id="the-intuition-maximum-margin"><span class="header-section-number">11.8.1</span> The Intuition: Maximum Margin</h3>
-<p>Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that <strong>maximizes the margin</strong> — the distance between the boundary and the nearest points from each class.</p>
-<p>The nearest points are called <strong>support vectors</strong> — they “support” (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary.</p>
+<p>Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that <strong>maximizes the margin</strong> — the distance between the boundary and the nearest points from each class (<a href="#fig-svm-margin" class="quarto-xref">Figure&nbsp;<span>11.1</span></a>).</p>
+<div id="fig-svm-margin" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-svm-margin-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../images/svm_max_margin.svg" class="img-fluid figure-img" style="width:80.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-svm-margin-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11.1: A support vector machine chooses the separating line with the widest possible margin (the gap between the dashed lines). Only the points sitting on the margin — the circled <strong>support vectors</strong> — determine where the boundary goes; the other patients could be moved freely without changing it. A wide margin is what gives the model its robustness: a new patient has to fall well inside the wrong territory before being misclassified.
+</figcaption>
+</figure>
+</div>
+<p>The nearest points are called <strong>support vectors</strong> — they “support” (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary. Clinically, this is reassuring: the decision rule hinges on the genuinely borderline patients (the hard cases near the boundary), not on the clear-cut ones far from it.</p>
 </section>
 <section id="the-kernel-trick" class="level3" data-number="11.8.2">
 <h3 data-number="11.8.2" class="anchored" data-anchor-id="the-kernel-trick"><span class="header-section-number">11.8.2</span> The Kernel Trick</h3>
-<p>What if the classes are not linearly separable? The <strong>kernel trick</strong> maps the data into a higher-dimensional space where a linear boundary <em>can</em> separate the classes. Common kernels include:</p>
+<p>What if the classes are not linearly separable? Consider a disease where risk is high both for <em>very low</em> and <em>very high</em> values of a biomarker, but low in the middle. No straight line can separate “diseased” from “healthy” in that picture (<a href="#fig-svm-kernel" class="quarto-xref">Figure&nbsp;<span>11.2</span></a>, left). The <strong>kernel trick</strong> maps the data into a higher-dimensional space where a linear boundary <em>can</em> separate the classes (<a href="#fig-svm-kernel" class="quarto-xref">Figure&nbsp;<span>11.2</span></a>, right) — without ever having to compute those new coordinates explicitly.</p>
+<div id="fig-svm-kernel" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-svm-kernel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../images/svm_kernel_trick.svg" class="img-fluid figure-img" style="width:95.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-svm-kernel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11.2: Left: the diseased patients (red) surround the healthy ones (blue), so no straight line works in the original two measurements. Right: the kernel trick effectively adds a new dimension (here, roughly “distance from the centre”), lifting the red points up and the blue points down so that a simple flat boundary now separates them. The curved boundary we see back in the original 2D plot is the shadow of this flat boundary in the higher-dimensional space.
+</figcaption>
+</figure>
+</div>
+<p>Common kernels include:</p>
 <ul>
 <li><strong>Linear</strong>: No transformation (works when data is linearly separable).</li>
 <li><strong>Radial basis function (RBF)</strong>: Maps to infinite-dimensional space. Very flexible, works well in many settings.</li>
@@ -1095,6 +1143,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<p><strong>What the code is doing.</strong> We deliberately simulate a dataset where the disease cases form a <em>ring</em> around the healthy cases (<code>x1^2 + x2^2 &gt; 1.5</code>) — exactly the non-linearly-separable situation from <a href="#fig-svm-kernel" class="quarto-xref">Figure&nbsp;<span>11.2</span></a> that a straight-line classifier cannot handle. We then fit an SVM with an <strong>RBF kernel</strong> and estimate its performance with 5-fold cross-validation. The printed accuracy and AUC (both should land well above 0.5, the no-information level) confirm that the RBF kernel successfully learned the curved boundary. The lesson for practice: the same two lines of code would have failed with a linear kernel here; switching to RBF is what makes it work.</p>
 </section>
 </section>
 <section id="ml-vs-traditional-statistics-what-is-actually-different" class="level2" data-number="11.9">
@@ -1166,22 +1215,25 @@ window.Quarto = {
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb7-2"><a href="#cb7-2"></a>n <span class="ot">&lt;-</span> <span class="dv">600</span></span>
-<span id="cb7-3"><a href="#cb7-3"></a>ex_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb7-4"><a href="#cb7-4"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>),</span>
-<span id="cb7-5"><a href="#cb7-5"></a>  <span class="at">creatinine =</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>),</span>
-<span id="cb7-6"><a href="#cb7-6"></a>  <span class="at">hemoglobin =</span> <span class="fu">rnorm</span>(n, <span class="dv">12</span>, <span class="dv">2</span>),</span>
-<span id="cb7-7"><a href="#cb7-7"></a>  <span class="at">platelets =</span> <span class="fu">rnorm</span>(n, <span class="dv">250</span>, <span class="dv">70</span>),</span>
-<span id="cb7-8"><a href="#cb7-8"></a>  <span class="at">wbc =</span> <span class="fu">rlnorm</span>(n, <span class="dv">2</span>, <span class="fl">0.4</span>),</span>
-<span id="cb7-9"><a href="#cb7-9"></a>  <span class="at">icu =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">4</span> <span class="sc">+</span> <span class="fl">0.03</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a>                                    <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>))),</span>
-<span id="cb7-11"><a href="#cb7-11"></a>               <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
-<span id="cb7-12"><a href="#cb7-12"></a>)</span>
-<span id="cb7-13"><a href="#cb7-13"></a></span>
-<span id="cb7-14"><a href="#cb7-14"></a><span class="co"># Your code: set up tidymodels workflows for logistic_reg and svm_rbf</span></span>
-<span id="cb7-15"><a href="#cb7-15"></a><span class="co"># Use vfold_cv with strata = icu</span></span>
-<span id="cb7-16"><a href="#cb7-16"></a><span class="co"># Compare using roc_auc</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">library</span>(tidyverse)  <span class="co"># tibble()</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">library</span>(tidymodels) <span class="co"># vfold_cv(), logistic_reg(), svm_rbf(), etc.</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>n <span class="ot">&lt;-</span> <span class="dv">600</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>ex_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-7"><a href="#cb7-7"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>),</span>
+<span id="cb7-8"><a href="#cb7-8"></a>  <span class="at">creatinine =</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>),</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  <span class="at">hemoglobin =</span> <span class="fu">rnorm</span>(n, <span class="dv">12</span>, <span class="dv">2</span>),</span>
+<span id="cb7-10"><a href="#cb7-10"></a>  <span class="at">platelets =</span> <span class="fu">rnorm</span>(n, <span class="dv">250</span>, <span class="dv">70</span>),</span>
+<span id="cb7-11"><a href="#cb7-11"></a>  <span class="at">wbc =</span> <span class="fu">rlnorm</span>(n, <span class="dv">2</span>, <span class="fl">0.4</span>),</span>
+<span id="cb7-12"><a href="#cb7-12"></a>  <span class="at">icu =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">4</span> <span class="sc">+</span> <span class="fl">0.03</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>                                    <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>))),</span>
+<span id="cb7-14"><a href="#cb7-14"></a>               <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb7-15"><a href="#cb7-15"></a>)</span>
+<span id="cb7-16"><a href="#cb7-16"></a></span>
+<span id="cb7-17"><a href="#cb7-17"></a><span class="co"># Your code: set up tidymodels workflows for logistic_reg and svm_rbf</span></span>
+<span id="cb7-18"><a href="#cb7-18"></a><span class="co"># Use vfold_cv with strata = icu</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a><span class="co"># Compare using roc_auc</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </div>
@@ -1938,480 +1990,514 @@ window.Quarto = {
 <span id="cb11-171"><a href="#cb11-171"></a></span>
 <span id="cb11-172"><a href="#cb11-172"></a><span class="fu">### Variants</span></span>
 <span id="cb11-173"><a href="#cb11-173"></a></span>
-<span id="cb11-174"><a href="#cb11-174"></a><span class="ss">- </span>**Stratified k-fold**: Ensures each fold has the same proportion of events/classes. Essential when the outcome is rare (e.g., 5% readmission rate).</span>
-<span id="cb11-175"><a href="#cb11-175"></a><span class="ss">- </span>**Repeated k-fold**: Repeat the entire k-fold procedure $m$ times with different random splits, then average. Reduces variance of the estimate. A common choice is 10-fold CV repeated 5 times.</span>
-<span id="cb11-176"><a href="#cb11-176"></a><span class="ss">- </span>**Leave-one-out (LOO)**: $k = n$ (each fold is a single observation). Nearly unbiased but high variance and computationally expensive. Useful only for very small datasets.</span>
-<span id="cb11-177"><a href="#cb11-177"></a><span class="ss">- </span>**Grouped/clustered CV**: When observations are not independent (e.g., multiple visits per patient), entire groups must be kept together. Never split a patient's data across training and validation sets.</span>
-<span id="cb11-178"><a href="#cb11-178"></a></span>
-<span id="cb11-179"><a href="#cb11-179"></a>::: {.panel-tabset}</span>
+<span id="cb11-174"><a href="#cb11-174"></a>Plain k-fold works well when the outcome is balanced and every row is an independent patient. Clinical data often violate those assumptions, so several variants exist. Each one fixes a specific problem you are likely to meet:</span>
+<span id="cb11-175"><a href="#cb11-175"></a></span>
+<span id="cb11-176"><a href="#cb11-176"></a><span class="ss">- </span>**Stratified k-fold**: Ensures each fold has the same proportion of events/classes as the full dataset. *Why it matters:* with a rare outcome (say a 5% readmission rate and 10 folds), an ordinary random split could easily produce a fold with almost no events --- giving a meaningless performance estimate for that fold. Stratification guarantees every fold contains a fair share of events. **Use it by default for any classification problem.**</span>
+<span id="cb11-177"><a href="#cb11-177"></a><span class="ss">- </span>**Repeated k-fold**: Repeat the entire k-fold procedure $m$ times with different random splits, then average. *Why it matters:* a single 10-fold split is itself somewhat random --- shuffle the data differently and you get a slightly different number. Repeating (e.g. 10-fold repeated 5 times = 50 estimates) averages out that luck-of-the-draw and gives a more stable estimate.</span>
+<span id="cb11-178"><a href="#cb11-178"></a><span class="ss">- </span>**Leave-one-out (LOO)**: $k = n$ (each fold is a single observation). Nearly unbiased but high variance and computationally expensive. Useful only for very small datasets.</span>
+<span id="cb11-179"><a href="#cb11-179"></a><span class="ss">- </span>**Grouped/clustered CV**: When observations are not independent (e.g., multiple visits per patient, or patients clustered within hospitals), entire groups must be kept together --- all of a patient's rows go into the *same* fold. *Why it matters:* if the same patient appears in both the training and validation folds, the model can "recognise" them at validation time and post an inflated score that will not hold up on genuinely new patients. This is one of the most common and most damaging mistakes in clinical ML. **Never split a patient's data across training and validation sets.**</span>
 <span id="cb11-180"><a href="#cb11-180"></a></span>
-<span id="cb11-181"><a href="#cb11-181"></a><span class="fu">#### R</span></span>
+<span id="cb11-181"><a href="#cb11-181"></a>::: {.panel-tabset}</span>
 <span id="cb11-182"><a href="#cb11-182"></a></span>
-<span id="cb11-185"><a href="#cb11-185"></a><span class="in">```{r}</span></span>
-<span id="cb11-186"><a href="#cb11-186"></a><span class="co">#| label: cv-r</span></span>
-<span id="cb11-187"><a href="#cb11-187"></a><span class="fu">library</span>(tidymodels)</span>
-<span id="cb11-188"><a href="#cb11-188"></a></span>
-<span id="cb11-189"><a href="#cb11-189"></a><span class="co"># Simulate clinical data</span></span>
-<span id="cb11-190"><a href="#cb11-190"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb11-191"><a href="#cb11-191"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
-<span id="cb11-192"><a href="#cb11-192"></a>clin_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb11-193"><a href="#cb11-193"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">60</span>, <span class="dv">12</span>),</span>
-<span id="cb11-194"><a href="#cb11-194"></a>  <span class="at">bmi =</span> <span class="fu">rnorm</span>(n, <span class="dv">28</span>, <span class="dv">5</span>),</span>
-<span id="cb11-195"><a href="#cb11-195"></a>  <span class="at">sbp =</span> <span class="fu">rnorm</span>(n, <span class="dv">135</span>, <span class="dv">20</span>),</span>
-<span id="cb11-196"><a href="#cb11-196"></a>  <span class="at">glucose =</span> <span class="fu">rnorm</span>(n, <span class="dv">110</span>, <span class="dv">30</span>),</span>
-<span id="cb11-197"><a href="#cb11-197"></a>  <span class="at">smoking =</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.25</span>),</span>
-<span id="cb11-198"><a href="#cb11-198"></a>  <span class="at">readmit =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.15</span>), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"0"</span>, <span class="st">"1"</span>),</span>
-<span id="cb11-199"><a href="#cb11-199"></a>                   <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
-<span id="cb11-200"><a href="#cb11-200"></a>)</span>
-<span id="cb11-201"><a href="#cb11-201"></a></span>
-<span id="cb11-202"><a href="#cb11-202"></a><span class="co"># Create 10-fold CV with stratification</span></span>
-<span id="cb11-203"><a href="#cb11-203"></a>folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(clin_data, <span class="at">v =</span> <span class="dv">10</span>, <span class="at">strata =</span> readmit, <span class="at">repeats =</span> <span class="dv">5</span>)</span>
-<span id="cb11-204"><a href="#cb11-204"></a><span class="fu">cat</span>(<span class="st">"Number of resamples:"</span>, <span class="fu">nrow</span>(folds), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb11-205"><a href="#cb11-205"></a><span class="fu">cat</span>(<span class="st">"Training size per fold:"</span>, <span class="fu">nrow</span>(<span class="fu">training</span>(folds<span class="sc">$</span>splits[[<span class="dv">1</span>]])), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb11-206"><a href="#cb11-206"></a><span class="fu">cat</span>(<span class="st">"Validation size per fold:"</span>, <span class="fu">nrow</span>(<span class="fu">testing</span>(folds<span class="sc">$</span>splits[[<span class="dv">1</span>]])), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb11-207"><a href="#cb11-207"></a></span>
-<span id="cb11-208"><a href="#cb11-208"></a><span class="co"># Fit logistic regression with cross-validation using tidymodels</span></span>
-<span id="cb11-209"><a href="#cb11-209"></a>log_spec <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-210"><a href="#cb11-210"></a>  <span class="fu">set_engine</span>(<span class="st">"glm"</span>)</span>
-<span id="cb11-211"><a href="#cb11-211"></a></span>
-<span id="cb11-212"><a href="#cb11-212"></a>log_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(readmit <span class="sc">~</span> ., <span class="at">data =</span> clin_data)</span>
+<span id="cb11-183"><a href="#cb11-183"></a><span class="fu">#### R</span></span>
+<span id="cb11-184"><a href="#cb11-184"></a></span>
+<span id="cb11-187"><a href="#cb11-187"></a><span class="in">```{r}</span></span>
+<span id="cb11-188"><a href="#cb11-188"></a><span class="co">#| label: cv-r</span></span>
+<span id="cb11-189"><a href="#cb11-189"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb11-190"><a href="#cb11-190"></a></span>
+<span id="cb11-191"><a href="#cb11-191"></a><span class="co"># Simulate clinical data</span></span>
+<span id="cb11-192"><a href="#cb11-192"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb11-193"><a href="#cb11-193"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb11-194"><a href="#cb11-194"></a>clin_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb11-195"><a href="#cb11-195"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">60</span>, <span class="dv">12</span>),</span>
+<span id="cb11-196"><a href="#cb11-196"></a>  <span class="at">bmi =</span> <span class="fu">rnorm</span>(n, <span class="dv">28</span>, <span class="dv">5</span>),</span>
+<span id="cb11-197"><a href="#cb11-197"></a>  <span class="at">sbp =</span> <span class="fu">rnorm</span>(n, <span class="dv">135</span>, <span class="dv">20</span>),</span>
+<span id="cb11-198"><a href="#cb11-198"></a>  <span class="at">glucose =</span> <span class="fu">rnorm</span>(n, <span class="dv">110</span>, <span class="dv">30</span>),</span>
+<span id="cb11-199"><a href="#cb11-199"></a>  <span class="at">smoking =</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.25</span>),</span>
+<span id="cb11-200"><a href="#cb11-200"></a>  <span class="at">readmit =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.15</span>), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"0"</span>, <span class="st">"1"</span>),</span>
+<span id="cb11-201"><a href="#cb11-201"></a>                   <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb11-202"><a href="#cb11-202"></a>)</span>
+<span id="cb11-203"><a href="#cb11-203"></a></span>
+<span id="cb11-204"><a href="#cb11-204"></a><span class="co"># Create 10-fold CV with stratification</span></span>
+<span id="cb11-205"><a href="#cb11-205"></a>folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(clin_data, <span class="at">v =</span> <span class="dv">10</span>, <span class="at">strata =</span> readmit, <span class="at">repeats =</span> <span class="dv">5</span>)</span>
+<span id="cb11-206"><a href="#cb11-206"></a><span class="fu">cat</span>(<span class="st">"Number of resamples:"</span>, <span class="fu">nrow</span>(folds), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-207"><a href="#cb11-207"></a><span class="fu">cat</span>(<span class="st">"Training size per fold:"</span>, <span class="fu">nrow</span>(<span class="fu">training</span>(folds<span class="sc">$</span>splits[[<span class="dv">1</span>]])), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-208"><a href="#cb11-208"></a><span class="fu">cat</span>(<span class="st">"Validation size per fold:"</span>, <span class="fu">nrow</span>(<span class="fu">testing</span>(folds<span class="sc">$</span>splits[[<span class="dv">1</span>]])), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-209"><a href="#cb11-209"></a></span>
+<span id="cb11-210"><a href="#cb11-210"></a><span class="co"># Fit logistic regression with cross-validation using tidymodels</span></span>
+<span id="cb11-211"><a href="#cb11-211"></a>log_spec <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-212"><a href="#cb11-212"></a>  <span class="fu">set_engine</span>(<span class="st">"glm"</span>)</span>
 <span id="cb11-213"><a href="#cb11-213"></a></span>
-<span id="cb11-214"><a href="#cb11-214"></a>log_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-215"><a href="#cb11-215"></a>  <span class="fu">add_model</span>(log_spec) <span class="sc">%&gt;%</span></span>
-<span id="cb11-216"><a href="#cb11-216"></a>  <span class="fu">add_recipe</span>(log_recipe)</span>
-<span id="cb11-217"><a href="#cb11-217"></a></span>
-<span id="cb11-218"><a href="#cb11-218"></a>cv_results <span class="ot">&lt;-</span> <span class="fu">fit_resamples</span>(log_wf, <span class="at">resamples =</span> folds,</span>
-<span id="cb11-219"><a href="#cb11-219"></a>                            <span class="at">metrics =</span> <span class="fu">metric_set</span>(roc_auc, accuracy))</span>
-<span id="cb11-220"><a href="#cb11-220"></a></span>
-<span id="cb11-221"><a href="#cb11-221"></a><span class="fu">collect_metrics</span>(cv_results)</span>
-<span id="cb11-222"><a href="#cb11-222"></a><span class="in">```</span></span>
-<span id="cb11-223"><a href="#cb11-223"></a></span>
-<span id="cb11-224"><a href="#cb11-224"></a><span class="fu">#### Python</span></span>
+<span id="cb11-214"><a href="#cb11-214"></a>log_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(readmit <span class="sc">~</span> ., <span class="at">data =</span> clin_data)</span>
+<span id="cb11-215"><a href="#cb11-215"></a></span>
+<span id="cb11-216"><a href="#cb11-216"></a>log_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-217"><a href="#cb11-217"></a>  <span class="fu">add_model</span>(log_spec) <span class="sc">%&gt;%</span></span>
+<span id="cb11-218"><a href="#cb11-218"></a>  <span class="fu">add_recipe</span>(log_recipe)</span>
+<span id="cb11-219"><a href="#cb11-219"></a></span>
+<span id="cb11-220"><a href="#cb11-220"></a>cv_results <span class="ot">&lt;-</span> <span class="fu">fit_resamples</span>(log_wf, <span class="at">resamples =</span> folds,</span>
+<span id="cb11-221"><a href="#cb11-221"></a>                            <span class="at">metrics =</span> <span class="fu">metric_set</span>(roc_auc, accuracy))</span>
+<span id="cb11-222"><a href="#cb11-222"></a></span>
+<span id="cb11-223"><a href="#cb11-223"></a><span class="fu">collect_metrics</span>(cv_results)</span>
+<span id="cb11-224"><a href="#cb11-224"></a><span class="in">```</span></span>
 <span id="cb11-225"><a href="#cb11-225"></a></span>
-<span id="cb11-228"><a href="#cb11-228"></a><span class="in">```{python}</span></span>
-<span id="cb11-229"><a href="#cb11-229"></a><span class="co">#| label: cv-python</span></span>
-<span id="cb11-230"><a href="#cb11-230"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb11-231"><a href="#cb11-231"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb11-232"><a href="#cb11-232"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> (StratifiedKFold, RepeatedStratifiedKFold,</span>
-<span id="cb11-233"><a href="#cb11-233"></a>                                      cross_val_score)</span>
-<span id="cb11-234"><a href="#cb11-234"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
-<span id="cb11-235"><a href="#cb11-235"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb11-236"><a href="#cb11-236"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
-<span id="cb11-237"><a href="#cb11-237"></a></span>
-<span id="cb11-238"><a href="#cb11-238"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb11-239"><a href="#cb11-239"></a>n <span class="op">=</span> <span class="dv">500</span></span>
-<span id="cb11-240"><a href="#cb11-240"></a></span>
-<span id="cb11-241"><a href="#cb11-241"></a>X <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb11-242"><a href="#cb11-242"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">60</span>, <span class="dv">12</span>, n),</span>
-<span id="cb11-243"><a href="#cb11-243"></a>    <span class="st">'bmi'</span>: np.random.normal(<span class="dv">28</span>, <span class="dv">5</span>, n),</span>
-<span id="cb11-244"><a href="#cb11-244"></a>    <span class="st">'sbp'</span>: np.random.normal(<span class="dv">135</span>, <span class="dv">20</span>, n),</span>
-<span id="cb11-245"><a href="#cb11-245"></a>    <span class="st">'glucose'</span>: np.random.normal(<span class="dv">110</span>, <span class="dv">30</span>, n),</span>
-<span id="cb11-246"><a href="#cb11-246"></a>    <span class="st">'smoking'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.25</span>, n)</span>
-<span id="cb11-247"><a href="#cb11-247"></a>})</span>
-<span id="cb11-248"><a href="#cb11-248"></a>y <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.15</span>, n)</span>
-<span id="cb11-249"><a href="#cb11-249"></a></span>
-<span id="cb11-250"><a href="#cb11-250"></a><span class="co"># 10-fold stratified CV, repeated 5 times</span></span>
-<span id="cb11-251"><a href="#cb11-251"></a>cv <span class="op">=</span> RepeatedStratifiedKFold(n_splits<span class="op">=</span><span class="dv">10</span>, n_repeats<span class="op">=</span><span class="dv">5</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
-<span id="cb11-252"><a href="#cb11-252"></a></span>
-<span id="cb11-253"><a href="#cb11-253"></a><span class="co"># Pipeline: scale features, then logistic regression</span></span>
-<span id="cb11-254"><a href="#cb11-254"></a>pipe <span class="op">=</span> make_pipeline(StandardScaler(), LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>))</span>
-<span id="cb11-255"><a href="#cb11-255"></a></span>
-<span id="cb11-256"><a href="#cb11-256"></a>scores <span class="op">=</span> cross_val_score(pipe, X, y, cv<span class="op">=</span>cv, scoring<span class="op">=</span><span class="st">'roc_auc'</span>)</span>
-<span id="cb11-257"><a href="#cb11-257"></a><span class="bu">print</span>(<span class="ss">f"Mean AUC: </span><span class="sc">{</span>scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> (+/- </span><span class="sc">{</span>scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
-<span id="cb11-258"><a href="#cb11-258"></a><span class="bu">print</span>(<span class="ss">f"Number of CV iterations: </span><span class="sc">{</span><span class="bu">len</span>(scores)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-259"><a href="#cb11-259"></a><span class="in">```</span></span>
-<span id="cb11-260"><a href="#cb11-260"></a></span>
-<span id="cb11-261"><a href="#cb11-261"></a>:::</span>
+<span id="cb11-226"><a href="#cb11-226"></a><span class="fu">#### Python</span></span>
+<span id="cb11-227"><a href="#cb11-227"></a></span>
+<span id="cb11-230"><a href="#cb11-230"></a><span class="in">```{python}</span></span>
+<span id="cb11-231"><a href="#cb11-231"></a><span class="co">#| label: cv-python</span></span>
+<span id="cb11-232"><a href="#cb11-232"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-233"><a href="#cb11-233"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb11-234"><a href="#cb11-234"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> (StratifiedKFold, RepeatedStratifiedKFold,</span>
+<span id="cb11-235"><a href="#cb11-235"></a>                                      cross_val_score)</span>
+<span id="cb11-236"><a href="#cb11-236"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb11-237"><a href="#cb11-237"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb11-238"><a href="#cb11-238"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb11-239"><a href="#cb11-239"></a></span>
+<span id="cb11-240"><a href="#cb11-240"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb11-241"><a href="#cb11-241"></a>n <span class="op">=</span> <span class="dv">500</span></span>
+<span id="cb11-242"><a href="#cb11-242"></a></span>
+<span id="cb11-243"><a href="#cb11-243"></a>X <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb11-244"><a href="#cb11-244"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">60</span>, <span class="dv">12</span>, n),</span>
+<span id="cb11-245"><a href="#cb11-245"></a>    <span class="st">'bmi'</span>: np.random.normal(<span class="dv">28</span>, <span class="dv">5</span>, n),</span>
+<span id="cb11-246"><a href="#cb11-246"></a>    <span class="st">'sbp'</span>: np.random.normal(<span class="dv">135</span>, <span class="dv">20</span>, n),</span>
+<span id="cb11-247"><a href="#cb11-247"></a>    <span class="st">'glucose'</span>: np.random.normal(<span class="dv">110</span>, <span class="dv">30</span>, n),</span>
+<span id="cb11-248"><a href="#cb11-248"></a>    <span class="st">'smoking'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.25</span>, n)</span>
+<span id="cb11-249"><a href="#cb11-249"></a>})</span>
+<span id="cb11-250"><a href="#cb11-250"></a>y <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.15</span>, n)</span>
+<span id="cb11-251"><a href="#cb11-251"></a></span>
+<span id="cb11-252"><a href="#cb11-252"></a><span class="co"># 10-fold stratified CV, repeated 5 times</span></span>
+<span id="cb11-253"><a href="#cb11-253"></a>cv <span class="op">=</span> RepeatedStratifiedKFold(n_splits<span class="op">=</span><span class="dv">10</span>, n_repeats<span class="op">=</span><span class="dv">5</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb11-254"><a href="#cb11-254"></a></span>
+<span id="cb11-255"><a href="#cb11-255"></a><span class="co"># Pipeline: scale features, then logistic regression</span></span>
+<span id="cb11-256"><a href="#cb11-256"></a>pipe <span class="op">=</span> make_pipeline(StandardScaler(), LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>))</span>
+<span id="cb11-257"><a href="#cb11-257"></a></span>
+<span id="cb11-258"><a href="#cb11-258"></a>scores <span class="op">=</span> cross_val_score(pipe, X, y, cv<span class="op">=</span>cv, scoring<span class="op">=</span><span class="st">'roc_auc'</span>)</span>
+<span id="cb11-259"><a href="#cb11-259"></a><span class="bu">print</span>(<span class="ss">f"Mean AUC: </span><span class="sc">{</span>scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> (+/- </span><span class="sc">{</span>scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
+<span id="cb11-260"><a href="#cb11-260"></a><span class="bu">print</span>(<span class="ss">f"Number of CV iterations: </span><span class="sc">{</span><span class="bu">len</span>(scores)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-261"><a href="#cb11-261"></a><span class="in">```</span></span>
 <span id="cb11-262"><a href="#cb11-262"></a></span>
-<span id="cb11-263"><a href="#cb11-263"></a><span class="fu">## Feature Engineering in Clinical Data</span></span>
+<span id="cb11-263"><a href="#cb11-263"></a>:::</span>
 <span id="cb11-264"><a href="#cb11-264"></a></span>
-<span id="cb11-265"><a href="#cb11-265"></a>**Feature engineering** is the process of transforming raw variables into features that are more useful for modeling. In clinical ML, this often means incorporating domain knowledge.</span>
+<span id="cb11-265"><a href="#cb11-265"></a>**What the code is showing.** This is a worked example of stratified, repeated cross-validation on simulated patient data. Walking through the output:</span>
 <span id="cb11-266"><a href="#cb11-266"></a></span>
-<span id="cb11-267"><a href="#cb11-267"></a><span class="fu">### Examples of Clinical Feature Engineering</span></span>
-<span id="cb11-268"><a href="#cb11-268"></a></span>
-<span id="cb11-269"><a href="#cb11-269"></a><span class="pp">|</span> Raw Data <span class="pp">|</span> Engineered Feature <span class="pp">|</span> Rationale <span class="pp">|</span></span>
-<span id="cb11-270"><a href="#cb11-270"></a><span class="pp">|----------|-------------------|-----------|</span></span>
-<span id="cb11-271"><a href="#cb11-271"></a><span class="pp">|</span> Date of birth + visit date <span class="pp">|</span> Age at visit <span class="pp">|</span> More meaningful than raw dates <span class="pp">|</span></span>
-<span id="cb11-272"><a href="#cb11-272"></a><span class="pp">|</span> Systolic BP, Diastolic BP <span class="pp">|</span> Mean arterial pressure, pulse pressure <span class="pp">|</span> Physiologically meaningful composites <span class="pp">|</span></span>
-<span id="cb11-273"><a href="#cb11-273"></a><span class="pp">|</span> Serum creatinine, age, sex, race <span class="pp">|</span> eGFR (CKD-EPI equation) <span class="pp">|</span> Standard clinical measure of kidney function <span class="pp">|</span></span>
-<span id="cb11-274"><a href="#cb11-274"></a><span class="pp">|</span> Multiple lab values over time <span class="pp">|</span> Rate of change (slope), variability (SD) <span class="pp">|</span> Trajectory matters more than single values <span class="pp">|</span></span>
-<span id="cb11-275"><a href="#cb11-275"></a><span class="pp">|</span> ICD-10 codes <span class="pp">|</span> Charlson comorbidity index <span class="pp">|</span> Summarizes comorbidity burden <span class="pp">|</span></span>
-<span id="cb11-276"><a href="#cb11-276"></a><span class="pp">|</span> Free-text clinical notes <span class="pp">|</span> Extracted symptoms via NLP <span class="pp">|</span> Unlocks unstructured data <span class="pp">|</span></span>
-<span id="cb11-277"><a href="#cb11-277"></a><span class="pp">|</span> Medication list <span class="pp">|</span> Binary flags for drug classes <span class="pp">|</span> Captures treatment intent <span class="pp">|</span></span>
-<span id="cb11-278"><a href="#cb11-278"></a></span>
-<span id="cb11-279"><a href="#cb11-279"></a>::: {.callout-tip}</span>
-<span id="cb11-280"><a href="#cb11-280"></a><span class="fu">## Domain Knowledge Is Your Superpower</span></span>
-<span id="cb11-281"><a href="#cb11-281"></a>Clinical researchers have a massive advantage in ML: you understand the data. A computer scientist might feed raw creatinine into a model; you know to compute eGFR. A data scientist might treat blood pressure as two independent numbers; you know that pulse pressure has specific physiological meaning. Feature engineering is where clinical expertise directly improves model performance.</span>
-<span id="cb11-282"><a href="#cb11-282"></a>:::</span>
-<span id="cb11-283"><a href="#cb11-283"></a></span>
-<span id="cb11-284"><a href="#cb11-284"></a><span class="fu">## Feature Selection</span></span>
-<span id="cb11-285"><a href="#cb11-285"></a></span>
-<span id="cb11-286"><a href="#cb11-286"></a>With electronic health record data, you might have hundreds or thousands of candidate features. Including all of them risks overfitting and reduces interpretability. **Feature selection** identifies the most informative subset.</span>
+<span id="cb11-267"><a href="#cb11-267"></a><span class="ss">- </span>It builds 10 folds and repeats the whole process 5 times, so it reports **50 train/validate cycles** (<span class="in">`Number of resamples: 50`</span>). Each cycle trains the model on 90% of patients and checks it on the held-out 10%, with stratification keeping the event rate steady across folds.</span>
+<span id="cb11-268"><a href="#cb11-268"></a><span class="ss">- </span>The headline result is the **mean AUC together with its spread** (mean ± standard deviation). The mean is your best single estimate of how well the model discriminates; the spread tells you how much that estimate wobbles depending on which patients land in which fold. A tight spread means the estimate is trustworthy; a wide spread is a warning that performance is fragile, often a sign of too little data.</span>
+<span id="cb11-269"><a href="#cb11-269"></a></span>
+<span id="cb11-270"><a href="#cb11-270"></a>The point of the exercise is not the specific number (the data are random here, so the AUC will sit near 0.5) but the *workflow*: this is the template you reuse for real data, simply swapping in your own dataset and model.</span>
+<span id="cb11-271"><a href="#cb11-271"></a></span>
+<span id="cb11-272"><a href="#cb11-272"></a><span class="fu">## Feature Engineering in Clinical Data</span></span>
+<span id="cb11-273"><a href="#cb11-273"></a></span>
+<span id="cb11-274"><a href="#cb11-274"></a>**Feature engineering** is the process of transforming raw variables into features that are more useful for modeling. In clinical ML, this often means incorporating domain knowledge.</span>
+<span id="cb11-275"><a href="#cb11-275"></a></span>
+<span id="cb11-276"><a href="#cb11-276"></a><span class="fu">### Examples of Clinical Feature Engineering</span></span>
+<span id="cb11-277"><a href="#cb11-277"></a></span>
+<span id="cb11-278"><a href="#cb11-278"></a><span class="pp">|</span> Raw Data <span class="pp">|</span> Engineered Feature <span class="pp">|</span> Rationale <span class="pp">|</span></span>
+<span id="cb11-279"><a href="#cb11-279"></a><span class="pp">|----------|-------------------|-----------|</span></span>
+<span id="cb11-280"><a href="#cb11-280"></a><span class="pp">|</span> Date of birth + visit date <span class="pp">|</span> Age at visit <span class="pp">|</span> More meaningful than raw dates <span class="pp">|</span></span>
+<span id="cb11-281"><a href="#cb11-281"></a><span class="pp">|</span> Systolic BP, Diastolic BP <span class="pp">|</span> Mean arterial pressure, pulse pressure <span class="pp">|</span> Physiologically meaningful composites <span class="pp">|</span></span>
+<span id="cb11-282"><a href="#cb11-282"></a><span class="pp">|</span> Serum creatinine, age, sex, race <span class="pp">|</span> eGFR (CKD-EPI equation) <span class="pp">|</span> Standard clinical measure of kidney function <span class="pp">|</span></span>
+<span id="cb11-283"><a href="#cb11-283"></a><span class="pp">|</span> Multiple lab values over time <span class="pp">|</span> Rate of change (slope), variability (SD) <span class="pp">|</span> Trajectory matters more than single values <span class="pp">|</span></span>
+<span id="cb11-284"><a href="#cb11-284"></a><span class="pp">|</span> ICD-10 codes <span class="pp">|</span> Charlson comorbidity index <span class="pp">|</span> Summarizes comorbidity burden <span class="pp">|</span></span>
+<span id="cb11-285"><a href="#cb11-285"></a><span class="pp">|</span> Free-text clinical notes <span class="pp">|</span> Extracted symptoms via NLP <span class="pp">|</span> Unlocks unstructured data <span class="pp">|</span></span>
+<span id="cb11-286"><a href="#cb11-286"></a><span class="pp">|</span> Medication list <span class="pp">|</span> Binary flags for drug classes <span class="pp">|</span> Captures treatment intent <span class="pp">|</span></span>
 <span id="cb11-287"><a href="#cb11-287"></a></span>
-<span id="cb11-288"><a href="#cb11-288"></a><span class="fu">### Three Approaches</span></span>
-<span id="cb11-289"><a href="#cb11-289"></a></span>
-<span id="cb11-290"><a href="#cb11-290"></a>**1. Filter methods**: Rank features by some statistical criterion (correlation with outcome, mutual information, chi-squared test) *before* fitting any model. Fast but ignores feature interactions.</span>
-<span id="cb11-291"><a href="#cb11-291"></a></span>
-<span id="cb11-292"><a href="#cb11-292"></a>**2. Wrapper methods**: Iteratively fit models with different feature subsets and select the best-performing set. Examples: forward selection, backward elimination, recursive feature elimination (RFE). More accurate but computationally expensive.</span>
-<span id="cb11-293"><a href="#cb11-293"></a></span>
-<span id="cb11-294"><a href="#cb11-294"></a>**3. Embedded methods**: Feature selection happens as part of model fitting. Examples: LASSO regression (L1 penalty shrinks some coefficients to zero), random forest variable importance, elastic net. Often the best practical choice.</span>
-<span id="cb11-295"><a href="#cb11-295"></a></span>
-<span id="cb11-296"><a href="#cb11-296"></a>::: {.panel-tabset}</span>
-<span id="cb11-297"><a href="#cb11-297"></a></span>
-<span id="cb11-298"><a href="#cb11-298"></a><span class="fu">#### R</span></span>
-<span id="cb11-299"><a href="#cb11-299"></a></span>
-<span id="cb11-302"><a href="#cb11-302"></a><span class="in">```{r}</span></span>
-<span id="cb11-303"><a href="#cb11-303"></a><span class="co">#| label: feature-selection-r</span></span>
-<span id="cb11-304"><a href="#cb11-304"></a><span class="fu">library</span>(tidymodels)</span>
-<span id="cb11-305"><a href="#cb11-305"></a></span>
-<span id="cb11-306"><a href="#cb11-306"></a><span class="co"># LASSO for feature selection</span></span>
-<span id="cb11-307"><a href="#cb11-307"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb11-308"><a href="#cb11-308"></a>n <span class="ot">&lt;-</span> <span class="dv">400</span></span>
-<span id="cb11-309"><a href="#cb11-309"></a>df_feat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb11-310"><a href="#cb11-310"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">60</span>, <span class="dv">12</span>),</span>
-<span id="cb11-311"><a href="#cb11-311"></a>  <span class="at">bmi =</span> <span class="fu">rnorm</span>(n, <span class="dv">28</span>, <span class="dv">5</span>),</span>
-<span id="cb11-312"><a href="#cb11-312"></a>  <span class="at">sbp =</span> <span class="fu">rnorm</span>(n, <span class="dv">135</span>, <span class="dv">20</span>),</span>
-<span id="cb11-313"><a href="#cb11-313"></a>  <span class="at">glucose =</span> <span class="fu">rnorm</span>(n, <span class="dv">110</span>, <span class="dv">30</span>),</span>
-<span id="cb11-314"><a href="#cb11-314"></a>  <span class="at">smoking =</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.25</span>),</span>
-<span id="cb11-315"><a href="#cb11-315"></a>  <span class="at">noise1 =</span> <span class="fu">rnorm</span>(n),  <span class="co"># irrelevant</span></span>
-<span id="cb11-316"><a href="#cb11-316"></a>  <span class="at">noise2 =</span> <span class="fu">rnorm</span>(n),  <span class="co"># irrelevant</span></span>
-<span id="cb11-317"><a href="#cb11-317"></a>  <span class="at">noise3 =</span> <span class="fu">rnorm</span>(n),  <span class="co"># irrelevant</span></span>
-<span id="cb11-318"><a href="#cb11-318"></a>  <span class="at">outcome =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">3</span> <span class="sc">+</span> <span class="fl">0.02</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">60</span>, <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb11-319"><a href="#cb11-319"></a>                                        <span class="fl">0.05</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">28</span>, <span class="dv">5</span>))),</span>
-<span id="cb11-320"><a href="#cb11-320"></a>                   <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
-<span id="cb11-321"><a href="#cb11-321"></a>)</span>
-<span id="cb11-322"><a href="#cb11-322"></a></span>
-<span id="cb11-323"><a href="#cb11-323"></a><span class="co"># LASSO logistic regression</span></span>
-<span id="cb11-324"><a href="#cb11-324"></a>lasso_spec <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>(<span class="at">penalty =</span> <span class="fl">0.01</span>, <span class="at">mixture =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-325"><a href="#cb11-325"></a>  <span class="fu">set_engine</span>(<span class="st">"glmnet"</span>)</span>
-<span id="cb11-326"><a href="#cb11-326"></a></span>
-<span id="cb11-327"><a href="#cb11-327"></a>lasso_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(outcome <span class="sc">~</span> ., <span class="at">data =</span> df_feat) <span class="sc">%&gt;%</span></span>
-<span id="cb11-328"><a href="#cb11-328"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>())</span>
-<span id="cb11-329"><a href="#cb11-329"></a></span>
-<span id="cb11-330"><a href="#cb11-330"></a>lasso_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-331"><a href="#cb11-331"></a>  <span class="fu">add_model</span>(lasso_spec) <span class="sc">%&gt;%</span></span>
-<span id="cb11-332"><a href="#cb11-332"></a>  <span class="fu">add_recipe</span>(lasso_recipe)</span>
-<span id="cb11-333"><a href="#cb11-333"></a></span>
-<span id="cb11-334"><a href="#cb11-334"></a>lasso_fit <span class="ot">&lt;-</span> <span class="fu">fit</span>(lasso_wf, <span class="at">data =</span> df_feat)</span>
+<span id="cb11-288"><a href="#cb11-288"></a>::: {.callout-tip}</span>
+<span id="cb11-289"><a href="#cb11-289"></a><span class="fu">## Domain Knowledge Is Your Superpower</span></span>
+<span id="cb11-290"><a href="#cb11-290"></a>Clinical researchers have a massive advantage in ML: you understand the data. A computer scientist might feed raw creatinine into a model; you know to compute eGFR. A data scientist might treat blood pressure as two independent numbers; you know that pulse pressure has specific physiological meaning. Feature engineering is where clinical expertise directly improves model performance.</span>
+<span id="cb11-291"><a href="#cb11-291"></a>:::</span>
+<span id="cb11-292"><a href="#cb11-292"></a></span>
+<span id="cb11-293"><a href="#cb11-293"></a><span class="fu">## Feature Selection</span></span>
+<span id="cb11-294"><a href="#cb11-294"></a></span>
+<span id="cb11-295"><a href="#cb11-295"></a>With electronic health record data, you might have hundreds or thousands of candidate features. Including all of them risks overfitting and reduces interpretability. **Feature selection** identifies the most informative subset.</span>
+<span id="cb11-296"><a href="#cb11-296"></a></span>
+<span id="cb11-297"><a href="#cb11-297"></a><span class="fu">### Three Approaches</span></span>
+<span id="cb11-298"><a href="#cb11-298"></a></span>
+<span id="cb11-299"><a href="#cb11-299"></a>**1. Filter methods**: Rank features by some statistical criterion (correlation with outcome, mutual information, chi-squared test) *before* fitting any model. Fast but ignores feature interactions.</span>
+<span id="cb11-300"><a href="#cb11-300"></a></span>
+<span id="cb11-301"><a href="#cb11-301"></a>**2. Wrapper methods**: Iteratively fit models with different feature subsets and select the best-performing set. Examples: forward selection, backward elimination, recursive feature elimination (RFE). More accurate but computationally expensive.</span>
+<span id="cb11-302"><a href="#cb11-302"></a></span>
+<span id="cb11-303"><a href="#cb11-303"></a>**3. Embedded methods**: Feature selection happens as part of model fitting. Examples: LASSO regression (L1 penalty shrinks some coefficients to zero), random forest variable importance, elastic net. Often the best practical choice.</span>
+<span id="cb11-304"><a href="#cb11-304"></a></span>
+<span id="cb11-305"><a href="#cb11-305"></a>::: {.panel-tabset}</span>
+<span id="cb11-306"><a href="#cb11-306"></a></span>
+<span id="cb11-307"><a href="#cb11-307"></a><span class="fu">#### R</span></span>
+<span id="cb11-308"><a href="#cb11-308"></a></span>
+<span id="cb11-311"><a href="#cb11-311"></a><span class="in">```{r}</span></span>
+<span id="cb11-312"><a href="#cb11-312"></a><span class="co">#| label: feature-selection-r</span></span>
+<span id="cb11-313"><a href="#cb11-313"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb11-314"><a href="#cb11-314"></a></span>
+<span id="cb11-315"><a href="#cb11-315"></a><span class="co"># LASSO for feature selection</span></span>
+<span id="cb11-316"><a href="#cb11-316"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb11-317"><a href="#cb11-317"></a>n <span class="ot">&lt;-</span> <span class="dv">400</span></span>
+<span id="cb11-318"><a href="#cb11-318"></a>df_feat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb11-319"><a href="#cb11-319"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">60</span>, <span class="dv">12</span>),</span>
+<span id="cb11-320"><a href="#cb11-320"></a>  <span class="at">bmi =</span> <span class="fu">rnorm</span>(n, <span class="dv">28</span>, <span class="dv">5</span>),</span>
+<span id="cb11-321"><a href="#cb11-321"></a>  <span class="at">sbp =</span> <span class="fu">rnorm</span>(n, <span class="dv">135</span>, <span class="dv">20</span>),</span>
+<span id="cb11-322"><a href="#cb11-322"></a>  <span class="at">glucose =</span> <span class="fu">rnorm</span>(n, <span class="dv">110</span>, <span class="dv">30</span>),</span>
+<span id="cb11-323"><a href="#cb11-323"></a>  <span class="at">smoking =</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.25</span>),</span>
+<span id="cb11-324"><a href="#cb11-324"></a>  <span class="at">noise1 =</span> <span class="fu">rnorm</span>(n),  <span class="co"># irrelevant</span></span>
+<span id="cb11-325"><a href="#cb11-325"></a>  <span class="at">noise2 =</span> <span class="fu">rnorm</span>(n),  <span class="co"># irrelevant</span></span>
+<span id="cb11-326"><a href="#cb11-326"></a>  <span class="at">noise3 =</span> <span class="fu">rnorm</span>(n),  <span class="co"># irrelevant</span></span>
+<span id="cb11-327"><a href="#cb11-327"></a>  <span class="at">outcome =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">3</span> <span class="sc">+</span> <span class="fl">0.02</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">60</span>, <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb11-328"><a href="#cb11-328"></a>                                        <span class="fl">0.05</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">28</span>, <span class="dv">5</span>))),</span>
+<span id="cb11-329"><a href="#cb11-329"></a>                   <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb11-330"><a href="#cb11-330"></a>)</span>
+<span id="cb11-331"><a href="#cb11-331"></a></span>
+<span id="cb11-332"><a href="#cb11-332"></a><span class="co"># LASSO logistic regression</span></span>
+<span id="cb11-333"><a href="#cb11-333"></a>lasso_spec <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>(<span class="at">penalty =</span> <span class="fl">0.01</span>, <span class="at">mixture =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-334"><a href="#cb11-334"></a>  <span class="fu">set_engine</span>(<span class="st">"glmnet"</span>)</span>
 <span id="cb11-335"><a href="#cb11-335"></a></span>
-<span id="cb11-336"><a href="#cb11-336"></a><span class="co"># Extract coefficients</span></span>
-<span id="cb11-337"><a href="#cb11-337"></a><span class="fu">tidy</span>(lasso_fit) <span class="sc">%&gt;%</span></span>
-<span id="cb11-338"><a href="#cb11-338"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-339"><a href="#cb11-339"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(estimate)))</span>
-<span id="cb11-340"><a href="#cb11-340"></a><span class="in">```</span></span>
-<span id="cb11-341"><a href="#cb11-341"></a></span>
-<span id="cb11-342"><a href="#cb11-342"></a><span class="fu">#### Python</span></span>
-<span id="cb11-343"><a href="#cb11-343"></a></span>
-<span id="cb11-346"><a href="#cb11-346"></a><span class="in">```{python}</span></span>
-<span id="cb11-347"><a href="#cb11-347"></a><span class="co">#| label: feature-selection-python</span></span>
-<span id="cb11-348"><a href="#cb11-348"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
-<span id="cb11-349"><a href="#cb11-349"></a><span class="im">from</span> sklearn.feature_selection <span class="im">import</span> RFE</span>
-<span id="cb11-350"><a href="#cb11-350"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb11-351"><a href="#cb11-351"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb11-352"><a href="#cb11-352"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb11-353"><a href="#cb11-353"></a></span>
-<span id="cb11-354"><a href="#cb11-354"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb11-355"><a href="#cb11-355"></a>n <span class="op">=</span> <span class="dv">400</span></span>
-<span id="cb11-356"><a href="#cb11-356"></a>X <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb11-357"><a href="#cb11-357"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">60</span>, <span class="dv">12</span>, n),</span>
-<span id="cb11-358"><a href="#cb11-358"></a>    <span class="st">'bmi'</span>: np.random.normal(<span class="dv">28</span>, <span class="dv">5</span>, n),</span>
-<span id="cb11-359"><a href="#cb11-359"></a>    <span class="st">'sbp'</span>: np.random.normal(<span class="dv">135</span>, <span class="dv">20</span>, n),</span>
-<span id="cb11-360"><a href="#cb11-360"></a>    <span class="st">'glucose'</span>: np.random.normal(<span class="dv">110</span>, <span class="dv">30</span>, n),</span>
-<span id="cb11-361"><a href="#cb11-361"></a>    <span class="st">'smoking'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.25</span>, n),</span>
-<span id="cb11-362"><a href="#cb11-362"></a>    <span class="st">'noise1'</span>: np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n),</span>
-<span id="cb11-363"><a href="#cb11-363"></a>    <span class="st">'noise2'</span>: np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n),</span>
-<span id="cb11-364"><a href="#cb11-364"></a>    <span class="st">'noise3'</span>: np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
-<span id="cb11-365"><a href="#cb11-365"></a>})</span>
-<span id="cb11-366"><a href="#cb11-366"></a>y <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.15</span>, n)</span>
-<span id="cb11-367"><a href="#cb11-367"></a></span>
-<span id="cb11-368"><a href="#cb11-368"></a><span class="co"># LASSO feature selection</span></span>
-<span id="cb11-369"><a href="#cb11-369"></a>scaler <span class="op">=</span> StandardScaler()</span>
-<span id="cb11-370"><a href="#cb11-370"></a>X_scaled <span class="op">=</span> scaler.fit_transform(X)</span>
-<span id="cb11-371"><a href="#cb11-371"></a></span>
-<span id="cb11-372"><a href="#cb11-372"></a>lasso <span class="op">=</span> LogisticRegression(penalty<span class="op">=</span><span class="st">'l1'</span>, solver<span class="op">=</span><span class="st">'saga'</span>, C<span class="op">=</span><span class="fl">1.0</span>, max_iter<span class="op">=</span><span class="dv">5000</span>)</span>
-<span id="cb11-373"><a href="#cb11-373"></a>lasso.fit(X_scaled, y)</span>
-<span id="cb11-374"><a href="#cb11-374"></a></span>
-<span id="cb11-375"><a href="#cb11-375"></a>coef_df <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb11-376"><a href="#cb11-376"></a>    <span class="st">'Feature'</span>: X.columns,</span>
-<span id="cb11-377"><a href="#cb11-377"></a>    <span class="st">'Coefficient'</span>: lasso.coef_[<span class="dv">0</span>]</span>
-<span id="cb11-378"><a href="#cb11-378"></a>}).sort_values(<span class="st">'Coefficient'</span>, key<span class="op">=</span><span class="bu">abs</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb11-379"><a href="#cb11-379"></a></span>
-<span id="cb11-380"><a href="#cb11-380"></a><span class="bu">print</span>(<span class="st">"LASSO Coefficients (features with 0 coefficient are excluded):"</span>)</span>
-<span id="cb11-381"><a href="#cb11-381"></a><span class="bu">print</span>(coef_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span>
-<span id="cb11-382"><a href="#cb11-382"></a></span>
-<span id="cb11-383"><a href="#cb11-383"></a><span class="co"># Recursive Feature Elimination</span></span>
-<span id="cb11-384"><a href="#cb11-384"></a>rfe <span class="op">=</span> RFE(LogisticRegression(max_iter<span class="op">=</span><span class="dv">5000</span>), n_features_to_select<span class="op">=</span><span class="dv">4</span>)</span>
-<span id="cb11-385"><a href="#cb11-385"></a>rfe.fit(X_scaled, y)</span>
-<span id="cb11-386"><a href="#cb11-386"></a>selected <span class="op">=</span> X.columns[rfe.support_]</span>
-<span id="cb11-387"><a href="#cb11-387"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">RFE selected features: </span><span class="sc">{</span><span class="bu">list</span>(selected)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-388"><a href="#cb11-388"></a><span class="in">```</span></span>
-<span id="cb11-389"><a href="#cb11-389"></a></span>
-<span id="cb11-390"><a href="#cb11-390"></a>:::</span>
+<span id="cb11-336"><a href="#cb11-336"></a>lasso_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(outcome <span class="sc">~</span> ., <span class="at">data =</span> df_feat) <span class="sc">%&gt;%</span></span>
+<span id="cb11-337"><a href="#cb11-337"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>())</span>
+<span id="cb11-338"><a href="#cb11-338"></a></span>
+<span id="cb11-339"><a href="#cb11-339"></a>lasso_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-340"><a href="#cb11-340"></a>  <span class="fu">add_model</span>(lasso_spec) <span class="sc">%&gt;%</span></span>
+<span id="cb11-341"><a href="#cb11-341"></a>  <span class="fu">add_recipe</span>(lasso_recipe)</span>
+<span id="cb11-342"><a href="#cb11-342"></a></span>
+<span id="cb11-343"><a href="#cb11-343"></a>lasso_fit <span class="ot">&lt;-</span> <span class="fu">fit</span>(lasso_wf, <span class="at">data =</span> df_feat)</span>
+<span id="cb11-344"><a href="#cb11-344"></a></span>
+<span id="cb11-345"><a href="#cb11-345"></a><span class="co"># Extract coefficients</span></span>
+<span id="cb11-346"><a href="#cb11-346"></a><span class="fu">tidy</span>(lasso_fit) <span class="sc">%&gt;%</span></span>
+<span id="cb11-347"><a href="#cb11-347"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-348"><a href="#cb11-348"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(estimate)))</span>
+<span id="cb11-349"><a href="#cb11-349"></a><span class="in">```</span></span>
+<span id="cb11-350"><a href="#cb11-350"></a></span>
+<span id="cb11-351"><a href="#cb11-351"></a><span class="fu">#### Python</span></span>
+<span id="cb11-352"><a href="#cb11-352"></a></span>
+<span id="cb11-355"><a href="#cb11-355"></a><span class="in">```{python}</span></span>
+<span id="cb11-356"><a href="#cb11-356"></a><span class="co">#| label: feature-selection-python</span></span>
+<span id="cb11-357"><a href="#cb11-357"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb11-358"><a href="#cb11-358"></a><span class="im">from</span> sklearn.feature_selection <span class="im">import</span> RFE</span>
+<span id="cb11-359"><a href="#cb11-359"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb11-360"><a href="#cb11-360"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb11-361"><a href="#cb11-361"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-362"><a href="#cb11-362"></a></span>
+<span id="cb11-363"><a href="#cb11-363"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb11-364"><a href="#cb11-364"></a>n <span class="op">=</span> <span class="dv">400</span></span>
+<span id="cb11-365"><a href="#cb11-365"></a>X <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb11-366"><a href="#cb11-366"></a>    <span class="st">'age'</span>: np.random.normal(<span class="dv">60</span>, <span class="dv">12</span>, n),</span>
+<span id="cb11-367"><a href="#cb11-367"></a>    <span class="st">'bmi'</span>: np.random.normal(<span class="dv">28</span>, <span class="dv">5</span>, n),</span>
+<span id="cb11-368"><a href="#cb11-368"></a>    <span class="st">'sbp'</span>: np.random.normal(<span class="dv">135</span>, <span class="dv">20</span>, n),</span>
+<span id="cb11-369"><a href="#cb11-369"></a>    <span class="st">'glucose'</span>: np.random.normal(<span class="dv">110</span>, <span class="dv">30</span>, n),</span>
+<span id="cb11-370"><a href="#cb11-370"></a>    <span class="st">'smoking'</span>: np.random.binomial(<span class="dv">1</span>, <span class="fl">0.25</span>, n),</span>
+<span id="cb11-371"><a href="#cb11-371"></a>    <span class="st">'noise1'</span>: np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n),</span>
+<span id="cb11-372"><a href="#cb11-372"></a>    <span class="st">'noise2'</span>: np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n),</span>
+<span id="cb11-373"><a href="#cb11-373"></a>    <span class="st">'noise3'</span>: np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb11-374"><a href="#cb11-374"></a>})</span>
+<span id="cb11-375"><a href="#cb11-375"></a>y <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="fl">0.15</span>, n)</span>
+<span id="cb11-376"><a href="#cb11-376"></a></span>
+<span id="cb11-377"><a href="#cb11-377"></a><span class="co"># LASSO feature selection</span></span>
+<span id="cb11-378"><a href="#cb11-378"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb11-379"><a href="#cb11-379"></a>X_scaled <span class="op">=</span> scaler.fit_transform(X)</span>
+<span id="cb11-380"><a href="#cb11-380"></a></span>
+<span id="cb11-381"><a href="#cb11-381"></a>lasso <span class="op">=</span> LogisticRegression(penalty<span class="op">=</span><span class="st">'l1'</span>, solver<span class="op">=</span><span class="st">'saga'</span>, C<span class="op">=</span><span class="fl">1.0</span>, max_iter<span class="op">=</span><span class="dv">5000</span>)</span>
+<span id="cb11-382"><a href="#cb11-382"></a>lasso.fit(X_scaled, y)</span>
+<span id="cb11-383"><a href="#cb11-383"></a></span>
+<span id="cb11-384"><a href="#cb11-384"></a>coef_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb11-385"><a href="#cb11-385"></a>    <span class="st">'Feature'</span>: X.columns,</span>
+<span id="cb11-386"><a href="#cb11-386"></a>    <span class="st">'Coefficient'</span>: lasso.coef_[<span class="dv">0</span>]</span>
+<span id="cb11-387"><a href="#cb11-387"></a>}).sort_values(<span class="st">'Coefficient'</span>, key<span class="op">=</span><span class="bu">abs</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-388"><a href="#cb11-388"></a></span>
+<span id="cb11-389"><a href="#cb11-389"></a><span class="bu">print</span>(<span class="st">"LASSO Coefficients (features with 0 coefficient are excluded):"</span>)</span>
+<span id="cb11-390"><a href="#cb11-390"></a><span class="bu">print</span>(coef_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span>
 <span id="cb11-391"><a href="#cb11-391"></a></span>
-<span id="cb11-392"><a href="#cb11-392"></a><span class="fu">## Support Vector Machines</span></span>
-<span id="cb11-393"><a href="#cb11-393"></a></span>
-<span id="cb11-394"><a href="#cb11-394"></a>**Support vector machines (SVMs)** are a supervised learning method that finds the optimal decision boundary between classes.</span>
-<span id="cb11-395"><a href="#cb11-395"></a></span>
-<span id="cb11-396"><a href="#cb11-396"></a><span class="fu">### The Intuition: Maximum Margin</span></span>
-<span id="cb11-397"><a href="#cb11-397"></a></span>
-<span id="cb11-398"><a href="#cb11-398"></a>Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that **maximizes the margin** — the distance between the boundary and the nearest points from each class.</span>
-<span id="cb11-399"><a href="#cb11-399"></a></span>
-<span id="cb11-400"><a href="#cb11-400"></a>The nearest points are called **support vectors** — they "support" (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary.</span>
-<span id="cb11-401"><a href="#cb11-401"></a></span>
-<span id="cb11-402"><a href="#cb11-402"></a><span class="fu">### The Kernel Trick</span></span>
-<span id="cb11-403"><a href="#cb11-403"></a></span>
-<span id="cb11-404"><a href="#cb11-404"></a>What if the classes are not linearly separable? The **kernel trick** maps the data into a higher-dimensional space where a linear boundary *can* separate the classes. Common kernels include:</span>
+<span id="cb11-392"><a href="#cb11-392"></a><span class="co"># Recursive Feature Elimination</span></span>
+<span id="cb11-393"><a href="#cb11-393"></a>rfe <span class="op">=</span> RFE(LogisticRegression(max_iter<span class="op">=</span><span class="dv">5000</span>), n_features_to_select<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb11-394"><a href="#cb11-394"></a>rfe.fit(X_scaled, y)</span>
+<span id="cb11-395"><a href="#cb11-395"></a>selected <span class="op">=</span> X.columns[rfe.support_]</span>
+<span id="cb11-396"><a href="#cb11-396"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">RFE selected features: </span><span class="sc">{</span><span class="bu">list</span>(selected)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-397"><a href="#cb11-397"></a><span class="in">```</span></span>
+<span id="cb11-398"><a href="#cb11-398"></a></span>
+<span id="cb11-399"><a href="#cb11-399"></a>:::</span>
+<span id="cb11-400"><a href="#cb11-400"></a></span>
+<span id="cb11-401"><a href="#cb11-401"></a>**What the code is telling you.** Both examples are a small experiment: we built a dataset where <span class="in">`age`</span> and <span class="in">`bmi`</span> genuinely relate to the outcome, while <span class="in">`noise1`</span>, <span class="in">`noise2`</span>, and <span class="in">`noise3`</span> are pure random noise that we added on purpose. A good feature-selection method should *keep the real predictors and discard the noise*. That is exactly what you should see in the output:</span>
+<span id="cb11-402"><a href="#cb11-402"></a></span>
+<span id="cb11-403"><a href="#cb11-403"></a><span class="ss">- </span>The **LASSO** table lists each predictor with its coefficient, sorted by size. The L1 penalty shrinks unhelpful coefficients all the way to **exactly zero** --- so the noise variables drop out (coefficient = 0) while age and BMI survive with non-zero coefficients. Reading the table top-to-bottom tells you which variables the model considers most important.</span>
+<span id="cb11-404"><a href="#cb11-404"></a><span class="ss">- </span>The **RFE** line prints the handful of features it chose to keep; the noise variables should not be among them.</span>
 <span id="cb11-405"><a href="#cb11-405"></a></span>
-<span id="cb11-406"><a href="#cb11-406"></a><span class="ss">- </span>**Linear**: No transformation (works when data is linearly separable).</span>
-<span id="cb11-407"><a href="#cb11-407"></a><span class="ss">- </span>**Radial basis function (RBF)**: Maps to infinite-dimensional space. Very flexible, works well in many settings.</span>
-<span id="cb11-408"><a href="#cb11-408"></a><span class="ss">- </span>**Polynomial**: Maps to polynomial feature space.</span>
+<span id="cb11-406"><a href="#cb11-406"></a>The clinical point is reassurance: when you face a spreadsheet with dozens of candidate variables, these methods let the data tell you which ones carry signal, rather than you guessing or keeping everything (which invites overfitting). If a variable you *expected* to matter gets dropped, that is itself informative and worth investigating.</span>
+<span id="cb11-407"><a href="#cb11-407"></a></span>
+<span id="cb11-408"><a href="#cb11-408"></a><span class="fu">## Support Vector Machines</span></span>
 <span id="cb11-409"><a href="#cb11-409"></a></span>
-<span id="cb11-410"><a href="#cb11-410"></a>You do not need to understand the mathematics of kernels to use SVMs effectively. The practical implication is: if a linear SVM does not work well, try an RBF kernel.</span>
+<span id="cb11-410"><a href="#cb11-410"></a>**Support vector machines (SVMs)** are a supervised learning method that finds the optimal decision boundary between classes.</span>
 <span id="cb11-411"><a href="#cb11-411"></a></span>
-<span id="cb11-412"><a href="#cb11-412"></a><span class="fu">### When SVMs Are Useful</span></span>
-<span id="cb11-413"><a href="#cb11-413"></a></span>
-<span id="cb11-414"><a href="#cb11-414"></a>SVMs work well for:</span>
+<span id="cb11-412"><a href="#cb11-412"></a>::: {.callout-note}</span>
+<span id="cb11-413"><a href="#cb11-413"></a><span class="fu">## Why a clinician should care about SVMs</span></span>
+<span id="cb11-414"><a href="#cb11-414"></a>SVMs are not just a theoretical curiosity --- they shine in a situation that is increasingly common in clinical research: **many measurements on relatively few patients**. Think of a study with gene-expression levels for 20,000 genes measured on 80 tumour samples, or hundreds of radiomic features extracted from a few hundred scans. Classical logistic regression breaks down when there are more predictors than patients, but an SVM is specifically built to draw a sensible boundary in these "wide" datasets and tends to resist overfitting even when the number of features is enormous.</span>
 <span id="cb11-415"><a href="#cb11-415"></a></span>
-<span id="cb11-416"><a href="#cb11-416"></a><span class="ss">- </span>Binary classification with moderate sample sizes</span>
-<span id="cb11-417"><a href="#cb11-417"></a><span class="ss">- </span>High-dimensional data (many features relative to observations)</span>
-<span id="cb11-418"><a href="#cb11-418"></a><span class="ss">- </span>Clear margin of separation between classes</span>
-<span id="cb11-419"><a href="#cb11-419"></a></span>
-<span id="cb11-420"><a href="#cb11-420"></a>SVMs are less ideal for:</span>
-<span id="cb11-421"><a href="#cb11-421"></a></span>
-<span id="cb11-422"><a href="#cb11-422"></a><span class="ss">- </span>Very large datasets (training can be slow)</span>
-<span id="cb11-423"><a href="#cb11-423"></a><span class="ss">- </span>Multi-class problems (require one-vs-one or one-vs-rest schemes)</span>
-<span id="cb11-424"><a href="#cb11-424"></a><span class="ss">- </span>Interpretability (the model is a "black box" — no simple coefficients)</span>
-<span id="cb11-425"><a href="#cb11-425"></a></span>
-<span id="cb11-426"><a href="#cb11-426"></a>::: {.panel-tabset}</span>
-<span id="cb11-427"><a href="#cb11-427"></a></span>
-<span id="cb11-428"><a href="#cb11-428"></a><span class="fu">#### R</span></span>
-<span id="cb11-429"><a href="#cb11-429"></a></span>
-<span id="cb11-432"><a href="#cb11-432"></a><span class="in">```{r}</span></span>
-<span id="cb11-433"><a href="#cb11-433"></a><span class="co">#| label: svm-r</span></span>
-<span id="cb11-434"><a href="#cb11-434"></a><span class="fu">library</span>(tidymodels)</span>
-<span id="cb11-435"><a href="#cb11-435"></a><span class="fu">library</span>(kernlab)</span>
-<span id="cb11-436"><a href="#cb11-436"></a></span>
-<span id="cb11-437"><a href="#cb11-437"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb11-438"><a href="#cb11-438"></a>n <span class="ot">&lt;-</span> <span class="dv">300</span></span>
-<span id="cb11-439"><a href="#cb11-439"></a>svm_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb11-440"><a href="#cb11-440"></a>  <span class="at">x1 =</span> <span class="fu">rnorm</span>(n),</span>
-<span id="cb11-441"><a href="#cb11-441"></a>  <span class="at">x2 =</span> <span class="fu">rnorm</span>(n),</span>
-<span id="cb11-442"><a href="#cb11-442"></a>  <span class="at">class =</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(x1<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> x2<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.3</span>) <span class="sc">&gt;</span> <span class="fl">1.5</span>,</span>
-<span id="cb11-443"><a href="#cb11-443"></a>                        <span class="st">"Disease"</span>, <span class="st">"Healthy"</span>))</span>
-<span id="cb11-444"><a href="#cb11-444"></a>)</span>
-<span id="cb11-445"><a href="#cb11-445"></a></span>
-<span id="cb11-446"><a href="#cb11-446"></a><span class="co"># Fit SVM with RBF kernel</span></span>
-<span id="cb11-447"><a href="#cb11-447"></a>svm_spec <span class="ot">&lt;-</span> <span class="fu">svm_rbf</span>(<span class="at">cost =</span> <span class="dv">1</span>, <span class="at">rbf_sigma =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-448"><a href="#cb11-448"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-449"><a href="#cb11-449"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span>
+<span id="cb11-416"><a href="#cb11-416"></a>Concrete clinical uses where SVMs have been successful include classifying tumour subtypes from gene-expression panels, distinguishing disease from healthy tissue on imaging-derived features, and flagging abnormal ECG or EEG patterns. The practical takeaway: when you have a binary question, a modest number of patients, and a large pile of measurements per patient, an SVM is a strong first thing to try.</span>
+<span id="cb11-417"><a href="#cb11-417"></a>:::</span>
+<span id="cb11-418"><a href="#cb11-418"></a></span>
+<span id="cb11-419"><a href="#cb11-419"></a><span class="fu">### The Intuition: Maximum Margin</span></span>
+<span id="cb11-420"><a href="#cb11-420"></a></span>
+<span id="cb11-421"><a href="#cb11-421"></a>Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that **maximizes the margin** — the distance between the boundary and the nearest points from each class (@fig-svm-margin).</span>
+<span id="cb11-422"><a href="#cb11-422"></a></span>
+<span id="cb11-423"><a href="#cb11-423"></a><span class="al">![A support vector machine chooses the separating line with the widest possible margin (the gap between the dashed lines). Only the points sitting on the margin --- the circled **support vectors** --- determine where the boundary goes; the other patients could be moved freely without changing it. A wide margin is what gives the model its robustness: a new patient has to fall well inside the wrong territory before being misclassified.](../images/svm_max_margin.svg)</span>{#fig-svm-margin width="80%"}</span>
+<span id="cb11-424"><a href="#cb11-424"></a></span>
+<span id="cb11-425"><a href="#cb11-425"></a>The nearest points are called **support vectors** — they "support" (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary. Clinically, this is reassuring: the decision rule hinges on the genuinely borderline patients (the hard cases near the boundary), not on the clear-cut ones far from it.</span>
+<span id="cb11-426"><a href="#cb11-426"></a></span>
+<span id="cb11-427"><a href="#cb11-427"></a><span class="fu">### The Kernel Trick</span></span>
+<span id="cb11-428"><a href="#cb11-428"></a></span>
+<span id="cb11-429"><a href="#cb11-429"></a>What if the classes are not linearly separable? Consider a disease where risk is high both for *very low* and *very high* values of a biomarker, but low in the middle. No straight line can separate "diseased" from "healthy" in that picture (@fig-svm-kernel, left). The **kernel trick** maps the data into a higher-dimensional space where a linear boundary *can* separate the classes (@fig-svm-kernel, right) --- without ever having to compute those new coordinates explicitly.</span>
+<span id="cb11-430"><a href="#cb11-430"></a></span>
+<span id="cb11-431"><a href="#cb11-431"></a><span class="al">![Left: the diseased patients (red) surround the healthy ones (blue), so no straight line works in the original two measurements. Right: the kernel trick effectively adds a new dimension (here, roughly "distance from the centre"), lifting the red points up and the blue points down so that a simple flat boundary now separates them. The curved boundary we see back in the original 2D plot is the shadow of this flat boundary in the higher-dimensional space.](../images/svm_kernel_trick.svg)</span>{#fig-svm-kernel width="95%"}</span>
+<span id="cb11-432"><a href="#cb11-432"></a></span>
+<span id="cb11-433"><a href="#cb11-433"></a>Common kernels include:</span>
+<span id="cb11-434"><a href="#cb11-434"></a></span>
+<span id="cb11-435"><a href="#cb11-435"></a><span class="ss">- </span>**Linear**: No transformation (works when data is linearly separable).</span>
+<span id="cb11-436"><a href="#cb11-436"></a><span class="ss">- </span>**Radial basis function (RBF)**: Maps to infinite-dimensional space. Very flexible, works well in many settings.</span>
+<span id="cb11-437"><a href="#cb11-437"></a><span class="ss">- </span>**Polynomial**: Maps to polynomial feature space.</span>
+<span id="cb11-438"><a href="#cb11-438"></a></span>
+<span id="cb11-439"><a href="#cb11-439"></a>You do not need to understand the mathematics of kernels to use SVMs effectively. The practical implication is: if a linear SVM does not work well, try an RBF kernel.</span>
+<span id="cb11-440"><a href="#cb11-440"></a></span>
+<span id="cb11-441"><a href="#cb11-441"></a><span class="fu">### When SVMs Are Useful</span></span>
+<span id="cb11-442"><a href="#cb11-442"></a></span>
+<span id="cb11-443"><a href="#cb11-443"></a>SVMs work well for:</span>
+<span id="cb11-444"><a href="#cb11-444"></a></span>
+<span id="cb11-445"><a href="#cb11-445"></a><span class="ss">- </span>Binary classification with moderate sample sizes</span>
+<span id="cb11-446"><a href="#cb11-446"></a><span class="ss">- </span>High-dimensional data (many features relative to observations)</span>
+<span id="cb11-447"><a href="#cb11-447"></a><span class="ss">- </span>Clear margin of separation between classes</span>
+<span id="cb11-448"><a href="#cb11-448"></a></span>
+<span id="cb11-449"><a href="#cb11-449"></a>SVMs are less ideal for:</span>
 <span id="cb11-450"><a href="#cb11-450"></a></span>
-<span id="cb11-451"><a href="#cb11-451"></a>svm_fit <span class="ot">&lt;-</span> svm_spec <span class="sc">%&gt;%</span> <span class="fu">fit</span>(class <span class="sc">~</span> ., <span class="at">data =</span> svm_data)</span>
-<span id="cb11-452"><a href="#cb11-452"></a></span>
-<span id="cb11-453"><a href="#cb11-453"></a><span class="co"># Evaluate with cross-validation</span></span>
-<span id="cb11-454"><a href="#cb11-454"></a>svm_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-455"><a href="#cb11-455"></a>  <span class="fu">add_model</span>(svm_spec) <span class="sc">%&gt;%</span></span>
-<span id="cb11-456"><a href="#cb11-456"></a>  <span class="fu">add_formula</span>(class <span class="sc">~</span> .)</span>
-<span id="cb11-457"><a href="#cb11-457"></a></span>
-<span id="cb11-458"><a href="#cb11-458"></a>folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(svm_data, <span class="at">v =</span> <span class="dv">5</span>, <span class="at">strata =</span> class)</span>
-<span id="cb11-459"><a href="#cb11-459"></a>svm_cv <span class="ot">&lt;-</span> <span class="fu">fit_resamples</span>(svm_wf, <span class="at">resamples =</span> folds,</span>
-<span id="cb11-460"><a href="#cb11-460"></a>                        <span class="at">metrics =</span> <span class="fu">metric_set</span>(roc_auc, accuracy))</span>
-<span id="cb11-461"><a href="#cb11-461"></a><span class="fu">collect_metrics</span>(svm_cv)</span>
-<span id="cb11-462"><a href="#cb11-462"></a><span class="in">```</span></span>
-<span id="cb11-463"><a href="#cb11-463"></a></span>
-<span id="cb11-464"><a href="#cb11-464"></a><span class="fu">#### Python</span></span>
+<span id="cb11-451"><a href="#cb11-451"></a><span class="ss">- </span>Very large datasets (training can be slow)</span>
+<span id="cb11-452"><a href="#cb11-452"></a><span class="ss">- </span>Multi-class problems (require one-vs-one or one-vs-rest schemes)</span>
+<span id="cb11-453"><a href="#cb11-453"></a><span class="ss">- </span>Interpretability (the model is a "black box" — no simple coefficients)</span>
+<span id="cb11-454"><a href="#cb11-454"></a></span>
+<span id="cb11-455"><a href="#cb11-455"></a>::: {.panel-tabset}</span>
+<span id="cb11-456"><a href="#cb11-456"></a></span>
+<span id="cb11-457"><a href="#cb11-457"></a><span class="fu">#### R</span></span>
+<span id="cb11-458"><a href="#cb11-458"></a></span>
+<span id="cb11-461"><a href="#cb11-461"></a><span class="in">```{r}</span></span>
+<span id="cb11-462"><a href="#cb11-462"></a><span class="co">#| label: svm-r</span></span>
+<span id="cb11-463"><a href="#cb11-463"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb11-464"><a href="#cb11-464"></a><span class="fu">library</span>(kernlab)</span>
 <span id="cb11-465"><a href="#cb11-465"></a></span>
-<span id="cb11-468"><a href="#cb11-468"></a><span class="in">```{python}</span></span>
-<span id="cb11-469"><a href="#cb11-469"></a><span class="co">#| label: svm-python</span></span>
-<span id="cb11-470"><a href="#cb11-470"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVC</span>
-<span id="cb11-471"><a href="#cb11-471"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score, StratifiedKFold</span>
-<span id="cb11-472"><a href="#cb11-472"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb11-473"><a href="#cb11-473"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
-<span id="cb11-474"><a href="#cb11-474"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb11-475"><a href="#cb11-475"></a></span>
-<span id="cb11-476"><a href="#cb11-476"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb11-477"><a href="#cb11-477"></a>n <span class="op">=</span> <span class="dv">300</span></span>
-<span id="cb11-478"><a href="#cb11-478"></a>x1 <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
-<span id="cb11-479"><a href="#cb11-479"></a>x2 <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
-<span id="cb11-480"><a href="#cb11-480"></a>X <span class="op">=</span> np.column_stack([x1, x2])</span>
-<span id="cb11-481"><a href="#cb11-481"></a>y <span class="op">=</span> (x1<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> x2<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.3</span>, n) <span class="op">&gt;</span> <span class="fl">1.5</span>).astype(<span class="bu">int</span>)</span>
-<span id="cb11-482"><a href="#cb11-482"></a></span>
-<span id="cb11-483"><a href="#cb11-483"></a><span class="co"># SVM with RBF kernel</span></span>
-<span id="cb11-484"><a href="#cb11-484"></a>pipe <span class="op">=</span> make_pipeline(StandardScaler(), SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, C<span class="op">=</span><span class="fl">1.0</span>, gamma<span class="op">=</span><span class="fl">0.5</span>))</span>
-<span id="cb11-485"><a href="#cb11-485"></a></span>
-<span id="cb11-486"><a href="#cb11-486"></a>cv <span class="op">=</span> StratifiedKFold(n_splits<span class="op">=</span><span class="dv">5</span>, shuffle<span class="op">=</span><span class="va">True</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
-<span id="cb11-487"><a href="#cb11-487"></a>scores <span class="op">=</span> cross_val_score(pipe, X, y, cv<span class="op">=</span>cv, scoring<span class="op">=</span><span class="st">'accuracy'</span>)</span>
-<span id="cb11-488"><a href="#cb11-488"></a><span class="bu">print</span>(<span class="ss">f"SVM accuracy: </span><span class="sc">{</span>scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> (+/- </span><span class="sc">{</span>scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
-<span id="cb11-489"><a href="#cb11-489"></a></span>
-<span id="cb11-490"><a href="#cb11-490"></a>auc_scores <span class="op">=</span> cross_val_score(</span>
-<span id="cb11-491"><a href="#cb11-491"></a>    make_pipeline(StandardScaler(), SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, C<span class="op">=</span><span class="fl">1.0</span>, gamma<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span id="cb11-492"><a href="#cb11-492"></a>                                         probability<span class="op">=</span><span class="va">True</span>)),</span>
-<span id="cb11-493"><a href="#cb11-493"></a>    X, y, cv<span class="op">=</span>cv, scoring<span class="op">=</span><span class="st">'roc_auc'</span></span>
-<span id="cb11-494"><a href="#cb11-494"></a>)</span>
-<span id="cb11-495"><a href="#cb11-495"></a><span class="bu">print</span>(<span class="ss">f"SVM AUC: </span><span class="sc">{</span>auc_scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> (+/- </span><span class="sc">{</span>auc_scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
-<span id="cb11-496"><a href="#cb11-496"></a><span class="in">```</span></span>
-<span id="cb11-497"><a href="#cb11-497"></a></span>
-<span id="cb11-498"><a href="#cb11-498"></a>:::</span>
-<span id="cb11-499"><a href="#cb11-499"></a></span>
-<span id="cb11-500"><a href="#cb11-500"></a><span class="fu">## ML vs Traditional Statistics: What Is Actually Different?</span></span>
-<span id="cb11-501"><a href="#cb11-501"></a></span>
-<span id="cb11-502"><a href="#cb11-502"></a>This is a question clinical researchers often ask, and the honest answer is: less than you think.</span>
-<span id="cb11-503"><a href="#cb11-503"></a></span>
-<span id="cb11-504"><a href="#cb11-504"></a><span class="pp">|</span> Aspect <span class="pp">|</span> Traditional Statistics <span class="pp">|</span> Machine Learning <span class="pp">|</span></span>
-<span id="cb11-505"><a href="#cb11-505"></a><span class="pp">|--------|----------------------|-----------------|</span></span>
-<span id="cb11-506"><a href="#cb11-506"></a><span class="pp">|</span> **Primary goal** <span class="pp">|</span> Inference (understand relationships) <span class="pp">|</span> Prediction (forecast accurately) <span class="pp">|</span></span>
-<span id="cb11-507"><a href="#cb11-507"></a><span class="pp">|</span> **Model choice** <span class="pp">|</span> Guided by theory and assumptions <span class="pp">|</span> Guided by cross-validated performance <span class="pp">|</span></span>
-<span id="cb11-508"><a href="#cb11-508"></a><span class="pp">|</span> **Feature selection** <span class="pp">|</span> Guided by domain knowledge, parsimony <span class="pp">|</span> Data-driven, automated <span class="pp">|</span></span>
-<span id="cb11-509"><a href="#cb11-509"></a><span class="pp">|</span> **Evaluation** <span class="pp">|</span> p-values, confidence intervals <span class="pp">|</span> AUC, accuracy, calibration, cross-validation <span class="pp">|</span></span>
-<span id="cb11-510"><a href="#cb11-510"></a><span class="pp">|</span> **Interpretability** <span class="pp">|</span> Usually high (coefficients) <span class="pp">|</span> Varies (logistic regression = high; deep learning = low) <span class="pp">|</span></span>
-<span id="cb11-511"><a href="#cb11-511"></a><span class="pp">|</span> **Sample size** <span class="pp">|</span> Can work with small samples <span class="pp">|</span> Often needs more data for complex models <span class="pp">|</span></span>
-<span id="cb11-512"><a href="#cb11-512"></a><span class="pp">|</span> **Assumptions** <span class="pp">|</span> Explicit (linearity, normality, etc.) <span class="pp">|</span> Implicit (representative data, stationarity) <span class="pp">|</span></span>
-<span id="cb11-513"><a href="#cb11-513"></a></span>
-<span id="cb11-514"><a href="#cb11-514"></a>The biggest practical difference is in **workflow**. Statistical modeling typically follows a hypothesis-driven process: specify a model based on theory, fit it, check assumptions, interpret coefficients. ML follows a more empirical process: try many models, tune them, evaluate on held-out data, pick the best performer.</span>
-<span id="cb11-515"><a href="#cb11-515"></a></span>
-<span id="cb11-516"><a href="#cb11-516"></a>Neither approach is inherently superior. For a clinical trial with 200 patients and 5 pre-specified predictors, logistic regression is perfectly appropriate and more interpretable than a random forest. For a hospital system with 500,000 patient records, 1,000 candidate features, and the goal of predicting ICU transfer, a gradient-boosted tree with cross-validated tuning may outperform logistic regression.</span>
-<span id="cb11-517"><a href="#cb11-517"></a></span>
-<span id="cb11-518"><a href="#cb11-518"></a><span class="fu">## Exercises</span></span>
-<span id="cb11-519"><a href="#cb11-519"></a></span>
-<span id="cb11-520"><a href="#cb11-520"></a><span class="fu">### Exercise 1: Cross-Validation Experiment</span></span>
-<span id="cb11-521"><a href="#cb11-521"></a></span>
-<span id="cb11-522"><a href="#cb11-522"></a>Using the simulated clinical dataset below, compare logistic regression and SVM (RBF kernel) using 10-fold stratified cross-validation. Report AUC for both models. Which performs better? Why?</span>
-<span id="cb11-523"><a href="#cb11-523"></a></span>
-<span id="cb11-524"><a href="#cb11-524"></a>::: {.panel-tabset}</span>
-<span id="cb11-525"><a href="#cb11-525"></a></span>
-<span id="cb11-526"><a href="#cb11-526"></a><span class="fu">#### R Starter Code</span></span>
-<span id="cb11-527"><a href="#cb11-527"></a></span>
-<span id="cb11-530"><a href="#cb11-530"></a><span class="in">```{r}</span></span>
-<span id="cb11-531"><a href="#cb11-531"></a><span class="co">#| label: ex1-ml-r</span></span>
-<span id="cb11-532"><a href="#cb11-532"></a><span class="co">#| eval: false</span></span>
-<span id="cb11-533"><a href="#cb11-533"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb11-534"><a href="#cb11-534"></a>n <span class="ot">&lt;-</span> <span class="dv">600</span></span>
-<span id="cb11-535"><a href="#cb11-535"></a>ex_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb11-536"><a href="#cb11-536"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>),</span>
-<span id="cb11-537"><a href="#cb11-537"></a>  <span class="at">creatinine =</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>),</span>
-<span id="cb11-538"><a href="#cb11-538"></a>  <span class="at">hemoglobin =</span> <span class="fu">rnorm</span>(n, <span class="dv">12</span>, <span class="dv">2</span>),</span>
-<span id="cb11-539"><a href="#cb11-539"></a>  <span class="at">platelets =</span> <span class="fu">rnorm</span>(n, <span class="dv">250</span>, <span class="dv">70</span>),</span>
-<span id="cb11-540"><a href="#cb11-540"></a>  <span class="at">wbc =</span> <span class="fu">rlnorm</span>(n, <span class="dv">2</span>, <span class="fl">0.4</span>),</span>
-<span id="cb11-541"><a href="#cb11-541"></a>  <span class="at">icu =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">4</span> <span class="sc">+</span> <span class="fl">0.03</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb11-542"><a href="#cb11-542"></a>                                    <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>))),</span>
-<span id="cb11-543"><a href="#cb11-543"></a>               <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
-<span id="cb11-544"><a href="#cb11-544"></a>)</span>
-<span id="cb11-545"><a href="#cb11-545"></a></span>
-<span id="cb11-546"><a href="#cb11-546"></a><span class="co"># Your code: set up tidymodels workflows for logistic_reg and svm_rbf</span></span>
-<span id="cb11-547"><a href="#cb11-547"></a><span class="co"># Use vfold_cv with strata = icu</span></span>
-<span id="cb11-548"><a href="#cb11-548"></a><span class="co"># Compare using roc_auc</span></span>
-<span id="cb11-549"><a href="#cb11-549"></a><span class="in">```</span></span>
+<span id="cb11-466"><a href="#cb11-466"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb11-467"><a href="#cb11-467"></a>n <span class="ot">&lt;-</span> <span class="dv">300</span></span>
+<span id="cb11-468"><a href="#cb11-468"></a>svm_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb11-469"><a href="#cb11-469"></a>  <span class="at">x1 =</span> <span class="fu">rnorm</span>(n),</span>
+<span id="cb11-470"><a href="#cb11-470"></a>  <span class="at">x2 =</span> <span class="fu">rnorm</span>(n),</span>
+<span id="cb11-471"><a href="#cb11-471"></a>  <span class="at">class =</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(x1<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> x2<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.3</span>) <span class="sc">&gt;</span> <span class="fl">1.5</span>,</span>
+<span id="cb11-472"><a href="#cb11-472"></a>                        <span class="st">"Disease"</span>, <span class="st">"Healthy"</span>))</span>
+<span id="cb11-473"><a href="#cb11-473"></a>)</span>
+<span id="cb11-474"><a href="#cb11-474"></a></span>
+<span id="cb11-475"><a href="#cb11-475"></a><span class="co"># Fit SVM with RBF kernel</span></span>
+<span id="cb11-476"><a href="#cb11-476"></a>svm_spec <span class="ot">&lt;-</span> <span class="fu">svm_rbf</span>(<span class="at">cost =</span> <span class="dv">1</span>, <span class="at">rbf_sigma =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-477"><a href="#cb11-477"></a>  <span class="fu">set_engine</span>(<span class="st">"kernlab"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-478"><a href="#cb11-478"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span>
+<span id="cb11-479"><a href="#cb11-479"></a></span>
+<span id="cb11-480"><a href="#cb11-480"></a>svm_fit <span class="ot">&lt;-</span> svm_spec <span class="sc">%&gt;%</span> <span class="fu">fit</span>(class <span class="sc">~</span> ., <span class="at">data =</span> svm_data)</span>
+<span id="cb11-481"><a href="#cb11-481"></a></span>
+<span id="cb11-482"><a href="#cb11-482"></a><span class="co"># Evaluate with cross-validation</span></span>
+<span id="cb11-483"><a href="#cb11-483"></a>svm_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-484"><a href="#cb11-484"></a>  <span class="fu">add_model</span>(svm_spec) <span class="sc">%&gt;%</span></span>
+<span id="cb11-485"><a href="#cb11-485"></a>  <span class="fu">add_formula</span>(class <span class="sc">~</span> .)</span>
+<span id="cb11-486"><a href="#cb11-486"></a></span>
+<span id="cb11-487"><a href="#cb11-487"></a>folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(svm_data, <span class="at">v =</span> <span class="dv">5</span>, <span class="at">strata =</span> class)</span>
+<span id="cb11-488"><a href="#cb11-488"></a>svm_cv <span class="ot">&lt;-</span> <span class="fu">fit_resamples</span>(svm_wf, <span class="at">resamples =</span> folds,</span>
+<span id="cb11-489"><a href="#cb11-489"></a>                        <span class="at">metrics =</span> <span class="fu">metric_set</span>(roc_auc, accuracy))</span>
+<span id="cb11-490"><a href="#cb11-490"></a><span class="fu">collect_metrics</span>(svm_cv)</span>
+<span id="cb11-491"><a href="#cb11-491"></a><span class="in">```</span></span>
+<span id="cb11-492"><a href="#cb11-492"></a></span>
+<span id="cb11-493"><a href="#cb11-493"></a><span class="fu">#### Python</span></span>
+<span id="cb11-494"><a href="#cb11-494"></a></span>
+<span id="cb11-497"><a href="#cb11-497"></a><span class="in">```{python}</span></span>
+<span id="cb11-498"><a href="#cb11-498"></a><span class="co">#| label: svm-python</span></span>
+<span id="cb11-499"><a href="#cb11-499"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVC</span>
+<span id="cb11-500"><a href="#cb11-500"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score, StratifiedKFold</span>
+<span id="cb11-501"><a href="#cb11-501"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb11-502"><a href="#cb11-502"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb11-503"><a href="#cb11-503"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-504"><a href="#cb11-504"></a></span>
+<span id="cb11-505"><a href="#cb11-505"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb11-506"><a href="#cb11-506"></a>n <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb11-507"><a href="#cb11-507"></a>x1 <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb11-508"><a href="#cb11-508"></a>x2 <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb11-509"><a href="#cb11-509"></a>X <span class="op">=</span> np.column_stack([x1, x2])</span>
+<span id="cb11-510"><a href="#cb11-510"></a>y <span class="op">=</span> (x1<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> x2<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.3</span>, n) <span class="op">&gt;</span> <span class="fl">1.5</span>).astype(<span class="bu">int</span>)</span>
+<span id="cb11-511"><a href="#cb11-511"></a></span>
+<span id="cb11-512"><a href="#cb11-512"></a><span class="co"># SVM with RBF kernel</span></span>
+<span id="cb11-513"><a href="#cb11-513"></a>pipe <span class="op">=</span> make_pipeline(StandardScaler(), SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, C<span class="op">=</span><span class="fl">1.0</span>, gamma<span class="op">=</span><span class="fl">0.5</span>))</span>
+<span id="cb11-514"><a href="#cb11-514"></a></span>
+<span id="cb11-515"><a href="#cb11-515"></a>cv <span class="op">=</span> StratifiedKFold(n_splits<span class="op">=</span><span class="dv">5</span>, shuffle<span class="op">=</span><span class="va">True</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb11-516"><a href="#cb11-516"></a>scores <span class="op">=</span> cross_val_score(pipe, X, y, cv<span class="op">=</span>cv, scoring<span class="op">=</span><span class="st">'accuracy'</span>)</span>
+<span id="cb11-517"><a href="#cb11-517"></a><span class="bu">print</span>(<span class="ss">f"SVM accuracy: </span><span class="sc">{</span>scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> (+/- </span><span class="sc">{</span>scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
+<span id="cb11-518"><a href="#cb11-518"></a></span>
+<span id="cb11-519"><a href="#cb11-519"></a>auc_scores <span class="op">=</span> cross_val_score(</span>
+<span id="cb11-520"><a href="#cb11-520"></a>    make_pipeline(StandardScaler(), SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, C<span class="op">=</span><span class="fl">1.0</span>, gamma<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb11-521"><a href="#cb11-521"></a>                                         probability<span class="op">=</span><span class="va">True</span>)),</span>
+<span id="cb11-522"><a href="#cb11-522"></a>    X, y, cv<span class="op">=</span>cv, scoring<span class="op">=</span><span class="st">'roc_auc'</span></span>
+<span id="cb11-523"><a href="#cb11-523"></a>)</span>
+<span id="cb11-524"><a href="#cb11-524"></a><span class="bu">print</span>(<span class="ss">f"SVM AUC: </span><span class="sc">{</span>auc_scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> (+/- </span><span class="sc">{</span>auc_scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
+<span id="cb11-525"><a href="#cb11-525"></a><span class="in">```</span></span>
+<span id="cb11-526"><a href="#cb11-526"></a></span>
+<span id="cb11-527"><a href="#cb11-527"></a>:::</span>
+<span id="cb11-528"><a href="#cb11-528"></a></span>
+<span id="cb11-529"><a href="#cb11-529"></a>**What the code is doing.** We deliberately simulate a dataset where the disease cases form a *ring* around the healthy cases (`x1^2 + x2^2 &gt; 1.5`) --- exactly the non-linearly-separable situation from @fig-svm-kernel that a straight-line classifier cannot handle. We then fit an SVM with an **RBF kernel** and estimate its performance with 5-fold cross-validation. The printed accuracy and AUC (both should land well above 0.5, the no-information level) confirm that the RBF kernel successfully learned the curved boundary. The lesson for practice: the same two lines of code would have failed with a linear kernel here; switching to RBF is what makes it work.</span>
+<span id="cb11-530"><a href="#cb11-530"></a></span>
+<span id="cb11-531"><a href="#cb11-531"></a><span class="fu">## ML vs Traditional Statistics: What Is Actually Different?</span></span>
+<span id="cb11-532"><a href="#cb11-532"></a></span>
+<span id="cb11-533"><a href="#cb11-533"></a>This is a question clinical researchers often ask, and the honest answer is: less than you think.</span>
+<span id="cb11-534"><a href="#cb11-534"></a></span>
+<span id="cb11-535"><a href="#cb11-535"></a><span class="pp">|</span> Aspect <span class="pp">|</span> Traditional Statistics <span class="pp">|</span> Machine Learning <span class="pp">|</span></span>
+<span id="cb11-536"><a href="#cb11-536"></a><span class="pp">|--------|----------------------|-----------------|</span></span>
+<span id="cb11-537"><a href="#cb11-537"></a><span class="pp">|</span> **Primary goal** <span class="pp">|</span> Inference (understand relationships) <span class="pp">|</span> Prediction (forecast accurately) <span class="pp">|</span></span>
+<span id="cb11-538"><a href="#cb11-538"></a><span class="pp">|</span> **Model choice** <span class="pp">|</span> Guided by theory and assumptions <span class="pp">|</span> Guided by cross-validated performance <span class="pp">|</span></span>
+<span id="cb11-539"><a href="#cb11-539"></a><span class="pp">|</span> **Feature selection** <span class="pp">|</span> Guided by domain knowledge, parsimony <span class="pp">|</span> Data-driven, automated <span class="pp">|</span></span>
+<span id="cb11-540"><a href="#cb11-540"></a><span class="pp">|</span> **Evaluation** <span class="pp">|</span> p-values, confidence intervals <span class="pp">|</span> AUC, accuracy, calibration, cross-validation <span class="pp">|</span></span>
+<span id="cb11-541"><a href="#cb11-541"></a><span class="pp">|</span> **Interpretability** <span class="pp">|</span> Usually high (coefficients) <span class="pp">|</span> Varies (logistic regression = high; deep learning = low) <span class="pp">|</span></span>
+<span id="cb11-542"><a href="#cb11-542"></a><span class="pp">|</span> **Sample size** <span class="pp">|</span> Can work with small samples <span class="pp">|</span> Often needs more data for complex models <span class="pp">|</span></span>
+<span id="cb11-543"><a href="#cb11-543"></a><span class="pp">|</span> **Assumptions** <span class="pp">|</span> Explicit (linearity, normality, etc.) <span class="pp">|</span> Implicit (representative data, stationarity) <span class="pp">|</span></span>
+<span id="cb11-544"><a href="#cb11-544"></a></span>
+<span id="cb11-545"><a href="#cb11-545"></a>The biggest practical difference is in **workflow**. Statistical modeling typically follows a hypothesis-driven process: specify a model based on theory, fit it, check assumptions, interpret coefficients. ML follows a more empirical process: try many models, tune them, evaluate on held-out data, pick the best performer.</span>
+<span id="cb11-546"><a href="#cb11-546"></a></span>
+<span id="cb11-547"><a href="#cb11-547"></a>Neither approach is inherently superior. For a clinical trial with 200 patients and 5 pre-specified predictors, logistic regression is perfectly appropriate and more interpretable than a random forest. For a hospital system with 500,000 patient records, 1,000 candidate features, and the goal of predicting ICU transfer, a gradient-boosted tree with cross-validated tuning may outperform logistic regression.</span>
+<span id="cb11-548"><a href="#cb11-548"></a></span>
+<span id="cb11-549"><a href="#cb11-549"></a><span class="fu">## Exercises</span></span>
 <span id="cb11-550"><a href="#cb11-550"></a></span>
-<span id="cb11-551"><a href="#cb11-551"></a><span class="fu">#### Python Starter Code</span></span>
+<span id="cb11-551"><a href="#cb11-551"></a><span class="fu">### Exercise 1: Cross-Validation Experiment</span></span>
 <span id="cb11-552"><a href="#cb11-552"></a></span>
-<span id="cb11-555"><a href="#cb11-555"></a><span class="in">```{python}</span></span>
-<span id="cb11-556"><a href="#cb11-556"></a><span class="co">#| label: ex1-ml-python</span></span>
-<span id="cb11-557"><a href="#cb11-557"></a><span class="co">#| eval: false</span></span>
-<span id="cb11-558"><a href="#cb11-558"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb11-559"><a href="#cb11-559"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
-<span id="cb11-560"><a href="#cb11-560"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVC</span>
-<span id="cb11-561"><a href="#cb11-561"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score, StratifiedKFold</span>
-<span id="cb11-562"><a href="#cb11-562"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb11-563"><a href="#cb11-563"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
-<span id="cb11-564"><a href="#cb11-564"></a></span>
-<span id="cb11-565"><a href="#cb11-565"></a>np.random.seed(<span class="dv">123</span>)</span>
-<span id="cb11-566"><a href="#cb11-566"></a>n <span class="op">=</span> <span class="dv">600</span></span>
-<span id="cb11-567"><a href="#cb11-567"></a><span class="co"># Your code: create X and y</span></span>
-<span id="cb11-568"><a href="#cb11-568"></a><span class="co"># Compare LogisticRegression vs SVC using cross_val_score with scoring='roc_auc'</span></span>
-<span id="cb11-569"><a href="#cb11-569"></a><span class="in">```</span></span>
-<span id="cb11-570"><a href="#cb11-570"></a></span>
-<span id="cb11-571"><a href="#cb11-571"></a>:::</span>
-<span id="cb11-572"><a href="#cb11-572"></a></span>
-<span id="cb11-573"><a href="#cb11-573"></a><span class="fu">### Exercise 2: Feature Engineering Challenge</span></span>
-<span id="cb11-574"><a href="#cb11-574"></a></span>
-<span id="cb11-575"><a href="#cb11-575"></a>You have the following raw variables for a diabetes prediction model:</span>
-<span id="cb11-576"><a href="#cb11-576"></a></span>
-<span id="cb11-577"><a href="#cb11-577"></a><span class="ss">- </span><span class="in">`height_cm`</span>, <span class="in">`weight_kg`</span></span>
-<span id="cb11-578"><a href="#cb11-578"></a><span class="ss">- </span><span class="in">`sbp`</span>, <span class="in">`dbp`</span> (systolic and diastolic blood pressure)</span>
-<span id="cb11-579"><a href="#cb11-579"></a><span class="ss">- </span><span class="in">`fasting_glucose`</span>, <span class="in">`hba1c`</span></span>
-<span id="cb11-580"><a href="#cb11-580"></a><span class="ss">- </span><span class="in">`age`</span>, <span class="in">`sex`</span></span>
-<span id="cb11-581"><a href="#cb11-581"></a><span class="ss">- </span><span class="in">`waist_circumference`</span>, <span class="in">`hip_circumference`</span></span>
-<span id="cb11-582"><a href="#cb11-582"></a><span class="ss">- </span><span class="in">`total_cholesterol`</span>, <span class="in">`hdl`</span>, <span class="in">`ldl`</span>, <span class="in">`triglycerides`</span></span>
-<span id="cb11-583"><a href="#cb11-583"></a></span>
-<span id="cb11-584"><a href="#cb11-584"></a><span class="ss">1. </span>List at least 5 clinically meaningful engineered features you could create from these variables. For each, explain *why* it is clinically meaningful.</span>
-<span id="cb11-585"><a href="#cb11-585"></a><span class="ss">2. </span>Implement the feature engineering in R (using <span class="in">`recipes`</span>) or Python (using pandas/sklearn).</span>
-<span id="cb11-586"><a href="#cb11-586"></a><span class="ss">3. </span>Discuss which original features might become redundant after engineering.</span>
-<span id="cb11-587"><a href="#cb11-587"></a></span>
-<span id="cb11-588"><a href="#cb11-588"></a><span class="fu">### Exercise 3: The Bias-Variance Tradeoff in Practice</span></span>
-<span id="cb11-589"><a href="#cb11-589"></a></span>
-<span id="cb11-590"><a href="#cb11-590"></a>Using polynomial regression on a simulated dataset:</span>
-<span id="cb11-591"><a href="#cb11-591"></a></span>
-<span id="cb11-592"><a href="#cb11-592"></a><span class="ss">1. </span>Fit polynomials of degree 1, 3, 5, 10, and 20 to a training set.</span>
-<span id="cb11-593"><a href="#cb11-593"></a><span class="ss">2. </span>Plot the fitted curves overlaid on the data.</span>
-<span id="cb11-594"><a href="#cb11-594"></a><span class="ss">3. </span>Compute training error and test error for each degree.</span>
-<span id="cb11-595"><a href="#cb11-595"></a><span class="ss">4. </span>Identify the degree that minimizes test error. Explain this in terms of the bias-variance tradeoff.</span>
-<span id="cb11-596"><a href="#cb11-596"></a></span>
-<span id="cb11-597"><a href="#cb11-597"></a>::: {.panel-tabset}</span>
+<span id="cb11-553"><a href="#cb11-553"></a>Using the simulated clinical dataset below, compare logistic regression and SVM (RBF kernel) using 10-fold stratified cross-validation. Report AUC for both models. Which performs better? Why?</span>
+<span id="cb11-554"><a href="#cb11-554"></a></span>
+<span id="cb11-555"><a href="#cb11-555"></a>::: {.panel-tabset}</span>
+<span id="cb11-556"><a href="#cb11-556"></a></span>
+<span id="cb11-557"><a href="#cb11-557"></a><span class="fu">#### R Starter Code</span></span>
+<span id="cb11-558"><a href="#cb11-558"></a></span>
+<span id="cb11-561"><a href="#cb11-561"></a><span class="in">```{r}</span></span>
+<span id="cb11-562"><a href="#cb11-562"></a><span class="co">#| label: ex1-ml-r</span></span>
+<span id="cb11-563"><a href="#cb11-563"></a><span class="co">#| eval: false</span></span>
+<span id="cb11-564"><a href="#cb11-564"></a><span class="fu">library</span>(tidyverse)  <span class="co"># tibble()</span></span>
+<span id="cb11-565"><a href="#cb11-565"></a><span class="fu">library</span>(tidymodels) <span class="co"># vfold_cv(), logistic_reg(), svm_rbf(), etc.</span></span>
+<span id="cb11-566"><a href="#cb11-566"></a></span>
+<span id="cb11-567"><a href="#cb11-567"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb11-568"><a href="#cb11-568"></a>n <span class="ot">&lt;-</span> <span class="dv">600</span></span>
+<span id="cb11-569"><a href="#cb11-569"></a>ex_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb11-570"><a href="#cb11-570"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>),</span>
+<span id="cb11-571"><a href="#cb11-571"></a>  <span class="at">creatinine =</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>),</span>
+<span id="cb11-572"><a href="#cb11-572"></a>  <span class="at">hemoglobin =</span> <span class="fu">rnorm</span>(n, <span class="dv">12</span>, <span class="dv">2</span>),</span>
+<span id="cb11-573"><a href="#cb11-573"></a>  <span class="at">platelets =</span> <span class="fu">rnorm</span>(n, <span class="dv">250</span>, <span class="dv">70</span>),</span>
+<span id="cb11-574"><a href="#cb11-574"></a>  <span class="at">wbc =</span> <span class="fu">rlnorm</span>(n, <span class="dv">2</span>, <span class="fl">0.4</span>),</span>
+<span id="cb11-575"><a href="#cb11-575"></a>  <span class="at">icu =</span> <span class="fu">factor</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">4</span> <span class="sc">+</span> <span class="fl">0.03</span> <span class="sc">*</span> <span class="fu">rnorm</span>(n, <span class="dv">65</span>, <span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb11-576"><a href="#cb11-576"></a>                                    <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">rlnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>))),</span>
+<span id="cb11-577"><a href="#cb11-577"></a>               <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb11-578"><a href="#cb11-578"></a>)</span>
+<span id="cb11-579"><a href="#cb11-579"></a></span>
+<span id="cb11-580"><a href="#cb11-580"></a><span class="co"># Your code: set up tidymodels workflows for logistic_reg and svm_rbf</span></span>
+<span id="cb11-581"><a href="#cb11-581"></a><span class="co"># Use vfold_cv with strata = icu</span></span>
+<span id="cb11-582"><a href="#cb11-582"></a><span class="co"># Compare using roc_auc</span></span>
+<span id="cb11-583"><a href="#cb11-583"></a><span class="in">```</span></span>
+<span id="cb11-584"><a href="#cb11-584"></a></span>
+<span id="cb11-585"><a href="#cb11-585"></a><span class="fu">#### Python Starter Code</span></span>
+<span id="cb11-586"><a href="#cb11-586"></a></span>
+<span id="cb11-589"><a href="#cb11-589"></a><span class="in">```{python}</span></span>
+<span id="cb11-590"><a href="#cb11-590"></a><span class="co">#| label: ex1-ml-python</span></span>
+<span id="cb11-591"><a href="#cb11-591"></a><span class="co">#| eval: false</span></span>
+<span id="cb11-592"><a href="#cb11-592"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-593"><a href="#cb11-593"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb11-594"><a href="#cb11-594"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVC</span>
+<span id="cb11-595"><a href="#cb11-595"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score, StratifiedKFold</span>
+<span id="cb11-596"><a href="#cb11-596"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb11-597"><a href="#cb11-597"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
 <span id="cb11-598"><a href="#cb11-598"></a></span>
-<span id="cb11-599"><a href="#cb11-599"></a><span class="fu">#### R Starter Code</span></span>
-<span id="cb11-600"><a href="#cb11-600"></a></span>
-<span id="cb11-603"><a href="#cb11-603"></a><span class="in">```{r}</span></span>
-<span id="cb11-604"><a href="#cb11-604"></a><span class="co">#| label: ex3-ml-r</span></span>
-<span id="cb11-605"><a href="#cb11-605"></a><span class="co">#| eval: false</span></span>
-<span id="cb11-606"><a href="#cb11-606"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb11-607"><a href="#cb11-607"></a>x_train <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">runif</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">10</span>))</span>
-<span id="cb11-608"><a href="#cb11-608"></a>y_train <span class="ot">&lt;-</span> <span class="fu">sin</span>(x_train) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
-<span id="cb11-609"><a href="#cb11-609"></a>x_test <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">runif</span>(<span class="dv">200</span>, <span class="dv">0</span>, <span class="dv">10</span>))</span>
-<span id="cb11-610"><a href="#cb11-610"></a>y_test <span class="ot">&lt;-</span> <span class="fu">sin</span>(x_test) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">200</span>, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
-<span id="cb11-611"><a href="#cb11-611"></a></span>
-<span id="cb11-612"><a href="#cb11-612"></a><span class="co"># Your code: fit poly(x, degree) for degree in c(1, 3, 5, 10, 20)</span></span>
-<span id="cb11-613"><a href="#cb11-613"></a><span class="co"># Compute RMSE on train and test for each</span></span>
-<span id="cb11-614"><a href="#cb11-614"></a><span class="co"># Plot the results</span></span>
-<span id="cb11-615"><a href="#cb11-615"></a><span class="in">```</span></span>
-<span id="cb11-616"><a href="#cb11-616"></a></span>
-<span id="cb11-617"><a href="#cb11-617"></a><span class="fu">#### Python Starter Code</span></span>
-<span id="cb11-618"><a href="#cb11-618"></a></span>
-<span id="cb11-621"><a href="#cb11-621"></a><span class="in">```{python}</span></span>
-<span id="cb11-622"><a href="#cb11-622"></a><span class="co">#| label: ex3-ml-python</span></span>
-<span id="cb11-623"><a href="#cb11-623"></a><span class="co">#| eval: false</span></span>
-<span id="cb11-624"><a href="#cb11-624"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb11-625"><a href="#cb11-625"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> PolynomialFeatures</span>
-<span id="cb11-626"><a href="#cb11-626"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
-<span id="cb11-627"><a href="#cb11-627"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error</span>
-<span id="cb11-628"><a href="#cb11-628"></a></span>
-<span id="cb11-629"><a href="#cb11-629"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb11-630"><a href="#cb11-630"></a>x_train <span class="op">=</span> np.sort(np.random.uniform(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">50</span>))</span>
-<span id="cb11-631"><a href="#cb11-631"></a>y_train <span class="op">=</span> np.sin(x_train) <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.3</span>, <span class="dv">50</span>)</span>
-<span id="cb11-632"><a href="#cb11-632"></a>x_test <span class="op">=</span> np.sort(np.random.uniform(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">200</span>))</span>
-<span id="cb11-633"><a href="#cb11-633"></a>y_test <span class="op">=</span> np.sin(x_test) <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.3</span>, <span class="dv">200</span>)</span>
+<span id="cb11-599"><a href="#cb11-599"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb11-600"><a href="#cb11-600"></a>n <span class="op">=</span> <span class="dv">600</span></span>
+<span id="cb11-601"><a href="#cb11-601"></a><span class="co"># Your code: create X and y</span></span>
+<span id="cb11-602"><a href="#cb11-602"></a><span class="co"># Compare LogisticRegression vs SVC using cross_val_score with scoring='roc_auc'</span></span>
+<span id="cb11-603"><a href="#cb11-603"></a><span class="in">```</span></span>
+<span id="cb11-604"><a href="#cb11-604"></a></span>
+<span id="cb11-605"><a href="#cb11-605"></a>:::</span>
+<span id="cb11-606"><a href="#cb11-606"></a></span>
+<span id="cb11-607"><a href="#cb11-607"></a><span class="fu">### Exercise 2: Feature Engineering Challenge</span></span>
+<span id="cb11-608"><a href="#cb11-608"></a></span>
+<span id="cb11-609"><a href="#cb11-609"></a>You have the following raw variables for a diabetes prediction model:</span>
+<span id="cb11-610"><a href="#cb11-610"></a></span>
+<span id="cb11-611"><a href="#cb11-611"></a><span class="ss">- </span><span class="in">`height_cm`</span>, <span class="in">`weight_kg`</span></span>
+<span id="cb11-612"><a href="#cb11-612"></a><span class="ss">- </span><span class="in">`sbp`</span>, <span class="in">`dbp`</span> (systolic and diastolic blood pressure)</span>
+<span id="cb11-613"><a href="#cb11-613"></a><span class="ss">- </span><span class="in">`fasting_glucose`</span>, <span class="in">`hba1c`</span></span>
+<span id="cb11-614"><a href="#cb11-614"></a><span class="ss">- </span><span class="in">`age`</span>, <span class="in">`sex`</span></span>
+<span id="cb11-615"><a href="#cb11-615"></a><span class="ss">- </span><span class="in">`waist_circumference`</span>, <span class="in">`hip_circumference`</span></span>
+<span id="cb11-616"><a href="#cb11-616"></a><span class="ss">- </span><span class="in">`total_cholesterol`</span>, <span class="in">`hdl`</span>, <span class="in">`ldl`</span>, <span class="in">`triglycerides`</span></span>
+<span id="cb11-617"><a href="#cb11-617"></a></span>
+<span id="cb11-618"><a href="#cb11-618"></a><span class="ss">1. </span>List at least 5 clinically meaningful engineered features you could create from these variables. For each, explain *why* it is clinically meaningful.</span>
+<span id="cb11-619"><a href="#cb11-619"></a><span class="ss">2. </span>Implement the feature engineering in R (using <span class="in">`recipes`</span>) or Python (using pandas/sklearn).</span>
+<span id="cb11-620"><a href="#cb11-620"></a><span class="ss">3. </span>Discuss which original features might become redundant after engineering.</span>
+<span id="cb11-621"><a href="#cb11-621"></a></span>
+<span id="cb11-622"><a href="#cb11-622"></a><span class="fu">### Exercise 3: The Bias-Variance Tradeoff in Practice</span></span>
+<span id="cb11-623"><a href="#cb11-623"></a></span>
+<span id="cb11-624"><a href="#cb11-624"></a>Using polynomial regression on a simulated dataset:</span>
+<span id="cb11-625"><a href="#cb11-625"></a></span>
+<span id="cb11-626"><a href="#cb11-626"></a><span class="ss">1. </span>Fit polynomials of degree 1, 3, 5, 10, and 20 to a training set.</span>
+<span id="cb11-627"><a href="#cb11-627"></a><span class="ss">2. </span>Plot the fitted curves overlaid on the data.</span>
+<span id="cb11-628"><a href="#cb11-628"></a><span class="ss">3. </span>Compute training error and test error for each degree.</span>
+<span id="cb11-629"><a href="#cb11-629"></a><span class="ss">4. </span>Identify the degree that minimizes test error. Explain this in terms of the bias-variance tradeoff.</span>
+<span id="cb11-630"><a href="#cb11-630"></a></span>
+<span id="cb11-631"><a href="#cb11-631"></a>::: {.panel-tabset}</span>
+<span id="cb11-632"><a href="#cb11-632"></a></span>
+<span id="cb11-633"><a href="#cb11-633"></a><span class="fu">#### R Starter Code</span></span>
 <span id="cb11-634"><a href="#cb11-634"></a></span>
-<span id="cb11-635"><a href="#cb11-635"></a><span class="co"># Your code: loop over degrees [1, 3, 5, 10, 20]</span></span>
-<span id="cb11-636"><a href="#cb11-636"></a><span class="co"># Fit PolynomialFeatures + LinearRegression</span></span>
-<span id="cb11-637"><a href="#cb11-637"></a><span class="co"># Compute train and test RMSE</span></span>
-<span id="cb11-638"><a href="#cb11-638"></a><span class="in">```</span></span>
-<span id="cb11-639"><a href="#cb11-639"></a></span>
-<span id="cb11-640"><a href="#cb11-640"></a>:::</span>
-<span id="cb11-641"><a href="#cb11-641"></a></span>
-<span id="cb11-642"><a href="#cb11-642"></a><span class="fu">## Summary</span></span>
-<span id="cb11-643"><a href="#cb11-643"></a></span>
-<span id="cb11-644"><a href="#cb11-644"></a>This chapter introduced the foundational concepts of machine learning that every clinical researcher should understand before applying ML methods:</span>
+<span id="cb11-637"><a href="#cb11-637"></a><span class="in">```{r}</span></span>
+<span id="cb11-638"><a href="#cb11-638"></a><span class="co">#| label: ex3-ml-r</span></span>
+<span id="cb11-639"><a href="#cb11-639"></a><span class="co">#| eval: false</span></span>
+<span id="cb11-640"><a href="#cb11-640"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb11-641"><a href="#cb11-641"></a>x_train <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">runif</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="dv">10</span>))</span>
+<span id="cb11-642"><a href="#cb11-642"></a>y_train <span class="ot">&lt;-</span> <span class="fu">sin</span>(x_train) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">50</span>, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
+<span id="cb11-643"><a href="#cb11-643"></a>x_test <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">runif</span>(<span class="dv">200</span>, <span class="dv">0</span>, <span class="dv">10</span>))</span>
+<span id="cb11-644"><a href="#cb11-644"></a>y_test <span class="ot">&lt;-</span> <span class="fu">sin</span>(x_test) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">200</span>, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
 <span id="cb11-645"><a href="#cb11-645"></a></span>
-<span id="cb11-646"><a href="#cb11-646"></a><span class="ss">- </span>**ML is pattern recognition**, not magic. It requires careful validation and domain knowledge.</span>
-<span id="cb11-647"><a href="#cb11-647"></a><span class="ss">- </span>**Supervised learning** (prediction from labeled data) is the most common ML paradigm in clinical research.</span>
-<span id="cb11-648"><a href="#cb11-648"></a><span class="ss">- </span>The **bias-variance tradeoff** governs all model selection: too simple = underfitting, too complex = overfitting.</span>
-<span id="cb11-649"><a href="#cb11-649"></a><span class="ss">- </span>**Training/validation/test splits** and **cross-validation** are essential for honest performance evaluation.</span>
-<span id="cb11-650"><a href="#cb11-650"></a><span class="ss">- </span>**Feature engineering** — where clinical expertise meets data science — is often more important than model choice.</span>
-<span id="cb11-651"><a href="#cb11-651"></a><span class="ss">- </span>**Feature selection** (filter, wrapper, embedded) prevents overfitting in high-dimensional settings.</span>
-<span id="cb11-652"><a href="#cb11-652"></a><span class="ss">- </span>**SVMs** find maximum-margin boundaries and can handle non-linear problems via the kernel trick.</span>
-<span id="cb11-653"><a href="#cb11-653"></a><span class="ss">- </span>**ML and statistics are complementary**, not competing. The best clinical researchers use both.</span>
-<span id="cb11-654"><a href="#cb11-654"></a></span>
-<span id="cb11-655"><a href="#cb11-655"></a><span class="fu">## References and Further Reading</span></span>
-<span id="cb11-656"><a href="#cb11-656"></a></span>
-<span id="cb11-657"><a href="#cb11-657"></a>For an integrated treatment of machine learning and statistical methods tailored to clinical and public health researchers, see Smits et al. (2026), particularly Chapter 9, which covers the supervised learning concepts and cross-validation approaches discussed here with additional worked medical examples.</span>
-<span id="cb11-658"><a href="#cb11-658"></a></span>
-<span id="cb11-659"><a href="#cb11-659"></a>Boehmke and Greenwell's *Hands-On Machine Learning with R* (HOML) provides an excellent practical introduction to ML methods in R, using the tidymodels framework. It covers the bias-variance tradeoff, cross-validation, and feature engineering with clear code examples and is freely available online.</span>
-<span id="cb11-660"><a href="#cb11-660"></a></span>
-<span id="cb11-661"><a href="#cb11-661"></a>Lgatto's *Introduction to Machine Learning* (IntroML) is a concise, well-organized online resource that covers the core concepts without excessive mathematical detail, making it a good supplement for students new to the field.</span>
+<span id="cb11-646"><a href="#cb11-646"></a><span class="co"># Your code: fit poly(x, degree) for degree in c(1, 3, 5, 10, 20)</span></span>
+<span id="cb11-647"><a href="#cb11-647"></a><span class="co"># Compute RMSE on train and test for each</span></span>
+<span id="cb11-648"><a href="#cb11-648"></a><span class="co"># Plot the results</span></span>
+<span id="cb11-649"><a href="#cb11-649"></a><span class="in">```</span></span>
+<span id="cb11-650"><a href="#cb11-650"></a></span>
+<span id="cb11-651"><a href="#cb11-651"></a><span class="fu">#### Python Starter Code</span></span>
+<span id="cb11-652"><a href="#cb11-652"></a></span>
+<span id="cb11-655"><a href="#cb11-655"></a><span class="in">```{python}</span></span>
+<span id="cb11-656"><a href="#cb11-656"></a><span class="co">#| label: ex3-ml-python</span></span>
+<span id="cb11-657"><a href="#cb11-657"></a><span class="co">#| eval: false</span></span>
+<span id="cb11-658"><a href="#cb11-658"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-659"><a href="#cb11-659"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> PolynomialFeatures</span>
+<span id="cb11-660"><a href="#cb11-660"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb11-661"><a href="#cb11-661"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error</span>
 <span id="cb11-662"><a href="#cb11-662"></a></span>
-<span id="cb11-663"><a href="#cb11-663"></a>Christodoulou et al. (2019), "A Systematic Review Shows No Performance Benefit of Machine Learning over Logistic Regression for Clinical Prediction Models," published in the *Journal of Clinical Epidemiology*, provides important context for when ML methods do and do not outperform traditional approaches — a message every clinical researcher should internalize before defaulting to complex methods.</span>
-<span id="cb11-664"><a href="#cb11-664"></a></span>
-<span id="cb11-665"><a href="#cb11-665"></a>For support vector machines, the original formulation by Vapnik (1995) in *The Nature of Statistical Learning Theory* (Springer) is the theoretical foundation, though Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (Springer, 2nd edition, 2009) provides a more accessible treatment in Chapters 9 and 12. James et al., *An Introduction to Statistical Learning* (ISLR, 2nd edition, 2021), covers SVMs in Chapter 9 at an introductory level with R lab exercises.</span>
-<span id="cb11-666"><a href="#cb11-666"></a></span>
-<span id="cb11-667"><a href="#cb11-667"></a>For a thoughtful perspective on the relationship between statistics and machine learning, Breiman's (2001) paper "Statistical Modeling: The Two Cultures" in *Statistical Science* remains essential reading.</span>
+<span id="cb11-663"><a href="#cb11-663"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb11-664"><a href="#cb11-664"></a>x_train <span class="op">=</span> np.sort(np.random.uniform(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">50</span>))</span>
+<span id="cb11-665"><a href="#cb11-665"></a>y_train <span class="op">=</span> np.sin(x_train) <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.3</span>, <span class="dv">50</span>)</span>
+<span id="cb11-666"><a href="#cb11-666"></a>x_test <span class="op">=</span> np.sort(np.random.uniform(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">200</span>))</span>
+<span id="cb11-667"><a href="#cb11-667"></a>y_test <span class="op">=</span> np.sin(x_test) <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.3</span>, <span class="dv">200</span>)</span>
+<span id="cb11-668"><a href="#cb11-668"></a></span>
+<span id="cb11-669"><a href="#cb11-669"></a><span class="co"># Your code: loop over degrees [1, 3, 5, 10, 20]</span></span>
+<span id="cb11-670"><a href="#cb11-670"></a><span class="co"># Fit PolynomialFeatures + LinearRegression</span></span>
+<span id="cb11-671"><a href="#cb11-671"></a><span class="co"># Compute train and test RMSE</span></span>
+<span id="cb11-672"><a href="#cb11-672"></a><span class="in">```</span></span>
+<span id="cb11-673"><a href="#cb11-673"></a></span>
+<span id="cb11-674"><a href="#cb11-674"></a>:::</span>
+<span id="cb11-675"><a href="#cb11-675"></a></span>
+<span id="cb11-676"><a href="#cb11-676"></a><span class="fu">## Summary</span></span>
+<span id="cb11-677"><a href="#cb11-677"></a></span>
+<span id="cb11-678"><a href="#cb11-678"></a>This chapter introduced the foundational concepts of machine learning that every clinical researcher should understand before applying ML methods:</span>
+<span id="cb11-679"><a href="#cb11-679"></a></span>
+<span id="cb11-680"><a href="#cb11-680"></a><span class="ss">- </span>**ML is pattern recognition**, not magic. It requires careful validation and domain knowledge.</span>
+<span id="cb11-681"><a href="#cb11-681"></a><span class="ss">- </span>**Supervised learning** (prediction from labeled data) is the most common ML paradigm in clinical research.</span>
+<span id="cb11-682"><a href="#cb11-682"></a><span class="ss">- </span>The **bias-variance tradeoff** governs all model selection: too simple = underfitting, too complex = overfitting.</span>
+<span id="cb11-683"><a href="#cb11-683"></a><span class="ss">- </span>**Training/validation/test splits** and **cross-validation** are essential for honest performance evaluation.</span>
+<span id="cb11-684"><a href="#cb11-684"></a><span class="ss">- </span>**Feature engineering** — where clinical expertise meets data science — is often more important than model choice.</span>
+<span id="cb11-685"><a href="#cb11-685"></a><span class="ss">- </span>**Feature selection** (filter, wrapper, embedded) prevents overfitting in high-dimensional settings.</span>
+<span id="cb11-686"><a href="#cb11-686"></a><span class="ss">- </span>**SVMs** find maximum-margin boundaries and can handle non-linear problems via the kernel trick.</span>
+<span id="cb11-687"><a href="#cb11-687"></a><span class="ss">- </span>**ML and statistics are complementary**, not competing. The best clinical researchers use both.</span>
+<span id="cb11-688"><a href="#cb11-688"></a></span>
+<span id="cb11-689"><a href="#cb11-689"></a><span class="fu">## References and Further Reading</span></span>
+<span id="cb11-690"><a href="#cb11-690"></a></span>
+<span id="cb11-691"><a href="#cb11-691"></a>For an integrated treatment of machine learning and statistical methods tailored to clinical and public health researchers, see Smits et al. (2026), particularly Chapter 9, which covers the supervised learning concepts and cross-validation approaches discussed here with additional worked medical examples.</span>
+<span id="cb11-692"><a href="#cb11-692"></a></span>
+<span id="cb11-693"><a href="#cb11-693"></a>Boehmke and Greenwell's *Hands-On Machine Learning with R* (HOML) provides an excellent practical introduction to ML methods in R, using the tidymodels framework. It covers the bias-variance tradeoff, cross-validation, and feature engineering with clear code examples and is freely available online.</span>
+<span id="cb11-694"><a href="#cb11-694"></a></span>
+<span id="cb11-695"><a href="#cb11-695"></a>Lgatto's *Introduction to Machine Learning* (IntroML) is a concise, well-organized online resource that covers the core concepts without excessive mathematical detail, making it a good supplement for students new to the field.</span>
+<span id="cb11-696"><a href="#cb11-696"></a></span>
+<span id="cb11-697"><a href="#cb11-697"></a>Christodoulou et al. (2019), "A Systematic Review Shows No Performance Benefit of Machine Learning over Logistic Regression for Clinical Prediction Models," published in the *Journal of Clinical Epidemiology*, provides important context for when ML methods do and do not outperform traditional approaches — a message every clinical researcher should internalize before defaulting to complex methods.</span>
+<span id="cb11-698"><a href="#cb11-698"></a></span>
+<span id="cb11-699"><a href="#cb11-699"></a>For support vector machines, the original formulation by Vapnik (1995) in *The Nature of Statistical Learning Theory* (Springer) is the theoretical foundation, though Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (Springer, 2nd edition, 2009) provides a more accessible treatment in Chapters 9 and 12. James et al., *An Introduction to Statistical Learning* (ISLR, 2nd edition, 2021), covers SVMs in Chapter 9 at an introductory level with R lab exercises.</span>
+<span id="cb11-700"><a href="#cb11-700"></a></span>
+<span id="cb11-701"><a href="#cb11-701"></a>For a thoughtful perspective on the relationship between statistics and machine learning, Breiman's (2001) paper "Statistical Modeling: The Two Cultures" in *Statistical Science* remains essential reading.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 360" font-family="Helvetica, Arial, sans-serif">
+  <rect width="500" height="360" fill="#ffffff"/>
+  <!-- axes -->
+  <line x1="60" y1="310" x2="470" y2="310" stroke="#333" stroke-width="1.5"/>
+  <line x1="60" y1="310" x2="60" y2="30" stroke="#333" stroke-width="1.5"/>
+  <text x="265" y="345" text-anchor="middle" font-size="15" fill="#333">Age</text>
+  <text x="22" y="170" text-anchor="middle" font-size="15" fill="#333" transform="rotate(-90 22 170)">Biomarker level</text>
+
+  <!-- separating hyperplane (solid) -->
+  <line x1="95" y1="300" x2="430" y2="60" stroke="#222" stroke-width="2.5"/>
+  <!-- margins (dashed) -->
+  <line x1="60" y1="300" x2="390" y2="62" stroke="#888" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <line x1="135" y1="300" x2="465" y2="62" stroke="#888" stroke-width="1.5" stroke-dasharray="6 5"/>
+
+  <!-- margin width indicator -->
+  <line x1="250" y1="227" x2="290" y2="199" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="300" y="205" font-size="13" fill="#c0392b">margin</text>
+
+  <!-- Healthy (blue) lower-left cluster -->
+  <g fill="#2e6fb7">
+    <circle cx="95" cy="285" r="6"/>
+    <circle cx="120" cy="255" r="6"/>
+    <circle cx="90" cy="230" r="6"/>
+    <circle cx="150" cy="280" r="6"/>
+    <circle cx="115" cy="200" r="6"/>
+    <circle cx="80" cy="180" r="6"/>
+  </g>
+  <!-- support vector (healthy) on lower-margin -->
+  <circle cx="165" cy="248" r="9" fill="none" stroke="#222" stroke-width="2.5"/>
+  <circle cx="165" cy="248" r="6" fill="#2e6fb7"/>
+
+  <!-- Disease (red) upper-right cluster -->
+  <g fill="#c0392b">
+    <circle cx="430" cy="120" r="6"/>
+    <circle cx="400" cy="95" r="6"/>
+    <circle cx="365" cy="110" r="6"/>
+    <circle cx="440" cy="160" r="6"/>
+    <circle cx="395" cy="150" r="6"/>
+    <circle cx="335" cy="80" r="6"/>
+  </g>
+  <!-- support vector (disease) on upper-margin -->
+  <circle cx="320" cy="150" r="9" fill="none" stroke="#222" stroke-width="2.5"/>
+  <circle cx="320" cy="150" r="6" fill="#c0392b"/>
+
+  <!-- legend -->
+  <circle cx="350" cy="285" r="6" fill="#2e6fb7"/>
+  <text x="362" y="290" font-size="13" fill="#333">Healthy</text>
+  <circle cx="350" cy="307" r="6" fill="#c0392b"/>
+  <text x="362" y="312" font-size="13" fill="#333">Disease</text>
+  <circle cx="430" cy="285" r="9" fill="none" stroke="#222" stroke-width="2.5"/>
+  <text x="443" y="290" font-size="13" fill="#333">support vector</text>
+</svg>
