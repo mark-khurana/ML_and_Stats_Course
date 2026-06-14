@@ -14,7 +14,6 @@ book:
   repo-actions: [edit, issue, source]
   repo-branch: main
   search: true
-  downloads: [pdf]
   sharing: [twitter, linkedin]
   reader-mode: true
   page-navigation: true
@@ -96,14 +95,6 @@ format:
     linestretch: 1.6
     smooth-scroll: true
     include-after-body: _includes/goatcounter.html
-
-  pdf:
-    documentclass: scrbook
-    papersize: letter
-    toc: true
-    toc-depth: 2
-    number-sections: true
-    colorlinks: true
 
 execute:
   eval: false
