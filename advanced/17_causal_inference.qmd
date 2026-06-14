@@ -71,6 +71,7 @@ $$
 A **directed acyclic graph** is a visual representation of your causal assumptions. Each node represents a variable. Each arrow represents a direct causal effect. "Acyclic" means no variable can cause itself through a chain of arrows.
 
 ```{mermaid}
+%%| eval: true
 %%| label: fig-dag-basic
 %%| fig-cap: "A simple DAG showing confounding. Age affects both statin use and cardiovascular death."
 graph LR

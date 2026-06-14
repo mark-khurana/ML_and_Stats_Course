@@ -25,6 +25,7 @@ A **decision tree** is perhaps the most intuitive machine learning model. It mak
 **Why start with CART?** CART (Classification And Regression Trees) is the foundation for everything else in this chapter --- random forests and gradient boosting are both just clever ways of combining many CART trees. But a single tree is also valuable in its own right for clinical work: it produces a rule you can literally read off and apply at the bedside without a computer, and it handles a mix of continuous and categorical predictors, missing values, and interactions with no special preprocessing. When you need a model that a clinical team will actually trust and use, a small decision tree is often the most practical choice. @fig-cart-example shows the kind of transparent rule a tree produces.
 
 ```{mermaid}
+%%| eval: true
 %%| label: fig-cart-example
 %%| fig-cap: "A simple, readable decision tree for 30-day readmission risk. To use it, start at the top and follow the answers to your patient's questions down to a leaf, which gives the predicted risk group. This is the kind of transparent rule that makes trees appealing at the bedside."
 flowchart TD
