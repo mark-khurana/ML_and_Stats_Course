@@ -28,15 +28,14 @@ load_course_data <- function(name) {
 
 # Colour palette (colour-blind friendly)
 course_colours <- c(
-  "#2c6fbb",  # blue
-
-"#e69f00",  # orange
-  "#009e73",  # green
-  "#cc79a7",  # pink
-  "#56b4e9",  # light blue
-  "#d55e00",  # red-orange
-  "#0072b2",  # dark blue
-  "#f0e442"   # yellow
+  "#2c6fbb", # blue
+  "#e69f00", # orange
+  "#009e73", # green
+  "#cc79a7", # pink
+  "#56b4e9", # light blue
+  "#d55e00", # red-orange
+  "#0072b2", # dark blue
+  "#f0e442" # yellow
 )
 
 scale_colour_course <- function(...) {
