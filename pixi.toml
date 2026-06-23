@@ -1,0 +1,96 @@
+[workspace]
+authors = [
+    "Neclow <neil.clow@sund.ku.dk>",
+    "mark-khurana <mark.khurana@sund.ku.dk>",
+]
+channels = ["conda-forge"]
+name = "mlstatscourse"
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+version = "0.1.0"
+
+# ---------------------------------------------------------------------------
+# Tasks
+# ---------------------------------------------------------------------------
+[tasks]
+post_install = "bash scripts/post_install.sh"
+
+[feature.dev.tasks]
+preview = "quarto preview"
+render = "quarto render"
+
+# ---------------------------------------------------------------------------
+# Default: Python chapter dependencies (tier 2 — Python + VS Code students)
+# ---------------------------------------------------------------------------
+[dependencies]
+python = ">=3.14.6,<3.15"
+umap-learn = ">=0.5.12,<0.6"
+ipykernel = ">=7.3.0,<8"
+
+[pypi-dependencies]
+numpy = "*"
+pandas = ">=3.0.3,<4"
+scikit-learn = "*"
+scipy = "*"
+matplotlib = ">=3.11.0,<4"
+dowhy = ">=0.14,<0.15"
+statsmodels = ">=0.14.6,<0.15"
+patsy = ">=1.0.2,<2"
+lifelines = ">=0.30.0,<0.31"
+xgboost = ">=3.3.0,<4"
+
+# ---------------------------------------------------------------------------
+# Feature: r — all R chapter dependencies
+# ---------------------------------------------------------------------------
+[feature.r.dependencies]
+r-base = ">=4.5.3,<4.6"
+r-tidyverse = ">=2.0.0,<3"
+r-remotes = ">=2.5.0,<3"
+r-rms = ">=8.1_1,<9"
+r-tidymodels = ">=1.4.1,<2"
+r-glmnet = ">=5.0,<6"
+r-survminer = ">=0.5.2,<0.6"
+r-tidycmprsk = ">=1.1.2,<2"
+r-mlbench = ">=2.1_8,<3"
+r-kernlab = ">=0.9_33,<0.10"
+"r-rpart.plot" = ">=3.1.4,<4"
+r-vip = ">=0.4.6,<0.5"
+r-prroc = ">=1.4,<2"
+r-rtsne = ">=0.17,<0.18"
+r-uwot = ">=0.2.4,<0.3"
+r-mclust = ">=6.1.2,<7"
+r-matchit = ">=4.7.2,<5"
+r-cobalt = ">=4.6.3,<5"
+r-weightit = ">=1.7.0,<2"
+r-meta = ">=8.5_0,<9"
+r-metafor = ">=5.0_1,<6"
+r-netmeta = ">=3.6_0,<4"
+r-marginaleffects = ">=0.32.0,<0.33"
+r-ranger = ">=0.18.0,<0.19"
+r-xgboost = ">=3.2.0,<4"
+r-shapviz = ">=0.10.3,<0.11"
+r-pdp = ">=0.8.3,<0.9"
+r-pmsampsize = ">=1.1.3,<2"
+r-mice = ">=3.19.0,<4"
+
+# ---------------------------------------------------------------------------
+# Feature: dev — book rendering tools (quarto + knitr engine)
+# ---------------------------------------------------------------------------
+[feature.dev.dependencies]
+quarto = ">=1.9.38,<2"
+r-rmarkdown = ">=2.31,<3"
+r-knitr = ">=1.51,<2"
+r-reticulate = ">=1.46.0,<2"
+
+[feature.dev.activation]
+env = { QUARTO_R = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/bin/R" }
+
+# ---------------------------------------------------------------------------
+# Environments
+# ---------------------------------------------------------------------------
+[environments]
+# Python students: pixi install
+default = { solve-group = "default" }
+# Python + R students: pixi install -e full && pixi run -e full post_install
+full = { features = ["r"], solve-group = "full" }
+# Contributors: pixi install -e dev && pixi run -e dev post_install
+dev = { features = ["r", "dev"], solve-group = "dev" }

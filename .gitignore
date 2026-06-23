@@ -17,3 +17,16 @@ renv/
 /.quarto/
 
 **/*.quarto_ipynb
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# scratch scripts (not tracked)
+tmp/
+
+# Neil's drafts & notes
+drafts/
+notes/
+
+# VS Code
+.vscode/
