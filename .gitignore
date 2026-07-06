@@ -30,3 +30,7 @@ notes/
 
 # VS Code
 .vscode/
+
+# Claude
+.claude/
+CLAUDE.md
