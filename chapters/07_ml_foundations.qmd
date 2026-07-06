@@ -11,68 +11,77 @@ opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## What Machine Learning Is (and Is Not)
 
-If you have worked through the regression and Bayesian chapters, you already understand the core of machine learning --- you just did not call it that. This part of the course focuses on **supervised** machine learning: algorithms that learn to predict an outcome from labelled examples. We also introduce the vocabulary, workflow, and evaluation framework that the ML community uses, which differs in emphasis from the statistical tradition you have been working in so far.
+If you have worked through the regression and Bayesian chapters, you already understand the core of machine learning --- you just did not call it that.
 
-Machine learning (ML) is a collection of algorithms that learn patterns from data to make predictions or discover structure --- without being explicitly programmed with rules. That is the textbook definition. Here is a more practical one for clinical researchers:
+By definition, machine learning is the study of algorithms that learn from data. Whether your algorithm is a logistic regression model that predicts 30-day readmission from 5 clinical variables, or an advanced AI model that reads chest X-rays for pneumonia detection, the goal is the same: **to discover patterns** in data to make predictions or discover structure, without being explicitly programmed with rules.
 
-**Machine learning is pattern recognition at scale.** Given enough examples of inputs and outputs, an ML algorithm finds the mapping between them. A logistic regression that predicts 30-day readmission from 5 clinical variables is, technically, machine learning. An algorithm that reads chest X-rays and flags pneumonia is also machine learning. The difference is one of complexity and scale, not of kind.
+Thus, compared to traditional statistics, the difference is mainly one of emphasis:
 
-### Common Misconceptions
+- **Traditional statistics** focuses more on understanding relationships (*what is the effect of smoking on lung cancer risk, adjusted for age?*).
+- **Machine learning** focuses more on prediction accuracy (*given these 50 variables, what is the probability this patient will be readmitted within 30 days?*).
 
-Let us address several misconceptions head-on:
+This part of the course introduces the vocabulary, workflow, and evaluation frameworks that the ML community uses.
 
-1. **"ML is always better than regression."** False. For many clinical prediction tasks with modest sample sizes and well-understood relationships, logistic or Cox regression performs just as well as or better than complex ML models — and is far more interpretable. A 2019 systematic review by Christodoulou et al. in the *Journal of Clinical Epidemiology* found that ML models did not consistently outperform logistic regression for clinical prediction.
+## Brief Overview
 
-2. **"ML finds truth in data automatically."** False. ML finds patterns — including spurious ones. Without careful validation, feature engineering, and domain knowledge, ML models can learn noise, artifacts, and biases in the data.
+Machine learning involves four key components:
+1. The **machine learning model** is a mathematical function that maps inputs to predicted outputs. It is the object that "*learns*".
+   *Examples: linear regression, random forests, and neural networks.*
+2. **Data** is the information the model learns from. It can be structured (e.g., lab values, demographics) or unstructured (e.g., images, audio, text).
+3. The **task** or **objective** is the prediction or structure discovery problem the model is trying to solve.
+   *Examples: predicting levels of a biomarker, classifying images, clustering patients into subgroups.*
+4. The **learning algorithm** is the procedure for selecting a specific model given the data.
+   *Example: in linear regression, ordinary least squares can be used to find coefficients that minimize the sum of squared errors. OLS is the "learning engine" of the linear regression model.*
 
-3. **"ML doesn't need assumptions."** Misleading. ML models may not require linearity or normality assumptions, but they make other assumptions: that the training data is representative of future data, that the features capture the relevant information, that the data is not systematically biased.
+<!-- TODO: Add a schematic/diagram showing how the 4 components (model, data, task, optimizer) interact — e.g. a cycle: data feeds into model, model produces predictions, loss compares predictions to truth, optimizer updates model. -->
 
-4. **"More data always helps."** Mostly true, but not always. More biased data produces a more confidently wrong model. Data quality matters at least as much as data quantity.
+Whilst each component requires careful thought, modelling itself is only one stage of the data science pipeline. In practice, a considerable amount of work lies upstream (cleaning, linking, and transforming raw data) and downstream (evaluating, interpreting, reporting, and deploying the model).
 
-5. **"Deep learning is always the best approach."** False. For tabular clinical data (the kind in most EHR studies), gradient-boosted trees often outperform deep learning. Deep learning excels with images, text, and time series.
+## Learning Paradigms
 
-### How is ML different from what I already know?
-
-If you have worked through the regression chapters, you already know machine learning — you just did not call it that. Logistic regression is a machine learning algorithm. The difference is mainly one of emphasis:
-
-- **Traditional statistics** focuses on understanding relationships (what is the effect of smoking on lung cancer risk, adjusted for age?).
-- **Machine learning** focuses on prediction accuracy (given these 50 variables, what is the probability this patient will be readmitted within 30 days?).
-
-The tools overlap substantially. The new concepts in this chapter — cross-validation, regularisation, ensemble methods — are techniques for improving prediction performance when you have many variables and complex relationships.
-
-## Supervised vs Unsupervised vs Reinforcement Learning
+There are three main paradigms of machine learning: supervised, unsupervised, and reinforcement learning. Each paradigm has a different goal and requires different types of data. This part of the course will focus on **supervised learning** --- the prediction-oriented methods that build on the regression foundations you already know.
 
 ### Supervised Learning
 
-In **supervised learning**, the algorithm learns from labeled examples: input-output pairs where the "right answer" is known.
+In **supervised learning**, the model learns from labelled examples (input-output pairs). In this framework, an input is fed to the model, which in turn makes a prediction. The model learns based on how well its predictions match the known outputs (the labels). There are two main types of supervised learning: classification and regression.
 
-- **Classification**: The output is a category. *Is this skin lesion malignant or benign? Will this patient be readmitted within 30 days?*
-- **Regression** (in the ML sense): The output is a continuous value. *What will this patient's HbA1c be in 6 months? What is the expected length of stay?*
+**Classification** predicts a category; **regression** predicts a continuous value.
 
-Most clinical prediction models — logistic regression, random forests, neural networks for diagnosis — are supervised learning.
+| Task | Question | Input | Output |
+|------|----------|-------|--------|
+| **Classification** | Is this skin lesion malignant or benign? | Dermoscopy image | "malignant" or "benign" |
+| | Will this patient be readmitted within 30 days? | Clinical variables | "yes" or "no" |
+| **Regression** | What will this patient's HbA1c be in 6 months? | Clinical variables | Predicted HbA1c level |
+| | What is the expected length of stay? | Clinical variables | Predicted days |
+
+Most clinical prediction models — logistic regression, random forests, neural networks — are trained using supervised learning.
 
 ### Unsupervised Learning
 
-In **unsupervised learning**, there are no labels. The algorithm discovers structure in the data on its own.
+**Unsupervised learning** deals with unlabelled data. Rather than predicting a known outcome, the model discovers structure in the data. Common tasks include:
 
-- **Clustering**: Group patients into subgroups based on similarity. *Are there distinct phenotypes of sepsis patients?*
+- **Clustering**: Find an optimal grouping of data based on similarity. *Are there distinct phenotypes of sepsis patients?*
 - **Dimensionality reduction**: Compress high-dimensional data into fewer dimensions for visualization or preprocessing. *Can we summarize 50 lab values into a few meaningful components?*
 - **Anomaly detection**: Identify unusual observations. *Which patients have lab value patterns that are outliers?*
 
-We cover dimensionality reduction and clustering in detail later in the course. This part focuses on **supervised learning** --- the prediction-oriented methods that build on the regression foundations you already know.
+We cover dimensionality reduction and clustering in detail later in the course.
 
 ### Reinforcement Learning
 
-In **reinforcement learning (RL)**, an agent learns by trial and error, receiving rewards or penalties for actions. While RL has exciting potential in medicine (e.g., optimizing treatment policies for sepsis management or dynamic treatment regimes), it requires large amounts of interaction data and is rarely used in standard clinical research. We mention it for completeness but will not cover it further in this course.
+**Reinforcement learning (RL)** concerns how models (called *agents*) learn to take actions in an environment to optimize a reward signal. In RL, agents learn by trial and error by interacting with the environment and receiving feedback in the form of rewards or penalties. The goal is to learn a policy that maximizes cumulative reward over time. While RL has exciting potential in medicine (e.g., optimizing treatment policies for sepsis management or dynamic treatment regimes), it requires large amounts of interaction data and is rarely used in standard clinical research. We mention it for completeness but will not cover it further in this course.
 
 ::: {.callout-note}
 ## Where Does Traditional Statistics Fit?
 Linear regression, logistic regression, and Cox regression are all forms of supervised learning. The distinction between "statistics" and "machine learning" is largely cultural and historical. Statistics emphasizes inference (understanding relationships, testing hypotheses). ML emphasizes prediction (making accurate forecasts on new data). The methods overlap substantially.
 :::
 
-## The Bias-Variance Tradeoff
+## Supervised Learning
 
-This is arguably the single most important concept in machine learning. Every predictive model navigates a tension between two sources of error:
+A core tenet of supervised learning is that the model is trained on a dataset that constitutes a sample of a (much) larger population. The model learns patterns from the training data, but its ultimate goal is to generalize to new, unseen data. This is where the concepts of **bias** and **variance** come into play.
+
+### The Bias-Variance Tradeoff
+
+Every supervised model navigates a tension between two sources of error:
 
 - **Bias**: Error from oversimplifying the model. A model with high bias misses important patterns. It *underfits* the data.
 - **Variance**: Error from making the model too flexible. A model with high variance captures noise as if it were signal. It *overfits* the data.
@@ -81,16 +90,16 @@ The total prediction error can be decomposed as:
 
 $$\text{Expected Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise}$$
 
-### A Clinical Analogy
+See [this link](https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff#Derivation) for a derivation of this decomposition.
 
-Think of a diagnostic criterion:
+We can draw a clinical analogy to make this more concrete. Think of a diagnostic criterion:
 
 - **Too specific** (high bias, low variance): A criterion that requires 5 out of 5 symptoms to diagnose a disease. It misses many true cases (underfitting — the rule is too rigid) but rarely triggers a false alarm.
 - **Too sensitive** (low bias, high variance): A criterion that diagnoses the disease if *any* 1 of 5 symptoms is present. It catches nearly every true case but also flags many healthy individuals (overfitting to noise).
 
 The optimal diagnostic criterion balances sensitivity and specificity. Similarly, the optimal ML model balances bias and variance.
 
-### Visualizing the Tradeoff
+#### Visualizing the Tradeoff
 
 ```{r}
 #| label: bias-variance-plot
@@ -100,7 +109,7 @@ The optimal diagnostic criterion balances sensitivity and specificity. Similarly
 complexity <- seq(0.1, 10, length.out = 100)
 bias2 <- 5 * exp(-0.5 * complexity)
 variance <- 0.3 * complexity^1.5
-total <- bias2 + variance + 1  # irreducible noise = 1
+total <- bias2 + variance + 1 # irreducible noise = 1
 
 df_bv <- data.frame(
   Complexity = rep(complexity, 3),
@@ -108,14 +117,31 @@ df_bv <- data.frame(
   Component = rep(c("Bias²", "Variance", "Total Error"), each = 100)
 )
 
-ggplot(df_bv, aes(x = Complexity, y = Error, color = Component, linetype = Component)) +
+ggplot(
+  df_bv,
+  aes(x = Complexity, y = Error, color = Component, linetype = Component)
+) +
   geom_line(linewidth = 1.2) +
-  scale_color_manual(values = c("Bias²" = "#E69F00", "Variance" = "#56B4E9",
-                                "Total Error" = "#D55E00")) +
+  scale_color_manual(
+    values = c(
+      "Bias²" = "#E69F00",
+      "Variance" = "#56B4E9",
+      "Total Error" = "#D55E00"
+    )
+  ) +
   geom_hline(yintercept = 1, linetype = "dotted", color = "gray50") +
-  annotate("text", x = 9, y = 1.3, label = "Irreducible noise", color = "gray50") +
-  labs(x = "Model Complexity", y = "Error",
-       title = "The Bias-Variance Tradeoff") +
+  annotate(
+    "text",
+    x = 9,
+    y = 1.3,
+    label = "Irreducible noise",
+    color = "gray50"
+  ) +
+  labs(
+    x = "Model Complexity",
+    y = "Error",
+    title = "The Bias-Variance Tradeoff"
+  ) +
   theme_minimal(base_size = 14) +
   theme(legend.position = "top")
 ```
@@ -126,11 +152,11 @@ In Chapter 4, you modelled non-linear relationships. A straight line through a U
 
 In practice, we cannot directly observe bias and variance separately. We detect the tradeoff by comparing **training error** (how well the model fits the data it learned from) and **test error** (how well it performs on new data). When training error is low but test error is high, the model is overfitting.
 
-## Training, Validation, and Test Sets
+### Training, Validation, and Test Sets
 
-To evaluate how well a model will perform on new, unseen patients, we **must** evaluate it on data it has never seen during training. This is the most important methodological principle in ML.
+On what data should a model learn from? Since we want to strike the right balance between bias and variance, we need to evaluate the model on data it has not seen during learning. To that end, a recommended practice is to split the dataset into three parts: **training**, **validation**, and **test** sets.
 
-### The Three-Way Split
+Each set serves a distinct purpose.
 
 | Set | Purpose | Typical Size |
 |-----|---------|-------------|
@@ -138,24 +164,26 @@ To evaluate how well a model will perform on new, unseen patients, we **must** e
 | **Validation set** | Tune hyperparameters, select among models | 15–20% |
 | **Test set** | Final, unbiased performance estimate | 15–20% |
 
-The **test set must never be used for any decision** — not for feature selection, not for hyperparameter tuning, not for choosing between models. It is opened exactly once, at the very end, to report final performance. If you use the test set to make modeling decisions, it becomes a validation set, and your reported performance will be optimistically biased.
+The most important methodological consideration in machine learning is that the **test set must never be used for any decision** — not for feature selection, not for hyperparameter tuning, not for choosing between models. It is opened exactly once, at the very end, to report final performance. If you use the test set to make modeling decisions, it becomes a validation set, and your reported performance will be optimistically biased.
 
 ::: {.callout-warning}
 ## The Cardinal Sin of Machine Learning
 Using the test set during model development — and then reporting performance on that same test set — is the ML equivalent of p-hacking. It produces overoptimistic results that will not replicate. In clinical ML, this can mean deploying a model that performs worse in practice than expected, with potential patient harm.
 :::
 
-### When Data Is Limited
+Splitting data into training, validation, and test sets may be performed at random or in a stratified manner, but the key is that the splits are **mutually exclusive**. Potential pitfalls (also called *data leakage*) include:
+* Repeated measurements from the same patient appearing in several splits.
+* Site- or instrument-specific patterns in multi-center data that correlate with the outcome, so the model learns institutional identity rather than biology.
+* Features derived from information collected *after* the prediction time point (*temporal leakage*).
+* Variables that exist as a consequence of the outcome rather than as independent predictors (e.g., a chemotherapy flag leaking a cancer diagnosis).
 
 In clinical research, we often have hundreds (not millions) of patients. A single 70/15/15 split wastes data and produces unstable estimates. The solution is **cross-validation**.
 
-## Cross-Validation
+### Cross-Validation
 
 **Cross-validation (CV)** is a resampling strategy that uses all the data for both training and validation, by rotating which portion is held out.
 
-### k-Fold Cross-Validation
-
-The most common approach:
+The most common approach is **k-fold cross-validation**:
 
 1. Randomly split the data into $k$ equally sized **folds** (typically $k = 5$ or $k = 10$).
 2. For each fold $i = 1, \ldots, k$:
@@ -165,12 +193,12 @@ The most common approach:
 
 This gives a more stable and less biased estimate of performance than a single train/test split.
 
-### Variants
+#### Variants of Cross-Validation
 
 Plain k-fold works well when the outcome is balanced and every row is an independent patient. Clinical data often violate those assumptions, so several variants exist. Each one fixes a specific problem you are likely to meet:
 
 - **Stratified k-fold**: Ensures each fold has the same proportion of events/classes as the full dataset. *Why it matters:* with a rare outcome (say a 5% readmission rate and 10 folds), an ordinary random split could easily produce a fold with almost no events --- giving a meaningless performance estimate for that fold. Stratification guarantees every fold contains a fair share of events. **Use it by default for any classification problem.**
-- **Repeated k-fold**: Repeat the entire k-fold procedure $m$ times with different random splits, then average. *Why it matters:* a single 10-fold split is itself somewhat random --- shuffle the data differently and you get a slightly different number. Repeating (e.g. 10-fold repeated 5 times = 50 estimates) averages out that luck-of-the-draw and gives a more stable estimate.
+- **Repeated k-fold**: Repeat the entire k-fold procedure $m$ times with different random splits, then average. *Why it matters:* a single 10-fold split is itself somewhat random --- shuffle the data differently and you get a slightly different performance estimate. Repeating (e.g. 10-fold repeated 5 times = 50 estimates) averages out that luck-of-the-draw and gives a more stable estimate.
 - **Leave-one-out (LOO)**: $k = n$ (each fold is a single observation). Nearly unbiased but high variance and computationally expensive. Useful only for very small datasets.
 - **Grouped/clustered CV**: When observations are not independent (e.g., multiple visits per patient, or patients clustered within hospitals), entire groups must be kept together --- all of a patient's rows go into the *same* fold. *Why it matters:* if the same patient appears in both the training and validation folds, the model can "recognise" them at validation time and post an inflated score that will not hold up on genuinely new patients. This is one of the most common and most damaging mistakes in clinical ML. **Never split a patient's data across training and validation sets.**
 
@@ -191,8 +219,11 @@ clin_data <- tibble(
   sbp = rnorm(n, 135, 20),
   glucose = rnorm(n, 110, 30),
   smoking = rbinom(n, 1, 0.25),
-  readmit = factor(rbinom(n, 1, 0.15), levels = c("0", "1"),
-                   labels = c("No", "Yes"))
+  readmit = factor(
+    rbinom(n, 1, 0.15),
+    levels = c("0", "1"),
+    labels = c("No", "Yes")
+  )
 )
 
 # Create 10-fold CV with stratification
@@ -211,8 +242,11 @@ log_wf <- workflow() %>%
   add_model(log_spec) %>%
   add_recipe(log_recipe)
 
-cv_results <- fit_resamples(log_wf, resamples = folds,
-                            metrics = metric_set(roc_auc, accuracy))
+cv_results <- fit_resamples(
+  log_wf,
+  resamples = folds,
+  metrics = metric_set(roc_auc, accuracy)
+)
 
 collect_metrics(cv_results)
 ```
@@ -261,11 +295,11 @@ print(f"Number of CV iterations: {len(scores)}")
 
 The point of the exercise is not the specific number (the data are random here, so the AUC will sit near 0.5) but the *workflow*: this is the template you reuse for real data, simply swapping in your own dataset and model.
 
-## Feature Engineering in Clinical Data
+### Feature Engineering in Clinical Data
 
 **Feature engineering** is the process of transforming raw variables into features that are more useful for modeling. In clinical ML, this often means incorporating domain knowledge.
 
-### Examples of Clinical Feature Engineering
+#### Examples of Clinical Feature Engineering
 
 | Raw Data | Engineered Feature | Rationale |
 |----------|-------------------|-----------|
@@ -278,15 +312,13 @@ The point of the exercise is not the specific number (the data are random here, 
 | Medication list | Binary flags for drug classes | Captures treatment intent |
 
 ::: {.callout-tip}
-## Domain Knowledge Is Your Superpower
+#### Domain Knowledge Is Your Superpower
 Clinical researchers have a massive advantage in ML: you understand the data. A computer scientist might feed raw creatinine into a model; you know to compute eGFR. A data scientist might treat blood pressure as two independent numbers; you know that pulse pressure has specific physiological meaning. Feature engineering is where clinical expertise directly improves model performance.
 :::
 
-## Feature Selection
+### Feature Selection
 
-With electronic health record data, you might have hundreds or thousands of candidate features. Including all of them risks overfitting and reduces interpretability. **Feature selection** identifies the most informative subset.
-
-### Three Approaches
+With electronic health record data, you might have hundreds or thousands of candidate features. Including all of them risks overfitting and reduces interpretability. **Feature selection** identifies the most informative subset. Three common approaches are:
 
 **1. Filter methods**: Rank features by some statistical criterion (correlation with outcome, mutual information, chi-squared test) *before* fitting any model. Fast but ignores feature interactions.
 
@@ -311,12 +343,13 @@ df_feat <- tibble(
   sbp = rnorm(n, 135, 20),
   glucose = rnorm(n, 110, 30),
   smoking = rbinom(n, 1, 0.25),
-  noise1 = rnorm(n),  # irrelevant
-  noise2 = rnorm(n),  # irrelevant
-  noise3 = rnorm(n),  # irrelevant
-  outcome = factor(rbinom(n, 1, plogis(-3 + 0.02 * rnorm(n, 60, 12) +
-                                        0.05 * rnorm(n, 28, 5))),
-                   labels = c("No", "Yes"))
+  noise1 = rnorm(n), # irrelevant
+  noise2 = rnorm(n), # irrelevant
+  noise3 = rnorm(n), # irrelevant
+  outcome = factor(
+    rbinom(n, 1, plogis(-3 + 0.02 * age + 0.05 * bmi)),
+    labels = c("No", "Yes")
+  )
 )
 
 # LASSO logistic regression
@@ -360,7 +393,7 @@ X = pd.DataFrame({
     'noise2': np.random.normal(0, 1, n),
     'noise3': np.random.normal(0, 1, n)
 })
-y = np.random.binomial(1, 0.15, n)
+y = np.random.binomial(1, 1 / (1 + np.exp(-(-3 + 0.02 * X['age'] + 0.05 * X['bmi']))))
 
 # LASSO feature selection
 scaler = StandardScaler()
@@ -393,125 +426,6 @@ print(f"\nRFE selected features: {list(selected)}")
 
 The clinical point is reassurance: when you face a spreadsheet with dozens of candidate variables, these methods let the data tell you which ones carry signal, rather than you guessing or keeping everything (which invites overfitting). If a variable you *expected* to matter gets dropped, that is itself informative and worth investigating.
 
-## Support Vector Machines
-
-**Support vector machines (SVMs)** are a supervised learning method that finds the optimal decision boundary between classes.
-
-::: {.callout-note}
-## Why a clinician should care about SVMs
-SVMs are not just a theoretical curiosity --- they shine in a situation that is increasingly common in clinical research: **many measurements on relatively few patients**. Think of a study with gene-expression levels for 20,000 genes measured on 80 tumour samples, or hundreds of radiomic features extracted from a few hundred scans. Classical logistic regression breaks down when there are more predictors than patients, but an SVM is specifically built to draw a sensible boundary in these "wide" datasets and tends to resist overfitting even when the number of features is enormous.
-
-Concrete clinical uses where SVMs have been successful include classifying tumour subtypes from gene-expression panels, distinguishing disease from healthy tissue on imaging-derived features, and flagging abnormal ECG or EEG patterns. The practical takeaway: when you have a binary question, a modest number of patients, and a large pile of measurements per patient, an SVM is a strong first thing to try.
-:::
-
-### The Intuition: Maximum Margin
-
-Imagine plotting patients in a 2D space where the x-axis is age and the y-axis is a biomarker level. Some patients have the disease (red dots), others do not (blue dots). Many possible lines could separate the two groups. SVM finds the line (or hyperplane, in higher dimensions) that **maximizes the margin** — the distance between the boundary and the nearest points from each class (@fig-svm-margin).
-
-![A support vector machine chooses the separating line with the widest possible margin (the gap between the dashed lines). Only the points sitting on the margin --- the circled **support vectors** --- determine where the boundary goes; the other patients could be moved freely without changing it. A wide margin is what gives the model its robustness: a new patient has to fall well inside the wrong territory before being misclassified.](../images/svm_max_margin.svg){#fig-svm-margin width="80%"}
-
-The nearest points are called **support vectors** — they "support" (define) the boundary. Moving any other point does not change the boundary. This makes SVMs robust to outliers that are far from the boundary. Clinically, this is reassuring: the decision rule hinges on the genuinely borderline patients (the hard cases near the boundary), not on the clear-cut ones far from it.
-
-### The Kernel Trick
-
-What if the classes are not linearly separable? Consider a disease where risk is high both for *very low* and *very high* values of a biomarker, but low in the middle. No straight line can separate "diseased" from "healthy" in that picture (@fig-svm-kernel, left). The **kernel trick** maps the data into a higher-dimensional space where a linear boundary *can* separate the classes (@fig-svm-kernel, right) --- without ever having to compute those new coordinates explicitly.
-
-![Left: the diseased patients (red) surround the healthy ones (blue), so no straight line works in the original two measurements. Right: the kernel trick effectively adds a new dimension (here, roughly "distance from the centre"), lifting the red points up and the blue points down so that a simple flat boundary now separates them. The curved boundary we see back in the original 2D plot is the shadow of this flat boundary in the higher-dimensional space.](../images/svm_kernel_trick.svg){#fig-svm-kernel width="95%"}
-
-Common kernels include:
-
-- **Linear**: No transformation (works when data is linearly separable).
-- **Radial basis function (RBF)**: Maps to infinite-dimensional space. Very flexible, works well in many settings.
-- **Polynomial**: Maps to polynomial feature space.
-
-You do not need to understand the mathematics of kernels to use SVMs effectively. The practical implication is: if a linear SVM does not work well, try an RBF kernel.
-
-### When SVMs Are Useful
-
-SVMs work well for:
-
-- Binary classification with moderate sample sizes
-- High-dimensional data (many features relative to observations)
-- Clear margin of separation between classes
-
-SVMs are less ideal for:
-
-- Very large datasets (training can be slow)
-- Multi-class problems (require one-vs-one or one-vs-rest schemes)
-- Interpretability (the model is a "black box" — no simple coefficients)
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: svm-r
-library(tidymodels)
-library(kernlab)
-
-set.seed(42)
-n <- 300
-svm_data <- tibble(
-  x1 = rnorm(n),
-  x2 = rnorm(n),
-  class = factor(ifelse(x1^2 + x2^2 + rnorm(n, 0, 0.3) > 1.5,
-                        "Disease", "Healthy"))
-)
-
-# Fit SVM with RBF kernel
-svm_spec <- svm_rbf(cost = 1, rbf_sigma = 0.5) %>%
-  set_engine("kernlab") %>%
-  set_mode("classification")
-
-svm_fit <- svm_spec %>% fit(class ~ ., data = svm_data)
-
-# Evaluate with cross-validation
-svm_wf <- workflow() %>%
-  add_model(svm_spec) %>%
-  add_formula(class ~ .)
-
-folds <- vfold_cv(svm_data, v = 5, strata = class)
-svm_cv <- fit_resamples(svm_wf, resamples = folds,
-                        metrics = metric_set(roc_auc, accuracy))
-collect_metrics(svm_cv)
-```
-
-#### Python
-
-```{python}
-#| label: svm-python
-from sklearn.svm import SVC
-from sklearn.model_selection import cross_val_score, StratifiedKFold
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
-import numpy as np
-
-np.random.seed(42)
-n = 300
-x1 = np.random.normal(0, 1, n)
-x2 = np.random.normal(0, 1, n)
-X = np.column_stack([x1, x2])
-y = (x1**2 + x2**2 + np.random.normal(0, 0.3, n) > 1.5).astype(int)
-
-# SVM with RBF kernel
-pipe = make_pipeline(StandardScaler(), SVC(kernel='rbf', C=1.0, gamma=0.5))
-
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-scores = cross_val_score(pipe, X, y, cv=cv, scoring='accuracy')
-print(f"SVM accuracy: {scores.mean():.3f} (+/- {scores.std():.3f})")
-
-auc_scores = cross_val_score(
-    make_pipeline(StandardScaler(), SVC(kernel='rbf', C=1.0, gamma=0.5,
-                                         probability=True)),
-    X, y, cv=cv, scoring='roc_auc'
-)
-print(f"SVM AUC: {auc_scores.mean():.3f} (+/- {auc_scores.std():.3f})")
-```
-
-:::
-
-**What the code is doing.** We deliberately simulate a dataset where the disease cases form a *ring* around the healthy cases (`x1^2 + x2^2 > 1.5`) --- exactly the non-linearly-separable situation from @fig-svm-kernel that a straight-line classifier cannot handle. We then fit an SVM with an **RBF kernel** and estimate its performance with 5-fold cross-validation. The printed accuracy and AUC (both should land well above 0.5, the no-information level) confirm that the RBF kernel successfully learned the curved boundary. The lesson for practice: the same two lines of code would have failed with a linear kernel here; switching to RBF is what makes it work.
-
 ## ML vs Traditional Statistics: What Is Actually Different?
 
 This is a question clinical researchers often ask, and the honest answer is: less than you think.
@@ -532,9 +446,14 @@ Neither approach is inherently superior. For a clinical trial with 200 patients 
 
 ## Exercises
 
-### Exercise 1: Cross-Validation Experiment
+### Exercise 1: Feature Engineering and Cross-Validation
 
-Using the simulated clinical dataset below, compare logistic regression and SVM (RBF kernel) using 10-fold stratified cross-validation. Report AUC for both models. Which performs better? Why?
+Using the simulated clinical dataset below, compare two logistic regression models using 10-fold stratified cross-validation:
+
+- **Model A (raw features)**: Fit logistic regression on the raw variables as given.
+- **Model B (engineered features)**: Add clinically motivated features — e.g., eGFR estimated from creatinine, age, and sex; a hemoglobin-to-platelet ratio; log-transformed WBC — and fit logistic regression on the expanded feature set.
+
+Report AUC for both models. Does feature engineering improve performance? Why or why not?
 
 ::: {.panel-tabset}
 
@@ -543,25 +462,34 @@ Using the simulated clinical dataset below, compare logistic regression and SVM 
 ```{r}
 #| label: ex1-ml-r
 #| eval: false
-library(tidyverse)  # tibble()
-library(tidymodels) # vfold_cv(), logistic_reg(), svm_rbf(), etc.
+library(tidyverse) # tibble()
+library(tidymodels) # vfold_cv(), logistic_reg(), recipe(), etc.
 
 set.seed(123)
 n <- 600
 ex_data <- tibble(
   age = rnorm(n, 65, 10),
+  sex = rbinom(n, 1, 0.5),
   creatinine = rlnorm(n, 0, 0.5),
   hemoglobin = rnorm(n, 12, 2),
   platelets = rnorm(n, 250, 70),
   wbc = rlnorm(n, 2, 0.4),
-  icu = factor(rbinom(n, 1, plogis(-4 + 0.03 * rnorm(n, 65, 10) +
-                                    0.5 * rlnorm(n, 0, 0.5))),
-               labels = c("No", "Yes"))
+  icu = factor(
+    rbinom(
+      n,
+      1,
+      plogis(-4 + 0.03 * age + 0.5 * creatinine)
+    ),
+    labels = c("No", "Yes")
+  )
 )
 
-# Your code: set up tidymodels workflows for logistic_reg and svm_rbf
-# Use vfold_cv with strata = icu
-# Compare using roc_auc
+# Your code:
+# 1. Create two recipes: one with raw features, one adding engineered features
+#    (e.g., step_mutate to add eGFR, hb/platelet ratio, log(wbc))
+# 2. Set up logistic_reg() workflows for both
+# 3. Use vfold_cv with strata = icu
+# 4. Compare using roc_auc
 ```
 
 #### Python Starter Code
@@ -570,16 +498,22 @@ ex_data <- tibble(
 #| label: ex1-ml-python
 #| eval: false
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 np.random.seed(123)
 n = 600
-# Your code: create X and y
-# Compare LogisticRegression vs SVC using cross_val_score with scoring='roc_auc'
+
+# Your code:
+# 1. Create X with raw features (age, sex, creatinine, hemoglobin, platelets, wbc)
+# 2. Create X_eng with additional engineered features
+#    (e.g., eGFR from creatinine/age/sex, hb/platelet ratio, log(wbc))
+# 3. Generate y from age and creatinine
+# 4. Compare LogisticRegression on X vs X_eng using cross_val_score
+#    with scoring='roc_auc'
 ```
 
 :::
@@ -649,6 +583,97 @@ y_test = np.sin(x_test) + np.random.normal(0, 0.3, 200)
 
 :::
 
+### Exercise 4: Spot the Data Leakage
+
+A colleague has built a model to predict ICU admission from routine clinical variables and is excited to report a cross-validated AUC of 0.99. The code below reproduces their analysis. Run it, confirm the suspiciously high AUC, and then:
+
+1. Identify **which feature(s)** cause the data leakage and explain *why* they leak.
+2. Fix the dataset by removing or correcting the problematic feature(s).
+3. Re-run the cross-validation and report the new AUC. How does it compare?
+
+::: {.panel-tabset}
+
+#### R Starter Code
+
+```{r}
+#| label: ex4-ml-r
+#| eval: false
+library(tidyverse)
+library(tidymodels)
+
+set.seed(42)
+n <- 800
+ex_data <- tibble(
+  age = rnorm(n, 65, 10),
+  creatinine = rlnorm(n, 0, 0.5),
+  hemoglobin = rnorm(n, 12, 2),
+  wbc = rlnorm(n, 2, 0.4),
+  icu = factor(
+    rbinom(n, 1, plogis(-4 + 0.03 * age + 0.5 * creatinine)),
+    labels = c("No", "Yes")
+  )
+)
+
+# --- Features added by the colleague ---
+# Ventilator use (only ICU patients receive mechanical ventilation)
+ex_data <- ex_data %>%
+  mutate(ventilator = ifelse(icu == "Yes", rbinom(n(), 1, 0.85), 0))
+
+# ICU-specific sedation score (0 for non-ICU patients, 1-10 for ICU patients)
+ex_data <- ex_data %>%
+  mutate(sedation_score = ifelse(icu == "Yes", sample(1:10, n(), replace = TRUE), 0))
+
+# Fit and evaluate
+log_wf <- workflow() %>%
+  add_model(logistic_reg() %>% set_engine("glm")) %>%
+  add_recipe(recipe(icu ~ ., data = ex_data))
+
+folds <- vfold_cv(ex_data, v = 10, strata = icu)
+cv_results <- fit_resamples(log_wf, resamples = folds, metrics = metric_set(roc_auc))
+collect_metrics(cv_results)
+# AUC ~ 0.99 — is this real?
+```
+
+#### Python Starter Code
+
+```{python}
+#| label: ex4-ml-python
+#| eval: false
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+np.random.seed(42)
+n = 800
+
+X = pd.DataFrame({
+    'age': np.random.normal(65, 10, n),
+    'creatinine': np.random.lognormal(0, 0.5, n),
+    'hemoglobin': np.random.normal(12, 2, n),
+    'wbc': np.random.lognormal(2, 0.4, n),
+})
+y = np.random.binomial(1, 1 / (1 + np.exp(-(-4 + 0.03 * X['age'] + 0.5 * X['creatinine']))))
+
+# --- Features added by the colleague ---
+# Ventilator use (only ICU patients receive mechanical ventilation)
+X['ventilator'] = np.where(y == 1, np.random.binomial(1, 0.85, n), 0)
+
+# ICU-specific sedation score (0 for non-ICU, 1-10 for ICU)
+X['sedation_score'] = np.where(y == 1, np.random.randint(1, 11, n), 0)
+
+# Fit and evaluate
+cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+pipe = make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))
+scores = cross_val_score(pipe, X, y, cv=cv, scoring='roc_auc')
+print(f"AUC: {scores.mean():.3f} (+/- {scores.std():.3f})")
+# AUC ~ 0.99 — is this real?
+```
+
+:::
+
 ## Summary
 
 This chapter introduced the foundational concepts of machine learning that every clinical researcher should understand before applying ML methods:
@@ -659,19 +684,26 @@ This chapter introduced the foundational concepts of machine learning that every
 - **Training/validation/test splits** and **cross-validation** are essential for honest performance evaluation.
 - **Feature engineering** — where clinical expertise meets data science — is often more important than model choice.
 - **Feature selection** (filter, wrapper, embedded) prevents overfitting in high-dimensional settings.
-- **SVMs** find maximum-margin boundaries and can handle non-linear problems via the kernel trick.
 - **ML and statistics are complementary**, not competing. The best clinical researchers use both.
+
+### Common Misconceptions
+
+We list here several misconceptions about machine learning that are particularly relevant to clinical researchers:
+
+1. **"Complex ML models are always better than regression."** False. For many clinical prediction tasks with modest sample sizes and well-understood relationships, logistic or Cox regression can perform just as well as or better than complex ML models — and is far more interpretable. A 2019 systematic review by Christodoulou et al. in the *Journal of Clinical Epidemiology* found that ML models did not consistently outperform logistic regression for clinical prediction once methodological bias was accounted for. As we will see during the course, machine learning practitioners have to balance a trade-off between model complexity, interpretability, accuracy and flexibility to unseen data.
+
+2. **"ML finds truth in data automatically."** False. ML models find patterns — including spurious ones. Without careful validation, feature engineering, and domain knowledge, ML models can learn noise, artifacts, and biases in the data. As the computer science adage goes: "garbage in, garbage out" (GIGO).
+
+3. **"More data always helps."** Mostly true, but not always. Whilst research in large language models (LLMs) has shown that simply scaling up data and model size can go surprisingly far, data quality matters at least as much as data quantity in clinical settings — more biased data produces a more confidently wrong model.
 
 ## References and Further Reading
 
-For an integrated treatment of machine learning and statistical methods tailored to clinical and public health researchers, see Smits et al. (2026), particularly Chapter 9, which covers the supervised learning concepts and cross-validation approaches discussed here with additional worked medical examples.
+For an integrated treatment of machine learning and statistical methods tailored to clinical and public health researchers, see Smits, van Kuijk, and Wynants, [*Improving Health Care with Clinical Prediction Models: From Idea to Impact*](https://library.maastrichtuniversity.nl/resources/maastricht-university-press/catalog/improving-health-care-with-clinical-prediction-models/) (Maastricht University Press, 2026), particularly Chapter 9, which covers the supervised learning concepts and cross-validation approaches discussed here with additional worked medical examples.
 
 Boehmke and Greenwell's *Hands-On Machine Learning with R* (HOML) provides an excellent practical introduction to ML methods in R, using the tidymodels framework. It covers the bias-variance tradeoff, cross-validation, and feature engineering with clear code examples and is freely available online.
 
-Lgatto's *Introduction to Machine Learning* (IntroML) is a concise, well-organized online resource that covers the core concepts without excessive mathematical detail, making it a good supplement for students new to the field.
+Gatto's *Introduction to Machine Learning* (IntroML) is a concise, well-organized online resource that covers the core concepts without excessive mathematical detail, making it a good supplement for students new to the field.
 
 Christodoulou et al. (2019), "A Systematic Review Shows No Performance Benefit of Machine Learning over Logistic Regression for Clinical Prediction Models," published in the *Journal of Clinical Epidemiology*, provides important context for when ML methods do and do not outperform traditional approaches — a message every clinical researcher should internalize before defaulting to complex methods.
-
-For support vector machines, the original formulation by Vapnik (1995) in *The Nature of Statistical Learning Theory* (Springer) is the theoretical foundation, though Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (Springer, 2nd edition, 2009) provides a more accessible treatment in Chapters 9 and 12. James et al., *An Introduction to Statistical Learning* (ISLR, 2nd edition, 2021), covers SVMs in Chapter 9 at an introductory level with R lab exercises.
 
 For a thoughtful perspective on the relationship between statistics and machine learning, Breiman's (2001) paper "Statistical Modeling: The Two Cultures" in *Statistical Science* remains essential reading.
