@@ -1,4 +1,4 @@
-# setup.R - Common functions and theme for the course
+# common.R - Common functions and theme for the course
 # Source this file at the start of each chapter
 
 library(tidyverse)

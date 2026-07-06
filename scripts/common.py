@@ -1,5 +1,5 @@
 """
-setup.py - Common functions and configuration for the course.
+common.py - Common functions and configuration for the course.
 Import this module at the start of each chapter's Python code.
 """
 
@@ -8,9 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-import warnings
-
-warnings.filterwarnings("ignore", category=FutureWarning)
 
 # Colour-blind friendly palette (matching R setup)
 COURSE_COLOURS = [
@@ -26,12 +23,14 @@ COURSE_COLOURS = [
 
 # Set default plot style
 sns.set_theme(style="whitegrid", palette=COURSE_COLOURS, font_scale=1.1)
-plt.rcParams.update({
-    "figure.figsize": (8, 5),
-    "figure.dpi": 100,
-    "axes.titlesize": 14,
-    "axes.titleweight": "bold",
-})
+plt.rcParams.update(
+    {
+        "figure.figsize": (8, 5),
+        "figure.dpi": 100,
+        "axes.titlesize": 14,
+        "axes.titleweight": "bold",
+    }
+)
 
 
 def load_course_data(name: str) -> pd.DataFrame:

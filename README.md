@@ -58,7 +58,7 @@ If you use this course in your teaching or research, please cite:
 ## Running locally
 
 ```bash
-# Requires Quarto (>= 1.7), R, and the packages listed in R/setup.R
+# Requires Quarto (>= 1.7), R, and the packages listed in scripts/common.R
 quarto render
 ```
 

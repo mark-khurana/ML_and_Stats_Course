@@ -5,9 +5,9 @@
 # This exercise is primarily conceptual. Answers are provided as comments,
 # with supporting code to illustrate the points.
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from patsy import dmatrix
 from scipy.special import expit
@@ -58,26 +58,28 @@ sbp = np.random.normal(130, 15, size=n)
 sbp = np.clip(sbp, 90, 200)
 
 # True relationship: risk accelerates at higher SBP
-logit_p = -6 + 0.02 * sbp + 0.0002 * (sbp - 130)**2
+logit_p = -6 + 0.02 * sbp + 0.0002 * (sbp - 130) ** 2
 y = np.random.binomial(1, expit(logit_p))
 
-df = pd.DataFrame({'sbp': sbp, 'stroke': y})
+df = pd.DataFrame({"sbp": sbp, "stroke": y})
 
 # --- Model 1: Categorised ---
-df['sbp_cat'] = pd.cut(df['sbp'],
-                         bins=[-np.inf, 120, 130, 140, np.inf],
-                         labels=['Normal', 'Elevated', 'Stage1', 'Stage2'])
-X_cat = pd.get_dummies(df['sbp_cat'], drop_first=True).astype(float)
+df["sbp_cat"] = pd.cut(
+    df["sbp"],
+    bins=[-np.inf, 120, 130, 140, np.inf],
+    labels=["Normal", "Elevated", "Stage1", "Stage2"],
+)
+X_cat = pd.get_dummies(df["sbp_cat"], drop_first=True).astype(float)
 X_cat = sm.add_constant(X_cat)
-fit_cat = sm.GLM(df['stroke'], X_cat, family=sm.families.Binomial()).fit()
+fit_cat = sm.GLM(df["stroke"], X_cat, family=sm.families.Binomial()).fit()
 
 # --- Model 2: Linear ---
-X_lin = sm.add_constant(df[['sbp']])
-fit_lin = sm.GLM(df['stroke'], X_lin, family=sm.families.Binomial()).fit()
+X_lin = sm.add_constant(df[["sbp"]])
+fit_lin = sm.GLM(df["stroke"], X_lin, family=sm.families.Binomial()).fit()
 
 # --- Model 3: RCS (natural cubic spline with df=3, i.e., 4 knots) ---
-X_rcs = dmatrix("cr(sbp, df=3)", data=df, return_type='dataframe')
-fit_rcs = sm.GLM(df['stroke'], X_rcs, family=sm.families.Binomial()).fit()
+X_rcs = dmatrix("cr(sbp, df=3)", data=df, return_type="dataframe")
+fit_rcs = sm.GLM(df["stroke"], X_rcs, family=sm.families.Binomial()).fit()
 
 # Compare AIC
 print("AIC Comparison:")
@@ -88,29 +90,29 @@ print("\nLower AIC = better fit. The RCS model captures the true non-linear")
 print("relationship without imposing arbitrary cut-points.")
 
 # --- Plot comparison ---
-sbp_range = np.linspace(df['sbp'].min(), df['sbp'].max(), 200)
+sbp_range = np.linspace(df["sbp"].min(), df["sbp"].max(), 200)
 
 # True probability
-true_logit = -6 + 0.02 * sbp_range + 0.0002 * (sbp_range - 130)**2
+true_logit = -6 + 0.02 * sbp_range + 0.0002 * (sbp_range - 130) ** 2
 true_prob = expit(true_logit)
 
 # Linear predictions
-X_lin_pred = sm.add_constant(pd.DataFrame({'sbp': sbp_range}))
+X_lin_pred = sm.add_constant(pd.DataFrame({"sbp": sbp_range}))
 lin_prob = fit_lin.predict(X_lin_pred)
 
 # RCS predictions
-X_rcs_pred = dmatrix("cr(sbp, df=3)",
-                      data=pd.DataFrame({'sbp': sbp_range}),
-                      return_type='dataframe')
+X_rcs_pred = dmatrix(
+    "cr(sbp, df=3)", data=pd.DataFrame({"sbp": sbp_range}), return_type="dataframe"
+)
 rcs_prob = fit_rcs.predict(X_rcs_pred)
 
 plt.figure(figsize=(10, 6))
-plt.plot(sbp_range, true_prob, 'k--', linewidth=2, label='True relationship')
-plt.plot(sbp_range, lin_prob, color='#3498db', linewidth=1.5, label='Linear')
-plt.plot(sbp_range, rcs_prob, color='#e74c3c', linewidth=1.5, label='RCS (4 knots)')
-plt.xlabel('Systolic Blood Pressure (mmHg)')
-plt.ylabel('Predicted Probability of Stroke')
-plt.title('Comparing modelling approaches for SBP-stroke relationship')
+plt.plot(sbp_range, true_prob, "k--", linewidth=2, label="True relationship")
+plt.plot(sbp_range, lin_prob, color="#3498db", linewidth=1.5, label="Linear")
+plt.plot(sbp_range, rcs_prob, color="#e74c3c", linewidth=1.5, label="RCS (4 knots)")
+plt.xlabel("Systolic Blood Pressure (mmHg)")
+plt.ylabel("Predicted Probability of Stroke")
+plt.title("Comparing modelling approaches for SBP-stroke relationship")
 plt.legend()
 plt.tight_layout()
 plt.show()
