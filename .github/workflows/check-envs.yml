@@ -45,6 +45,10 @@ jobs:
             libgit2-dev cmake
 
       - name: Install R packages
+        env:
+          # Authenticate GitHub API calls (remotes::install_github for CMAverse)
+          # to avoid HTTP 401 / unauthenticated rate limits.
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: Rscript scripts/install_packages.R
 
       - name: Verify key packages load
