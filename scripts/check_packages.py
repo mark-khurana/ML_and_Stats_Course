@@ -8,10 +8,10 @@ from packaging.version import Version
 
 PACKAGES = [
     # (import_name, pip_name, min_version, max_version)
-    ("numpy", "numpy", None, None),
+    ("numpy", "numpy", "2.4.6", "3"),
     ("pandas", "pandas", "3.0.3", "4"),
-    ("sklearn", "scikit-learn", None, None),
-    ("scipy", "scipy", None, None),
+    ("sklearn", "scikit-learn", "1.9.0", "2"),
+    ("scipy", "scipy", "1.18.0", "2"),
     ("matplotlib", "matplotlib", "3.11.0", "4"),
     ("dowhy", "dowhy", "0.14", "0.15"),
     ("statsmodels", "statsmodels", "0.14.6", "0.15"),
@@ -20,6 +20,15 @@ PACKAGES = [
     ("xgboost", "xgboost", "3.3.0", "4"),
     ("umap", "umap-learn", "0.5.12", "0.6"),
     ("ipykernel", "ipykernel", "7.3.0", "8"),
+    ("seaborn", "seaborn", "0.13.2", "0.14"),
+    ("pymc", "pymc", "6.0.1", "7"),
+    ("arviz", "arviz", "1.2.0", "2"),
+    ("bambi", "bambi", "0.18.0", "0.19"),
+    ("shap", "shap", "0.49.1", "0.53"),
+    ("networkx", "networkx", "3.6.1", "4"),
+    ("keras", "keras", "3.15.0", "4"),
+    ("torch", "torch", "2.9.1", "3"),
+    ("torchvision", "torchvision", "0.24.1", "0.26"),
 ]
 
 GREEN = "\033[32m"

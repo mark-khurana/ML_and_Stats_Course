@@ -8,7 +8,7 @@ set -euo pipefail
 # --- R packages on CRAN but better packaged outside of conda-forge ---
 Rscript -e 'install.packages(c("keras3", "dcurves", "EValue", "brms", "rstanarm", "bayesplot", "CMAverse"), repos = "https://cloud.r-project.org")'
 
-# keras3 (R) uses the python TensorFlow backend already provided by the
+# keras3 (R) will use the python TensorFlow backend already provided by the
 # `python` / `full` environments via reticulate, so no extra backend install
 # is needed when run inside one of those environments.
 
