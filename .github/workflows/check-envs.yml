@@ -52,6 +52,7 @@ jobs:
         run: Rscript scripts/install_packages.R
 
       - name: Verify key packages load
+        shell: bash
         run: |
           Rscript -e '
             pkgs <- c("tidyverse", "rms", "glmnet", "survival", "brms", "ranger", "xgboost", "mice")
@@ -83,6 +84,7 @@ jobs:
         run: pixi run -e full post_install
 
       - name: Verify R packages load
+        shell: bash
         run: |
           pixi run -e full Rscript -e '
             pkgs <- c("tidyverse", "rms", "glmnet", "survival", "brms", "ranger", "xgboost", "mice")
