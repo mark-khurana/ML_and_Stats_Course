@@ -10,8 +10,8 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score
 import xgboost as xgb
-import tensorflow as tf
-from tensorflow.keras import layers, models, callbacks
+import keras
+from keras import layers, models, callbacks
 
 # --- Simulate readmission data (same as chapter) ---
 np.random.seed(42)
@@ -66,7 +66,7 @@ for train_idx, val_idx in cv.split(X, y):
     y_val = y[val_idx]
 
     # Build neural network (same architecture as chapter)
-    tf.random.set_seed(42)
+    keras.utils.set_random_seed(42)
     model = models.Sequential([
         layers.Dense(32, activation="relu", input_shape=(X_train.shape[1],)),
         layers.Dropout(0.3),
@@ -76,9 +76,9 @@ for train_idx, val_idx in cv.split(X, y):
     ])
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
         loss="binary_crossentropy",
-        metrics=[tf.keras.metrics.AUC(name="auc")]
+        metrics=[keras.metrics.AUC(name="auc")]
     )
 
     # Train with early stopping
