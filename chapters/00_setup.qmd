@@ -1,28 +1,49 @@
 # Setting Up Your Computing Environment {#sec-setup}
 
-## Why Two Languages?
+## Step 0: Download the Course Materials
 
-Throughout this course, you will work with both **R** and **Python**. This is not an accident or an attempt to double your workload. In modern biostatistics, epidemiology, and health data science, both languages appear regularly in published research, collaborative projects, and industry applications. R has deep roots in classical statistics and has an extraordinary ecosystem of packages for survival analysis, Bayesian modeling, and clinical reporting. Python dominates in machine learning, deep learning, and large-scale data engineering. By learning both, you will be able to read and contribute to a wider range of projects, collaborate with more colleagues, and choose the best tool for each task.
+The easiest way is to download the course materials as a ZIP file:
+* Go to https://github.com/mark-khurana/ML_and_Stats_Course
+* Click the green "Code" button, then click "Download ZIP."
+
+If you are familiar with **git**, you can also open a terminal and run the following command to clone the course repository:
+
+```{bash}
+git clone https://github.com/mark-khurana/ML_and_Stats_Course.git
+```
+
+We won't use git for the rest of the course, but if programming is going to be a part of your career, we strongly recommend
+the PhD course [Git & GitHub](https://heads.ku.dk/course/git_github/) at the University of Copenhagen.
+
+## Step 1: Setting Up Your Computing Environment
+
+### Why Two Languages?
+
+Throughout this course, you will have the opportunity to work with both **R** and **Python**. This is not an accident or an attempt to double your workload. In modern biostatistics, epidemiology, and health data science, both languages appear regularly in published research, collaborative projects, and industry applications. R has deep roots in classical statistics and has an extraordinary ecosystem of packages for survival analysis, Bayesian modeling, and clinical reporting. Python dominates in machine learning, deep learning, and large-scale data engineering. By learning both, you will be able to read and contribute to a wider range of projects, collaborate with more colleagues, and choose the best tool for each task.
 
 You do not need to be an expert programmer to succeed in this course. We will introduce code gradually and explain every line. Think of R and Python as lab instruments: you will learn to use them by doing, and we will always prioritize understanding the statistical ideas over memorizing syntax.
 
 ::: {.callout-tip title="Which language should I pick?"}
-If you have no programming experience, **start with R and RStudio**. RStudio is designed for data analysis and is the standard in biostatistics departments. You can always add Python later.
+If you have little or no programming experience, or prefer sticking to R, use **Setup 1: R in RStudio**. RStudio is designed for data analysis and is standard in many biostatistics departments. You can always add Python development to your toolkit later on.
 
-If you already know some Python, stick with Python. Both languages can do everything in this course.
+If you'd prefer to solely use Python, or are already familiar with it, use **Setup 2: Python in VS Code**. VS Code is a general-purpose code editor that works well for both R and Python, and it is widely used in industry.
+
+You may combine both setups if you would like to explore both languages.
+
+If you are curious and/or have a little experience with the terminal, **use Setup 3: R and Python in VS Code**. We will show you how to set up a single development environment that can handle both languages, but it is more advanced and requires comfort with the command line.
 :::
 
-## Installing R and RStudio
+### Step 1.1: R and RStudio
 
-### What Are R and RStudio?
+#### What Are R and RStudio?
 
 **R** is a programming language designed for statistical computing and graphics. It runs in a terminal or console, but working with raw R in a terminal is not the most pleasant experience. **RStudio** is an integrated development environment (IDE) that wraps around R, providing a code editor, a console, a file browser, a plot viewer, and much more in a single window. Think of R as the engine and RStudio as the dashboard and steering wheel.
 
-### Step 1: Download and Install R
+### Step 1.1.1: Download and Install R
 
 1. Open your web browser and navigate to the Comprehensive R Archive Network (CRAN): <https://cran.r-project.org/>
 2. You will see links for your operating system near the top of the page:
-   - **Windows**: Click "Download R for Windows," then click "base," then click the link that says something like "Download R-4.x.x for Windows." Run the downloaded `.exe` installer and accept all default settings.
+   - **Windows**: Click "Download R for Windows," then click "base," then click the link that says something like "Download R-4.5.3 for Windows." Run the downloaded `.exe` installer and accept all default settings.
    - **macOS**: Click "Download R for macOS." Choose the appropriate version for your Mac. If you have an Apple Silicon Mac (M1, M2, M3, or M4 chip), download the `arm64` version. If you have an older Intel Mac, download the `x86_64` version. If you are unsure, click the Apple icon in the top-left corner of your screen, choose "About This Mac," and look at the "Chip" or "Processor" field. Open the downloaded `.pkg` file and follow the installation prompts.
    - **Linux**: Click "Download R for Linux," select your distribution (Ubuntu, Fedora, etc.), and follow the instructions. On Ubuntu, you can also install R from the terminal:
 
@@ -40,9 +61,9 @@ sudo apt install r-base r-base-dev
 R --version
 ```
 
-You should see output that includes the R version number (4.4 or later is recommended).
+You should see output that includes the R version number (4.5.3 or later is recommended).
 
-### Step 2: Download and Install RStudio
+### Step 1.1.2: Download and Install RStudio
 
 1. Navigate to the Posit (formerly RStudio) download page: <https://posit.co/download/rstudio-desktop/>
 2. The page will detect your operating system and suggest the correct installer. Click the download button.
@@ -52,117 +73,28 @@ You should see output that includes the R version number (4.4 or later is recomm
    - **Linux**: Install the `.deb` or `.rpm` package using your package manager.
 4. Open RStudio. You should see four panels: the Source editor (top left), the Console (bottom left), the Environment/History pane (top right), and the Files/Plots/Packages/Help pane (bottom right). If R is installed correctly, you will see a welcome message in the Console that includes the R version number.
 
-### Step 3: A Quick Tour of RStudio
+### Step 1.1.3: A Quick Tour of RStudio
 
 - **Console** (bottom left): Type R commands here and press Enter to run them immediately. Good for quick exploration.
 - **Source Editor** (top left): Write and save R scripts (`.R` files) or Quarto documents (`.qmd` files). You can run lines or selections by pressing Ctrl+Enter (Cmd+Enter on Mac).
 - **Environment** (top right): Shows all variables and data objects currently in memory.
 - **Files/Plots/Packages/Help** (bottom right): Browse files on your computer, view plots, manage installed packages, and read documentation.
 
-## Installing Python and an Editor
-
-### What Are Python, JupyterLab, and VS Code?
-
-**Python** is a general-purpose programming language widely used in data science and machine learning. Unlike R, Python was not designed exclusively for statistics, but its ecosystem of scientific libraries (NumPy, pandas, scikit-learn, etc.) makes it extremely powerful for data analysis.
-
-You have two main choices for an editing environment:
-
-- **JupyterLab**: A browser-based interactive environment where you write code in "notebooks" --- documents that mix code, output, and narrative text. Jupyter notebooks (`.ipynb` files) are very popular in data science.
-- **VS Code (Visual Studio Code)**: A general-purpose code editor from Microsoft that supports Python (and R) through extensions. It can also run Jupyter notebooks directly inside the editor.
-
-We recommend **VS Code** for this course because it handles both R and Python well and is widely used in industry. However, JupyterLab is perfectly fine if you prefer it.
-
-### Step 1: Install Python via Miniforge (Recommended)
-
-We recommend installing Python through **Miniforge**, a lightweight distribution that includes the `conda` package manager. Conda makes it easy to install scientific packages and manage separate environments for different projects.
-
-1. Download Miniforge from: <https://conda-forge.org/miniforge/>
-2. Choose the installer for your operating system:
-   - **Windows**: Download and run the `.exe` installer. Check the box that says "Add Miniforge to my PATH environment variable" during installation.
-   - **macOS**: Download the `.sh` script. Open Terminal and run:
-
-```{bash}
-#| eval: false
-# Replace the filename with the one you downloaded
-bash Miniforge3-MacOSX-arm64.sh
-```
-
-   - **Linux**: Same approach as macOS --- download the `.sh` script and run it in your terminal.
-
-3. Close and reopen your terminal, then verify:
-
-```{bash}
-#| eval: false
-python --version
-conda --version
-```
-
-You should see Python 3.11 or later and a conda version number.
-
-### Alternative: Install Python from python.org
-
-If you prefer not to use conda, you can download Python directly from <https://www.python.org/downloads/>. Make sure to check the box "Add Python to PATH" during installation on Windows. You will then use `pip` instead of `conda` to install packages.
-
-### Step 2: Install VS Code
-
-1. Download VS Code from <https://code.visualstudio.com/>
-2. Install it using the standard process for your operating system.
-3. Open VS Code, click the Extensions icon in the left sidebar (it looks like four small squares), and install the following extensions:
-   - **Python** (by Microsoft) --- provides Python language support, debugging, and Jupyter notebook integration.
-   - **Jupyter** (by Microsoft) --- adds full Jupyter notebook support inside VS Code.
-   - **Quarto** (by Quarto) --- optional, but useful if you want to edit `.qmd` files in VS Code.
-   - **R** (by REditorSupport) --- optional, provides R language support in VS Code.
-
-### Alternative: Install JupyterLab
-
-If you prefer JupyterLab, install it after setting up Python:
-
-```{bash}
-#| eval: false
-conda install jupyterlab
-# or, if using pip:
-pip install jupyterlab
-```
-
-Launch it with:
-
-```{bash}
-#| eval: false
-jupyter lab
-```
-
-This will open JupyterLab in your web browser.
-
-## Installing Key R Packages
+### Step 1.1.4: Install key course packages for R
 
 R packages extend the language with specialized tools. Think of them as apps you install on your phone --- the base R system is the phone itself, and packages add new capabilities.
 
 Open RStudio and run the following command in the Console. This will take several minutes the first time because it downloads and compiles many packages:
 
 ```{r}
-#| eval: false
-# Install all packages needed for this course
-install.packages(c(
-  "tidyverse",     # Data manipulation (dplyr, ggplot2, tidyr, readr, etc.)
-  "rms",           # Regression Modeling Strategies (Frank Harrell's toolkit)
-  "glmnet",        # Regularized regression (lasso, ridge, elastic net)
-  "survival",      # Survival analysis (Cox models, Kaplan-Meier)
-  "brms",          # Bayesian regression models via Stan
-  "rstanarm",      # Bayesian applied regression modeling via Stan
-  "ranger",        # Fast random forests
-  "xgboost",       # Gradient boosted trees
-  "mice",          # Multiple imputation by chained equations
-  "dcurves",       # Decision curve analysis
-  "pROC",          # ROC curve analysis
-  "uwot",          # UMAP dimensionality reduction
-  "cluster",       # Cluster analysis
-  "gtsummary",     # Publication-ready summary tables
-  "MatchIt",       # Propensity score matching
-  "tidymodels"     # Unified machine learning framework
-))
+source("scripts/install_packages.R")
 ```
 
-### What Each Package Does (Brief Overview)
+To verify that the installation worked, you can re-run the same command. If all packages are already installed, R will skip them and print: ```All packages are already installed```.
+
+If you get an error like `there is no package called 'xyz'`, try reinstalling that specific package using: ```install.packages('xyz')```. If compilation errors occur (common on Linux), you may need to install system-level dependencies. RStudio will usually tell you what is missing.
+
+#### What Each Package Does (Brief Overview)
 
 | Package | Purpose |
 |---------|---------|
@@ -185,64 +117,53 @@ install.packages(c(
 
 : Key R packages for this course {.striped}
 
-### Verifying R Package Installation
+### Step 1.2: Python and VS Code
 
-After installation, verify that the key packages load without errors:
+#### What Are Python and VS Code?
 
-```{r}
-#| eval: false
-library(tidyverse)
-library(rms)
-library(glmnet)
-library(survival)
-library(ranger)
-library(xgboost)
-```
+**Python** is a general-purpose programming language widely used in data science and machine learning. Unlike R, Python is not designed exclusively for statistics, but its ecosystem of scientific libraries makes it extremely powerful for data analysis.
 
-If you get an error like `there is no package called 'xyz'`, try reinstalling that specific package. If compilation errors occur (common on Linux), you may need to install system-level dependencies. RStudio will usually tell you what is missing.
+There are many tools available for coding in Python. For this course, we recommend **VS Code**, general-purpose code editor from Microsoft. It supports extensions which make development in Python (and R) easy.
 
-## Installing Key Python Packages
+VS Code also allows you to write code in *notebooks*, an interactive document format that mixes code and narrative text, directly inside VS Code which is convenient for data science purposes.
 
-### Using conda (Recommended)
+Other alternatives include Positron, JupyterLab and Spyder. If you are already comfortable with one of these, feel free to use it instead of VS Code.
 
-Create a dedicated environment for this course. An environment is an isolated collection of packages that will not interfere with other Python projects on your machine:
+### Step 1.2.1: Install Python and course dependencies using pixi (Recommended)
+
+We recommend installing Python and course dependencies through **pixi**,
+a fast and lightweight tool that relies on the `conda` package manager.
+We have created a so-called `lock` file that contains all the dependencies for this course, which ensures that everyone in the course is using the same versions of Python and packages, and reduces the chances of encountering "this doesn't work on my machine" issues.
+
+1. Install pixi by following the instructions at <https://pixi.prefix.dev/latest/installation/>.
+2. Open a new terminal window (Command Prompt on Windows, Terminal on macOS/Linux) and go to the directory where you downloaded the course materials, then install the dependencies with:
 
 ```{bash}
-#| eval: false
-# Create a new environment called 'mlstats' with Python 3.12
-conda create -n mlstats python=3.12
+cd /path/to/course-materials
+pixi install
+```
 
+### Step 1.2.2: Install VS Code
+
+1. Download VS Code from <https://code.visualstudio.com/>
+2. Install it using the standard process for your operating system.
+3. Open VS Code, click the Extensions icon in the left sidebar (it looks like four small squares), and install the following extensions:
+   - **Python** (by Microsoft) --- provides Python language support, debugging, and Jupyter notebook integration.
+   - **Jupyter** (by Microsoft) --- adds full Jupyter notebook support inside VS Code.
+   - **Quarto** (by Quarto) --- optional, but useful if you want to edit `.qmd` files in VS Code.
+   - **R** (by REditorSupport) --- optional, provides R language support in VS Code.
+
+### Step 1.2.3: Verify Python Installation
+
+```{bash}
 # Activate the environment
-conda activate mlstats
+pixi shell
 
-# Install all packages
-conda install pandas numpy scikit-learn statsmodels matplotlib seaborn
-
-# Some packages are best installed via pip even when using conda
-pip install lifelines xgboost pymc bambi arviz umap-learn plotnine miceforest
+# Run the verification script
+python scripts/check_packages.py
 ```
 
-### Using pip Only
-
-If you are not using conda:
-
-```{bash}
-#| eval: false
-# Create a virtual environment
-python -m venv mlstats_env
-
-# Activate it
-# On macOS/Linux:
-source mlstats_env/bin/activate
-# On Windows:
-mlstats_env\Scripts\activate
-
-# Install packages
-pip install pandas numpy scikit-learn statsmodels lifelines xgboost \
-    pymc bambi arviz umap-learn matplotlib seaborn plotnine miceforest
-```
-
-### What Each Python Package Does
+## Key Python Packages
 
 | Package | Purpose |
 |---------|---------|
@@ -258,7 +179,6 @@ pip install pandas numpy scikit-learn statsmodels lifelines xgboost \
 | `umap-learn` | UMAP dimensionality reduction for Python. |
 | `matplotlib` | The foundational plotting library for Python. |
 | `seaborn` | Statistical data visualization built on top of matplotlib. Easier to use for common statistical plots. |
-| `plotnine` | A Python implementation of R's ggplot2 grammar of graphics. If you like ggplot2, you will like plotnine. |
 | `miceforest` | Multiple imputation using random forests in Python. |
 
 : Key Python packages for this course {.striped}
@@ -419,19 +339,20 @@ quarto render my_document.qmd
 **Problem**: Package loads but you get warnings about versions.
 **Solution**: Warnings (yellow text) are usually harmless --- they often say things like "package was built under R version X.Y.Z." Errors (red text) are the ones that prevent code from running. If you get errors, try updating the package with `install.packages("package_name")`.
 
+**Problem**: Installing `rmarkdown` fails with `object 'attr' is not exported by 'namespace:xfun'`, or installing packages fails with `undefined symbol: SET_BODY` from `yaml.so`.
+**Solution**: These errors occur when system-installed packages (e.g., `xfun` or `yaml` in `/usr/local/lib/R/site-library/`) were compiled against an older version of R and are incompatible with R 4.6+. Reinstall the offending packages from source: `install.packages(c("xfun", "yaml"), type = "source")`. If the system library is read-only, use `sudo R -e 'install.packages("yaml", lib="/usr/local/lib/R/site-library", type="source")'`. If `rmarkdown` still fails after updating `xfun`, the CRAN version may lag behind; install the development version with `remotes::install_github("rstudio/rmarkdown")`.
+
 ### Python Issues
 
 **Problem**: `python` command not found.
-**Solution**: On some systems, Python 3 is accessed via `python3` instead of `python`. Try `python3 --version`. If using conda, make sure you have activated your environment with `conda activate mlstats`.
+**Solution**: On some systems, Python 3 is accessed via `python3` instead of `python`. Try `python3 --version`. If using pixi, make sure you are inside the project directory and run commands with `pixi run` or activate the shell with `pixi shell`.
 
 **Problem**: `ModuleNotFoundError: No module named 'xyz'`.
-**Solution**: The package is not installed in your current environment. Make sure you have activated the correct conda environment (`conda activate mlstats`) or virtual environment before installing and importing packages.
+**Solution**: The package is not installed in your current environment. Make sure you have activated the pixi environment with `pixi shell` or are running commands via `pixi run`.
 
 **Problem**: `pip install pymc` fails with obscure errors.
-**Solution**: PyMC can be tricky to install because it depends on compiled numerical libraries. Using conda often resolves these issues: `conda install -c conda-forge pymc`. On Apple Silicon Macs, make sure you are using the ARM64 version of Miniforge.
+**Solution**: PyMC can be tricky to install because it depends on compiled numerical libraries. If you are using pixi, the lock file should handle this automatically --- run `pixi install` and try again.
 
-**Problem**: Jupyter notebook does not show the correct Python kernel.
-**Solution**: Install the IPython kernel in your environment: `conda install ipykernel` or `pip install ipykernel`. Then register it: `python -m ipykernel install --user --name mlstats --display-name "ML Stats Course"`.
 
 ### Common Error Messages
 
@@ -439,7 +360,7 @@ quarto render my_document.qmd
 **Solution**: You haven't run the earlier code blocks that create `x`. Go back and run all preceding code chunks in order. In RStudio, use "Run All Chunks Above" from the Run menu. In Jupyter, use "Run All Above" from the Cell menu.
 
 **Error**: `Error in library(xxx): there is no package called 'xxx'`
-**Solution**: Install it first with `install.packages("xxx")` in R, or `pip install xxx` / `conda install xxx` in Python. Then try loading it again.
+**Solution**: Install it first with `install.packages("xxx")` in R, or `pip install xxx` in Python. Then try loading it again.
 
 ### General Tips
 
@@ -629,7 +550,9 @@ plt.show()
 
 - VanderPlas, J. (2016). *Python Data Science Handbook: Essential Tools for Working with Data*. O'Reilly Media. Freely available at <https://jakevdp.github.io/PythonDataScienceHandbook/>. Covers NumPy, pandas, matplotlib, and scikit-learn in depth.
 
-- McKinney, W. (2022). *Python for Data Analysis: Data Wrangling with pandas, NumPy, and Jupyter* (3rd ed.). O'Reilly Media. The authoritative guide to pandas, written by the creator of the library.
+- Johnson, J., Karpathy A., and contributors (2021). *Python Numpy Tutorial (with Jupyter and Colab)*. Tutorial from the Stanford course CS231n: Deep Learning for Computer Vision. Freely available at <https://cs231n.github.io/python-numpy-tutorial/>. A concise and practical introduction to NumPy.
+
+- McKinney, W. (2022). *Python for Data Analysis: Data Wrangling with pandas, NumPy, and Jupyter* (3rd ed.). O'Reilly Media. Freely available at <https://wesmckinney.com/book/>. The authoritative guide to pandas, written by the creator of the library.
 
 - Posit. (2024). *Quarto Documentation*. <https://quarto.org/docs/guide/>. The official guide to Quarto, the publishing system used for this course.
 
