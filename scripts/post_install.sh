@@ -6,7 +6,10 @@
 set -euo pipefail
 
 # --- R packages on CRAN but better packaged outside of conda-forge ---
-Rscript -e 'install.packages(c("keras3", "dcurves", "EValue", "brms", "rstanarm", "bayesplot", "CMAverse"), repos = "https://cloud.r-project.org")'
+Rscript -e 'install.packages(c("keras3", "dcurves", "EValue", "brms", "rstanarm", "bayesplot", "remotes"), repos = "https://cloud.r-project.org")'
+
+# --- CMAverse is GitHub-only (not on CRAN) ---
+Rscript -e 'if (!requireNamespace("CMAverse", quietly = TRUE)) remotes::install_github("bs1125/CMAverse")'
 
 # keras3 (R) will use the python TensorFlow backend already provided by the
 # `python` / `full` environments via reticulate, so no extra backend install

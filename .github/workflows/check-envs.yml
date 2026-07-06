@@ -75,6 +75,10 @@ jobs:
 
       - name: Run post_install (CRAN packages)
         shell: bash
+        env:
+          # Authenticate the CMAverse install (remotes::install_github) to
+          # avoid HTTP 401 from the expired bundled remotes PAT.
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: pixi run -e full post_install
 
       - name: Verify R packages load
