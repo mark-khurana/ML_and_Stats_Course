@@ -84,8 +84,6 @@ jobs:
       - name: Run post_install (CRAN packages)
         shell: bash
         env:
-          # Authenticate the CMAverse install (remotes::install_github) to
-          # avoid HTTP 401 from the expired bundled remotes PAT.
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: pixi run -e full post_install
 
@@ -109,8 +107,4 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.8.8
 
       - name: Verify Python packages import
-        run: |
-          pixi run python -c "
-          import numpy
-          print('Python env OK.')
-          "
+        run: pixi run check_install
