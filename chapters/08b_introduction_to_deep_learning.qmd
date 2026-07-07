@@ -129,11 +129,14 @@ readmit_data <- tibble(
   has_chf = rbinom(n, 1, 0.25)
 )
 
-readmit_prob <- plogis(-3 + 0.02 * (readmit_data$age - 68) +
-                         0.15 * readmit_data$prior_admissions +
-                         0.1 * readmit_data$num_comorbidities +
-                         0.3 * readmit_data$has_chf -
-                         0.1 * readmit_data$discharge_hgb)
+readmit_prob <- plogis(
+  -3 +
+    0.02 * (readmit_data$age - 68) +
+    0.15 * readmit_data$prior_admissions +
+    0.1 * readmit_data$num_comorbidities +
+    0.3 * readmit_data$has_chf -
+    0.1 * readmit_data$discharge_hgb
+)
 readmit_data$readmitted <- rbinom(n, 1, readmit_prob)
 
 # Prepare data: scale features, split into train/test
@@ -142,16 +145,16 @@ y <- readmit_data$readmitted
 
 # Standardize
 x_mean <- apply(x, 2, mean)
-x_sd   <- apply(x, 2, sd)
+x_sd <- apply(x, 2, sd)
 x_scaled <- scale(x, center = x_mean, scale = x_sd)
 
 # Train/test split
 set.seed(123)
 train_idx <- sample(n, 800)
 x_train <- x_scaled[train_idx, ]
-x_test  <- x_scaled[-train_idx, ]
+x_test <- x_scaled[-train_idx, ]
 y_train <- y[train_idx]
-y_test  <- y[-train_idx]
+y_test <- y[-train_idx]
 
 # Define a simple feedforward neural network
 model <- keras_model_sequential(input_shape = ncol(x_train)) %>%
@@ -161,25 +164,29 @@ model <- keras_model_sequential(input_shape = ncol(x_train)) %>%
   layer_dropout(rate = 0.3) %>%
   layer_dense(units = 1, activation = "sigmoid")
 
-model %>% compile(
-  optimizer = optimizer_adam(learning_rate = 0.001),
-  loss = "binary_crossentropy",
-  metrics = "AUC"
-)
+model %>%
+  compile(
+    optimizer = optimizer_adam(learning_rate = 0.001),
+    loss = "binary_crossentropy",
+    metrics = "AUC"
+  )
 
 # Train with early stopping
-history <- model %>% fit(
-  x_train, y_train,
-  epochs = 50,
-  batch_size = 32,
-  validation_split = 0.2,
-  callbacks = list(
-    callback_early_stopping(
-      patience = 5, restore_best_weights = TRUE
-    )
-  ),
-  verbose = 0
-)
+history <- model %>%
+  fit(
+    x_train,
+    y_train,
+    epochs = 50,
+    batch_size = 32,
+    validation_split = 0.2,
+    callbacks = list(
+      callback_early_stopping(
+        patience = 5,
+        restore_best_weights = TRUE
+      )
+    ),
+    verbose = 0
+  )
 
 # Evaluate on test set
 results <- model %>% evaluate(x_test, y_test, verbose = 0)
@@ -352,7 +359,7 @@ Transfer learning is the single most important practical technique in deep learn
 
 ### Foundation Models in Medicine
 
-The field is moving beyond ImageNet toward **domain-specific foundation models** pretrained on medical data:
+The field is moving beyond ImageNet toward **domain-specific foundation models** pretrained on medical data. A few open-source examples are listed below:
 
 | Model | Domain | Training Data | Published |
 |-------|--------|---------------|-----------|
@@ -361,10 +368,12 @@ The field is moving beyond ImageNet toward **domain-specific foundation models**
 | **RETFound** | Ophthalmology | 1.6M retinal images, self-supervised | *Nature*, 2023 |
 | **UNI** | Pathology | 100K+ whole-slide images | *Nature Medicine*, 2024 |
 | **Virchow** | Pathology | 1.5M whole-slide images | Paige/Microsoft, 2024 |
+| **Ark+** | Chest Radiography | 0.7M images | *Nature*, 2025 |
+| **MedGemma 1.5** | Multimodal (text, image) | >30M image-text pairs + text- and image-only datasets | *Google*, 2026 |
 
 ::: {.callout-tip}
 ## Practical Advice for Clinical Researchers
-If you want to apply deep learning to medical images, do not train from scratch. Use a pretrained foundation model (MedSAM for segmentation, BiomedCLIP for classification) and fine-tune on your labelled data. With even a few hundred annotated images, you can achieve strong performance. This is the practical path for most clinical research groups.
+If you want to apply deep learning to medical images, do not train from scratch. Start with one or a few pretrained foundation models, and if needed and if you have computational capacity, fine-tune on your labelled data. With even a few hundred annotated images, you can achieve strong performance. This is the practical path for most clinical research groups.
 :::
 
 ### Transfer Learning in Practice
@@ -395,15 +404,16 @@ model <- keras_model_sequential(input_shape = c(224, 224, 3)) %>%
   layer_dropout(rate = 0.3) %>%
   layer_dense(units = 1, activation = "sigmoid")
 
-model %>% compile(
-  optimizer = optimizer_adam(learning_rate = 1e-4),
-  loss = "binary_crossentropy",
-  metrics = "AUC"
-)
+model %>%
+  compile(
+    optimizer = optimizer_adam(learning_rate = 1e-4),
+    loss = "binary_crossentropy",
+    metrics = "AUC"
+  )
 
 # Data augmentation (rotation, flipping, shifting)
 train_datagen <- image_data_generator(
-  rescale = 1/255,
+  rescale = 1 / 255,
   rotation_range = 20,
   horizontal_flip = TRUE,
   validation_split = 0.2
@@ -411,27 +421,36 @@ train_datagen <- image_data_generator(
 
 # Point to your image directory organized as: images/class_0/ and images/class_1/
 train_gen <- flow_images_from_directory(
-  "path/to/images/", train_datagen,
-  target_size = c(224, 224), batch_size = 32,
-  class_mode = "binary", subset = "training"
+  "path/to/images/",
+  train_datagen,
+  target_size = c(224, 224),
+  batch_size = 32,
+  class_mode = "binary",
+  subset = "training"
 )
 
 val_gen <- flow_images_from_directory(
-  "path/to/images/", train_datagen,
-  target_size = c(224, 224), batch_size = 32,
-  class_mode = "binary", subset = "validation"
+  "path/to/images/",
+  train_datagen,
+  target_size = c(224, 224),
+  batch_size = 32,
+  class_mode = "binary",
+  subset = "validation"
 )
 
 # Fine-tune with early stopping
-history <- model %>% fit(
-  train_gen, epochs = 20,
-  validation_data = val_gen,
-  callbacks = list(
-    callback_early_stopping(
-      patience = 3, restore_best_weights = TRUE
+history <- model %>%
+  fit(
+    train_gen,
+    epochs = 20,
+    validation_data = val_gen,
+    callbacks = list(
+      callback_early_stopping(
+        patience = 3,
+        restore_best_weights = TRUE
+      )
     )
   )
-)
 ```
 
 #### Python
@@ -566,7 +585,7 @@ Using the readmission dataset from this chapter, fit both a neural network and a
 ```{r}
 #| label: ex1-nn-vs-xgb-r
 #| eval: false
-library(tidyverse)  # tibble()
+library(tidyverse) # tibble()
 library(keras3)
 library(tidymodels)
 library(xgboost)
@@ -586,13 +605,18 @@ readmit_data <- tibble(
   has_chf = rbinom(n, 1, 0.25)
 )
 
-readmit_prob <- plogis(-3 + 0.02 * (readmit_data$age - 68) +
-                         0.15 * readmit_data$prior_admissions +
-                         0.1 * readmit_data$num_comorbidities +
-                         0.3 * readmit_data$has_chf -
-                         0.1 * readmit_data$discharge_hgb)
-readmit_data$readmitted <- factor(rbinom(n, 1, readmit_prob),
-                                   labels = c("No", "Yes"))
+readmit_prob <- plogis(
+  -3 +
+    0.02 * (readmit_data$age - 68) +
+    0.15 * readmit_data$prior_admissions +
+    0.1 * readmit_data$num_comorbidities +
+    0.3 * readmit_data$has_chf -
+    0.1 * readmit_data$discharge_hgb
+)
+readmit_data$readmitted <- factor(
+  rbinom(n, 1, readmit_prob),
+  labels = c("No", "Yes")
+)
 
 # Your code:
 # 1. Set up a tidymodels XGBoost workflow with 5-fold CV
