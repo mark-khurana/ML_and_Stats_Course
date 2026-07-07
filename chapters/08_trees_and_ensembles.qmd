@@ -14,15 +14,17 @@ library(knitr)
 opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-Of all the machine learning methods covered here, the tree-based family is the one clinicians tend to adopt fastest --- because it mirrors how clinical reasoning already works. A doctor triaging chest pain mentally runs through a series of questions ("Is the troponin elevated? Are there ECG changes? Is the patient over 65?"), and each answer narrows down the likely diagnosis. That branching logic *is* a decision tree. This chapter starts from that intuition and builds up to the methods that win most clinical prediction competitions on tabular data: random forests and gradient boosting, which combine hundreds of trees into a single, far more accurate model.
+Of all the machine learning methods covered here, **tree-based** methods tend to be adopted fastest by clinicians. One reason is that they mirror how clinical reasoning works. A doctor triaging chest pain mentally runs through a series of questions ("Is the troponin elevated? Are there ECG changes? Is the patient over 65?"), and each answer narrows down the likely diagnosis. That branching logic *is* a decision tree. This chapter starts from that intuition and builds up to the methods that win most clinical prediction competitions on tabular data: random forests and gradient boosting, which combine hundreds of trees into a single, far more accurate model.
 
-Why invest in these methods rather than stopping at logistic regression? Because they automatically capture two things that are pervasive in medicine and awkward for standard regression: **non-linear effects** (risk that rises sharply only past a threshold) and **interactions** (a lab value that matters only in diabetic patients). You do not have to specify these by hand --- the trees discover them. The price is interpretability, which is why the chapter spends time on how to read a tree and how to inspect variable importance.
+Why invest in these methods rather than stopping at logistic regression? Because they automatically capture two things that are pervasive in medicine and awkward for standard regression: **non-linear effects** (e.g., risk that rises sharply only past a threshold) and **interactions** (e.g., a lab value that matters only in diabetic patients). You do not have to specify these by hand --- the trees discover them. The price is interpretability, which is why the chapter spends time on how to read a tree and how to inspect variable importance.
 
-## Decision Trees (CART)
+## Decision Trees
 
-A **decision tree** is perhaps the most intuitive machine learning model. It makes predictions by asking a series of yes/no questions about the input features, splitting the data at each step into increasingly homogeneous groups. The result looks like an inverted tree — hence the name.
+A **decision tree** is perhaps the most intuitive machine learning model. It makes predictions by asking a series of yes/no questions about the input features, splitting the data at each step into increasingly homogeneous groups. Each node is a test on a single feature (e.g., *is age <= 30?*), and branches are the possible answers (e.g., *yes/no*). The leaves at the bottom of the tree represent the final prediction (e.g., *high risk* or *low risk*). The resulting structure looks like an inverted tree — hence the name.
 
-**Why start with CART?** CART (Classification And Regression Trees) is the foundation for everything else in this chapter --- random forests and gradient boosting are both just clever ways of combining many CART trees. But a single tree is also valuable in its own right for clinical work: it produces a rule you can literally read off and apply at the bedside without a computer, and it handles a mix of continuous and categorical predictors, missing values, and interactions with no special preprocessing. When you need a model that a clinical team will actually trust and use, a small decision tree is often the most practical choice. @fig-cart-example shows the kind of transparent rule a tree produces.
+<!-- TODO: add a figure with two subfigures. First subfig: an example decision tree. Second subfig: the joke caption about computer scientists calling it a "tree" because they never went outside to see a real one: https://i.kym-cdn.com/photos/images/original/003/067/340/e88.png -->
+
+**Why start with decision trees?** Decision trees (also called *classification and regression trees (CART)*) are the foundation for all tree-based methods we will cover in this chapter, which rely on *ensembling* many trees. But a single tree is also valuable in its own right for clinical work: it produces a rule you can literally read off and apply at the bedside without a computer, and it handles a mix of continuous and categorical predictors, missing values, and interactions with no special preprocessing. When you need a model that a clinical team will actually trust and use, a small decision tree is often a practical choice. @fig-cart-example shows the kind of transparent rule a tree produces.
 
 ```{mermaid}
 %%| echo: false
@@ -63,7 +65,7 @@ In the formulas below, imagine a group of patients in which a fraction $p_1$ hav
 
 $$G = \sum_{k=1}^{K} p_k (1 - p_k) = 1 - \sum_{k=1}^{K} p_k^2$$
 
-Read it as: take each outcome's proportion, and you are summing how "spread out" the group is across outcomes. Gini is 0 when a node is pure (all one class) and maximised when classes are equally mixed. For a binary problem the maximum is 0.5, reached at $p = 0.5$.
+Read it as: each outcome contributes a term $p_k(1 - p_k)$ --- largest when that outcome is a coin-flip --- and summing these measures how "spread out" the group is across outcomes. Gini is 0 when a node is pure (all one class) and maximised when classes are equally mixed. For a binary problem the maximum is 0.5, reached at $p = 0.5$.
 
 *Worked example.* A node of 100 patients with 30 readmitted and 70 not has $p_{\text{yes}} = 0.30$, $p_{\text{no}} = 0.70$, so $G = 1 - (0.30^2 + 0.70^2) = 1 - (0.09 + 0.49) = 0.42$ --- fairly impure. If a split sends 40 patients to a child node that is 35 readmitted / 5 not ($p = 0.875$), that child has $G = 1 - (0.875^2 + 0.125^2) = 0.22$ --- much purer. The tree favours splits that drive these child Gini values down.
 
@@ -101,11 +103,18 @@ readmit_data <- tibble(
   has_diabetes = rbinom(n, 1, 0.35),
   has_chf = rbinom(n, 1, 0.25),
   readmitted = factor(
-    rbinom(n, 1, plogis(-3 + 0.02 * (rnorm(n, 68, 12) - 68) +
-                          0.15 * rpois(n, 1) +
-                          0.1 * rpois(n, 3) +
-                          0.3 * rbinom(n, 1, 0.25) -
-                          0.1 * rnorm(n, 11, 2))),
+    rbinom(
+      n,
+      1,
+      plogis(
+        -3 +
+          0.02 * (age - 68) +
+          0.15 * prior_admissions +
+          0.1 * num_comorbidities +
+          0.3 * has_chf -
+          0.1 * (discharge_hemoglobin - 11)
+      )
+    ),
     labels = c("No", "Yes")
   )
 )
@@ -119,18 +128,29 @@ cat("N =", nrow(readmit_data), "\n")
 #| fig-cap: "A classification tree for 30-day readmission. Each node shows the predicted class, probability, and percentage of observations."
 # Fit a decision tree
 tree_model <- rpart(
-  readmitted ~ age + length_of_stay + num_comorbidities +
-    prior_admissions + discharge_hemoglobin +
-    discharge_creatinine + has_diabetes + has_chf,
+  readmitted ~ age +
+    length_of_stay +
+    num_comorbidities +
+    prior_admissions +
+    discharge_hemoglobin +
+    discharge_creatinine +
+    has_diabetes +
+    has_chf,
   data = readmit_data,
   method = "class",
   control = rpart.control(cp = 0.01, maxdepth = 5, minsplit = 20)
 )
 
 # Visualize
-rpart.plot(tree_model, type = 4, extra = 106, under = TRUE,
-           box.palette = "RdYlGn", roundint = FALSE,
-           main = "Decision Tree: 30-Day Readmission")
+rpart.plot(
+  tree_model,
+  type = 4,
+  extra = 106,
+  under = TRUE,
+  box.palette = "RdYlGn",
+  roundint = FALSE,
+  main = "Decision Tree: 30-Day Readmission"
+)
 ```
 
 #### Python
@@ -156,7 +176,14 @@ df = pd.DataFrame({
     'has_diabetes': np.random.binomial(1, 0.35, n),
     'has_chf': np.random.binomial(1, 0.25, n)
 })
-y = np.random.binomial(1, 0.18, n)
+# Outcome depends on the predictors (mirrors the R simulation)
+logit = (-3
+         + 0.02 * (df['age'] - 68)
+         + 0.15 * df['prior_admissions']
+         + 0.10 * df['num_comorbidities']
+         + 0.30 * df['has_chf']
+         - 0.10 * (df['discharge_hemoglobin'] - 11))
+y = np.random.binomial(1, 1 / (1 + np.exp(-logit)))
 
 feature_names = list(df.columns)
 
@@ -214,12 +241,23 @@ printcp(tree_model)
 plotcp(tree_model)
 
 # Prune to optimal cp
-optimal_cp <- tree_model$cptable[which.min(tree_model$cptable[, "xerror"]), "CP"]
+optimal_cp <- tree_model$cptable[
+  which.min(tree_model$cptable[, "xerror"]),
+  "CP"
+]
 pruned_tree <- prune(tree_model, cp = optimal_cp)
 
 cat("Optimal cp:", optimal_cp, "\n")
-cat("Number of terminal nodes (full):", sum(tree_model$frame$var == "<leaf>"), "\n")
-cat("Number of terminal nodes (pruned):", sum(pruned_tree$frame$var == "<leaf>"), "\n")
+cat(
+  "Number of terminal nodes (full):",
+  sum(tree_model$frame$var == "<leaf>"),
+  "\n"
+)
+cat(
+  "Number of terminal nodes (pruned):",
+  sum(pruned_tree$frame$var == "<leaf>"),
+  "\n"
+)
 ```
 
 #### Python
@@ -311,15 +349,20 @@ library(ranger)
 # Fit random forest
 set.seed(42)
 rf_model <- ranger(
-  readmitted ~ age + length_of_stay + num_comorbidities +
-    prior_admissions + discharge_hemoglobin +
-    discharge_creatinine + has_diabetes + has_chf,
+  readmitted ~ age +
+    length_of_stay +
+    num_comorbidities +
+    prior_admissions +
+    discharge_hemoglobin +
+    discharge_creatinine +
+    has_diabetes +
+    has_chf,
   data = readmit_data,
   num.trees = 500,
   mtry = 3,
   min.node.size = 10,
   importance = "impurity",
-  probability = TRUE,   # predict probabilities
+  probability = TRUE, # predict probabilities
   seed = 42
 )
 
@@ -339,8 +382,11 @@ importance_df <- tibble(
 ggplot(importance_df, aes(x = reorder(Variable, Importance), y = Importance)) +
   geom_col(fill = "#2E86AB") +
   coord_flip() +
-  labs(x = NULL, y = "Importance (Gini impurity reduction)",
-       title = "Random Forest Variable Importance") +
+  labs(
+    x = NULL,
+    y = "Importance (Gini impurity reduction)",
+    title = "Random Forest Variable Importance"
+  ) +
   theme_minimal(base_size = 14)
 ```
 
@@ -437,7 +483,7 @@ where $h_m(x)$ is a tree fitted to the negative gradient of the loss (the "pseud
 
 ::: {.callout-tip}
 ## The Learning Rate / Number of Trees Tradeoff
-A smaller learning rate requires more trees but generally produces better results. A common strategy: set the learning rate to 0.01–0.05, then tune the number of trees via early stopping (stop when validation error stops improving).
+A smaller learning rate requires more trees but generally produces better results. A common strategy: set the learning rate to 0.01–0.05, then tune the number of trees via early stopping (stop when validation error stops improving). XGBoost's own [parameter tuning guide](https://xgboost.readthedocs.io/en/stable/tutorials/param_tuning.html) is a practical reference for which knobs to reach for when the model over- or under-fits.
 :::
 
 ### XGBoost and LightGBM
@@ -456,8 +502,16 @@ library(xgboost)
 
 # Prepare data for xgboost (requires numeric matrix)
 X_train <- readmit_data %>%
-  select(age, length_of_stay, num_comorbidities, prior_admissions,
-         discharge_hemoglobin, discharge_creatinine, has_diabetes, has_chf) %>%
+  select(
+    age,
+    length_of_stay,
+    num_comorbidities,
+    prior_admissions,
+    discharge_hemoglobin,
+    discharge_creatinine,
+    has_diabetes,
+    has_chf
+  ) %>%
   as.matrix()
 
 y_train <- as.numeric(readmit_data$readmitted == "Yes")
@@ -505,8 +559,11 @@ xgb_model <- xgb.train(
 
 # Variable importance
 importance_matrix <- xgb.importance(model = xgb_model)
-xgb.plot.importance(importance_matrix, top_n = 8,
-                     main = "XGBoost Variable Importance")
+xgb.plot.importance(
+  importance_matrix,
+  top_n = 8,
+  main = "XGBoost Variable Importance"
+)
 ```
 
 #### Python
@@ -519,25 +576,13 @@ import numpy as np
 
 np.random.seed(42)
 
-xgb_model = xgb.XGBClassifier(
-    n_estimators=1000,
-    learning_rate=0.05,
-    max_depth=4,
-    subsample=0.8,
-    colsample_bytree=0.8,
-    eval_metric='auc',
-    early_stopping_rounds=50,
-    random_state=42,
-    use_label_encoder=False
-)
-
 # Cross-validation
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 scores = cross_val_score(
     xgb.XGBClassifier(
         n_estimators=500, learning_rate=0.05, max_depth=4,
         subsample=0.8, colsample_bytree=0.8,
-        random_state=42, use_label_encoder=False, eval_metric='logloss'
+        random_state=42, eval_metric='logloss'
     ),
     df, y, cv=cv, scoring='roc_auc'
 )
@@ -551,7 +596,7 @@ print(f"XGBoost CV AUC: {scores.mean():.3f} (+/- {scores.std():.3f})")
 xgb_final = xgb.XGBClassifier(
     n_estimators=500, learning_rate=0.05, max_depth=4,
     subsample=0.8, colsample_bytree=0.8,
-    random_state=42, use_label_encoder=False, eval_metric='logloss'
+    random_state=42, eval_metric='logloss'
 )
 xgb_final.fit(df, y)
 
@@ -744,8 +789,7 @@ lr_spec <- logistic_reg() %>% set_engine("glm")
 lr_wf <- workflow() %>%
   add_model(lr_spec) %>%
   add_recipe(recipe(readmitted ~ ., data = readmit_data))
-lr_res <- fit_resamples(lr_wf, resamples = folds,
-                        metrics = metric_set(roc_auc))
+lr_res <- fit_resamples(lr_wf, resamples = folds, metrics = metric_set(roc_auc))
 
 # Random forest
 rf_spec <- rand_forest(trees = 500, mtry = 3, min_n = 10) %>%
@@ -754,19 +798,25 @@ rf_spec <- rand_forest(trees = 500, mtry = 3, min_n = 10) %>%
 rf_wf <- workflow() %>%
   add_model(rf_spec) %>%
   add_recipe(recipe(readmitted ~ ., data = readmit_data))
-rf_res <- fit_resamples(rf_wf, resamples = folds,
-                        metrics = metric_set(roc_auc))
+rf_res <- fit_resamples(rf_wf, resamples = folds, metrics = metric_set(roc_auc))
 
 # Boosted trees (via xgboost engine in tidymodels)
-xgb_spec <- boost_tree(trees = 500, tree_depth = 4, learn_rate = 0.05,
-                        min_n = 10) %>%
+xgb_spec <- boost_tree(
+  trees = 500,
+  tree_depth = 4,
+  learn_rate = 0.05,
+  min_n = 10
+) %>%
   set_engine("xgboost") %>%
   set_mode("classification")
 xgb_wf <- workflow() %>%
   add_model(xgb_spec) %>%
   add_recipe(recipe(readmitted ~ ., data = readmit_data))
-xgb_res <- fit_resamples(xgb_wf, resamples = folds,
-                         metrics = metric_set(roc_auc))
+xgb_res <- fit_resamples(
+  xgb_wf,
+  resamples = folds,
+  metrics = metric_set(roc_auc)
+)
 
 # Collect and compare results
 bind_rows(
@@ -794,27 +844,31 @@ np.random.seed(42)
 cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
 models = {
-    'Logistic Regression': make_pipeline(
+    "Logistic Regression": make_pipeline(
         StandardScaler(), LogisticRegression(max_iter=1000)
     ),
-    'Random Forest': RandomForestClassifier(
-        n_estimators=500, max_features='sqrt', min_samples_leaf=10,
-        random_state=42, n_jobs=-1
+    "Random Forest": RandomForestClassifier(
+        n_estimators=500, min_samples_leaf=10, random_state=42, n_jobs=-1
     ),
-    'Gradient Boosting': GradientBoostingClassifier(
-        n_estimators=500, learning_rate=0.05, max_depth=4,
-        subsample=0.8, random_state=42
-    )
+    "Gradient Boosting": GradientBoostingClassifier(
+        n_estimators=500,
+        learning_rate=0.05,
+        max_depth=4,
+        subsample=0.8,
+        random_state=42,
+    ),
 }
 
 results = []
 for name, model in models.items():
-    scores = cross_val_score(model, df, y, cv=cv, scoring='roc_auc')
-    results.append({
-        'Model': name,
-        'Mean AUC': f"{scores.mean():.3f}",
-        'Std': f"{scores.std():.3f}"
-    })
+    scores = cross_val_score(model, df, y, cv=cv, scoring="roc_auc")
+    results.append(
+        {
+            "Model": name,
+            "Mean AUC": f"{scores.mean():.3f}",
+            "Std": f"{scores.std():.3f}",
+        }
+    )
     print(f"{name:25s}: AUC = {scores.mean():.3f} (+/- {scores.std():.3f})")
 
 print(pd.DataFrame(results).to_string(index=False))
@@ -840,12 +894,16 @@ Using the readmission dataset (or a dataset of your choice):
 ```{r}
 #| label: ex1-tree-r
 #| eval: false
-library(rpart)      # rpart(), rpart.control()
+library(rpart) # rpart(), rpart.control()
 library(rpart.plot) # rpart.plot() for visualising the tree
 
 # Fit a full tree (set cp very low to avoid early pruning)
-full_tree <- rpart(readmitted ~ ., data = readmit_data, method = "class",
-                   control = rpart.control(cp = 0.001))
+full_tree <- rpart(
+  readmitted ~ .,
+  data = readmit_data,
+  method = "class",
+  control = rpart.control(cp = 0.001)
+)
 
 # Your code:
 # 1. Count terminal nodes
@@ -942,6 +1000,8 @@ The progression from single trees to random forests to gradient boosting follows
 - **Random forests** reduce variance by averaging many decorrelated trees, with the OOB error providing a built-in validation estimate.
 - **Gradient boosting** reduces both bias and variance through sequential learning, often achieving the best predictive accuracy at the cost of more tuning.
 
+A useful way to hold the two ensembles in mind: random forests grow *deep* trees *independently* (on bootstrap samples) and average them to tame variance, whereas boosting grows *shallow* trees *sequentially*, each correcting the errors of the ones before it to chip away at bias.
+
 For clinical prediction models, always compare against a logistic regression baseline. Use cross-validation for honest evaluation, tune hyperparameters systematically, and remember that the most complex model is not always the best choice.
 
 ## References and Further Reading
@@ -954,7 +1014,7 @@ Smits et al. (2026) provide an accessible treatment of tree-based methods in the
 
 For a thorough treatment of the CART algorithm, see Breiman, Friedman, Olshen, and Stone's *Classification and Regression Trees* (1984, Wadsworth). Although the original text is somewhat dated, the core ideas remain current.
 
-Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (Springer, 2nd edition, 2009) covers bagging (Section 8.7), random forests (Chapter 15), and boosting (Chapter 10) with mathematical rigor. James et al.'s *An Introduction to Statistical Learning* (ISLR, 2nd edition, 2021) provides a gentler introduction in Chapters 8 and covers tree-based methods with R lab exercises.
+Hastie, Tibshirani, and Friedman's *The Elements of Statistical Learning* (Springer, 2nd edition, 2009) covers bagging (Section 8.7), random forests (Chapter 15), and boosting (Chapter 10) with mathematical rigor. James et al.'s *An Introduction to Statistical Learning* (ISLR, 2nd edition, 2021) provides a gentler introduction in Chapter 8 and covers tree-based methods with R lab exercises.
 
 Boehmke and Greenwell's *Hands-On Machine Learning with R* dedicates several chapters to tree-based methods with practical tidymodels code, and is an excellent companion for the R exercises in this chapter.
 
