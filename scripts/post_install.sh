@@ -11,8 +11,7 @@ Rscript -e 'install.packages(c("keras3", "dcurves", "EValue", "brms", "rstanarm"
 # --- CMAverse is GitHub-only (not on CRAN) ---
 Rscript -e 'if (!requireNamespace("CMAverse", quietly = TRUE)) remotes::install_github("bs1125/CMAverse")'
 
-# keras3 (R) will use the python TensorFlow backend already provided by the
-# `python` / `full` environments via reticulate, so no extra backend install
-# is needed when run inside one of those environments.
+# keras3 (R) uses the TensorFlow backend already provided by the default /
+# full environments via reticulate — no extra backend install needed.
 
 echo "post_install complete."

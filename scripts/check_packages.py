@@ -27,8 +27,7 @@ PACKAGES = [
     ("shap", "shap", "0.49.1", "0.53"),
     ("networkx", "networkx", "3.6.1", "4"),
     ("keras", "keras", "3.15.0", "4"),
-    ("torch", "torch", "2.9.1", "3"),
-    ("torchvision", "torchvision", "0.24.1", "0.26"),
+    ("tensorflow", "tensorflow", "2.21.0", "3"),
 ]
 
 GREEN = "\033[32m"
