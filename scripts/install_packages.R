@@ -103,7 +103,13 @@ if (length(to_install) > 0) {
     length(to_install),
     RESET
   ))
-  install.packages(to_install, repos = "https://cloud.r-project.org")
+  rspm <- Sys.getenv("RSPM", unset = "")
+  if (nzchar(rspm)) {
+    repos <- rspm
+  } else {
+    repos <- "https://cloud.r-project.org"
+  }
+  install.packages(to_install, repos = repos)
 }
 
 for (pkg in names(github_pkgs)) {
