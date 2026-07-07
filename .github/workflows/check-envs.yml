@@ -35,6 +35,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r@v2
         with:
+          r-version: "4.5"
           use-public-rspm: true
 
       - name: Install system dependencies (Linux)
@@ -44,7 +45,14 @@ jobs:
           sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev \
             libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
             libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
-            libgit2-dev cmake
+            libgit2-dev libuv1-dev cmake
+
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/Library
+          key: r-${{ runner.os }}-4.5-${{ hashFiles('scripts/install_packages.R') }}
+          restore-keys: r-${{ runner.os }}-4.5-
 
       - name: Install R packages
         env:
