@@ -2,6 +2,7 @@
 
 import importlib
 import logging
+import os
 import sys
 import warnings
 from packaging.version import Version
@@ -30,11 +31,16 @@ PACKAGES = [
     ("tensorflow", "tensorflow", "2.21.0", "3"),
 ]
 
+_WIN = os.name == "nt"
+
 GREEN = "\033[32m"
 RED = "\033[31m"
 BOLD = "\033[1m"
 DIM = "\033[2m"
 RESET = "\033[0m"
+
+_OK = "OK" if _WIN else "✓"
+_FAIL = "FAIL" if _WIN else "✗"
 
 
 def _check_version(version_str, min_ver, max_ver):
@@ -65,7 +71,7 @@ def main():
         mod = _quiet_import(import_name)
         if mod is None:
             failures.append(pip_name)
-            print(f"  {RED}✗{RESET}  {pip_name} — not installed")
+            print(f"  {RED}{_FAIL}{RESET}  {pip_name} — not installed")
             continue
 
         version = getattr(mod, "__version__", None)
@@ -73,11 +79,11 @@ def main():
             ok, bound = _check_version(version, min_ver, max_ver)
             if not ok:
                 failures.append(pip_name)
-                print(f"  {RED}✗{RESET}  {pip_name} {version} — expected {bound}")
+                print(f"  {RED}{_FAIL}{RESET}  {pip_name} {version} — expected {bound}")
                 continue
 
         ver_label = f" {DIM}{version}{RESET}" if version else ""
-        print(f"  {GREEN}✓{RESET}  {pip_name}{ver_label}")
+        print(f"  {GREEN}{_OK}{RESET}  {pip_name}{ver_label}")
 
     print()
     if failures:
