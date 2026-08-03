@@ -39,15 +39,15 @@ By the end of this course, you will be able to:
 
 The course runs in seven parts, in this order:
 
-| Part                                                     | Chapters | What it covers                                                                                     |
-| -------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
-| **Pre-Course: Foundations**                               | 1–4      | Environment setup, probability and distributions, statistical inference, regression refresher       |
-| **Advanced Statistical Methods**                          | 5–9      | Splines and non-linear modelling, penalised regression, survival analysis, mixed-effects models, missing data and multiple imputation |
-| **Bayesian Methods**                                      | 10–11    | Bayesian inference, then applied hierarchical models for multi-site studies                         |
-| **Supervised Learning**                                   | 12–16    | ML foundations, trees and ensembles, neural networks, model evaluation beyond accuracy, explainability |
-| **Applied Supervised Learning: Clinical Prediction Models** | 17–19  | Developing models, performance assessment and validation (calibration, decision curves), reporting to TRIPOD+AI |
-| **Unsupervised Learning**                                 | 20–21    | Dimensionality reduction with PCA, t-SNE and UMAP; clustering                                       |
-| **Advanced Research Toolkit**                              | 22–25    | Causal inference, g-methods and inverse probability weighting, mediation analysis, meta-analysis    |
+| Part                                                        | Chapters | What it covers                                                                                                                        |
+| ----------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pre-Course: Foundations**                                 | 1–4      | Environment setup, probability and distributions, statistical inference, regression refresher                                         |
+| **Advanced Statistical Methods**                            | 5–9      | Splines and non-linear modelling, penalised regression, survival analysis, mixed-effects models, missing data and multiple imputation |
+| **Bayesian Methods**                                        | 10–11    | Bayesian inference, then applied hierarchical models for multi-site studies                                                           |
+| **Supervised Learning**                                     | 12–16    | ML foundations, trees and ensembles, neural networks, model evaluation beyond accuracy, explainability                                |
+| **Applied Supervised Learning: Clinical Prediction Models** | 17–19    | Developing models, performance assessment and validation (calibration, decision curves), reporting to TRIPOD+AI                       |
+| **Unsupervised Learning**                                   | 20–21    | Dimensionality reduction with PCA, t-SNE and UMAP; clustering                                                                         |
+| **Advanced Research Toolkit**                               | 22–25    | Causal inference, g-methods and inverse probability weighting, mediation analysis, meta-analysis                                      |
 
 A few notes on how the parts fit together. The **Pre-Course** material should be
 completed before Day 1 if you are taking this in person; if you are
