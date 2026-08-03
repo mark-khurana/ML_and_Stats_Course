@@ -295,7 +295,7 @@ Instead of connecting every neuron to every pixel, CNNs use **convolutional filt
 
 | Application | Key Study | Architecture | Performance |
 |-------------|-----------|-------------|-------------|
-| Chest X-ray diagnosis | Rajpurkar et al., 2017 | DenseNet-121 | Radiologist-level pneumonia detection |
+| Chest X-ray diagnosis | @rajpurkar2017chexnet | DenseNet-121 | Radiologist-level pneumonia detection |
 | Diabetic retinopathy | Gulshan et al., *JAMA* 2016 | Inception-v3 | AUC 0.991 for referable DR |
 | Skin cancer classification | Esteva et al., *Nature* 2017 | Inception-v3 | Dermatologist-level performance |
 | Pathology | Campanella et al., *Nature Medicine* 2019 | ResNet | Weakly supervised cancer detection in whole-slide images |
@@ -342,8 +342,8 @@ If you worked through @sec-survival, you know that time-to-event data requires s
 
 | Model | Approach | Key Feature |
 |-------|----------|-------------|
-| **DeepSurv** (Katzman et al., 2018) | Neural network within Cox PH framework | Learns non-linear risk functions |
-| **DeepHit** (Lee et al., 2018) | Custom loss; no parametric assumptions | Handles competing risks directly |
+| **DeepSurv** [@katzman2018deepsurv] | Neural network within Cox PH framework | Learns non-linear risk functions |
+| **DeepHit** [@lee2018deephit] | Custom loss; no parametric assumptions | Handles competing risks directly |
 | **SurvTRACE** (2024) | Transformer-based | Models competing events with attention |
 | **DySurv** (*JAMIA*, 2025) | Conditional variational autoencoder | Dynamic risk from longitudinal EHR data |
 

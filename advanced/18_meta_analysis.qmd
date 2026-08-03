@@ -149,7 +149,7 @@ $$
 I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 $$
 
-Rules of thumb (Higgins et al., 2003):
+Rules of thumb [@higgins2003inconsistency]:
 
 - $I^2 \approx 25\%$: low heterogeneity
 - $I^2 \approx 50\%$: moderate heterogeneity
@@ -450,7 +450,7 @@ summary(ipd_model)
 
 ### IPD meta-analysis of prediction models
 
-Riley et al. (2010, 2021) describe frameworks for developing and validating clinical prediction models across multiple studies using IPD:
+@riley2010ipd and @riley2021ipdhandbook describe frameworks for developing and validating clinical prediction models across multiple studies using IPD:
 
 1. Develop the model using one-stage IPD-MA (internal-external cross-validation)
 2. Assess calibration and discrimination in each study

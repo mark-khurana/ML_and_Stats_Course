@@ -1222,3 +1222,92 @@
   doi = {10.1038/sj.bjc.6601119},
   note = {Part of an excellent tutorial series on survival analysis for medical researchers, accessible to clinicians without extensive statistical training.}
 }
+
+@article{bergstra2012random,
+  author = {Bergstra, James and Bengio, Yoshua},
+  title = {Random Search for Hyper-Parameter Optimization},
+  journal = {Journal of Machine Learning Research},
+  year = {2012},
+  volume = {13},
+  pages = {281--305},
+  url = {https://www.jmlr.org/papers/v13/bergstra12a.html},
+  note = {Shows that randomly sampling hyperparameter combinations usually beats an exhaustive grid for the same compute budget, because only a few hyperparameters typically matter and random sampling tries more distinct values of each.}
+}
+
+@article{baron1986moderator,
+  author = {Baron, Reuben M and Kenny, David A},
+  title = {The moderator--mediator variable distinction in social psychological research: conceptual, strategic, and statistical considerations},
+  journal = {Journal of Personality and Social Psychology},
+  year = {1986},
+  volume = {51},
+  number = {6},
+  pages = {1173--1182},
+  doi = {10.1037/0022-3514.51.6.1173},
+  note = {The classic mediation procedure, still widely taught. Superseded for causal work by the counterfactual framework, since it can mislead when exposure and mediator interact or the outcome model is non-linear.}
+}
+
+@article{higgins2003inconsistency,
+  author = {Higgins, Julian P T and Thompson, Simon G and Deeks, Jonathan J and Altman, Douglas G},
+  title = {Measuring inconsistency in meta-analyses},
+  journal = {BMJ},
+  year = {2003},
+  volume = {327},
+  number = {7414},
+  pages = {557--560},
+  doi = {10.1136/bmj.327.7414.557},
+  note = {Introduces the I-squared statistic and the familiar 25/50/75 per cent rules of thumb for low, moderate, and high heterogeneity.}
+}
+
+@article{riley2010ipd,
+  author = {Riley, Richard D and Lambert, Paul C and Abo-Zaid, Ghada},
+  title = {Meta-analysis of individual participant data: rationale, conduct, and reporting},
+  journal = {BMJ},
+  year = {2010},
+  volume = {340},
+  pages = {c221},
+  doi = {10.1136/bmj.c221},
+  note = {The standard practical introduction to individual participant data meta-analysis, covering one-stage versus two-stage approaches and what such a study should report.}
+}
+
+@book{riley2021ipdhandbook,
+  editor = {Riley, Richard D and Tierney, Jayne F and Stewart, Lesley A},
+  title = {Individual Participant Data Meta-Analysis: A Handbook for Healthcare Research},
+  publisher = {Wiley},
+  year = {2021},
+  doi = {10.1002/9781119333784},
+  note = {Book-length treatment of IPD meta-analysis, including chapters on developing and validating clinical prediction models across multiple studies.}
+}
+
+@misc{rajpurkar2017chexnet,
+  author = {Rajpurkar, Pranav and Irvin, Jeremy and Zhu, Kaylie and Yang, Brandon and Mehta, Hershel and Duan, Tony and Ding, Daisy and Bagul, Aarti and Langlotz, Curtis and Shpanskaya, Katie and Lungren, Matthew P and Ng, Andrew Y},
+  title = {{CheXNet}: Radiologist-Level Pneumonia Detection on Chest {X}-Rays with Deep Learning},
+  year = {2017},
+  eprint = {1711.05225},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CV},
+  doi = {10.48550/arXiv.1711.05225},
+  note = {A 121-layer DenseNet trained on ChestX-ray14. Widely cited as a demonstration of radiologist-level performance on a single finding; note it remains a preprint.}
+}
+
+@article{katzman2018deepsurv,
+  author = {Katzman, Jared L and Shaham, Uri and Cloninger, Alexander and Bates, Jonathan and Jiang, Tingting and Kluger, Yuval},
+  title = {{DeepSurv}: personalized treatment recommender system using a Cox proportional hazards deep neural network},
+  journal = {BMC Medical Research Methodology},
+  year = {2018},
+  volume = {18},
+  number = {1},
+  pages = {24},
+  doi = {10.1186/s12874-018-0482-1},
+  note = {Replaces the linear predictor of a Cox model with a neural network, so non-linear and interacting risk relationships can be learned while keeping the proportional hazards framework.}
+}
+
+@inproceedings{lee2018deephit,
+  author = {Lee, Changhee and Zame, William R and Yoon, Jinsung and van der Schaar, Mihaela},
+  title = {{DeepHit}: A Deep Learning Approach to Survival Analysis with Competing Risks},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  year = {2018},
+  volume = {32},
+  pages = {2314--2321},
+  doi = {10.1609/aaai.v32i1.11842},
+  note = {Models the discrete-time distribution of event times directly with a custom loss, avoiding proportional hazards assumptions and handling competing risks natively.}
+}

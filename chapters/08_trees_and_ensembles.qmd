@@ -686,7 +686,7 @@ There are two common strategies for searching through the possible combinations.
 
 ### Random Search
 
-**Random search** instead samples a fixed number of combinations *at random* from the ranges you specify (say, 20 combinations, regardless of how many hyperparameters there are). Bergstra and Bengio (2012) showed this is usually *more* efficient than grid search, and the reason is intuitive: in most problems only one or two hyperparameters really matter, but you do not know in advance which. A grid wastes much of its budget trying many values of the unimportant dials while testing only a few values of the important one. Random search, for the same number of model fits, ends up trying *more distinct values of every dial* --- so it is more likely to stumble onto a good value of whichever one actually matters. **In practice, start with random search**; it gives you most of the benefit for a fraction of the compute.
+**Random search** instead samples a fixed number of combinations *at random* from the ranges you specify (say, 20 combinations, regardless of how many hyperparameters there are). @bergstra2012random showed this is usually *more* efficient than grid search, and the reason is intuitive: in most problems only one or two hyperparameters really matter, but you do not know in advance which. A grid wastes much of its budget trying many values of the unimportant dials while testing only a few values of the important one. Random search, for the same number of model fits, ends up trying *more distinct values of every dial* --- so it is more likely to stumble onto a good value of whichever one actually matters. **In practice, start with random search**; it gives you most of the benefit for a fraction of the compute.
 
 ::: {.panel-tabset}
 

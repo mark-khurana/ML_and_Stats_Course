@@ -43,7 +43,7 @@ The arrow `exposure -> mediator -> outcome` is the **indirect** path. The arrow 
 
 ### The historical approach
 
-For decades, mediation was done with the **Baron and Kenny (1986)** procedure: fit a regression of the outcome on the exposure (the total effect), then add the mediator; the amount by which the exposure's coefficient shrinks was called the "mediated" effect, and the product of two regression coefficients estimated the indirect effect.
+For decades, mediation was done with the **Baron and Kenny** procedure [@baron1986moderator]: fit a regression of the outcome on the exposure (the total effect), then add the mediator; the amount by which the exposure's coefficient shrinks was called the "mediated" effect, and the product of two regression coefficients estimated the indirect effect.
 
 This is intuitive and still widely taught, but it has serious limitations that matter clinically, as reviewed for epidemiologists by @richiardi2013mediation:
 
