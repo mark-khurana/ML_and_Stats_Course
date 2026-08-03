@@ -555,22 +555,11 @@ For each scenario, say whether you would lead with IPW, g-computation, or a doub
 
 ## References and Further Reading
 
-1. **Hernan MA, Robins JM.** *Causal Inference: What If.* Chapman & Hall/CRC, 2020. The definitive modern textbook; Part II covers IP weighting and the g-formula in depth. Freely available at [https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/).
+- For the foundations, see @hernan2024causal --- Part II covers IP weighting and the g-formula in depth --- and @robins1986gformula for the original g-formula.
+- For marginal structural models and time-varying confounding, see @robins2000msm.
+- For clinician-friendly introductions to weighting, see @mansournia2016ipw, @chesnaye2022ipw, and @haukoos2015propensity.
+- For a code-first tutorial covering exactly these methods, see @chatton2024cookbook.
+- For software, see @greifer2024weightit and @arelbundock2024marginaleffects in R, and @zivich2024zepid in Python.
 
-2. **Robins J.** A new approach to causal inference in mortality studies with a sustained exposure period. *Mathematical Modelling.* 1986;7(9--12):1393--1512. The original g-formula.
-
-3. **Chatton A, Rohrer JM.** The Causal Cookbook: Recipes for Propensity Scores, G-Computation, and Doubly Robust Standardization. *Advances in Methods and Practices in Psychological Science.* 2024;7(1). A clear, code-first tutorial on exactly these methods.
-
-4. **Greifer N.** WeightIt: Weighting for Covariate Balance in Observational Studies. R package. [https://ngreifer.github.io/WeightIt/](https://ngreifer.github.io/WeightIt/).
-
-5. **Arel-Bundock V, Greifer N, Heiss A.** How to Interpret Statistical Models Using marginaleffects for R and Python. *Journal of Statistical Software.* 2024;111(9). Covers `avg_comparisons()`, g-computation, and `inferences()` bootstrap.
-
-6. **Zivich PN, et al.** zEpid: epidemiology analysis in Python (`TimeFixedGFormula`, `IPTW`, `AIPTW`). [https://zepid.readthedocs.io/](https://zepid.readthedocs.io/).
-
-7. **Robins JM, Hernan MA, Brumback B.** Marginal structural models and causal inference in epidemiology. *Epidemiology.* 2000;11(5):550--560.
-
-8. **Mansournia MA, Altman DG.** Inverse probability weighting. *BMJ.* 2016;352:i189 [@mansournia2016ipw]. A short, clinician-friendly explainer of the pseudo-population idea.
-
-9. **Chesnaye NC, Stel VS, Tripepi G, Dekker FW, Fu EL, Zoccali C, Jager KJ.** An introduction to inverse probability of treatment weighting in observational research. *Clinical Kidney Journal.* 2022;15(1):14--20 [@chesnaye2022ipw]. A worked clinical tutorial, including longitudinal weighting and time-dependent confounding.
-
-10. **Haukoos JS, Lewis RJ.** The propensity score. *JAMA.* 2015;314(15):1637--1638 [@haukoos2015propensity]. The JAMA Guide to Statistics and Methods primer on propensity scores.
+::: {.sectionrefs}
+:::

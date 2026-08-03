@@ -713,22 +713,12 @@ d) What unmeasured confounders might remain? How would you conduct a sensitivity
 
 ## References and Further Reading
 
-1. **Hernan MA, Robins JM.** *Causal Inference: What If.* Chapman & Hall/CRC, 2024. Freely available at [https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/). The definitive modern textbook on causal inference.
+- For the foundations of causal inference, see @hernan2024causal (the definitive modern textbook, freely available online) and @rosenbaum2002observational.
+- For propensity scores, see @rosenbaum1983propensity (the original paper) and @ho2011matchit for the `MatchIt` implementation.
+- For drawing and interrogating DAGs, see @textor2016dagitty.
+- For sensitivity analysis to unmeasured confounding, see @vanderweele2017evalue.
+- For target trial emulation, see @cashin2025target for the reporting checklist and @lodi2019effect for what happens when observational analyses are made to mirror trials properly.
+- For software, see @greifer2024weightit in R and @sharma2020dowhy in Python.
 
-2. **Rosenbaum PR.** *Observational Studies.* 2nd ed. Springer, 2002. The classic text on propensity score methods and sensitivity analysis.
-
-3. **Rosenbaum PR, Rubin DB.** The central role of the propensity score in observational studies for causal effects. *Biometrika.* 1983;70(1):41--55.
-
-4. **TARGET Guideline.** TrAnsparent ReportinG of observational studies Emulating a Target trial. *BMJ.* 2025. Reporting checklist for target trial emulation studies.
-
-5. **VanderWeele TJ, Ding P.** Sensitivity analysis in observational research: introducing the E-value. *Annals of Internal Medicine.* 2017;167(4):268--274.
-
-6. **Textor J, van der Zander B, Gilthorpe MS, et al.** Robust causal inference using directed acyclic graphs: the R package 'dagitty'. *International Journal of Epidemiology.* 2016;45(6):1887--1894.
-
-7. **Ho DE, Imai K, King G, Stuart EA.** MatchIt: nonparametric preprocessing for parametric causal inference. *Journal of Statistical Software.* 2011;42(8):1--28.
-
-8. **Greifer N.** WeightIt: weighting for covariate balance in observational studies. R package. [https://ngreifer.github.io/WeightIt/](https://ngreifer.github.io/WeightIt/).
-
-9. **Sharma A, Kiciman E.** DoWhy: An end-to-end library for causal inference. arXiv:2011.04216, 2020.
-
-10. **Lodi S, Phillips A, Lundgren J, et al.** Effect estimates in randomized trials and observational studies: comparing apples with apples. *American Journal of Epidemiology.* 2019;188(8):1569--1577.
+::: {.sectionrefs}
+:::

@@ -450,7 +450,7 @@ summary(ipd_model)
 
 ### IPD meta-analysis of prediction models
 
-@riley2010ipd and @riley2021ipdhandbook describe frameworks for developing and validating clinical prediction models across multiple studies using IPD:
+Established frameworks for developing and validating clinical prediction models across multiple studies using IPD follow these steps:
 
 1. Develop the model using one-stage IPD-MA (internal-external cross-validation)
 2. Assess calibration and discrimination in each study
@@ -783,24 +783,12 @@ f) Would you change clinical practice based on this meta-analysis? Why or why no
 
 ## References and Further Reading
 
-1. **Higgins JPT, Thomas J, Chandler J, et al.** (eds). *Cochrane Handbook for Systematic Reviews of Interventions.* Version 6.4, 2024. Available at [https://training.cochrane.org/handbook](https://training.cochrane.org/handbook). The authoritative guide to systematic review methodology.
+- For systematic review methodology, see @cochrane2024handbook; for reporting, see @page2021prisma.
+- For the random-effects model, see @dersimonian1986; for heterogeneity, see @higgins2003inconsistency; and for why a prediction interval belongs alongside the confidence interval, see @inthout2016prediction.
+- For publication bias and funnel plot asymmetry, see @egger1997bias.
+- For meta-analysis of prognostic factors and of individual participant data, see @riley2019prognostic and @riley2020ipdinteractions.
+- For network meta-analysis, see @salanti2012network.
+- For software, see @viechtbauer2010metafor and @schwarzer2015metaR.
 
-2. **Riley RD, Debray TPA, Collins GS, et al.** Individual participant data meta-analysis to examine interactions between treatment effect and participant-level covariates. *Statistical Methods in Medical Research.* 2020;29(12):3531--3556.
-
-3. **Riley RD, Moons KGM, Snell KIE, et al.** A guide to systematic review and meta-analysis of prognostic factor studies. *BMJ.* 2019;364:k4597.
-
-4. **Page MJ, McKenzie JE, Bossuyt PM, et al.** The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. *BMJ.* 2021;372:n71.
-
-5. **Viechtbauer W.** Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software.* 2010;36(3):1--48.
-
-6. **Schwarzer G, Carpenter JR, Rucker G.** *Meta-Analysis with R.* Springer, 2015. Comprehensive practical guide using the `meta` and `metafor` packages.
-
-7. **DerSimonian R, Laird N.** Meta-analysis in clinical trials. *Controlled Clinical Trials.* 1986;7(3):177--188.
-
-8. **Higgins JPT, Thompson SG, Deeks JJ, Altman DG.** Measuring inconsistency in meta-analyses. *BMJ.* 2003;327(7414):557--560.
-
-9. **Egger M, Davey Smith G, Schneider M, Minder C.** Bias in meta-analysis detected by a simple, graphical test. *BMJ.* 1997;315(7109):629--634.
-
-10. **Salanti G.** Indirect and mixed-treatment comparison, network, or multiple-treatments meta-analysis: many names, many benefits, many concerns for the next generation evidence synthesis tool. *Research Synthesis Methods.* 2012;3(2):80--97.
-
-11. **IntHout J, Ioannidis JPA, Rovers MM, Goeman JJ.** Plea for routinely presenting prediction intervals in meta-analysis. *BMJ Open.* 2016;6(7):e010247.
+::: {.sectionrefs}
+:::

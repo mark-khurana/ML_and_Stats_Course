@@ -1258,25 +1258,7 @@
   note = {Introduces the I-squared statistic and the familiar 25/50/75 per cent rules of thumb for low, moderate, and high heterogeneity.}
 }
 
-@article{riley2010ipd,
-  author = {Riley, Richard D and Lambert, Paul C and Abo-Zaid, Ghada},
-  title = {Meta-analysis of individual participant data: rationale, conduct, and reporting},
-  journal = {BMJ},
-  year = {2010},
-  volume = {340},
-  pages = {c221},
-  doi = {10.1136/bmj.c221},
-  note = {The standard practical introduction to individual participant data meta-analysis, covering one-stage versus two-stage approaches and what such a study should report.}
-}
 
-@book{riley2021ipdhandbook,
-  editor = {Riley, Richard D and Tierney, Jayne F and Stewart, Lesley A},
-  title = {Individual Participant Data Meta-Analysis: A Handbook for Healthcare Research},
-  publisher = {Wiley},
-  year = {2021},
-  doi = {10.1002/9781119333784},
-  note = {Book-length treatment of IPD meta-analysis, including chapters on developing and validating clinical prediction models across multiple studies.}
-}
 
 @misc{rajpurkar2017chexnet,
   author = {Rajpurkar, Pranav and Irvin, Jeremy and Zhu, Kaylie and Yang, Brandon and Mehta, Hershel and Duan, Tony and Ding, Daisy and Bagul, Aarti and Langlotz, Curtis and Shpanskaya, Katie and Lungren, Matthew P and Ng, Andrew Y},
@@ -1310,4 +1292,304 @@
   pages = {2314--2321},
   doi = {10.1609/aaai.v32i1.11842},
   note = {Models the discrete-time distribution of event times directly with a custom loss, avoiding proportional hazards assumptions and handling competing risks natively.}
+}
+
+% ---- Advanced Research Toolkit: causal inference ----
+
+@book{rosenbaum2002observational,
+  author = {Rosenbaum, Paul R},
+  title = {Observational Studies},
+  publisher = {Springer},
+  series = {Springer Series in Statistics},
+  edition = {2nd},
+  year = {2002},
+  doi = {10.1007/978-1-4757-3692-2},
+  note = {The classic text on propensity score methods and sensitivity analysis.}
+}
+
+@article{rosenbaum1983propensity,
+  author = {Rosenbaum, Paul R and Rubin, Donald B},
+  title = {The central role of the propensity score in observational studies for causal effects},
+  journal = {Biometrika},
+  year = {1983},
+  volume = {70},
+  number = {1},
+  pages = {41--55},
+  doi = {10.1093/biomet/70.1.41},
+  note = {The paper that introduced the propensity score.}
+}
+
+@article{cashin2025target,
+  author = {Cashin, Aidan G and Hansford, Harrison J and Hern{\'a}n, Miguel A and Swanson, Sonja A and Lee, Hopin and Jones, Matthew D and Dahabreh, Issa J and Dickerman, Barbra A and others},
+  title = {Transparent reporting of observational studies emulating a target trial: the {TARGET} Statement},
+  journal = {BMJ},
+  year = {2025},
+  volume = {390},
+  pages = {e087179},
+  doi = {10.1136/bmj-2025-087179},
+  note = {The reporting checklist for target trial emulation studies.}
+}
+
+@article{vanderweele2017evalue,
+  author = {VanderWeele, Tyler J and Ding, Peng},
+  title = {Sensitivity analysis in observational research: introducing the {E}-value},
+  journal = {Annals of Internal Medicine},
+  year = {2017},
+  volume = {167},
+  number = {4},
+  pages = {268--274},
+  doi = {10.7326/M16-2607},
+  note = {Introduces the E-value: how strong an unmeasured confounder would have to be to explain away an observed association.}
+}
+
+@article{textor2016dagitty,
+  author = {Textor, Johannes and van der Zander, Benito and Gilthorpe, Mark S and Li{\'s}kiewicz, Maciej and Ellison, George T H},
+  title = {Robust causal inference using directed acyclic graphs: the {R} package `dagitty'},
+  journal = {International Journal of Epidemiology},
+  year = {2016},
+  volume = {45},
+  number = {6},
+  pages = {1887--1894},
+  doi = {10.1093/ije/dyw341},
+  note = {The tool for drawing a DAG and having it tell you which variables to adjust for.}
+}
+
+@article{ho2011matchit,
+  author = {Ho, Daniel E and Imai, Kosuke and King, Gary and Stuart, Elizabeth A},
+  title = {{MatchIt}: nonparametric preprocessing for parametric causal inference},
+  journal = {Journal of Statistical Software},
+  year = {2011},
+  volume = {42},
+  number = {8},
+  pages = {1--28},
+  doi = {10.18637/jss.v042.i08}
+}
+
+@misc{greifer2024weightit,
+  author = {Greifer, Noah},
+  title = {{WeightIt}: Weighting for Covariate Balance in Observational Studies},
+  year = {2024},
+  howpublished = {R package},
+  url = {https://ngreifer.github.io/WeightIt/}
+}
+
+@misc{sharma2020dowhy,
+  author = {Sharma, Amit and Kiciman, Emre},
+  title = {{DoWhy}: An End-to-End Library for Causal Inference},
+  year = {2020},
+  eprint = {2011.04216},
+  archivePrefix = {arXiv},
+  primaryClass = {stat.ME},
+  doi = {10.48550/arXiv.2011.04216}
+}
+
+@article{lodi2019effect,
+  author = {Lodi, Sara and Phillips, Andrew and Lundgren, Jens and Logan, Roger and Sharma, Shweta and Cole, Stephen R and Babiker, Abdel and others},
+  title = {Effect estimates in randomized trials and observational studies: comparing apples with apples},
+  journal = {American Journal of Epidemiology},
+  year = {2019},
+  volume = {188},
+  number = {8},
+  pages = {1569--1577},
+  doi = {10.1093/aje/kwz100},
+  note = {Shows how much of the apparent disagreement between trials and observational studies disappears once the observational analysis emulates the trial properly.}
+}
+
+% ---- Advanced Research Toolkit: g-methods ----
+
+@article{robins1986gformula,
+  author = {Robins, James},
+  title = {A new approach to causal inference in mortality studies with a sustained exposure period --- application to control of the healthy worker survivor effect},
+  journal = {Mathematical Modelling},
+  year = {1986},
+  volume = {7},
+  number = {9--12},
+  pages = {1393--1512},
+  doi = {10.1016/0270-0255(86)90088-6},
+  note = {The original g-formula paper.}
+}
+
+@article{chatton2024cookbook,
+  author = {Chatton, Arthur and Rohrer, Julia M},
+  title = {The Causal Cookbook: Recipes for Propensity Scores, {G}-Computation, and Doubly Robust Standardization},
+  journal = {Advances in Methods and Practices in Psychological Science},
+  year = {2024},
+  volume = {7},
+  number = {1},
+  doi = {10.1177/25152459241236149},
+  note = {A clear, code-first tutorial on exactly these methods.}
+}
+
+@article{arelbundock2024marginaleffects,
+  author = {Arel-Bundock, Vincent and Greifer, Noah and Heiss, Andrew},
+  title = {How to Interpret Statistical Models Using {marginaleffects} for {R} and {Python}},
+  journal = {Journal of Statistical Software},
+  year = {2024},
+  volume = {111},
+  number = {9},
+  doi = {10.18637/jss.v111.i09},
+  note = {Covers avg_comparisons(), g-computation, and bootstrap inference.}
+}
+
+@misc{zivich2024zepid,
+  author = {Zivich, Paul N and others},
+  title = {{zEpid}: Epidemiology Analysis in {Python}},
+  year = {2024},
+  howpublished = {Python package},
+  url = {https://zepid.readthedocs.io/},
+  note = {Provides TimeFixedGFormula, IPTW, and AIPTW.}
+}
+
+@article{robins2000msm,
+  author = {Robins, James M and Hern{\'a}n, Miguel {\'A}ngel and Brumback, Babette},
+  title = {Marginal structural models and causal inference in epidemiology},
+  journal = {Epidemiology},
+  year = {2000},
+  volume = {11},
+  number = {5},
+  pages = {550--560},
+  doi = {10.1097/00001648-200009000-00011},
+  note = {Introduces marginal structural models for time-varying exposures and confounding.}
+}
+
+% ---- Advanced Research Toolkit: mediation ----
+
+@book{vanderweele2015explanation,
+  author = {VanderWeele, Tyler J},
+  title = {Explanation in Causal Inference: Methods for Mediation and Interaction},
+  publisher = {Oxford University Press},
+  year = {2015},
+  note = {The definitive modern text on causal mediation.}
+}
+
+@article{valeri2013mediation,
+  author = {Valeri, Linda and VanderWeele, Tyler J},
+  title = {Mediation analysis allowing for exposure--mediator interactions and causal interpretation: theoretical assumptions and implementation with {SAS} and {SPSS} macros},
+  journal = {Psychological Methods},
+  year = {2013},
+  volume = {18},
+  number = {2},
+  pages = {137--150},
+  doi = {10.1037/a0031034},
+  note = {The regression-based estimator behind regmedint and CMAverse.}
+}
+
+@article{imai2010mediation,
+  author = {Imai, Kosuke and Keele, Luke and Tingley, Dustin},
+  title = {A general approach to causal mediation analysis},
+  journal = {Psychological Methods},
+  year = {2010},
+  volume = {15},
+  number = {4},
+  pages = {309--334},
+  doi = {10.1037/a0020761},
+  note = {The basis of the mediation R package.}
+}
+
+@article{shi2021cmaverse,
+  author = {Shi, Baoyi and Choirat, Christine and Coull, Brent A and VanderWeele, Tyler J and Valeri, Linda},
+  title = {{CMAverse}: a suite of functions for reproducible causal mediation analyses},
+  journal = {Epidemiology},
+  year = {2021},
+  volume = {32},
+  number = {5},
+  pages = {e20--e22},
+  doi = {10.1097/EDE.0000000000001378},
+  url = {https://bs1125.github.io/CMAverse/}
+}
+
+@misc{yoshida2024regmedint,
+  author = {Yoshida, Kazuki and others},
+  title = {{regmedint}: Regression-Based Causal Mediation Analysis with Interaction},
+  year = {2024},
+  howpublished = {R package},
+  url = {https://github.com/kaz-yos/regmedint}
+}
+
+% ---- Advanced Research Toolkit: meta-analysis ----
+
+@misc{cochrane2024handbook,
+  editor = {Higgins, Julian P T and Thomas, James and Chandler, Jacqueline and Cumpston, Miranda and Li, Tianjing and Page, Matthew J and Welch, Vivian A},
+  title = {Cochrane Handbook for Systematic Reviews of Interventions},
+  year = {2024},
+  howpublished = {Version 6.5, Cochrane},
+  url = {https://training.cochrane.org/handbook},
+  note = {The authoritative guide to systematic review methodology, maintained as a living document.}
+}
+
+@article{riley2020ipdinteractions,
+  author = {Riley, Richard D and Debray, Thomas P A and Fisher, David and Hattle, Miriam and Marlin, Nadine and Hoogland, Jeroen and Gueyffier, Francois and others},
+  title = {Individual participant data meta-analysis to examine interactions between treatment effect and participant-level covariates: statistical recommendations for conduct and planning},
+  journal = {Statistics in Medicine},
+  year = {2020},
+  volume = {39},
+  number = {15},
+  pages = {2115--2137},
+  doi = {10.1002/sim.8516}
+}
+
+@article{riley2019prognostic,
+  author = {Riley, Richard D and Moons, Karel G M and Snell, Kym I E and Ensor, Joie and Hooft, Lotty and Altman, Douglas G and Hayden, Jill and others},
+  title = {A guide to systematic review and meta-analysis of prognostic factor studies},
+  journal = {BMJ},
+  year = {2019},
+  volume = {364},
+  pages = {k4597},
+  doi = {10.1136/bmj.k4597}
+}
+
+@article{viechtbauer2010metafor,
+  author = {Viechtbauer, Wolfgang},
+  title = {Conducting meta-analyses in {R} with the {metafor} package},
+  journal = {Journal of Statistical Software},
+  year = {2010},
+  volume = {36},
+  number = {3},
+  pages = {1--48},
+  doi = {10.18637/jss.v036.i03}
+}
+
+@book{schwarzer2015metaR,
+  author = {Schwarzer, Guido and Carpenter, James R and R{\"u}cker, Gerta},
+  title = {Meta-Analysis with {R}},
+  publisher = {Springer},
+  series = {Use R!},
+  year = {2015},
+  doi = {10.1007/978-3-319-21416-0},
+  note = {Comprehensive practical guide using the meta and metafor packages.}
+}
+
+@article{egger1997bias,
+  author = {Egger, Matthias and Davey Smith, George and Schneider, Martin and Minder, Christoph},
+  title = {Bias in meta-analysis detected by a simple, graphical test},
+  journal = {BMJ},
+  year = {1997},
+  volume = {315},
+  number = {7109},
+  pages = {629--634},
+  doi = {10.1136/bmj.315.7109.629},
+  note = {The funnel plot asymmetry test for small-study effects.}
+}
+
+@article{salanti2012network,
+  author = {Salanti, Georgia},
+  title = {Indirect and mixed-treatment comparison, network, or multiple-treatments meta-analysis: many names, many benefits, many concerns for the next generation evidence synthesis tool},
+  journal = {Research Synthesis Methods},
+  year = {2012},
+  volume = {3},
+  number = {2},
+  pages = {80--97},
+  doi = {10.1002/jrsm.1037}
+}
+
+@article{inthout2016prediction,
+  author = {IntHout, Joanna and Ioannidis, John P A and Rovers, Maroeska M and Goeman, Jelle J},
+  title = {Plea for routinely presenting prediction intervals in meta-analysis},
+  journal = {BMJ Open},
+  year = {2016},
+  volume = {6},
+  number = {7},
+  pages = {e010247},
+  doi = {10.1136/bmjopen-2015-010247},
+  note = {Argues that a prediction interval, not just a confidence interval, is what tells you the plausible effect in a new setting.}
 }
