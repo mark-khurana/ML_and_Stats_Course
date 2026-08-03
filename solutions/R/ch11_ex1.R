@@ -34,8 +34,9 @@ pred_prob <- predict(fit, type = "fitted")
 
 # ---- (a) Calibration plot using deciles of predicted risk ----
 cat("=== Part (a): Calibration Plot ===\n")
-val.prob(pred_prob, stroke_data$death_30d, m = 150, cex = 0.5,
-         main = "Calibration Plot (Deciles): 30-Day Stroke Mortality")
+# val.prob() takes no `main` argument, so the title is added with title()
+invisible(val.prob(pred_prob, stroke_data$death_30d, m = 150, cex = 0.5))
+title(main = "Calibration Plot (Deciles): 30-Day Stroke Mortality")
 # The model appears well-calibrated since the points cluster near the diagonal.
 # This is expected because we are evaluating apparent performance on the
 # training data.

@@ -113,13 +113,15 @@ pop_c$death_30d <- rbinom(n_c, 1, plogis(lp_c))
 pop_c <- evaluate_ext(pop_c, fit, "Population C: Domain (primary care)")
 
 # ---- (b) Calibration plots ----
+# val.prob() takes no `main` argument, so each title is added with title()
 par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
-val.prob(pop_a$pred, pop_a$death_30d, m = 80, cex = 0.5,
-         main = "A: Temporal")
-val.prob(pop_b$pred, pop_b$death_30d, m = 60, cex = 0.5,
-         main = "B: Geographical")
-val.prob(pop_c$pred, pop_c$death_30d, m = 50, cex = 0.5,
-         main = "C: Domain")
+invisible(val.prob(pop_a$pred, pop_a$death_30d, m = 80, cex = 0.5))
+title(main = "A: Temporal")
+invisible(val.prob(pop_b$pred, pop_b$death_30d, m = 60, cex = 0.5))
+title(main = "B: Geographical")
+invisible(val.prob(pop_c$pred, pop_c$death_30d, m = 50, cex = 0.5))
+title(main = "C: Domain")
+par(mfrow = c(1, 1))
 
 # ---- (c) Which population shows worst calibration? ----
 cat("\n=== Part (c): Worst Calibration ===\n")

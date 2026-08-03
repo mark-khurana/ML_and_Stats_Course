@@ -16,7 +16,7 @@ By the end of this chapter, you will be able to:
 4. Understand how splines work, including the concepts of knots, cubic splines, and restricted cubic splines
 5. Implement and interpret restricted cubic spline models in both R and Python
 6. Compare linear, categorical, and spline models using appropriate fit statistics
-7. Apply the practical recommendations from Lopez-Ayala et al. (2025) in your own analyses
+7. Apply the practical recommendations from @lopezayala2025 in your own analyses
 :::
 
 ::: {.callout-note title="What is different about this chapter"}

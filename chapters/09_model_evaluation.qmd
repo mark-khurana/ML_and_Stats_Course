@@ -45,6 +45,7 @@ To see why, imagine 10,000 patients where 10 truly have cancer. The "predict eve
 $$\text{Accuracy} = \frac{0 + 9{,}990}{0 + 9{,}990 + 10 + 0} = \frac{9{,}990}{10{,}000} = 99.9\%$$
 
 Every cancer case is missed (10 false negatives), yet accuracy is nearly perfect: this is the **accuracy paradox**. The main underlying issue is that of **class imbalance**, that is, when one outcome is far more common than the other(s). In these settings, accuracy becomes meaningless because it is dominated by the common group (the "majority class"). In clinical medicine, outcomes are almost always imbalanced:
+
 - Most people do not have the disease you are screening for
 - Most surgical patients do not die within 30 days
 - Most pregnancies do not result in pre-eclampsia
@@ -486,7 +487,7 @@ plt.show()
 
 ### AUROC vs AUPRC: When to Use Which
 
-A widespread claim in machine learning is that AUPRC is a superior metric to AUROC whenever class imbalance is present. Recent work has shown this is an oversimplification (McDermott et al., 2024). The key difference between the two metrics is not about imbalance but about *which ranking mistakes they prioritise*:
+A widespread claim in machine learning is that AUPRC is a superior metric to AUROC whenever class imbalance is present. Recent work has shown this is an oversimplification [@mcdermott2024auroc]. The key difference between the two metrics is not about imbalance but about *which ranking mistakes they prioritise*:
 
 - **AUROC** treats all ranking mistakes equally. Correcting a misranked pair improves the AUC by the same amount regardless of where it occurs in the score distribution.
 - **AUPRC** prioritises mistakes among high-scoring samples. It is more sensitive to whether the model's top-ranked predictions are correct.
@@ -500,7 +501,7 @@ This distinction has practical consequences:
 
 ::: {.callout-warning}
 ### AUPRC is not universally better for imbalanced data
-It is common to read that "precision-recall curves should replace ROC curves when outcomes are rare." McDermott et al. (2024) demonstrated that this blanket recommendation is not well-founded: the choice between AUROC and AUPRC should depend on the *use case* (which errors matter most), not simply on whether the outcome is common or rare. Furthermore, optimising for AUPRC can amplify algorithmic biases by favouring improvements in higher-prevalence subgroups at the expense of lower-prevalence ones.
+It is common to read that "precision-recall curves should replace ROC curves when outcomes are rare." @mcdermott2024auroc demonstrated that this blanket recommendation is not well-founded: the choice between AUROC and AUPRC should depend on the *use case* (which errors matter most), not simply on whether the outcome is common or rare. Furthermore, optimising for AUPRC can amplify algorithmic biases by favouring improvements in higher-prevalence subgroups at the expense of lower-prevalence ones.
 :::
 
 ## Choosing the Threshold: A Clinical Decision {#sec-choosing-threshold}

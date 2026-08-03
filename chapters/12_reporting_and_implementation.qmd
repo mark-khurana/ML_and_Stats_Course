@@ -1,7 +1,3 @@
----
-title: "Reporting Standards, TRIPOD+AI, and Clinical Impact"
----
-
 # Reporting Standards, TRIPOD+AI, and Clinical Impact {#sec-reporting}
 
 ## Introduction
@@ -128,7 +124,7 @@ This matters to clinicians because a model that never reaches the bedside, or th
 
 ### The prediction model-based innovation (PMBI) framework
 
-Smits et al. (2026) introduce the concept of a PMBI. The idea is that the prediction model itself is only the engine. What clinicians actually use is the complete tool wrapped around it, including:
+@smits2026prediction introduce the concept of a PMBI. The idea is that the prediction model itself is only the engine. What clinicians actually use is the complete tool wrapped around it, including:
 
 - The user interface (how predictions are displayed)
 - Decision support (what actions are recommended at different risk levels)

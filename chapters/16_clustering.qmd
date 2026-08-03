@@ -605,11 +605,11 @@ If clusters are stable across resamples, they likely reflect real structure. If 
 
 The most impactful use of clustering in clinical research is identifying disease subtypes that were previously unrecognised. Notable examples:
 
-- **ARDS phenotypes.** Calfee et al. (2014) applied latent class analysis to two ARDS clinical trial datasets and identified two phenotypes ("hyperinflammatory" and "hypoinflammatory") with different mortality rates and different responses to treatment. The hyperinflammatory phenotype had higher IL-6, higher vasopressor use, and worse outcomes.
+- **ARDS phenotypes.** @calfee2014ards applied latent class analysis to two ARDS clinical trial datasets and identified two phenotypes ("hyperinflammatory" and "hypoinflammatory") with different mortality rates and different responses to treatment. The hyperinflammatory phenotype had higher IL-6, higher vasopressor use, and worse outcomes.
 
-- **Sepsis endotypes.** Seymour et al. (2019) used $k$-means clustering on EHR data from over 20,000 sepsis patients and identified four phenotypes (alpha, beta, gamma, delta) with distinct organ dysfunction patterns and 28-day mortality rates ranging from 5% to 40%.
+- **Sepsis endotypes.** @seymour2019sepsis used $k$-means clustering on EHR data from over 20,000 sepsis patients and identified four phenotypes (alpha, beta, gamma, delta) with distinct organ dysfunction patterns and 28-day mortality rates ranging from 5% to 40%.
 
-- **Heart failure subtypes.** Shah et al. (2015) applied hierarchical clustering to echocardiographic and clinical data from HFpEF patients and identified three phenotypes with different pathophysiology and prognosis.
+- **Heart failure subtypes.** @shah2015phenomapping applied hierarchical clustering to echocardiographic and clinical data from HFpEF patients and identified three phenotypes with different pathophysiology and prognosis.
 
 ### Disease Subtyping from Lab Panels
 

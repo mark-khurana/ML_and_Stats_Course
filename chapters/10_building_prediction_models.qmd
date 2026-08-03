@@ -4,7 +4,7 @@
 
 A clinical prediction model estimates a patient's risk of an outcome (for example, the chance of a heart attack in the next 10 years) from information you can collect at the bedside. Building one well is not simply a matter of fitting a regression or running a machine learning algorithm. It is a structured process that begins with a clearly defined clinical question and proceeds through study design, data preparation, model specification, and evaluation. At every step, decisions must be guided by clinical knowledge, not just statistical convenience.
 
-This chapter walks you through the complete workflow of developing a clinical prediction model, following the framework described by Smits, van Kuijk, and Wynants (2026) and the foundational principles laid out by Steyerberg (2019). We will use the Framingham Heart Study data as a running example to illustrate each step, building a model to predict 10-year cardiovascular disease (CVD) risk.
+This chapter walks you through the complete workflow of developing a clinical prediction model, following the framework described by @smits2026prediction and the foundational principles laid out by @steyerberg2019. We will use the Framingham Heart Study data as a running example to illustrate each step, building a model to predict 10-year cardiovascular disease (CVD) risk.
 
 @fig-workflow shows the whole journey at a glance. Each step in this chapter corresponds to one box.
 

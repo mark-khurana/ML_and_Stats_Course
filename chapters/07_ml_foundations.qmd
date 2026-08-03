@@ -26,6 +26,7 @@ This part of the course introduces the vocabulary, workflow, and evaluation fram
 ## Brief Overview
 
 Machine learning involves four key components:
+
 1. The **machine learning model** is a mathematical function that maps inputs to predicted outputs. It is the object that *learns*.
    *Examples: linear regression, random forests, and neural networks.*
 2. **Data** is the information the model learns from. It can be structured (e.g., lab values, demographics) or unstructured (e.g., images, audio, text).
@@ -174,6 +175,7 @@ Using the test set during model development — and then reporting performance o
 :::
 
 Splitting data into training, validation, and test sets may be performed at random or in a stratified manner, but the key is that the splits are **mutually exclusive**. Potential pitfalls (also called *data leakage*) include:
+
 * Repeated measurements from the same patient appearing in several splits.
 * Site- or instrument-specific patterns in multi-center data that correlate with the outcome, so the model learns institutional identity rather than biology.
 * Features derived from information collected *after* the prediction time point (*temporal leakage*).

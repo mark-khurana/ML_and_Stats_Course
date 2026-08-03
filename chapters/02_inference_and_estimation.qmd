@@ -105,7 +105,7 @@ With 198 degrees of freedom, $p < 0.001$.
 
 ### What a P-value Is NOT
 
-The American Statistical Association published a landmark statement in 2016 (Wasserstein & Lazar, 2016) because p-values are so widely misinterpreted. Here are the key points:
+The American Statistical Association published a landmark statement in 2016 [@wasserstein2016asa] because p-values are so widely misinterpreted. Here are the key points:
 
 ::: {.callout-warning title="P-value Misconceptions -- From the ASA Statement"}
 1. **A p-value is NOT the probability that the null hypothesis is true.** A p-value of 0.03 does *not* mean there is a 3% chance the drug doesn't work.
@@ -149,7 +149,7 @@ For our trial: $d = 8.3 / 14.2 = 0.58$, which is conventionally considered a "me
 | 0.8 | Large |
 
 ::: {.callout-note}
-These benchmarks (from Cohen, 1988) are rough guidelines, not rigid rules. A "small" effect by Cohen's standards might be highly clinically meaningful (e.g., a small reduction in mortality), while a "large" effect might be trivial in another context. Always interpret effect sizes in the clinical context.
+These benchmarks [from @cohen1988power] are rough guidelines, not rigid rules. A "small" effect by Cohen's standards might be highly clinically meaningful (e.g., a small reduction in mortality), while a "large" effect might be trivial in another context. Always interpret effect sizes in the clinical context.
 :::
 
 ### Odds Ratios and Risk Ratios

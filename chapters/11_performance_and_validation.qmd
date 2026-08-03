@@ -4,7 +4,7 @@
 
 You have developed a clinical prediction model. Its coefficients look reasonable, the predictors make clinical sense, and the apparent performance seems promising. But how good is this model, really? And will it work on patients beyond your development dataset?
 
-This chapter addresses these questions. We cover the five domains of model performance --- discrimination, calibration, overall performance, classification, and clinical utility --- and the methods for internal and external validation. The structure follows the comprehensive framework proposed by Van Calster and colleagues (2025) in The Lancet Digital Health, which we strongly recommend as a companion reading.
+This chapter addresses these questions. We cover the five domains of model performance --- discrimination, calibration, overall performance, classification, and clinical utility --- and the methods for internal and external validation. The structure follows the comprehensive framework proposed by @vancalster2025performance in *The Lancet Digital Health*, which we strongly recommend as a companion reading.
 
 Two of these terms come up constantly, so it is worth fixing them now in plain language. **Discrimination** asks whether the model can tell sick patients apart from well ones --- can it put the patients who will have the outcome higher up the risk ranking than those who will not? **Calibration** asks whether the actual numbers are right --- if the model says "20% risk," do about 20 in 100 such patients really have the event? These are two genuinely different questions, and a model can pass one while failing the other (@fig-disc-vs-cal).
 
@@ -25,7 +25,7 @@ flowchart TB
 
 ## The Five Performance Domains {#sec-performance-domains}
 
-Van Calster et al. (2025) organise model performance assessment into five complementary domains:
+@vancalster2025performance organise model performance assessment into five complementary domains:
 
 | Domain | Question | Key Metrics |
 |--------|----------|-------------|
@@ -143,7 +143,7 @@ print(f"C-statistic (apparent): {auc:.3f}")
 
 ### Limitations of the C-Statistic {#sec-c-statistic-limits}
 
-The C-statistic has important limitations that Van Calster et al. (2025) highlight:
+The C-statistic has important limitations that @vancalster2025performance highlight:
 
 1. **Insensitive to calibration:** A model can rank patients perfectly (C = 1.0) yet attach completely wrong probabilities to them. Good ranking does not mean the numbers are right.
 2. **Context-blind:** It averages the model's ranking ability over *every* possible risk threshold, weighting them all equally — including thresholds so extreme that no clinician would ever act on them. The thresholds you would actually use in your clinic get no more say in the number than the ones you would never touch.
@@ -199,14 +199,16 @@ library(rms)
 # Use the stroke model from above
 pred_prob <- predict(fit, type = "fitted")
 
-# Grouped calibration plot
+# Grouped calibration plot.
+# Note: val.prob() takes no `main` argument, so the title is added
+# afterwards with title() rather than passed into the call.
 cal <- val.prob(
   pred_prob,
   stroke_data$death_30d,
   m = 100,
-  cex = 0.5,
-  main = "Calibration Plot: 30-Day Stroke Mortality Model"
+  cex = 0.5
 )
+title(main = "Calibration Plot: 30-Day Stroke Mortality Model")
 ```
 
 ```{r}
@@ -225,9 +227,14 @@ cal_model <- glm(stroke_data$death_30d ~ qlogis(pred_prob), family = binomial)
 cat("Calibration slope:", round(coef(cal_model)[2], 3), "\n")
 cat("Calibration intercept:", round(coef(cal_model)[1], 3), "\n")
 
-# Brier score
+# Brier score, its no-predictor benchmark, and the scaled version
 brier <- mean((pred_prob - stroke_data$death_30d)^2)
+brier_max <- obs_rate * (1 - obs_rate)   # score of a no-predictor model
+brier_scaled <- 1 - brier / brier_max
+
 cat("Brier score:", round(brier, 4), "\n")
+cat("Brier score, no-predictor benchmark:", round(brier_max, 4), "\n")
+cat("Scaled Brier score:", round(brier_scaled, 3), "\n")
 ```
 
 ### Python
@@ -238,6 +245,8 @@ cat("Brier score:", round(brier, 4), "\n")
 
 import numpy as np
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from scipy.special import logit
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 
@@ -281,11 +290,26 @@ mean_pred = pred_prob.mean()
 oe_ratio = obs_rate / mean_pred
 brier = brier_score_loss(y_true, pred_prob)
 
+# Calibration slope and intercept: regress the outcome on the model's
+# own predictions (on the log-odds scale), exactly as the R tab does.
+lp = logit(np.clip(pred_prob, 1e-6, 1 - 1e-6))
+cal_fit = sm.GLM(y_true, sm.add_constant(lp),
+                 family=sm.families.Binomial()).fit()
+cal_intercept, cal_slope = cal_fit.params
+
+# Brier score, its no-predictor benchmark, and the scaled version
+brier_max = obs_rate * (1 - obs_rate)
+brier_scaled = 1 - brier / brier_max
+
 print(f"\nCalibration metrics:")
 print(f"  Observed event rate: {obs_rate:.3f}")
 print(f"  Mean predicted probability: {mean_pred:.3f}")
 print(f"  O:E ratio: {oe_ratio:.3f}")
+print(f"  Calibration slope: {cal_slope:.3f}")
+print(f"  Calibration intercept: {cal_intercept:.3f}")
 print(f"  Brier score: {brier:.4f}")
+print(f"  Brier score, no-predictor benchmark: {brier_max:.4f}")
+print(f"  Scaled Brier score: {brier_scaled:.3f}")
 ```
 
 :::
@@ -316,13 +340,17 @@ $$
 
 where $p_i$ is the predicted probability and $y_i$ is the observed outcome (0 or 1). In words: for each patient, take the predicted risk minus the actual outcome, square it, and average over everyone. Lower is better. The Brier score ranges from 0 (perfect) to 1 (worst). As a reference point, a model that just predicts the overall event rate for everyone scores the prevalence times (1 minus the prevalence) --- any useful model should beat that.
 
-The **scaled Brier score** (or Brier skill score) rescales this so it reads like an improvement over that non-informative reference (0 = no better than guessing the average, 1 = perfect):
+A raw Brier score is therefore hard to read on its own, because how good 0.19 is depends entirely on how common the outcome is. The **scaled Brier score** (or Brier skill score) fixes that by expressing the score as an improvement over the do-nothing reference model:
 
 $$
 \text{Scaled Brier} = 1 - \frac{\text{Brier score}}{\text{Brier}_{\text{max}}}
+\qquad \text{where} \qquad
+\text{Brier}_{\text{max}} = \bar{y}\,(1 - \bar{y})
 $$
 
-where $\text{Brier}_{\text{max}} = \bar{y}(1 - \bar{y})$.
+The symbol $\bar{y}$ ("y-bar") is just the **observed event rate** --- the proportion of patients in your data who actually had the outcome. So if 33% of the stroke cohort died within 30 days, $\bar{y} = 0.33$ and $\text{Brier}_{\text{max}} = 0.33 \times 0.67 = 0.22$. That is the score you would get from a model with no predictors at all, one that simply announces "33%" for every patient.
+
+Read the scaled Brier score as a percentage of the way from useless to perfect: **0 means the model is no better than quoting the average risk to everyone, and 1 means perfect prediction.** A scaled Brier of 0.12 means the model closed 12% of the gap between the do-nothing model and perfection --- which is typical, and a useful antidote to a flattering-looking C-statistic. Note that both the raw and scaled Brier scores are now printed by the calibration code in @sec-calibration-plots, so you can see all three numbers ---  Brier, benchmark, and scaled --- side by side.
 
 ## Domain 4: Classification
 
@@ -332,7 +360,7 @@ Classification metrics (sensitivity, specificity, PPV, NPV) were covered in @sec
 
 ### Net Benefit and Decision Curve Analysis
 
-A model might have good discrimination and calibration, yet using it may not actually improve clinical decisions. **Decision curve analysis (DCA)**, proposed by Vickers and Elkin (2006), addresses exactly this. It asks a practical question: if you acted on this model, would patients be better off than if you simply treated everyone or treated no-one? It answers using **net benefit** --- a single score that counts the patients correctly treated and then subtracts a penalty for those treated unnecessarily.
+A model might have good discrimination and calibration, yet using it may not actually improve clinical decisions. **Decision curve analysis (DCA)**, proposed by @vickers2006decision, addresses exactly this. It asks a practical question: if you acted on this model, would patients be better off than if you simply treated everyone or treated no-one? It answers using **net benefit** --- a single score that counts the patients correctly treated and then subtracts a penalty for those treated unnecessarily.
 
 **Why a clinician should care.** Discrimination and calibration are statistical properties; net benefit speaks the language of decisions. It is the metric that tells you whether the model is worth putting in front of a patient at all.
 
@@ -342,7 +370,26 @@ $$
 \text{Net benefit} = \frac{TP}{N} - \frac{FP}{N} \times \frac{p_t}{1 - p_t}
 $$
 
-Here $TP$ is the number of true positives (correctly flagged patients who had the outcome) and $FP$ the false positives (flagged patients who did not). The term $\frac{p_t}{1 - p_t}$ is the **exchange rate** between false and true positives, set by the threshold you chose. A threshold of 10% says you would accept treating up to 9 patients unnecessarily to catch 1 who truly needs it; the formula weights each false positive accordingly.
+Here $TP$ is the number of true positives (correctly flagged patients who had the outcome) and $FP$ the false positives (flagged patients who did not). The term $\frac{p_t}{1 - p_t}$ is the **exchange rate** between false and true positives, set by the threshold you chose.
+
+#### Where the threshold comes from {#sec-threshold-choice}
+
+This is the part of decision curve analysis that people skip, and it is the part that matters most --- because **the threshold is not something the data can tell you.** It is a clinical judgement that you have to make and defend.
+
+Here is the logic. Suppose you decide to treat any patient whose predicted risk is 10% or higher. By drawing the line exactly there, you have said something quite specific: that a patient at 10% risk is a borderline case, someone for whom treating and not treating feel equally acceptable. And if treating a 10%-risk patient is a coin flip, then you are implicitly saying that **one missed event is about nine times worse than one unnecessary treatment** --- because for every 10 such patients you treat, roughly 1 truly needs it and 9 do not. That ratio, 9 to 1, is exactly $\frac{1 - p_t}{p_t}$, and its reciprocal $\frac{p_t}{1 - p_t}$ is the weight the formula puts on each false positive.
+
+So the threshold encodes your view of how the two kinds of mistake compare. Different thresholds mean different clinical worlds:
+
+| Threshold $p_t$ | Exchange rate $\frac{p_t}{1-p_t}$ | You are saying... | Typical situation |
+|---|---|---|---|
+| **2%** | 1 : 49 | I would treat 49 people unnecessarily to prevent one event | The action is cheap and safe, the outcome catastrophic (e.g. a follow-up scan to rule out a serious cancer) |
+| **10%** | 1 : 9 | I would accept 9 unnecessary treatments per event prevented | Statins for cardiovascular prevention --- a cheap, well-tolerated daily tablet |
+| **30%** | 1 : 2.3 | I would accept only about 2 unnecessary treatments per event prevented | A treatment with real side-effects, or one that commits the patient to months of monitoring |
+| **50%** | 1 : 1 | An unnecessary treatment is as bad as a missed event | Major surgery, or a toxic therapy where the harm of over-treatment is comparable to the harm of the disease |
+
+Read down that table and notice which way it runs: **a low threshold means you are willing to over-treat a lot, and a high threshold means you are not.** The more burdensome, risky, or expensive the action you would take, the higher the threshold, because each unnecessary intervention costs the patient more.
+
+Two practical consequences. First, you rarely commit to one number --- which is exactly why a decision curve plots a *range* of thresholds, so that you and your colleagues can find your own on the x-axis. Second, the range worth plotting is the range clinicians would actually entertain. For a decision where nobody would ever treat at 60% risk, the curve beyond 60% is irrelevant, and a model that only wins out there has not shown anything useful. Choose the range from the clinical problem, state it in your paper, and say who decided it --- ideally clinicians and patients, not the analyst alone.
 
 ::: {.panel-tabset}
 
@@ -355,14 +402,19 @@ Here $TP$ is the number of true positives (correctly flagged patients who had th
 
 library(dcurves)
 
-# Add predicted probabilities to the dataset
-stroke_data$pred_risk <- predict(fit, type = "fitted")
+# Add the model's predicted risks to the dataset. The column is deliberately
+# named `model_risk` because dcurves uses the column name as the curve label,
+# so the figure legend then says where that curve came from.
+stroke_data$model_risk <- predict(fit, type = "fitted")
 
-# Decision curve analysis
+# Decision curve analysis over the thresholds a clinician might plausibly use.
+# `label` replaces the bare column name in the legend with a readable one, so
+# the figure says what the curve actually is.
 dca_result <- dca(
-  death_30d ~ pred_risk,
+  death_30d ~ model_risk,
   data = stroke_data,
-  thresholds = seq(0, 0.5, by = 0.01)
+  thresholds = seq(0, 0.5, by = 0.01),
+  label = list(model_risk = "Stroke mortality model")
 )
 
 plot(dca_result, smooth = TRUE, show_ggplot_code = FALSE) +
@@ -388,12 +440,13 @@ def net_benefit(y_true, y_pred, threshold):
     return nb
 
 thresholds = np.arange(0.01, 0.51, 0.01)
-pred_prob_model = model.predict_proba(X)[:, 1]
+# Named `model_risk` so it is obvious these risks come from the model
+model_risk = model.predict_proba(X)[:, 1]
 y_true = stroke_data["death_30d"].values
 n_total = len(y_true)
 
 # Net benefit for model
-nb_model = [net_benefit(y_true, pred_prob_model, t) for t in thresholds]
+nb_model = [net_benefit(y_true, model_risk, t) for t in thresholds]
 
 # Net benefit for "treat all" strategy
 nb_all = [(y_true.mean() - (1 - y_true.mean()) * t / (1 - t))
@@ -435,7 +488,32 @@ The decision curve shows net benefit (y-axis) across a range of threshold probab
 
 The model is clinically useful at thresholds where its net benefit exceeds both the "treat all" and "treat none" lines. If the model curve is always below one of the default strategies, the model adds no value.
 
+**Reading the curve at a specific threshold.** Pick your threshold on the x-axis, read the three curves vertically above it, and the highest curve is the strategy you should adopt at that threshold. Working through our stroke example (@sec-threshold-choice explains where these thresholds come from):
+
+- **At 10%:** you have said you would accept about 9 unnecessary interventions per death prevented. With 30-day mortality running at roughly a third of this cohort, treating everyone is still a reasonable strategy at such a permissive threshold, so "treat all" is competitive here and the model may add little.
+- **At 30%:** you would accept only about 2 unnecessary interventions per death prevented --- appropriate for an intervention with real burden. "Treat all" now carries a heavy false-positive penalty and its curve has fallen steeply, so this is typically where a model earns its keep: it lets you concentrate the intervention on the patients most likely to need it.
+- **At 40%:** you are close to saying an unnecessary intervention is about as bad as a missed death (the exchange rate is roughly 1 to 1.5). Only patients the model puts at high risk clear this bar. Few patients get treated, so the absolute net benefit is small --- but if the model's curve is still above zero, acting on it beats doing nothing for that narrow group.
+
+**The unit of the y-axis.** Net benefit is measured in "true positives per patient assessed," which sounds abstract but has a concrete reading: multiply by 100 and you get the number of events correctly identified per 100 patients, *after* the unnecessary treatments have been paid for. In our stroke example at a 30% threshold, the model scores about 0.118 against about 0.050 for treating everyone. The difference, 0.068, means that using the model identifies roughly **7 more true high-risk patients per 100 assessed than treating everyone does, at no extra cost in over-treatment.** That is the sentence to put in a paper --- far more informative than reporting the AUC alone.
+
+For contrast, run the same comparison at a 10% threshold and the two strategies come out level (about 0.261 each). At a permissive threshold where you are content to over-treat, a blanket policy does just as well as the model, and the model's value only appears once the threshold rises. This is why the *range* of thresholds you plot decides whether a model looks useful or useless --- and why that range has to be justified clinically rather than chosen to flatter the model.
+
+**A warning.** Net benefit always falls as the threshold rises, for every strategy, because fewer and fewer patients qualify. Do not read a declining curve as a deteriorating model. What matters is only the *ranking* of the three curves at the thresholds you care about, never the height of any one of them on its own.
+
 ## Internal Validation {#sec-internal-validation}
+
+### When Do You Do This? {#sec-when-internal-validation}
+
+Before the methods, the practical question: **at what point in a project does internal validation happen?**
+
+The answer is: **once, at the end of model development, after every modelling decision has been made --- and before you report a single performance number.** Concretely, you have finished choosing which predictors to include, how to handle continuous variables, whether to apply shrinkage, and how to deal with missing data. Nothing about the model is still up for negotiation. *That* is the moment to run internal validation.
+
+Two mistakes are worth naming explicitly, because both are common:
+
+- **Do not treat it as an optional final polish** once you are already happy with the model. The apparent performance that made you happy is the very number internal validation exists to correct. If you only run it to confirm a figure you have already decided to believe, you have inverted the point of the exercise.
+- **Do not use it to choose between candidate models.** If you run bootstrap validation on five model variants and keep the best-looking one, that selection is itself a modelling decision made on the same data, and the optimism creeps straight back in. Selection must happen *inside* the validation loop --- which is exactly what step 2 below means by "including all modelling decisions" --- or not on this data at all.
+
+So the sequence for a development study is: build the model → internally validate it → report the optimism-corrected performance → then, as a separate study on separate data, externally validate it (@sec-external-validation). Internal validation answers "how well will this model do on patients *like the ones I already have*?" It does not, and cannot, tell you whether the model travels somewhere new.
 
 ### Why Internal Validation Is Necessary
 
@@ -443,7 +521,7 @@ As discussed in @sec-building-prediction-models, **apparent performance** --- pe
 
 ### Bootstrap Optimism Correction {#sec-bootstrap-optimism}
 
-The recommended approach (Steyerberg 2019, Van Calster et al. 2025) is **bootstrap optimism correction**. "Bootstrapping" means repeatedly drawing random samples of patients *with replacement* from your dataset (so some patients appear more than once, others not at all), refitting the model each time, and watching how much the results wobble. Here that wobble is used to measure optimism:
+The recommended approach [@steyerberg2019; @vancalster2025performance] is **bootstrap optimism correction**. "Bootstrapping" means repeatedly drawing random samples of patients *with replacement* from your dataset (so some patients appear more than once, others not at all), refitting the model each time, and watching how much the results wobble. Here that wobble is used to measure optimism:
 
 1. Draw a bootstrap sample (with replacement) from the original data.
 2. Develop the model in the bootstrap sample (including all modelling decisions).
@@ -588,13 +666,43 @@ print(f"Corrected Brier:           {corrected_brier:.4f}")
 
 Cross-validation is an alternative way to estimate performance on new data. The patients are split into $k$ roughly equal groups ("folds"; typically 10). Each fold is held out in turn as a test set while the model is built on the other folds, and the held-out results are averaged. Because every patient is tested on a model that did not see them, the average reflects performance on unseen data.
 
+@fig-kfold shows the idea with $k = 5$. Each row is one round. The shaded block is the fold held back for testing in that round; the rest of the row is used for fitting. Read down the shaded diagonal and you will see that every patient is held out exactly once, so each patient contributes one prediction made by a model that never saw them.
+
+```{mermaid}
+%%| echo: false
+%%| eval: true
+%%| label: fig-kfold
+%%| fig-cap: "Five-fold cross-validation. The cohort is split into five equal folds. In each of the five rounds a different fold is held out for testing (shaded) while the model is fitted on the remaining four. Every patient is tested exactly once, on a model that did not see them, and the five held-out results are averaged."
+flowchart TB
+    S["Full cohort, split into 5 equal folds"]
+    S --> R1["<b>Round 1</b>&nbsp;&nbsp; [TEST] · train · train · train · train"]
+    S --> R2["<b>Round 2</b>&nbsp;&nbsp; train · [TEST] · train · train · train"]
+    S --> R3["<b>Round 3</b>&nbsp;&nbsp; train · train · [TEST] · train · train"]
+    S --> R4["<b>Round 4</b>&nbsp;&nbsp; train · train · train · [TEST] · train"]
+    S --> R5["<b>Round 5</b>&nbsp;&nbsp; train · train · train · train · [TEST]"]
+    R1 --> A["Average the 5 held-out results<br/>= estimated performance on new patients"]
+    R2 --> A
+    R3 --> A
+    R4 --> A
+    R5 --> A
+    style S fill:#eef3fb,stroke:#4a6fa5
+    style A fill:#e8f1ea,stroke:#4a7a55
+    style R1 fill:#fbf3e6,stroke:#c79a3b
+    style R2 fill:#fbf3e6,stroke:#c79a3b
+    style R3 fill:#fbf3e6,stroke:#c79a3b
+    style R4 fill:#fbf3e6,stroke:#c79a3b
+    style R5 fill:#fbf3e6,stroke:#c79a3b
+```
+
+Two practical points. The choice of $k$ trades off bias against computation: $k = 10$ is the usual default, while $k = 5$ is cheaper and $k = N$ (leave-one-out) is the most expensive and often the noisiest. And as with the bootstrap, **every modelling decision must happen inside the loop** --- if you select predictors on the full dataset and only then cross-validate, the folds have already been contaminated and the estimate goes right back to being optimistic.
+
 Cross-validation is simpler to reason about, but it has drawbacks for clinical prediction models: it does not hand you a single final model, and it gives no clean correction for the calibration slope. For that reason bootstrap optimism correction is generally preferred here.
 
-## External Validation
+## External Validation {#sec-external-validation}
 
 ### Types of External Validation
 
-It helps to be clear on the distinction. **Internal validation** reuses your own development data (via bootstrapping or cross-validation) to estimate how optimistic the apparent performance is --- it asks "how well will this model do on patients *like mine*?" **External validation** applies the finished model to a genuinely separate dataset --- different patients, ideally a different place or time --- and asks "does it still work *out there*?" That is the real test, and the further the new setting is from the original, the more stringent it is. Van Calster et al. (2025) and Smits et al. (2026) distinguish three rungs on this ladder (@fig-validation-ladder):
+It helps to be clear on the distinction. **Internal validation** reuses your own development data (via bootstrapping or cross-validation) to estimate how optimistic the apparent performance is --- it asks "how well will this model do on patients *like mine*?" **External validation** applies the finished model to a genuinely separate dataset --- different patients, ideally a different place or time --- and asks "does it still work *out there*?" That is the real test, and the further the new setting is from the original, the more stringent it is. @vancalster2025performance and @smits2026prediction distinguish three rungs on this ladder (@fig-validation-ladder):
 
 - **Temporal validation:** Same setting, different time period. Example: model developed on 2015--2019 data, validated on 2020--2022 data. This captures drift in clinical practice and patient populations over time.
 - **Geographical validation:** Different hospital or region, same time period. This tests whether the model travels to other settings (its "transportability").
@@ -617,7 +725,7 @@ flowchart TB
 
 ### What to Report in External Validation
 
-Following Van Calster et al. (2025), an external validation study should report at minimum:
+Following @vancalster2025performance, an external validation study should report at minimum:
 
 1. **C-statistic** with 95% confidence interval
 2. **Calibration plot** (both grouped and smoothed)
@@ -651,11 +759,24 @@ From least to most complex:
 #| label: recalibration-r
 #| message: false
 
-# Simulate external validation data (different setting)
-set.seed(99)
-n_ext <- 800
+library(rms)
+library(pROC)
 
-# New population: older, sicker
+set.seed(99)
+n_ext <- 1600
+
+# The new setting differs in TWO ways, and it is worth being clear about both.
+#
+# 1. Case-mix: these patients are older, more severe, less often thrombolysed.
+# 2. The outcome relationship itself is different: baseline risk is HIGHER
+#    (the +0.6 shift) and the predictors matter LESS than they did at home
+#    (the 0.70 multiplier).
+#
+# Point 2 is the one that actually causes miscalibration. Case-mix alone does
+# not: a correctly specified model transports perfectly to a sicker population,
+# because the higher predicted risks are then genuinely correct. Only a change
+# in the underlying relationship makes the predicted numbers wrong.
+
 ext_data <- data.frame(
   age = round(rnorm(n_ext, 78, 10)), # Older
   nihss = round(pmax(0, rnorm(n_ext, 11, 7))), # Higher severity
@@ -664,43 +785,113 @@ ext_data <- data.frame(
   thrombolysis = rbinom(n_ext, 1, 0.20) # Less thrombolysis
 )
 
-lp_ext <- -5 +
+# What the development model's equation would say for these patients
+lp_dev_equation <- -5 +
   0.04 * ext_data$age +
   0.12 * ext_data$nihss +
   0.003 * ext_data$glucose +
   0.3 * ext_data$afib -
   0.5 * ext_data$thrombolysis
 
-ext_data$death_30d <- rbinom(n_ext, 1, plogis(lp_ext))
+# The TRUTH in this new setting: higher baseline, weaker predictor effects
+ext_data$death_30d <- rbinom(n_ext, 1, plogis(0.6 + 0.70 * lp_dev_equation))
 
-# Apply original model to external data
+# Apply the original, unmodified model to the external data
 ext_data$pred_original <- predict(fit, newdata = ext_data, type = "fitted")
 
-cat("External validation (before updating):\n")
-cat("  Observed mortality:", round(mean(ext_data$death_30d), 3), "\n")
-cat("  Mean predicted:", round(mean(ext_data$pred_original), 3), "\n")
-cat(
-  "  O:E ratio:",
-  round(mean(ext_data$death_30d) / mean(ext_data$pred_original), 3),
-  "\n"
+# Helper: the three calibration numbers plus the Brier score
+cal_stats <- function(y, p) {
+  co <- coef(glm(y ~ qlogis(p), family = binomial))
+  c(
+    oe = mean(y) / mean(p), intercept = co[[1]],
+    slope = co[[2]], brier = mean((p - y)^2)
+  )
+}
+
+before <- cal_stats(ext_data$death_30d, ext_data$pred_original)
+
+cat("External validation of the ORIGINAL model:\n")
+cat("  Observed mortality:   ", round(mean(ext_data$death_30d), 3), "\n")
+cat("  Mean predicted risk:  ", round(mean(ext_data$pred_original), 3), "\n")
+cat("  O:E ratio:            ", round(before[["oe"]], 3), "\n")
+cat("  Calibration slope:    ", round(before[["slope"]], 3), "\n")
+cat("  Calibration intercept:", round(before[["intercept"]], 3), "\n")
+cat("  C-statistic:          ", round(
+  as.numeric(auc(roc(ext_data$death_30d, ext_data$pred_original,
+    quiet = TRUE
+  ))), 3
+), "\n")
+```
+
+The update itself must be *fitted* on one set of patients and *judged* on another. If you fit the recalibration and then evaluate it on the very same rows, the O:E ratio comes back as exactly 1 no matter what --- that is forced by the arithmetic of fitting an intercept, not evidence that anything improved. So we split the external cohort in half:
+
+```{r}
+#| label: recalibration-eval-r
+#| message: false
+#| fig-height: 5.5
+#| fig-width: 11
+#| fig-cap: "Logistic recalibration of the stroke model in a new setting, judged on held-out patients. Panel A: the original model's calibration curve sits well above the diagonal, meaning observed mortality is consistently higher than predicted. Panel B: after updating the intercept and slope, the curve tracks the diagonal closely. The C-statistic is identical in both panels --- recalibration fixes the numbers, not the ranking."
+
+# Split the external cohort: half to fit the update, half to judge it on
+set.seed(7)
+in_update <- sample(rep(c(TRUE, FALSE), length.out = n_ext))
+update_set <- ext_data[in_update, ]
+test_set <- ext_data[!in_update, ]
+
+# Logistic recalibration: re-estimate an intercept and a slope for the
+# model's own predictions, using ONLY the update half
+recal <- glm(death_30d ~ qlogis(pred_original),
+  data = update_set, family = binomial
 )
 
-# Calibration slope in external data
-lp_orig <- qlogis(ext_data$pred_original)
-cal_ext <- glm(death_30d ~ lp_orig, data = ext_data, family = binomial)
-cat("  Calibration slope:", round(coef(cal_ext)[2], 3), "\n")
-cat("  Calibration intercept:", round(coef(cal_ext)[1], 3), "\n")
-
-# Recalibration: update intercept and slope
-ext_data$pred_recalibrated <- predict(cal_ext, type = "response")
-
-cat("\nAfter logistic recalibration:\n")
-cat("  Mean predicted:", round(mean(ext_data$pred_recalibrated), 3), "\n")
+cat("Recalibration fitted on the update half:\n")
 cat(
-  "  O:E ratio:",
-  round(mean(ext_data$death_30d) / mean(ext_data$pred_recalibrated), 3),
-  "\n"
+  "  new intercept:", round(coef(recal)[[1]], 3),
+  "   new slope:", round(coef(recal)[[2]], 3), "\n\n"
 )
+
+# Apply the update to the held-out half
+test_set$pred_updated <- predict(recal, newdata = test_set, type = "response")
+
+after_orig <- cal_stats(test_set$death_30d, test_set$pred_original)
+after_upd <- cal_stats(test_set$death_30d, test_set$pred_updated)
+
+comparison <- data.frame(
+  Model = c("Original model", "After recalibration"),
+  `O:E ratio` = round(c(after_orig[["oe"]], after_upd[["oe"]]), 3),
+  `Calib. slope` = round(c(after_orig[["slope"]], after_upd[["slope"]]), 3),
+  `Calib. intercept` = round(
+    c(after_orig[["intercept"]], after_upd[["intercept"]]), 3
+  ),
+  Brier = round(c(after_orig[["brier"]], after_upd[["brier"]]), 4),
+  `C-statistic` = round(c(
+    as.numeric(auc(roc(test_set$death_30d, test_set$pred_original,
+      quiet = TRUE
+    ))),
+    as.numeric(auc(roc(test_set$death_30d, test_set$pred_updated,
+      quiet = TRUE
+    )))
+  ), 3),
+  check.names = FALSE
+)
+
+knitr::kable(
+  comparison,
+  caption = "Performance in the held-out half of the external cohort, before and after logistic recalibration."
+)
+
+# Calibration plots before and after. Assigning the result keeps val.prob
+# from dumping its full 18-statistic table to the console.
+par(mfrow = c(1, 2))
+invisible(val.prob(test_set$pred_original, test_set$death_30d,
+  m = 60, cex = 0.5
+))
+title(main = "A. Original model in the new setting")
+invisible(val.prob(test_set$pred_updated, test_set$death_30d,
+  m = 60, cex = 0.5
+))
+title(main = "B. After logistic recalibration")
+par(mfrow = c(1, 1))
 ```
 
 ### Python
@@ -709,12 +900,22 @@ cat(
 #| label: recalibration-py
 
 import numpy as np
-from sklearn.linear_model import LogisticRegression
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from scipy.special import expit, logit
+from sklearn.calibration import calibration_curve
 from sklearn.metrics import roc_auc_score
 
 np.random.seed(99)
-n_ext = 800
+n_ext = 1600
 
+# The new setting differs in TWO ways:
+#   1. Case-mix: older, more severe, less often thrombolysed.
+#   2. The outcome relationship itself: baseline risk is HIGHER (the +0.6
+#      shift) and the predictors matter LESS (the 0.70 multiplier).
+# Only the second causes miscalibration. A correctly specified model
+# transports perfectly to a merely sicker population.
 ext_data = {
     "age": np.round(np.random.normal(78, 10, n_ext)),
     "nihss": np.round(np.maximum(0, np.random.normal(11, 7, n_ext))),
@@ -723,49 +924,120 @@ ext_data = {
     "thrombolysis": np.random.binomial(1, 0.20, n_ext)
 }
 
-lp_ext = (-5 + 0.04 * ext_data["age"] +
-          0.12 * ext_data["nihss"] +
-          0.003 * ext_data["glucose"] +
-          0.3 * ext_data["afib"] -
-          0.5 * ext_data["thrombolysis"])
+# What the development model's equation would say for these patients
+lp_dev_equation = (-5 + 0.04 * ext_data["age"] +
+                   0.12 * ext_data["nihss"] +
+                   0.003 * ext_data["glucose"] +
+                   0.3 * ext_data["afib"] -
+                   0.5 * ext_data["thrombolysis"])
 
-y_ext = np.random.binomial(1, expit(lp_ext))
+# The truth in the new setting: higher baseline, weaker predictor effects
+y_ext = np.random.binomial(1, expit(0.6 + 0.70 * lp_dev_equation))
 
-# Apply original model
+# Apply the original, unmodified model
 X_ext = np.column_stack([ext_data[k] for k in predictors])
 pred_original = full_model.predict_proba(X_ext)[:, 1]
 
-obs_rate = y_ext.mean()
-mean_pred = pred_original.mean()
-print(f"External validation (before updating):")
-print(f"  Observed mortality: {obs_rate:.3f}")
-print(f"  Mean predicted: {mean_pred:.3f}")
-print(f"  O:E ratio: {obs_rate / mean_pred:.3f}")
-print(f"  AUC: {roc_auc_score(y_ext, pred_original):.3f}")
 
-# Logistic recalibration: regress outcome on logit(predictions)
-from scipy.special import logit
+def cal_stats(y, p):
+    """O:E ratio, calibration intercept and slope, and Brier score."""
+    lp = logit(np.clip(p, 1e-6, 1 - 1e-6))
+    res = sm.GLM(y, sm.add_constant(lp),
+                 family=sm.families.Binomial()).fit()
+    return {
+        "oe": y.mean() / p.mean(),
+        "intercept": res.params[0],
+        "slope": res.params[1],
+        "brier": np.mean((p - y) ** 2),
+    }
+
+
+before = cal_stats(y_ext, pred_original)
+print("External validation of the ORIGINAL model:")
+print(f"  Observed mortality:    {y_ext.mean():.3f}")
+print(f"  Mean predicted risk:   {pred_original.mean():.3f}")
+print(f"  O:E ratio:             {before['oe']:.3f}")
+print(f"  Calibration slope:     {before['slope']:.3f}")
+print(f"  Calibration intercept: {before['intercept']:.3f}")
+print(f"  C-statistic:           {roc_auc_score(y_ext, pred_original):.3f}")
+
+# ---- Fit the update on one half, judge it on the other ----
+# Evaluating a recalibration on the same rows that fitted it forces the
+# O:E ratio to exactly 1, which proves nothing.
+rng = np.random.default_rng(7)
+in_update = rng.permutation(np.arange(n_ext) % 2 == 0)
+upd, tst = in_update, ~in_update
+
 lp_original = logit(np.clip(pred_original, 1e-6, 1 - 1e-6))
+recal = sm.GLM(y_ext[upd], sm.add_constant(lp_original[upd]),
+               family=sm.families.Binomial()).fit()
+print(f"\nRecalibration fitted on the update half:")
+print(f"  new intercept: {recal.params[0]:.3f}"
+      f"   new slope: {recal.params[1]:.3f}")
 
-recal_model = LogisticRegression(max_iter=5000)
-recal_model.fit(lp_original.reshape(-1, 1), y_ext)
+pred_updated_tst = recal.predict(sm.add_constant(lp_original[tst]))
 
-pred_recalibrated = recal_model.predict_proba(lp_original.reshape(-1, 1))[:, 1]
+after_orig = cal_stats(y_ext[tst], pred_original[tst])
+after_upd = cal_stats(y_ext[tst], pred_updated_tst)
 
-print(f"\nAfter logistic recalibration:")
-print(f"  Mean predicted: {pred_recalibrated.mean():.3f}")
-print(f"  O:E ratio: {y_ext.mean() / pred_recalibrated.mean():.3f}")
-print(f"  Calibration slope: {recal_model.coef_[0][0]:.3f}")
-print(f"  Calibration intercept: {recal_model.intercept_[0]:.3f}")
+comparison = pd.DataFrame({
+    "Model": ["Original model", "After recalibration"],
+    "O:E ratio": [after_orig["oe"], after_upd["oe"]],
+    "Calib. slope": [after_orig["slope"], after_upd["slope"]],
+    "Calib. intercept": [after_orig["intercept"], after_upd["intercept"]],
+    "Brier": [after_orig["brier"], after_upd["brier"]],
+    "C-statistic": [roc_auc_score(y_ext[tst], pred_original[tst]),
+                    roc_auc_score(y_ext[tst], pred_updated_tst)],
+}).round(3)
+print("\nHeld-out half of the external cohort:")
+print(comparison.to_string(index=False))
+
+# ---- Calibration plots before and after ----
+fig, axes = plt.subplots(1, 2, figsize=(12, 5.5), sharex=True, sharey=True)
+panels = [
+    (pred_original[tst], "A. Original model in the new setting"),
+    (pred_updated_tst, "B. After logistic recalibration"),
+]
+for ax, (p, ttl) in zip(axes, panels):
+    obs, exp = calibration_curve(y_ext[tst], p, n_bins=10,
+                                 strategy="quantile")
+    ax.plot([0, 1], [0, 1], "--", color="grey", label="Perfect calibration")
+    ax.plot(exp, obs, "o-", color="steelblue", lw=2, label="Observed")
+    ax.set_xlabel("Predicted probability")
+    ax.set_title(ttl)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.legend(loc="upper left", fontsize=9)
+axes[0].set_ylabel("Observed proportion")
+plt.tight_layout()
+plt.show()
 ```
 
 :::
 
-**What the code shows.** This simulates applying the stroke model to a *new, sicker* population and then repairs it. The first block of output is the external check before any updating: compare the observed mortality to the mean predicted risk, look at the O:E ratio (far from 1 means miscalibration), and note the calibration slope. Because the new population is older and more severe, the original model typically underestimates risk, so the O:E ratio comes out above 1. The code then performs logistic recalibration — regressing the outcome on the original model's predictions to re-estimate an intercept and slope — and reprints the metrics, which should now sit much closer to perfect calibration. The clinical message: a model that miscalibrates in a new setting is often not broken, just mis-tuned, and a light-touch update can rescue it without collecting enough data to build a model from scratch.
+**What the code shows.** This applies the stroke model to a new setting where it is genuinely mis-tuned, then repairs it and checks the repair on patients that played no part in fitting it.
+
+Read the first block of output as the external validation report. The model's mean predicted risk comes out near **0.5** while observed mortality is over **0.6**, giving an **O:E ratio of roughly 1.3** --- the model is underestimating risk by about 30%, so it would systematically under-treat this population. The **calibration slope of roughly 0.7** says the predictions are also too spread out: the model's high risks are too high and its low risks too low, relative to what actually happens here. (The exact figures differ a little between the R and Python tabs, since each draws its own random sample.)
+
+The comparison table then shows what a light-touch update buys you, measured on the held-out half:
+
+- The **O:E ratio moves from about 1.29 to about 0.99** and the **calibration intercept from about 0.62 to about 0.07** --- the systematic underestimation is essentially gone.
+- The **calibration slope moves substantially towards 1** (from roughly 0.7). It does not land exactly on 1.0, and it may overshoot slightly in one language and undershoot in the other, because we are judging the update on patients it never saw. That wobble is honest. A version reporting a perfect slope of exactly 1.000 would be measuring itself on its own training rows.
+- The **Brier score improves** (about 0.240 to 0.215), confirming the predictions are genuinely closer to the observed outcomes.
+- The **C-statistic does not move at all** (0.663 in both rows).
+
+That last point is the one to take away, and the calibration plots make it visible: recalibration slides and stretches the predicted risks, but it never reorders patients. Since the C-statistic depends only on the ranking, it cannot change. **So a poor C-statistic in a new setting is not something recalibration can fix --- but poor calibration usually is.** The two problems have different remedies, which is precisely why the chapter insists on measuring them separately.
+
+In the calibration plots, Panel A shows the original model's curve sitting well above the diagonal at every risk level --- the visual signature of consistent underestimation --- while in Panel B the curve tracks the diagonal closely. The clinical message: a model that miscalibrates in a new setting is often not broken, just mis-tuned, and an update needing only an intercept and a slope can rescue it without collecting enough data to build a model from scratch.
+
+::: {.callout-important}
+## Case-mix differences alone do not cause miscalibration
+This is worth stating plainly, because it is a common misconception. If the new population is simply older and sicker but the *relationships* between predictors and outcome are unchanged, a correctly specified model transports perfectly --- it will predict higher risks for these patients, and those higher risks will be correct. Miscalibration appears only when the underlying relationship differs: a different baseline risk, or predictors that carry different weight. In the code above, the `+ 0.6` shift and the `0.70` multiplier are what actually break the model; the older, sicker covariate distribution on its own would not have.
+:::
 
 ## Recommended Reporting: The Minimum Set
 
-Based on Van Calster et al. (2025) and Smits et al. (2026), every prediction model evaluation should include at minimum:
+Based on @vancalster2025performance and @smits2026prediction, every prediction model evaluation should include at minimum:
 
 1. **AUROC (C-statistic)** with confidence interval --- for discrimination
 2. **Calibration plot** (smoothed and/or grouped) --- for calibration
@@ -803,22 +1075,32 @@ plot(
   print.auc.y = 0.4
 )
 
-# Panel 2: Calibration plot
-val.prob(pred_prob, y_obs, m = 100, cex = 0.5, main = "B. Calibration Plot")
+# Panel 2: Calibration plot.
+# val.prob() accepts no `main` argument, so the title is added afterwards.
+# Assigning the result also stops it printing its 18-statistic table.
+invisible(val.prob(pred_prob, y_obs, m = 100, cex = 0.5))
+title(main = "B. Calibration Plot")
 
-# Panel 3: Risk distribution
+# Panel 3: Risk distribution.
+# Scale the y-axis to the data rather than hard-coding a limit, otherwise the
+# histogram is squashed into the bottom of the panel.
+brk <- seq(0, max(pred_prob) + 0.05, length.out = 31)
+h0 <- hist(pred_prob[y_obs == 0], breaks = brk, plot = FALSE)
+h1 <- hist(pred_prob[y_obs == 1], breaks = brk, plot = FALSE)
+y_top <- max(h0$density, h1$density) * 1.25
+
 hist(
   pred_prob[y_obs == 0],
-  breaks = 30,
+  breaks = brk,
   col = rgb(0.4, 0.6, 0.8, 0.5),
   main = "C. Risk Distribution",
   xlab = "Predicted Probability",
   freq = FALSE,
-  ylim = c(0, 12)
+  ylim = c(0, y_top)
 )
 hist(
   pred_prob[y_obs == 1],
-  breaks = 30,
+  breaks = brk,
   col = rgb(0.9, 0.4, 0.4, 0.5),
   add = TRUE,
   freq = FALSE

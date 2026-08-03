@@ -18,6 +18,7 @@ Although many clinical tasks have a clear outcome (e.g., survival, disease progr
 Such tasks typically use *unsupervised learning* methods, as there is no outcome variable to optimise against. Instead, they optimise a certain metric (e.g., variance explained, local neighbourhood preservation) to find structure in the data.
 
 Unsupervised learning techniques can be generally grouped into three categories depending on the outcome they generate:
+
 - **Dimensionality reduction** methods aim to represent data in a **continuous** low-dimensional space (e.g., PCA, t-SNE, UMAP).
 - **Clustering** methods aim to represent data in **discrete** clusters based on similarity (e.g., k-means, hierarchical clustering).
 - **Anomaly detection** methods aim to identify **outliers** or unusual observations that do not fit the general pattern of the data.
@@ -51,26 +52,76 @@ flowchart LR
 
 ## PCA: Principal Component Analysis
 
-PCA is the oldest and most widely used dimensionality reduction technique. It aims to find directions (also called *principal components*) that maximise the variance in this new coordinate system. It has two important features:
-- Each principal component is a linear combination of the original variables. For example, for a metabolic panel, PC1 might be a weighted sum of glucose, HbA1c, and triglycerides.
-- Each principal component is orthogonal to the others, meaning they capture independent sources of variation in the data.
+PCA is the oldest and most widely used dimensionality reduction technique. Before any mathematics, here is the whole idea in one sentence: **PCA builds a handful of new summary measurements out of your existing ones, choosing them so that the first summary captures as much of the variation between patients as possible.**
+
+It helps to think of it as building composite scores. Suppose you measure glucose, HbA1c and triglycerides on every patient. Those three tend to rise and fall together, so they are partly telling you the same story. Rather than carry three correlated numbers, PCA constructs one new number --- something like "overall metabolic derangement" --- and each patient gets a single score on it. That new number is a **principal component**. Two properties matter:
+
+- Each principal component is a **weighted sum of the original variables**. For our metabolic panel, PC1 might be $0.5 \times \text{glucose} + 0.5 \times \text{HbA1c} + 0.4 \times \text{triglycerides} - 0.3 \times \text{HDL} + \dots$, using every variable but weighting the ones that move together most heavily.
+- Each principal component is **orthogonal** to the others. "Orthogonal" here simply means *uncorrelated*: PC2 is built to describe variation that PC1 has not already accounted for, so the components do not repeat each other. This is why a few components can carry a lot of information.
 
 ### The Core Idea
 
-We start with a data matrix $\mathbf{X}$ with $N$ observations and $P$ variables, and assume that the data come from i.i.d. (independent and identically distributed) samples. To find the principal components, we can follow these steps:
+Let us build this up slowly, because the notation is where most people lose the thread.
 
-1. **Centre** the data: subtract the mean of each variable. Experience also shows that it is often useful to also divide by the standard deviation of each variable (standardisation), especially when variables are on different scales.
-We obtain $Z$ such that:
+**Step 0: the data matrix.** Write your dataset as a table $\mathbf{X}$ with one row per patient and one column per variable --- $N$ rows and $P$ columns, exactly like a spreadsheet. So $X_{ij}$ is the value of variable $j$ for patient $i$: if column 1 is glucose, then $X_{51}$ is patient 5's glucose. (We also assume patients are independent of one another --- the "i.i.d." assumption.)
+
+**Step 1: put every variable on the same footing.** Glucose runs around 100 mg/dL, HbA1c around 5.8%, and creatinine around 1.0 mg/dL. If we left them as they are, glucose would dominate everything simply because its numbers are bigger, not because it is more important. So we rescale each column to a common scale by subtracting its mean and dividing by its standard deviation. The rescaled table is called $\mathbf{Z}$:
+
 $$Z_{ij} = \frac{X_{ij} - \bar{X}_j}{\sigma_j}$$
-where $\bar{X}_j$ is the mean of variable $j$ and $\sigma_j$ is its standard deviation.
-2. **Compute the covariance matrix** $\mathbf{C} = \frac{1}{N}\mathbf{Z}^T\mathbf{Z}$.
-3. **Find the eigendecomposition** of $\mathbf{C}$. The eigenvectors are the **principal components** (the directions of maximum variance), the eigenvalues are the **amount of variance explained** by each component.
 
-By construction, the first principal component (PC1) captures the most variance, PC2 captures the second most (orthogonal to PC1), and so on. By keeping only the first $K$ components, you reduce the data from $P$ dimensions to $K$ dimensions.
+Here $\bar{X}_j$ is the average of variable $j$ across all patients and $\sigma_j$ is its standard deviation. **So $\mathbf{Z}$ is just your original table with every measurement rewritten as a $z$-score** --- "how many standard deviations above or below average is this patient on this variable?" A $Z$ value of $+2$ for glucose means two standard deviations above the cohort's mean glucose, whatever the original units were. Every column of $\mathbf{Z}$ now has mean 0 and standard deviation 1, so no variable can dominate through sheer magnitude. This step is what people mean by "standardising" or "scaling" the data.
 
-In plain terms, a **principal component** is just a recipe: a new variable made by mixing the original measurements in fixed proportions (the weights in that recipe are called the **loadings**). PC1 is the single mixture that spreads patients out as much as possible (the direction along which they differ most). PC2 is the direction, perpendicular to PC1, that captures the most remaining spread. Each subsequent component captures less and less, because the "best" directions are always taken first.
+**Step 2: measure which variables move together.** Next we need to know, for every *pair* of variables, whether they tend to rise and fall together. That is what a **covariance matrix** is: a $P \times P$ table where the entry in row $j$, column $k$ tells you how strongly variables $j$ and $k$ move together. Positive means they rise together (glucose and HbA1c); negative means one rises as the other falls (triglycerides and HDL); near zero means they are unrelated. The diagonal entries compare each variable with itself, which is just its variance --- and because we standardised in Step 1, those are all 1. For standardised data this matrix *is* the correlation matrix, so you can read every entry as a correlation between $-1$ and $+1$.
 
-Going back to our example, if glucose, HbA1c, and triglycerides all rise and fall together, PCA notices and bundles them into one axis, so a patient's position on PC1 might summarise their whole "metabolic" profile in a single number. "Variance explained" is then simply the share of the data's total spread that each component accounts for: PC1 might capture 40% of all the variation, meaning that one axis alone tells you a large chunk of what distinguishes your patients.
+The formula is written compactly as
+
+$$\mathbf{C} = \frac{1}{N}\mathbf{Z}^T\mathbf{Z}$$
+
+and the notation deserves unpacking. The superscript $T$ means **transpose** --- flipping the table on its side so rows become columns. $\mathbf{Z}$ is $N \times P$ (patients down the side, variables across the top), so $\mathbf{Z}^T$ is $P \times N$. Multiplying $\mathbf{Z}^T$ by $\mathbf{Z}$ pairs up every variable with every other variable and, for each pair, multiplies the two values together for each patient and adds up across all patients. Dividing by $N$ turns that sum into an average. In other words, $\frac{1}{N}\mathbf{Z}^T\mathbf{Z}$ is nothing more exotic than **"for each pair of variables, average their product across patients"** --- which, for standardised variables, is exactly their correlation. The matrix notation is a compact way of writing $P \times P$ such calculations at once; you never have to do it by hand, and `prcomp()` in R or `PCA()` in Python does it for you.
+
+**Step 3: find the directions of greatest spread.** Finally we ask the covariance matrix which *combinations* of variables vary the most. The mathematical tool for this is the **eigendecomposition** of $\mathbf{C}$, and it returns two things:
+
+- The **eigenvectors** are the principal components themselves --- each one a list of $P$ weights saying how much each original variable contributes to that component. These weights are called the **loadings**.
+- The **eigenvalues** say how much variance each component captures. A big eigenvalue means that component describes a lot of the spread between patients.
+
+By construction PC1 captures the most variance, PC2 the most of what remains (while staying uncorrelated with PC1), and so on. Keeping only the first $K$ components reduces the data from $P$ dimensions to $K$.
+
+::: {.callout-tip}
+## The one-paragraph version
+A **principal component** is a recipe: a new variable made by mixing the original measurements in fixed proportions, and the weights in that recipe are the **loadings**. PC1 is the single mixture that spreads patients out as much as possible. PC2 is the mixture, uncorrelated with PC1, that captures the most remaining spread. Each later component captures less, because the best directions are taken first. All PCA does is find the recipes and then tell you each patient's score on each one.
+:::
+
+**Reading the loadings on our example.** Because loadings are the part you actually interpret, it is worth being concrete. These are the real loadings produced by the worked example later in this section (@sec-pca-metabolic-example), for the first two components:
+
+| Variable | PC1 | PC2 | Reading of PC1 |
+|---|---|---|---|
+| glucose | $+0.48$ | $+0.15$ | pushes PC1 **up** strongly |
+| triglycerides | $+0.44$ | $+0.13$ | pushes PC1 **up** strongly |
+| HbA1c | $+0.44$ | $+0.04$ | pushes PC1 **up** strongly |
+| LDL | $+0.36$ | $+0.32$ | pushes PC1 up moderately |
+| HDL | $-0.34$ | $-0.09$ | pushes PC1 **down** |
+| ALT | $+0.24$ | $-0.10$ | minor positive contribution |
+| albumin | $-0.22$ | $+0.68$ | minor on PC1, **dominates PC2** |
+| creatinine | $+0.20$ | $-0.62$ | minor on PC1, **dominates PC2** |
+
+Each loading is the weight that variable gets in the recipe, so a patient's PC1 score is
+
+$$0.48 \times (\text{standardised glucose}) + 0.44 \times (\text{standardised triglycerides}) + 0.44 \times (\text{standardised HbA1c}) + \dots$$
+
+continuing across all eight variables. Note that the loadings apply to the *standardised* values from Step 1, not the raw lab numbers --- which is why they can be compared with one another at all.
+
+Now read the PC1 column and the component interprets itself. Glucose, triglycerides and HbA1c all load heavily and positively; HDL loads negatively; the kidney and liver markers contribute comparatively little. So **PC1 is a metabolic-syndrome axis.** A patient scoring high on PC1 has high sugars and triglycerides together with low HDL --- exactly the pattern a clinician would recognise --- and a patient scoring low has the opposite.
+
+The PC2 column shows the second property in action. Creatinine ($-0.62$) and albumin ($+0.68$) barely featured on PC1, but they dominate PC2, which is therefore a **renal/hepatic axis** quite separate from the metabolic one. This is what "orthogonal" buys you: PC2 is not repeating PC1's story, it is telling a different one.
+
+This is the payoff. Instead of eight correlated lab values, you can describe a patient with two numbers whose meanings you can each state in a sentence. "Variance explained" tells you how much of the story those numbers carry: here PC1 accounts for 33% of the total variation and PC2 a further 16%, so two axes between them capture about half of everything that distinguishes these patients.
+
+::: {.callout-note}
+## Two cautions when reading loadings
+**The signs are arbitrary.** PCA is free to flip a whole component, so an axis running "high sugars → positive" in one software run may run "high sugars → negative" in another. Only the *relative* signs within a component mean anything: that glucose and HDL have opposite signs is the finding, not that glucose happens to be positive.
+
+**A component need not be interpretable.** PC1 often has a clean clinical reading, but later components frequently mix variables in ways that correspond to nothing recognisable. That is not a failure --- they are still capturing real variation. Resist the urge to invent a story for every component.
+:::
 
 ### Key Properties
 
@@ -86,7 +137,7 @@ Choosing the number of components depends on the context and the goal of the ana
 
 - **Cumulative variance threshold.** Keep enough components to explain a target percentage of total variance (commonly 90--95--99%).
 
-### Clinical Example: Metabolic Panel PCA
+### Clinical Example: Metabolic Panel PCA {#sec-pca-metabolic-example}
 
 A common application: reducing a panel of correlated lab values to a few interpretable dimensions. Consider a dataset with glucose, HbA1c, triglycerides, LDL, HDL, creatinine, ALT, and albumin.
 
@@ -101,13 +152,15 @@ A common application: reducing a panel of correlated lab values to a few interpr
 #| fig-width: 12
 #| fig-height: 5
 
+library(MASS) # for mvrnorm()
+library(tibble) # for tibble()
+
 set.seed(42)
 n <- 300
 
 # Simulate correlated metabolic data
 # Create correlation structure: glucose/HbA1c/triglycerides cluster;
 # creatinine/albumin cluster
-library(MASS)
 # fmt: skip
 Sigma <- matrix(c(
   1.0, 0.7, 0.5, 0.3, -0.2, 0.1, 0.2, -0.1,
@@ -271,12 +324,31 @@ This kind of interpretation is exactly what makes PCA useful in clinical researc
 
 PCA preserves global, linear structure. But many datasets contain non-linear patterns that PCA cannot capture well. **t-SNE** ($t$-distributed stochastic neighbour embedding) was designed specifically for **visualisation** of high-dimensional data in 2 or 3 dimensions.
 
-t-SNE works in two steps:
+Here is the whole method in one sentence, before any jargon: **t-SNE works out who each patient's nearest neighbours are in the full high-dimensional data, then draws a 2-D map arranged so that those same patients end up sitting next to each other.** Think of it as seating a wedding reception --- the goal is that everyone is at a table with the people they are actually close to, and t-SNE does not much care where the tables themselves sit in the room.
 
-1. In the high-dimensional space, compute the probability that any two points are "neighbours" (using a Gaussian kernel). Nearby points have high probability; distant points have low probability.
-2. In the low-dimensional (2D) embedding, try to arrange points so that the same neighbourhood probabilities are preserved (using a **t-distribution** kernel, which has heavier tails than a Gaussian and thus helps prevent crowding).
+More precisely, it works in two steps.
 
-Intuitively, t-SNE asks "who are each patient's closest neighbours?" in the full high-dimensional space, then arranges the 2D plot so that those same neighbourly relationships are preserved. The payoff for a health researcher is a map where patients who are genuinely alike clump together, making subtypes pop out visually. This has made t-SNE become popular for single-cell and other omics data where distinct cell populations or patient phenotypes hide in hundreds of dimensions.
+**Step 1: in the high-dimensional data, turn distances into "neighbourliness" scores.** For every pair of patients, t-SNE asks: how likely is it that I would call these two neighbours? Patients who are close together in the full dataset get a high score; patients far apart get a score near zero.
+
+The tool it uses to convert a distance into a score is called a **Gaussian kernel**, and it is much simpler than it sounds. A "kernel" here is just a function that takes a distance and returns a similarity: put a distance in, get a number out that is large when the distance is small. "Gaussian" means the function has the shape of the familiar bell curve --- centre it on one patient, and the score for every other patient is given by the height of the bell at their distance away. So the closest patients sit under the peak and score highly, and the score tails off smoothly as you move outwards. That is all a Gaussian kernel is: **a bell-shaped rule for turning "how far apart" into "how similar," with the bell's width setting how far your neighbourhood extends** (that width is controlled by the perplexity parameter described below).
+
+**Step 2: arrange points on a 2-D map so the same neighbourliness scores come out.** Now t-SNE places every patient as a dot on a flat map and nudges the dots around, over and over, until the neighbourliness scores computed *on the map* match the ones computed from the real data as closely as possible. Patients who were neighbours in 200 dimensions end up as neighbours on the page.
+
+For this second step it deliberately uses a *different* kernel --- a **t-distribution** rather than a Gaussian --- and the reason is worth understanding, because it is the "t" in t-SNE. A t-distribution is also bell-shaped, but it has **heavier tails**: it does not fall away to nearly zero as sharply as a Gaussian does, so points a long way from the centre still receive a non-negligible score.
+
+Why does that matter? Because of the **crowding problem.** In high dimensions there is a great deal of room, so a patient can have many neighbours all roughly equidistant from them. Squash that onto a flat page and there is simply not enough space to keep everyone at a comfortable distance --- moderately-distant points get forced inwards, and the whole map collapses into one indistinct blob in the middle. The heavier tails of the t-distribution fix this: because a moderate distance on the map still earns a decent score, t-SNE is content to place merely-similar patients quite far apart, which frees up space in the middle and lets genuinely distinct groups separate into visible clusters.
+
+::: {.callout-note}
+## The two kernels, side by side
+Both kernels do the same job --- turn a distance into a similarity score --- and they are used at different stages for different reasons.
+
+| | Where it is used | Shape | Why that shape |
+|---|---|---|---|
+| **Gaussian kernel** | On the original high-dimensional data (Step 1) | Bell curve, tails fall away fast | Gives a tight, well-defined notion of "local neighbourhood" |
+| **t-distribution kernel** | On the 2-D map being built (Step 2) | Bell curve with **heavier tails** | Lets moderately-similar points sit far apart on the page, so the map does not collapse into a single blob (the crowding problem) |
+:::
+
+The payoff for a health researcher is a map where patients who are genuinely alike clump together, making subtypes pop out visually. This is why t-SNE became popular for single-cell and other omics data, where distinct cell populations or patient phenotypes hide in hundreds of dimensions.
 
 ### The Perplexity Parameter
 
@@ -427,7 +499,7 @@ Notice how perplexity changes the visual appearance but the three groups are con
 
 ### How UMAP Differs from t-SNE
 
-UMAP (McInnes, Healy, and Melville, 2018) is a newer method that has can be used as an alternative to t-SNE in many applications. A key advantage is its speed, as it runs 3--10x faster than t-SNE, and its better stability across runs.  UMAP works by constructing a topological representation (a weighted graph) of the data in high dimensions, then optimising a low-dimensional layout that preserves the graph structure. While it has been claimed that UMAP preserves more global structure than t-SNE, this has been disputed in recent literature [@chari2023].
+UMAP [@mcinnes2018umap] is a newer method that can be used as an alternative to t-SNE in many applications. A key advantage is its speed, as it runs 3--10x faster than t-SNE, and its better stability across runs.  UMAP works by constructing a topological representation (a weighted graph) of the data in high dimensions, then optimising a low-dimensional layout that preserves the graph structure. While it has been claimed that UMAP preserves more global structure than t-SNE, this has been disputed in recent literature [@chari2023].
 
 
 ### Key Parameters

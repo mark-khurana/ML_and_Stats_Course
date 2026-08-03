@@ -499,7 +499,7 @@ where $h_m(x)$ is a tree fitted to the negative gradient of the loss (the "pseud
 
 In practice, you rarely implement gradient boosting from scratch. Two optimized libraries dominate the landscape:
 
-**XGBoost** (eXtreme Gradient Boosting) by Chen and Guestrin (2016) added regularization, efficient computation, and handling of missing values to gradient boosting, making it the dominant algorithm for tabular data competitions and many clinical prediction tasks.
+**XGBoost** (eXtreme Gradient Boosting) by @chen2016xgboost added regularization, efficient computation, and handling of missing values to gradient boosting, making it the dominant algorithm for tabular data competitions and many clinical prediction tasks.
 
 **LightGBM** by Microsoft further improves efficiency with gradient-based one-side sampling (GOSS) and exclusive feature bundling. It is often faster than XGBoost on large datasets.
 
