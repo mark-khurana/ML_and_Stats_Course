@@ -21,60 +21,60 @@ By the end of this course, you will be able to:
 
 - Model non-linear relationships properly instead of categorising continuous
   variables
-- Build, validate, and report clinical prediction models to current standards
-  (TRIPOD+AI)
-- Use machine learning methods (random forests, gradient boosting, deep
-  learning) and know when they help and when they do not
+- Analyse time-to-event outcomes, clustered and longitudinal data, and datasets
+  with missing values
 - Apply Bayesian methods including hierarchical models for multi-site studies
-- Reduce high-dimensional data with PCA, t-SNE, and UMAP
+- Use machine learning methods (random forests, gradient boosting, neural
+  networks) and know when they help and when they do not
+- Explain what a model has learned, rather than treating it as a black box
+- Build, validate, and report clinical prediction models to current standards
+  (TRIPOD+AI), judging them on calibration and clinical utility as well as
+  discrimination
+- Reduce high-dimensional data with PCA, t-SNE, and UMAP, and find subgroups by
+  clustering
+- Reason about causal questions in observational data, and synthesise evidence
+  through meta-analysis
 
 ## Structure
 
-| Part                 | What it covers                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| **Pre-Course**       | Probability, inference, regression refresher                                                |
-| **I**                | Splines, penalised regression, survival analysis                                            |
-| **II**               | Bayesian inference and hierarchical models                                                  |
-| **III**              | ML foundations, trees, ensembles, neural networks, ROC curves, calibration, decision curves |
-| **IV**               | PCA, UMAP, clustering                                                                       |
-| **V**                | Clinical prediction models, validation, reporting                                           |
-| **Advanced Toolkit** | Causal inference, meta-analysis                                                             |
+The course runs in seven parts, in this order:
 
-The **Pre-Course** material should be completed before Day 1 if you are taking
-this in person. If you are self-studying, work through everything in order.
+| Part                                                     | Chapters | What it covers                                                                                     |
+| -------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| **Pre-Course: Foundations**                               | 1–4      | Environment setup, probability and distributions, statistical inference, regression refresher       |
+| **Advanced Statistical Methods**                          | 5–9      | Splines and non-linear modelling, penalised regression, survival analysis, mixed-effects models, missing data and multiple imputation |
+| **Bayesian Methods**                                      | 10–11    | Bayesian inference, then applied hierarchical models for multi-site studies                         |
+| **Supervised Learning**                                   | 12–16    | ML foundations, trees and ensembles, neural networks, model evaluation beyond accuracy, explainability |
+| **Applied Supervised Learning: Clinical Prediction Models** | 17–19  | Developing models, performance assessment and validation (calibration, decision curves), reporting to TRIPOD+AI |
+| **Unsupervised Learning**                                 | 20–21    | Dimensionality reduction with PCA, t-SNE and UMAP; clustering                                       |
+| **Advanced Research Toolkit**                              | 22–25    | Causal inference, g-methods and inverse probability weighting, mediation analysis, meta-analysis    |
+
+A few notes on how the parts fit together. The **Pre-Course** material should be
+completed before Day 1 if you are taking this in person; if you are
+self-studying, work through everything in order.
+
+**Bayesian Methods** sits deliberately before the machine learning parts,
+because the ideas about priors and uncertainty it introduces recur throughout.
+
+Calibration, decision curves, and validation live in **Applied Supervised
+Learning**, not in the general model-evaluation chapter --- that chapter covers
+discrimination and threshold-based metrics, and the prediction-model part then
+takes evaluation considerably further.
+
+**Unsupervised Learning** comes after the prediction-model chapters. It does not
+depend on them, so you can read it earlier if it is what you need.
 
 The **Advanced Research Toolkit** is for after the course --- use it when you
-are doing your own research and need guidance on causal inference or
+are doing your own research and need guidance on causal inference, mediation, or
 meta-analysis.
 
 ## Am I ready?
 
-Skim Chapters 1-3. If the material feels familiar, skip ahead to Part I. If it
-feels new, work through those chapters carefully first — they are the foundation
-everything else builds on.
-
-Rough time estimates per chapter:
-
-| Chapter | Topic                            | Estimated time |
-| ------- | -------------------------------- | -------------- |
-| 0       | Environment setup                | 1-2 hrs        |
-| 1       | Probability and distributions    | 2-3 hrs        |
-| 2       | Inference and estimation         | 2-3 hrs        |
-| 3       | Regression foundations           | 3-4 hrs        |
-| 4       | Splines and non-linear modelling | 3-4 hrs        |
-| 5       | Penalised regression             | 2-3 hrs        |
-| 6       | Survival analysis                | 3-4 hrs        |
-| 13      | Bayesian inference               | 3-4 hrs        |
-| 14      | Applied Bayesian modelling       | 3-4 hrs        |
-| 7       | ML foundations                   | 2-3 hrs        |
-| 8       | Trees and ensembles              | 2-3 hrs        |
-| 8b      | Introduction to neural networks  | 2-3 hrs        |
-| 9       | Model evaluation                 | 2-3 hrs        |
-| 15      | Dimensionality reduction         | 2-3 hrs        |
-| 16      | Clustering                       | 2-3 hrs        |
-| 10      | Building prediction models       | 3-4 hrs        |
-| 11      | Performance and validation       | 3-4 hrs        |
-| 12      | Reporting and TRIPOD+AI          | 2-3 hrs        |
+Skim Chapters 2–4 (probability, inference, and regression). If the material
+feels familiar, go straight to Chapter 5. If it feels new, work through those
+chapters carefully first --- they are the foundation everything else builds on.
+Chapter 1 is environment setup and is worth doing regardless, since every later
+chapter assumes a working R and Python installation.
 
 ## Datasets
 

@@ -309,7 +309,8 @@ For hands-on practice, you can download the exercises as standalone notebooks:
 - **R users**: Look for `.qmd` or `.Rmd` files in the course repository that you can open in RStudio.
 - **Python users**: Look for `.ipynb` (Jupyter notebook) files in the course repository that you can open in JupyterLab or VS Code.
 
-The course repository is available on GitHub. Your instructor will provide the link.
+These live in the course repository you downloaded in Step 0, at
+<https://github.com/mlhealthcourse/mlhealthcourse.github.io>.
 
 ### Rendering Quarto Documents
 
