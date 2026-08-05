@@ -1060,12 +1060,12 @@ You do not have to pick. **Doubly robust** methods build in a safety net: they f
 The augmented inverse probability weighted (AIPW) estimator is the standard example. Written the illuminating way, it is g-computation plus a correction:
 
 $$
-\hat{\tau}_{\text{AIPW}} =
-\underbrace{\frac{1}{n} \sum_{i=1}^{n} \left[\hat{\mu}_1(L_i) - \hat{\mu}_0(L_i)\right]}_{\substack{\text{(1) the g-computation estimate:}\\ \text{predict everyone treated, minus}\\ \text{predict everyone untreated}}}
-\;+\;
-\underbrace{\frac{1}{n} \sum_{i=1}^{n} \frac{A_i\left(Y_i - \hat{\mu}_1(L_i)\right)}{e(L_i)}}_{\substack{\text{(2) among the treated, how wrong}\\ \text{was the outcome model? Add the}\\ \text{error back, IP-weighted}}}
-\;-\;
-\underbrace{\frac{1}{n} \sum_{i=1}^{n} \frac{(1 - A_i)\left(Y_i - \hat{\mu}_0(L_i)\right)}{1 - e(L_i)}}_{\substack{\text{(3) the same correction}\\ \text{among the untreated}}}
+\begin{aligned}
+\hat{\tau}_{\text{AIPW}} \;=\;
+  &\underbrace{\frac{1}{n} \sum_{i=1}^{n} \left[\hat{\mu}_1(L_i) - \hat{\mu}_0(L_i)\right]}_{\text{(1) the g-computation estimate}} \\[2.2ex]
+  &+\; \underbrace{\frac{1}{n} \sum_{i=1}^{n} \frac{A_i\left(Y_i - \hat{\mu}_1(L_i)\right)}{e(L_i)}}_{\text{(2) IP-weighted error among the treated}} \\[2.2ex]
+  &-\; \underbrace{\frac{1}{n} \sum_{i=1}^{n} \frac{(1 - A_i)\left(Y_i - \hat{\mu}_0(L_i)\right)}{1 - e(L_i)}}_{\text{(3) the same correction among the untreated}}
+\end{aligned}
 $$
 
 where $\hat{\mu}_a(L)$ is the outcome model's prediction under treatment $a$, and $e(L)$ is the propensity score.

@@ -54,3 +54,19 @@ div.callout-note {
 .cell-output-display {
   margin-top: 0.5rem;
 }
+
+/* Display equations: scroll rather than overflow.
+   A wide display equation (several \underbrace terms side by side, for example)
+   otherwise runs out of the text column and slides underneath the floating
+   table of contents. Giving each one its own horizontal scroll keeps it
+   readable and keeps it off the sidebar. Prefer breaking the equation across
+   lines with \begin{aligned} where you can -- this is the safety net, not the
+   fix. */
+mjx-container[jax="CHTML"][display="true"],
+.MathJax_Display,
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding-bottom: 0.35rem;   /* room for the scrollbar, so it does not clip */
+}
