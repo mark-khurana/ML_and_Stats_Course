@@ -1,219 +1,156 @@
 # =============================================================================
-# Chapter 18 - Exercise 3: Subgroup Analysis and Meta-Regression in Python
-# =============================================================================
+# Chapter 18 - Exercise 3: Detecting the problem before the mega-trial
+# What the magnesium evidence looked like in 1993, before ISIS-4 reported
 
+# Libraries -------------------------------------------------------------------
+# pip install numpy pandas scipy matplotlib statsmodels
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+
+# Libraries -------------------------------------------------------------------
+# pip install numpy pandas scipy
 import numpy as np
 import pandas as pd
 from scipy import stats
-import statsmodels.api as sm
-import matplotlib.pyplot as plt
 
-# --- Dataset ---
-af_trials = pd.DataFrame({
-    'study': ['TRAIL-1', 'GUARD-AF', 'SHIELD', 'ORBIT-AF',
-              'VENTURE', 'COMPASS-AF', 'PIONEER-2', 'ATLAS-AF'],
-    'events_new':  [28, 45, 112, 67, 33, 89, 52, 41],
-    'n_new':       [1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100],
-    'events_warf': [42, 58, 148, 84, 29, 102, 61, 53],
-    'n_warf':      [1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100],
-    'region':      ['Europe', 'North America', 'Europe', 'Asia',
-                    'North America', 'Europe', 'Asia', 'North America'],
-    'mean_age':    [72, 68, 74, 65, 70, 71, 63, 69],
-    'pct_female':  [38, 42, 35, 48, 40, 37, 52, 44]
-})
-
-# Compute effect sizes
-af_trials['rr'] = (af_trials['events_new'] / af_trials['n_new']) / \
-                  (af_trials['events_warf'] / af_trials['n_warf'])
-af_trials['log_rr'] = np.log(af_trials['rr'])
-af_trials['var_log_rr'] = (
-    1/af_trials['events_new'] - 1/af_trials['n_new'] +
-    1/af_trials['events_warf'] - 1/af_trials['n_warf']
-)
-af_trials['se_log_rr'] = np.sqrt(af_trials['var_log_rr'])
+# The 16 magnesium trials (dat.egger2001 in metafor / metadat).
+# ai / n1 = deaths / patients on magnesium; ci / n2 = deaths / patients on control.
+STUDY = ["Morton 1984", "Rasmussen 1986", "Smith 1986", "Abraham 1987",
+         "Feldstedt 1988", "Shechter 1989", "Ceremuzynski 1989", "Bertschat 1989",
+         "Singh 1990", "Pereira 1990", "Shechter 1991", "Golf 1991",
+         "Thogersen 1991", "LIMIT-2 1992", "Shechter 1995", "ISIS-4 1995"]
+ai = np.array([1, 9, 2, 1, 10, 1, 1, 0, 6, 1, 2, 5, 4, 90, 4, 2216])
+n1 = np.array([40, 135, 200, 48, 150, 59, 25, 22, 76, 27, 89, 23, 130, 1159, 107, 29011])
+ci = np.array([2, 23, 7, 1, 8, 9, 3, 1, 11, 7, 12, 13, 8, 118, 17, 2103])
+n2 = np.array([36, 135, 200, 46, 148, 56, 23, 21, 75, 27, 80, 33, 122, 1157, 108, 29039])
 
 
-def dl_random_effects(log_rr, var):
-    """DerSimonian-Laird random-effects meta-analysis."""
+def effect_sizes(ai, n1, ci, n2):
+    """Log risk ratios and variances; 0.5 added only to trials with a zero cell."""
+    incr = np.where((ai == 0) | (ci == 0), 0.5, 0.0)
+    a, c = ai + incr, ci + incr
+    b, d = n1 - ai + incr, n2 - ci + incr
+    log_rr = np.log((a / (a + b)) / (c / (c + d)))
+    var = 1 / a - 1 / (a + b) + 1 / c - 1 / (c + d)
+    return log_rr, var
+
+
+def pool(log_rr, var):
+    """Fixed-effect and DerSimonian-Laird random effects, with an HKSJ interval."""
     k = len(log_rr)
     w_fe = 1 / var
-    pooled_fe = np.sum(w_fe * log_rr) / np.sum(w_fe)
-    Q = np.sum(w_fe * (log_rr - pooled_fe)**2)
-    C = np.sum(w_fe) - np.sum(w_fe**2) / np.sum(w_fe)
-    tau2 = max(0, (Q - (k - 1)) / C)
+    te_fe = np.sum(w_fe * log_rr) / np.sum(w_fe)
+    se_fe = np.sqrt(1 / np.sum(w_fe))
+
+    Q = np.sum(w_fe * (log_rr - te_fe) ** 2)
+    C = np.sum(w_fe) - np.sum(w_fe ** 2) / np.sum(w_fe)
+    tau2 = max(0.0, (Q - (k - 1)) / C)
+    I2 = max(0.0, (Q - (k - 1)) / Q)
+
     w_re = 1 / (var + tau2)
-    pooled_re = np.sum(w_re * log_rr) / np.sum(w_re)
-    se_re = np.sqrt(1 / np.sum(w_re))
-    I2 = max(0, (Q - (k-1)) / Q) * 100 if Q > 0 else 0
-    return pooled_re, se_re, tau2, Q, I2, w_re
+    te_re = np.sum(w_re * log_rr) / np.sum(w_re)
+    q_hk = np.sum(w_re * (log_rr - te_re) ** 2) / (k - 1)
+    se_hk = np.sqrt(q_hk / np.sum(w_re))
+
+    return dict(k=k, w_fe=w_fe, w_re=w_re, te_fe=te_fe, se_fe=se_fe, te_re=te_re,
+                se_hk=se_hk, tau2=tau2, I2=I2, Q=Q,
+                Q_p=1 - stats.chi2.cdf(Q, k - 1))
 
 
-# Overall random-effects analysis
-pooled_re, se_re, tau2, Q, I2, w_re = dl_random_effects(
-    af_trials['log_rr'].values, af_trials['var_log_rr'].values
-)
+def prediction_interval(res):
+    se = np.sqrt(res["se_hk"] ** 2 + res["tau2"])
+    t = stats.t.ppf(0.975, res["k"] - 2)
+    return np.exp(res["te_re"] - t * se), np.exp(res["te_re"] + t * se)
 
-# --- Part (a): Subgroup analysis by region ---
-print("=" * 60)
-print("Part (a): Subgroup Analysis by Region")
-print("=" * 60)
 
-regions = af_trials['region'].unique()
-subgroup_results = []
+log_rr, var = effect_sizes(ai, n1, ci, n2)
+res = pool(log_rr, var)
 
-for region in regions:
-    mask = af_trials['region'] == region
-    sub = af_trials[mask]
+# The 15 trials available before ISIS-4 reported in 1995
+pre = np.array([s != "ISIS-4 1995" for s in STUDY])
+print(f"Trials available pre-ISIS-4: {pre.sum()} | "
+      f"total patients: {(n1[pre] + n2[pre]).sum():,}")
+print(f"Largest of them: {np.array(STUDY)[pre][np.argmax((n1 + n2)[pre])]} "
+      f"with {(n1 + n2)[pre].max():,} patients\n")
 
-    if len(sub) >= 2:
-        p_re, s_re, t2, q, i2, w = dl_random_effects(
-            sub['log_rr'].values, sub['var_log_rr'].values
-        )
-        ci = (p_re - 1.96*s_re, p_re + 1.96*s_re)
-    else:
-        # Single study: use study estimate directly
-        p_re = sub['log_rr'].values[0]
-        s_re = sub['se_log_rr'].values[0]
-        t2, q, i2 = 0, 0, 0
-        ci = (p_re - 1.96*s_re, p_re + 1.96*s_re)
+log_rr_all, var_all = effect_sizes(ai, n1, ci, n2)
+log_rr, var = log_rr_all[pre], var_all[pre]
+res = pool(log_rr, var)
+t_crit = stats.t.ppf(0.975, res["k"] - 1)
+pi_lo, pi_hi = prediction_interval(res)
 
-    subgroup_results.append({
-        'region': region,
-        'k': len(sub),
-        'pooled_rr': np.exp(p_re),
-        'ci_lo': np.exp(ci[0]),
-        'ci_hi': np.exp(ci[1]),
-        'I2': i2,
-        'tau2': t2
-    })
+# -----------------------------------------------------------------------------
+# (a) What you would have concluded in 1993
+# -----------------------------------------------------------------------------
+print("=== (a) The 15 trials, random effects ===")
+print(f"RR = {np.exp(res['te_re']):.3f} "
+      f"(95% CI {np.exp(res['te_re'] - t_crit * res['se_hk']):.3f} to "
+      f"{np.exp(res['te_re'] + t_crit * res['se_hk']):.3f})")
+print(f"tau^2 = {res['tau2']:.3f} | I^2 = {100 * res['I2']:.1f}%")
+print(f"Prediction interval: {pi_lo:.3f} to {pi_hi:.3f}")
+print(f"Fixed effect for comparison: RR = {np.exp(res['te_fe']):.3f}")
+print("\nYou would have concluded that magnesium roughly halves mortality, and the")
+print("fixed and random models AGREE -- because without ISIS-4 there is no dominant")
+print("large trial to disagree with the small ones. That agreement is falsely")
+print("reassuring.")
 
-    print(f"\n{region} (k={len(sub)}):")
-    print(f"  Pooled RR: {np.exp(p_re):.4f} "
-          f"(95% CI: {np.exp(ci[0]):.4f} - {np.exp(ci[1]):.4f})")
-    print(f"  I^2: {i2:.1f}%")
-
-# Test for subgroup differences using meta-regression with region dummies
-region_dummies = pd.get_dummies(af_trials['region'], drop_first=True).astype(float)
-X_sub = sm.add_constant(region_dummies)
-wls_sub = sm.WLS(af_trials['log_rr'], X_sub,
-                 weights=1/af_trials['var_log_rr']).fit()
-
-# Wald test for region coefficients.
-# NOTE: statsmodels used to return fvalue/pvalue as 2-D arrays and now returns
-# plain floats, so np.ravel(...)[0] works with either version.
-f_stat = wls_sub.f_test(np.eye(len(wls_sub.params))[1:])
-f_value = float(np.ravel(f_stat.fvalue)[0])
-p_value = float(np.ravel(f_stat.pvalue)[0])
-print("\nTest for subgroup differences:")
-print(f"  F-statistic: {f_value:.3f}")
-print(f"  p-value: {p_value:.4f}")
-
-if p_value < 0.05:
-    print("  Significant difference between regions.")
-else:
-    print("  No significant difference between regions.")
-    print(f"  (Limited power with only {len(af_trials)} studies)")
-
-# --- Part (b): Meta-regression with mean age ---
-print(f"\n{'=' * 60}")
-print("Part (b): Meta-Regression with Mean Age")
-print("=" * 60)
-
-X_age = sm.add_constant(af_trials['mean_age'])
-wls_age = sm.WLS(af_trials['log_rr'], X_age,
-                 weights=1/af_trials['var_log_rr']).fit()
-
-print(f"\nMeta-regression: log_rr ~ mean_age")
-print(f"  Intercept: {wls_age.params.iloc[0]:.4f} (p = {wls_age.pvalues.iloc[0]:.4f})")
-print(f"  Mean age slope: {wls_age.params.iloc[1]:.4f} (p = {wls_age.pvalues.iloc[1]:.4f})")
-print(f"  R-squared: {wls_age.rsquared:.3f}")
-
-if wls_age.pvalues.iloc[1] < 0.05:
-    print("\n  There IS a significant relationship between mean age and effect size.")
-    if wls_age.params.iloc[1] < 0:
-        print("  Trials with older populations show larger treatment benefits.")
-    else:
-        print("  Trials with older populations show smaller treatment benefits.")
-else:
-    print(f"\n  No significant relationship (p = {wls_age.pvalues.iloc[1]:.3f}).")
-
-# --- Part (c): Meta-regression with percentage female ---
-print(f"\n{'=' * 60}")
-print("Part (c): Meta-Regression with Percentage Female")
-print("=" * 60)
-
-X_fem = sm.add_constant(af_trials['pct_female'])
-wls_fem = sm.WLS(af_trials['log_rr'], X_fem,
-                 weights=1/af_trials['var_log_rr']).fit()
-
-print(f"\nMeta-regression: log_rr ~ pct_female")
-print(f"  Intercept: {wls_fem.params.iloc[0]:.4f} (p = {wls_fem.pvalues.iloc[0]:.4f})")
-print(f"  Pct female slope: {wls_fem.params.iloc[1]:.4f} (p = {wls_fem.pvalues.iloc[1]:.4f})")
-print(f"  R-squared: {wls_fem.rsquared:.3f}")
-
-print("\n  *** ECOLOGICAL FALLACY WARNING ***")
-print("  This analysis examines TRIAL-LEVEL associations between percentage")
-print("  female and treatment effect. Even if significant, this does NOT")
-print("  prove that individual women respond differently to treatment.")
-print("  Trials with more women may differ in other characteristics:")
-print("    - Geographic region and healthcare systems")
-print("    - Mean age and comorbidity profiles")
-print("    - Trial methodology and inclusion criteria")
-print("  Only individual participant data (IPD) meta-analysis with a")
-print("  treatment-by-sex interaction can properly test effect modification.")
-
-# --- Part (d): Bubble plot ---
-print(f"\n{'=' * 60}")
-print("Part (d): Bubble Plot")
-print("=" * 60)
-
-fig, ax = plt.subplots(figsize=(10, 7))
-
-# Study weights for bubble sizes
-w_plot = 1 / af_trials['var_log_rr']
-sizes = (w_plot / w_plot.max()) * 500
-
-# Scatter: bubbles
-ax.scatter(af_trials['mean_age'], af_trials['log_rr'],
-           s=sizes, alpha=0.6, c='steelblue', edgecolors='darkblue',
-           linewidth=1, zorder=5)
-
-# Add study labels
-for _, row in af_trials.iterrows():
-    ax.annotate(row['study'],
-                (row['mean_age'], row['log_rr']),
-                textcoords="offset points", xytext=(8, 8),
-                fontsize=8, color='0.3')
-
-# Meta-regression line
-age_range = np.linspace(af_trials['mean_age'].min() - 2,
-                        af_trials['mean_age'].max() + 2, 100)
-pred = wls_age.params.iloc[0] + wls_age.params.iloc[1] * age_range
-ax.plot(age_range, pred, 'steelblue', linewidth=2,
-        label=f'Meta-regression line (slope={wls_age.params.iloc[1]:.4f})')
-
-# Confidence band (approximate)
-X_pred = sm.add_constant(age_range)
-pred_full = wls_age.get_prediction(X_pred)
-pred_ci = pred_full.conf_int(alpha=0.05)
-ax.fill_between(age_range, pred_ci[:, 0], pred_ci[:, 1],
-                alpha=0.15, color='steelblue', label='95% CI')
-
-# Reference line
-ax.axhline(y=0, color='grey', linestyle='--', linewidth=0.8,
-           label='Null (log RR = 0)')
-
-ax.set_xlabel('Mean Age (years)', fontweight='bold', fontsize=12)
-ax.set_ylabel('Log Risk Ratio', fontweight='bold', fontsize=12)
-ax.set_title('Bubble Plot: Meta-Regression of Treatment Effect on Mean Age\n'
-             f'(Slope p = {wls_age.pvalues.iloc[1]:.3f}; '
-             f'bubble size = study weight)',
-             fontweight='bold', fontsize=13)
-ax.legend(loc='best', frameon=True, framealpha=0.9)
-
+# -----------------------------------------------------------------------------
+# (b) Funnel plot on the 15 trials
+# -----------------------------------------------------------------------------
+se = np.sqrt(var)
+fig, ax = plt.subplots(figsize=(7.5, 5.5))
+grid = np.linspace(0.001, se.max() * 1.05, 100)
+for z, shade in [(1.96, "0.85"), (2.58, "0.92")]:
+    ax.fill_betweenx(grid, res["te_fe"] - z * grid, res["te_fe"] + z * grid,
+                     color=shade, zorder=0)
+ax.scatter(log_rr, se, s=30, color="#2c3e50", zorder=3)
+ax.axvline(res["te_fe"], color="grey", ls="--", lw=1.2, zorder=2)
+ax.axvline(0, color="#b02a2a", lw=1.0, zorder=2)
+ax.invert_yaxis()
+ax.set_xlabel("log risk ratio")
+ax.set_ylabel("Standard error (precision increases upwards)")
+ax.set_title("Magnesium trials available before ISIS-4 (k = 15)")
 plt.tight_layout()
-plt.savefig('bubble_plot_age.png', dpi=300)
 plt.show()
 
-print("\nBubble plot saved as 'bubble_plot_age.png'")
-print("Larger bubbles represent more precise (higher-weight) studies.")
+print("\n=== (b) Funnel plot ===")
+print("Yes -- the asymmetry is visible without the mega-trial. The lower LEFT")
+print("(small trials showing benefit) is populated; the lower RIGHT (small trials")
+print("showing no benefit) is close to empty. The warning sign was available years")
+print("before ISIS-4 reported.")
+
+# -----------------------------------------------------------------------------
+# (c) Egger's test, and why it is not the right one here
+# -----------------------------------------------------------------------------
+# Egger's test is a weighted regression of the effect estimate on its standard
+# error; the intercept is what the test looks at.
+X = sm.add_constant(se)
+egger = sm.WLS(log_rr, X, weights=1 / var).fit()
+print("\n=== (c) Egger's test ===")
+print(f"slope on SE = {egger.params[1]:+.3f}, p = {egger.pvalues[1]:.4f}")
+print("\nFor a ratio measure the standard error is mathematically linked to the size")
+print("of the effect, which manufactures asymmetry. Cochrane therefore recommends")
+print("the Harbord or Peters tests for binary outcomes. Neither has a maintained")
+print("Python implementation, so run them in R:")
+print("    metabias(m_pre, method.bias = 'Harbord')   # p = 0.017")
+print("    metabias(m_pre, method.bias = 'Peters')    # p = 0.043")
+print("All three agree here, which is the easy case. When they disagree, believe")
+print("the one appropriate to your effect measure, not the smallest p-value.")
+
+# -----------------------------------------------------------------------------
+# (d) The limitations paragraph
+# -----------------------------------------------------------------------------
+print("\n=== (d) A two-sentence limitations paragraph ===")
+print(f'"Fifteen trials totalling only {(n1[pre] + n2[pre]).sum():,} patients (the largest')
+print(f' randomising {(n1 + n2)[pre].max():,}) suggest that intravenous magnesium substantially')
+print(f' reduces mortality after myocardial infarction (RR {np.exp(res["te_re"]):.2f}); however the')
+print(' funnel plot is markedly asymmetric and the effect size falls as trial size')
+print(' rises, so we cannot exclude that small trials with null results are missing')
+print(f' from the literature. The prediction interval spans {pi_lo:.2f} to {pi_hi:.2f} and')
+print(' therefore includes no effect, so a large pragmatic trial is needed before')
+print(' magnesium is adopted into routine practice."')
+print("\nThat trial was ISIS-4: 58,050 patients, RR 1.06, no benefit.")
+print(f"\nOne last thing worth noticing: I^2 was only {100 * res['I2']:.1f}% -- 'low")
+print("heterogeneity' by the conventional bands -- and the two models agreed. Both of")
+print("the reassurances people usually look for were present. The two that were NOT")
+print("reassuring were the prediction interval crossing 1 and the asymmetric funnel.")

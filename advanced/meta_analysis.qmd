@@ -1,7 +1,8 @@
-# Meta-Analysis Methods for Evidence Synthesis {#sec-meta-analysis}
+# Meta-Analysis for Evidence Synthesis {#sec-meta-analysis}
 
 ```{r}
 #| include: false
+#| eval: true
 library(tidyverse)
 library(meta)
 library(metafor)
@@ -9,20 +10,18 @@ library(metafor)
 
 ## Introduction
 
-A single study, no matter how well designed, provides only one piece of evidence. **Meta-analysis** is the statistical method for combining results from multiple independent studies addressing the same question, producing a more precise and generalisable estimate of an effect.
+A single study, no matter how well designed, provides only one piece of evidence. **Meta-analysis** is the statistical method for combining results from multiple independent studies addressing the same question, producing a more precise and more generalisable estimate of an effect.
 
-Meta-analysis sits at the top of the evidence hierarchy in evidence-based medicine. When done well, it can resolve conflicting findings, increase statistical power for rare outcomes, and identify sources of variation across studies. When done poorly, it can amplify biases present in the original studies --- "garbage in, garbage out."
+As a health researcher you will meet meta-analyses constantly: they underpin clinical guidelines, they settle (and unsettle) treatment decisions, and they are often the papers your colleagues cite at you. Whether you are running one or reading one, what matters is understanding *how* the numbers get combined and *what can go wrong* --- because when a meta-analysis is wrong, it is wrong with authority.
 
-This chapter covers the statistical foundations of meta-analysis, practical implementation in R and Python, and critical appraisal of heterogeneity and publication bias.
-
-As a health researcher, you will encounter meta-analyses constantly --- they underpin clinical guidelines, inform treatment decisions, and are often the studies most cited by colleagues and policymakers. Whether you are conducting one yourself or critically reading one in a journal, understanding *how* the numbers are combined and *what can go wrong* is essential. This chapter is hands-on: each code block below shows how to run and read the standard outputs (forest plots, heterogeneity statistics, funnel plots) that appear in nearly every published systematic review.
+This chapter is deliberately narrow. It covers the core of an aggregate-data meta-analysis of a binary outcome, which is the overwhelming majority of what appears in clinical journals, and it covers it properly: how the pooling works, how to read a forest plot, how to think about heterogeneity, and how to detect the one failure mode that has misled clinical practice most often. @sec-meta-next-steps points you at the more specialised methods without pretending to teach them in a paragraph.
 
 ::: {.callout-note}
 ## Systematic review vs meta-analysis
-A **systematic review** is the process of comprehensively searching for, selecting, and appraising studies. A **meta-analysis** is the *statistical* component --- combining the numbers. You can have a systematic review without a meta-analysis (if studies are too heterogeneous to combine), but you should never have a meta-analysis without a systematic review.
+A **systematic review** is the process of comprehensively searching for, selecting, and appraising studies. A **meta-analysis** is the *statistical* component --- combining the numbers. You can have a systematic review without a meta-analysis (if the studies are too different to combine), but you should never have a meta-analysis without a systematic review.
 :::
 
-The diagram below shows where the meta-analysis fits in the wider evidence-synthesis pipeline. Most of the work is finding and appraising studies; the statistical pooling is the final step.
+The diagram below shows where the meta-analysis fits in the wider pipeline. Most of the work is finding and appraising studies; the statistical pooling is the final step.
 
 ```{mermaid}
 %%| echo: false
@@ -38,602 +37,579 @@ flowchart LR
     F --> G[Forest plot,<br/>heterogeneity, bias checks]
 ```
 
-## What Does a Meta-Analysis Combine?
+## What a Meta-Analysis Combines
 
-Each study contributes an **effect estimate** --- a single number summarising how big the effect was (for example, "the drug cut the risk of stroke by 30%") --- and a measure of its **precision**, meaning how confident we are in that number (reported as a standard error or confidence interval). The meta-analysis computes a **weighted average**: instead of treating every study equally, it gives studies with greater precision (typically larger studies) more say in the final answer. This is called **inverse-variance weighting**, because each study's weight is one divided by its variance --- the smaller a study's uncertainty, the larger its weight.
-
-The general formula for a weighted average effect:
+Each study contributes an **effect estimate** --- a single number summarising how big the effect was ("the drug cut the risk of stroke by 30%") --- and a measure of its **precision**, meaning how confident we are in that number (a standard error or confidence interval). The meta-analysis computes a **weighted average**: rather than treating every study equally, it gives more precise studies more say. This is **inverse-variance weighting**, because each study's weight is one divided by its variance.
 
 $$
 \hat{\theta}_{\text{pooled}} = \frac{\sum_{i=1}^{k} w_i \hat{\theta}_i}{\sum_{i=1}^{k} w_i}
 $$
 
-where $\hat{\theta}_i$ is the effect estimate from study $i$ and $w_i$ is its weight. The **pooled estimate** is simply this weighted average --- the single summary number a meta-analysis produces. In plain terms: a large, precise trial pulls the combined answer towards its own result more strongly than a small, imprecise one, exactly as your intuition would suggest when weighing evidence.
+where $\hat{\theta}_i$ is the effect estimate from study $i$, $w_i$ its weight, and $k$ the number of studies. In plain terms: a large, precise trial pulls the combined answer towards its own result more strongly than a small, imprecise one --- exactly as your intuition would suggest.
 
-```{mermaid}
-%%| echo: false
-%%| eval: true
-%%| label: fig-pooling
-%%| fig-cap: "Several study estimates, each carrying a different weight, are combined into one pooled estimate. The inverse-variance weighting and random-effects logic shown here follow @dersimonian1986."
-flowchart LR
-    S1[Large trial<br/>high weight] --> P((Pooled<br/>estimate))
-    S2[Medium trial<br/>medium weight] --> P
-    S3[Small trial<br/>low weight] --> P
-```
+Hold on to that sentence. Almost everything that goes wrong in a meta-analysis is a disagreement about *how much* more say the big trials should get.
 
 ## Effect Measures
 
-The choice of effect measure depends on the type of outcome:
+The choice of effect measure depends on the type of outcome.
 
-### Binary outcomes
+**Binary outcomes** (died / did not die, event / no event):
 
 | Measure | Formula | When to use |
 |---|---|---|
-| **Odds ratio (OR)** | $\frac{a/c}{b/d} = \frac{ad}{bc}$ | Case-control studies; logistic regression |
-| **Risk ratio (RR)** | $\frac{a/(a+b)}{c/(c+d)}$ | Cohort studies; more interpretable than OR |
-| **Risk difference (RD)** | $\frac{a}{a+b} - \frac{c}{c+d}$ | When absolute risk is clinically relevant |
+| **Risk ratio (RR)** | $\frac{a/(a+b)}{c/(c+d)}$ | Cohort studies and trials; the most interpretable choice for clinicians |
+| **Odds ratio (OR)** | $\frac{ad}{bc}$ | Case-control studies; logistic regression |
+| **Risk difference (RD)** | $\frac{a}{a+b} - \frac{c}{c+d}$ | When the absolute risk is what matters for a decision |
 
-Where $a$, $b$, $c$, $d$ are the cells of a 2x2 table (treatment events, treatment non-events, control events, control non-events).
+Here $a, b, c, d$ are the cells of a 2x2 table (treatment events, treatment non-events, control events, control non-events). Ratios are pooled on the **log scale**, because their sampling distributions are roughly normal there, and back-transformed for presentation.
 
-ORs and RRs are typically meta-analysed on the **log scale** (because their sampling distributions are approximately normal on that scale) and then back-transformed for presentation.
-
-### Continuous outcomes
+**Continuous outcomes:**
 
 | Measure | Formula | When to use |
 |---|---|---|
 | **Mean difference (MD)** | $\bar{X}_T - \bar{X}_C$ | All studies use the same measurement scale |
-| **Standardised mean difference (SMD)** | $\frac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ | Studies use different scales measuring the same construct (e.g., different depression questionnaires) |
+| **Standardised mean difference (SMD)** | $\frac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ | Studies use different scales for the same construct (e.g. different depression questionnaires) |
 
 The SMD is also known as **Hedges' g** (with a small-sample correction) or **Cohen's d**.
 
-## Fixed-Effect vs Random-Effects Models
-
-The single most important modelling choice in a meta-analysis is whether to assume all the studies are estimating *one* true effect (**fixed-effect**) or a *range* of true effects (**random-effects**). This is not a technicality: it changes the weights, the width of the confidence interval, and how you interpret the result. The two models below answer the same underlying clinical question --- "does this treatment work?" --- but make different assumptions about how much the studies are allowed to genuinely disagree.
-
-### Fixed-effect model
-
-The **fixed-effect model** assumes all studies estimate the **same true effect** $\theta$. In plain terms: it treats every trial as a different snapshot of one identical underlying treatment effect, so any differences between study results are just chance (sampling variation), like getting slightly different averages each time you measure the blood pressure of the same group of patients.
-
-Weights are the inverse of the within-study variance:
-
-$$
-w_i^{FE} = \frac{1}{\hat{\sigma}_i^2}
-$$
-
-This model is appropriate when studies are clinically and methodologically very similar (e.g., exact replications).
-
-### Random-effects model
-
-The **random-effects model** assumes each study estimates its **own true effect** $\theta_i$, and that these true effects are themselves spread around an overall average $\mu$: $\theta_i \sim N(\mu, \tau^2)$. In plain terms: the treatment might genuinely work a bit better in one population (say, older patients) than another, so there is no single "true" number --- there is a range. This is usually the more realistic assumption in clinical research.
-
-Here **$\tau^2$ (tau-squared)** is the *between-study variance* --- a number that captures how much the true effects genuinely scatter from study to study, over and above ordinary sampling noise. A $\tau^2$ of zero means every study is chasing the same target (and the random-effects model collapses back to the fixed-effect one); a large $\tau^2$ means the treatment effect really does differ across populations or settings. It is estimated from the data (commonly using the DerSimonian-Laird, REML, or Paule-Mandel methods). Weights incorporate both within-study and between-study variance:
-
-$$
-w_i^{RE} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}
-$$
-
-The random-effects model is almost always more appropriate in clinical research, because studies differ in populations, interventions, settings, and outcome definitions.
-
-::: {.callout-important}
-## The random-effects model gives more weight to small studies
-Because $\hat{\tau}^2$ is added to every study's variance, the relative weights become more equal. This means small (potentially biased or low-quality) studies have more influence in a random-effects analysis. This is a feature when heterogeneity is real, but a bug when small studies are biased (e.g., publication bias favoring small positive studies).
+::: {.callout-warning}
+## The effect measure is not just a presentation choice
+It changes which asymmetry tests are valid later (@sec-meta-nonreporting), and the odds ratio in particular has a mathematical quirk that makes the standard publication-bias test unreliable. Decide the measure from the clinical question, then pick methods that suit it --- not the other way round.
 :::
 
-### Prediction intervals
+## The Running Example: Magnesium After a Heart Attack {#sec-meta-example}
 
-The confidence interval for the pooled effect tells you about the *average* true effect across all the studies. The **prediction interval** answers a different, more practical question: if you ran the treatment in a *new* setting tomorrow, what range of true effects might you see? It is the range within which the true effect of a future study is likely to fall:
+Every analysis in this chapter uses one real dataset, so that the methods can be compared on identical evidence.
+
+In the 1980s and early 1990s, a series of randomised trials tested whether giving intravenous **magnesium** to patients having an acute myocardial infarction reduced mortality. Magnesium is cheap, widely available, and biologically plausible as a cardioprotective agent. Sixteen trials accumulated. They are shipped with `metafor` as `dat.egger2001`, taken from Table 18.2 of @egger2001systematic.
+
+```{r}
+#| label: mag-data
+#| eval: true
+
+library(metafor)   # for the dataset
+library(tidyverse) # for the summary below
+
+mag <- dat.egger2001 |>
+  mutate(n_total = n1i + n2i)
+
+# ai / n1i = deaths / patients on magnesium; ci / n2i = deaths / patients on control
+mag |>
+  transmute(trial = paste(study, year), magnesium = paste0(ai, "/", n1i),
+            control = paste0(ci, "/", n2i), n_total) |>
+  arrange(n_total) |>
+  as.data.frame() |>
+  print(row.names = FALSE)
+```
+
+Look at the right-hand column before reading on. Thirteen of the sixteen trials randomised fewer than 400 patients in total; the largest randomised 58,050 and accounts for 93% of all the patients ever studied. **That imbalance is the whole story of this chapter**, and it is typical rather than exceptional: most clinical literatures consist of many small studies and one or two large ones.
+
+We will build up the standard analysis, and only in @sec-meta-nonreporting reveal what actually happened.
+
+## Fixed-Effect vs Random-Effects Models
+
+The single most consequential choice in a meta-analysis is whether you assume the studies are all estimating *one* true effect or a *range* of true effects.
+
+**The fixed-effect model** assumes every study estimates the **same** true effect $\theta$; differences between results are pure sampling noise, like getting slightly different averages each time you measure the same group of patients. Weights are the inverse of the within-study variance:
 
 $$
-\hat{\mu} \pm t_{k-2, 0.975} \times \sqrt{\text{SE}(\hat{\mu})^2 + \hat{\tau}^2}
+w_i^{\text{FE}} = \frac{1}{\hat{\sigma}_i^2}
 $$
 
-Prediction intervals are often much wider than confidence intervals and provide a more honest picture of the uncertainty. A pooled effect may be statistically significant while the prediction interval includes the null --- meaning that some settings may see no benefit or even harm.
-
-## Heterogeneity
-
-**Heterogeneity** simply means the studies disagree with each other more than chance alone would explain --- their true effects genuinely differ. Why should a clinician care? Because a tidy pooled estimate can hide wide disagreement underneath. If a treatment helps a lot in some settings and not at all in others, the single average number is misleading on its own. Measuring heterogeneity tells you how much to trust that average and whether to dig into *why* the studies differ.
-
-### Measuring heterogeneity
-
-**Cochran's Q test**: a formal test of whether the studies share one true effect. Its null hypothesis ($H_0$) is that all studies estimate the same true effect; a small p-value suggests they do not.
+**The random-effects model** assumes each study estimates **its own** true effect $\theta_i$, and that these scatter around an overall average: $\theta_i \sim N(\mu, \tau^2)$. In plain terms, the treatment might genuinely work better in one population than another, so there is no single true number. Weights add the between-study variance:
 
 $$
-Q = \sum_{i=1}^{k} w_i^{FE} (\hat{\theta}_i - \hat{\theta}_{FE})^2
+w_i^{\text{RE}} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}
 $$
 
-Under $H_0$, $Q \sim \chi^2_{k-1}$. The test has low power when $k$ is small.
+$\tau^2$ (**tau-squared**) is the between-study variance: how much the true effects genuinely scatter, over and above sampling noise. If $\tau^2 = 0$, the random-effects model collapses back to the fixed-effect one.
 
-**$I^2$ (I-squared) statistic**: the percentage of the total variation between study results that is due to real differences between studies rather than chance. An $I^2$ near 0% means the studies essentially agree; an $I^2$ near 75% means most of the scatter you see reflects genuine differences in the treatment effect.
+::: {.callout-important}
+## Adding $\hat\tau^2$ to every study levels the weights --- and that cuts both ways
+
+Look at what $w_i^{\text{RE}}$ does. A large trial has a tiny $\hat{\sigma}_i^2$, so adding $\hat{\tau}^2$ to it changes its weight enormously in relative terms. A small trial's $\hat{\sigma}_i^2$ is already large, so adding $\hat{\tau}^2$ barely changes it. The net effect is that **small studies gain influence and large studies lose it.**
+
+When the studies genuinely differ, that is correct behaviour: you should not let one mega-trial in one population speak for all populations. When the small studies are *biased*, it is a disaster, because the model hands the analysis to precisely the studies you should trust least.
+:::
+
+That is not an abstract worry. Here are both models on the magnesium data:
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: mag-pool
+#| eval: true
+
+library(meta)   # metabin(), forest(), funnel(), metabias()
+
+# Modern defaults, and why:
+#   method.tau = "REML"      -- REML (or Paule-Mandel) estimates tau^2 better than
+#                               the older DerSimonian-Laird default (Veroniki 2016)
+#   method.random.ci = "HK"  -- Hartung-Knapp-Sidik-Jonkman interval, which has
+#                               much better coverage than the normal-based one,
+#                               especially with few studies (IntHout 2014)
+#   prediction = TRUE        -- always report a prediction interval (Riley 2011)
+m <- metabin(
+  event.e = ai, n.e = n1i,        # magnesium arm
+  event.c = ci, n.c = n2i,        # control arm
+  studlab = paste(study, year),
+  data = dat.egger2001,
+  sm = "RR",
+  method.tau = "REML",
+  method.random.ci = "HK",
+  prediction = TRUE
+)
+
+rr <- function(x) sprintf("%.3f", exp(x))
+cat("FIXED-EFFECT  RR:", rr(m$TE.common),
+    sprintf("(95%% CI %s to %s)\n", rr(m$lower.common), rr(m$upper.common)))
+cat("RANDOM-EFFECTS RR:", rr(m$TE.random),
+    sprintf("(95%% CI %s to %s)\n", rr(m$lower.random), rr(m$upper.random)))
+cat(sprintf("tau^2 = %.3f | I^2 = %.1f%% | Q test p = %.4f\n",
+            m$tau2, 100 * m$I2, m$pval.Q))
+cat("PREDICTION interval:", rr(m$lower.predict), "to", rr(m$upper.predict), "\n")
+```
+
+### Python
+
+```{python}
+#| label: mag-pool-py
+#| eval: true
+
+import numpy as np
+from scipy import stats
+
+# The same 16 trials: deaths / patients on magnesium, then on control
+ai = np.array([1, 9, 2, 1, 10, 1, 1, 0, 6, 1, 2, 5, 4, 90, 4, 2216])
+n1 = np.array([40, 135, 200, 48, 150, 59, 25, 22, 76, 27, 89, 23, 130, 1159, 107, 29011])
+ci = np.array([2, 23, 7, 1, 8, 9, 3, 1, 11, 7, 12, 13, 8, 118, 17, 2103])
+n2 = np.array([36, 135, 200, 46, 148, 56, 23, 21, 75, 27, 80, 33, 122, 1157, 108, 29039])
+
+# Continuity correction: add 0.5 ONLY to the trial that has a zero cell
+# (Bertschat 1989 had 0 deaths on magnesium). This is what metabin() does by
+# default -- correcting every study instead would shift all the estimates.
+zero = (ai == 0) | (ci == 0)
+incr = np.where(zero, 0.5, 0.0)
+a, c = ai + incr, ci + incr
+b, d = n1 - ai + incr, n2 - ci + incr
+log_rr = np.log((a / (a + b)) / (c / (c + d)))
+var = 1 / a - 1 / (a + b) + 1 / c - 1 / (c + d)
+
+# --- fixed effect: weight = 1 / within-study variance -----------------------
+w_fe = 1 / var
+te_fe = np.sum(w_fe * log_rr) / np.sum(w_fe)
+se_fe = np.sqrt(1 / np.sum(w_fe))
+
+# --- between-study variance (DerSimonian-Laird, shown because it is the one
+#     you can compute by hand; REML is preferred in practice) ----------------
+k = len(log_rr)
+Q = np.sum(w_fe * (log_rr - te_fe) ** 2)
+C = np.sum(w_fe) - np.sum(w_fe ** 2) / np.sum(w_fe)
+tau2 = max(0.0, (Q - (k - 1)) / C)
+I2 = max(0.0, (Q - (k - 1)) / Q)
+
+# --- random effects: weight = 1 / (within + between) ------------------------
+w_re = 1 / (var + tau2)
+te_re = np.sum(w_re * log_rr) / np.sum(w_re)
+se_re = np.sqrt(1 / np.sum(w_re))
+
+# Hartung-Knapp-Sidik-Jonkman: rescale the SE and use a t distribution
+q_hk = np.sum(w_re * (log_rr - te_re) ** 2) / (k - 1)
+se_hk = np.sqrt(q_hk / np.sum(w_re))
+t_crit = stats.t.ppf(0.975, k - 1)
+
+print(f"FIXED-EFFECT  RR: {np.exp(te_fe):.3f} "
+      f"(95% CI {np.exp(te_fe - 1.96*se_fe):.3f} to {np.exp(te_fe + 1.96*se_fe):.3f})")
+print(f"RANDOM-EFFECTS RR: {np.exp(te_re):.3f} "
+      f"(95% CI {np.exp(te_re - t_crit*se_hk):.3f} to {np.exp(te_re + t_crit*se_hk):.3f})")
+print(f"tau^2 = {tau2:.3f} | I^2 = {100*I2:.1f}% | Q = {Q:.1f}, "
+      f"p = {1 - stats.chi2.cdf(Q, k - 1):.4f}")
+
+# prediction interval: uncertainty in the mean PLUS genuine between-study spread
+pi_se = np.sqrt(se_hk ** 2 + tau2)
+print(f"PREDICTION interval: {np.exp(te_re - stats.t.ppf(0.975, k-2)*pi_se):.3f} "
+      f"to {np.exp(te_re + stats.t.ppf(0.975, k-2)*pi_se):.3f}")
+```
+
+:::
+
+**Read the two lines of output against each other.** This is not a subtle difference:
+
+| Model | Pooled risk ratio | Reading |
+|---|---|---|
+| Fixed effect | **1.006** (0.952 to 1.062) | Magnesium does nothing |
+| Random effects | **0.511** (0.356 to 0.735) | Magnesium halves mortality |
+
+Same sixteen trials, same outcome, same effect measure. One model says a cheap intravenous drug has no effect on death after a heart attack; the other says it prevents roughly one death in every two that would have occurred. If you have ever wondered whether the fixed-versus-random choice is a technicality, this is your answer.
+
+The reason is exactly the mechanism in the callout above. Under the fixed-effect model the one 58,050-patient trial dominates, because weights are inverse-variance and its variance is minuscule. Under random effects, adding $\hat{\tau}^2 = 0.227$ to every study levels the weights, the thirteen small trials collectively outvote it, and they were nearly all positive.
+
+::: {.callout-tip}
+## So which do you report?
+Random effects, in nearly all clinical settings --- studies really do differ in populations, doses, and outcome definitions, and the fixed-effect model's assumption is rarely defensible. But **report both when they disagree materially**, and treat the disagreement as a finding in its own right rather than a nuisance. A large fixed-versus-random gap is a signal that the small and large studies are telling different stories, which is the subject of @sec-meta-nonreporting.
+
+The Python tab above hand-rolls the arithmetic because it is worth seeing once. Python's meta-analysis ecosystem is genuinely thin, though; for meta-analysis specifically R is the right tool, and we would rather say so than pretend otherwise.
+:::
+
+::: {.callout-note}
+## Why the two tabs print slightly different numbers
+
+They are not inconsistent --- they differ by exactly two documented method choices, and it is worth knowing which, because you will meet both in published papers.
+
+| | R (`metabin` defaults) | Python (hand-rolled above) |
+|---|---|---|
+| Fixed-effect estimate | **Mantel-Haenszel**: 1.006 | **Inverse-variance**: 1.014 |
+| $\tau^2$ estimator | **REML**: 0.227 | **DerSimonian-Laird**: 0.174 |
+| Random-effects RR | 0.511 | 0.530 |
+
+For binary outcomes `metabin` defaults to **Mantel-Haenszel** for the fixed-effect estimate, which behaves better than inverse-variance when events are rare or cells are sparse. And REML estimates $\tau^2$ larger than DerSimonian-Laird here, which is the expected direction: DL is known to underestimate between-study variance [@veroniki2016methods], and since $\tau^2$ drives both the random-effects weights and the prediction interval, that difference propagates.
+
+You can confirm the two implementations agree by making R match Python's choices:
+
+```r
+metabin(ai, n1i, ci, n2i, data = dat.egger2001, sm = "RR",
+        method = "Inverse", method.tau = "DL",
+        method.random.ci = "HK", prediction = TRUE)
+#> fixed 1.014, random 0.530, tau^2 0.174, prediction 0.202 to 1.392
+```
+
+which reproduces the Python output to three decimal places. **Report your $\tau^2$ estimator and your fixed-effect method.** Two papers pooling the same trials can differ by this much on defaults alone.
+:::
+
+## Reading a Forest Plot
+
+The **forest plot** is the one figure almost every systematic review puts front and centre, and the one you most need to read fluently. @fig-forest-schematic labels the parts on a deliberately simple, invented example.
+
+```{r}
+#| label: fig-forest-schematic
+#| echo: false
+#| eval: true
+#| fig-cap: "How to read a forest plot. Each row is one study: the box marks its effect estimate and its **area** is that study's weight, the whisker is the 95% confidence interval. The diamond is the pooled estimate. The red bar is the prediction interval --- the range in which a *new* study's true effect would be expected to fall, which is wider than the confidence interval and is the number you should look at when deciding whether the result transfers to your own setting."
+#| fig-width: 10
+#| fig-height: 4.7
+
+op <- par(mar = c(4.2, 9.5, 2.2, 8.5), xpd = NA)
+
+studies <- data.frame(
+  label = c("Small trial A", "Small trial B", "Medium trial C", "Large trial D"),
+  rr = c(0.42, 0.55, 0.78, 0.97),
+  lo = c(0.14, 0.24, 0.55, 0.88),
+  hi = c(1.24, 1.27, 1.11, 1.07),
+  wt = c(0.9, 1.3, 2.1, 3.4)
+)
+n <- nrow(studies)
+ys <- rev(seq_len(n)) + 1.6
+xlim <- c(0.1, 3.0)
+
+plot(NA, xlim = log(xlim), ylim = c(-0.5, n + 3.0), axes = FALSE,
+     xlab = "Risk ratio (log scale)", ylab = "")
+abline(v = 0, col = "grey45", lwd = 1.4)
+axis(1, at = log(c(0.125, 0.25, 0.5, 1, 2)), labels = c(0.125, 0.25, 0.5, 1, 2))
+
+for (i in seq_len(n)) {
+  segments(log(studies$lo[i]), ys[i], log(studies$hi[i]), ys[i],
+           lwd = 1.8, col = "#2c3e50")
+  points(log(studies$rr[i]), ys[i], pch = 15, cex = studies$wt[i], col = "#2c3e50")
+  text(log(xlim[1]) - 0.15, ys[i], studies$label[i], adj = 1, cex = 0.95)
+  text(log(xlim[2]) + 0.15, ys[i], sprintf("%.2f (%.2f-%.2f)", studies$rr[i],
+       studies$lo[i], studies$hi[i]), adj = 0, cex = 0.85)
+}
+
+pooled <- 0.72; p_lo <- 0.58; p_hi <- 0.90
+polygon(log(c(p_lo, pooled, p_hi, pooled)), 0.75 + c(0, 0.32, 0, -0.32),
+        col = "#4a76a8", border = "#1f3b5c", lwd = 1.5)
+text(log(xlim[1]) - 0.15, 0.75, "Pooled (random effects)", adj = 1, cex = 0.95, font = 2)
+text(log(xlim[2]) + 0.15, 0.75, sprintf("%.2f (%.2f-%.2f)", pooled, p_lo, p_hi),
+     adj = 0, cex = 0.85, font = 2)
+
+segments(log(0.34), 0.05, log(1.52), 0.05, lwd = 3, col = "#b02a2a")
+segments(log(c(0.34, 1.52)), -0.07, log(c(0.34, 1.52)), 0.17, lwd = 3, col = "#b02a2a")
+text(log(xlim[1]) - 0.15, 0.05, "Prediction interval", adj = 1, cex = 0.95, col = "#b02a2a")
+text(log(xlim[2]) + 0.15, 0.05, "0.34-1.52", adj = 0, cex = 0.85, col = "#b02a2a")
+
+ann <- function(x, y, lab, dx, dy, col = "#b5651d") {
+  arrows(x + dx, y + dy, x, y, length = 0.07, col = col, lwd = 1.4)
+  text(x + dx, y + dy, lab, col = col, cex = 0.82, adj = if (dx > 0) 0 else 1, font = 3)
+}
+ann(log(studies$rr[4]), ys[4], "box area = this trial's weight", -0.55, -0.85)
+ann(log(studies$hi[1]), ys[1], "whisker = 95% CI", 0.38, 0.60)
+ann(0, n + 1.5, "no effect", -0.42, 0.85, col = "grey35")
+par(op)
+```
+
+Six things to check, in this order:
+
+1. **Where is the diamond, and does it cross the null line?** That is the headline.
+2. **Where is the prediction interval?** If it crosses the null while the diamond does not, the average effect is positive but a new setting could easily see nothing.
+3. **Are the big boxes and the small boxes on the same side?** If the large trials sit near the null and the small ones sit far from it, stop and read @sec-meta-nonreporting before believing the diamond.
+4. **Do the whiskers overlap?** Non-overlapping intervals mean the studies genuinely disagree.
+5. **Is one box doing all the work?** A single dominant trial means you have one trial with decoration, not a meta-analysis.
+6. **Heterogeneity statistics**, which the plot usually prints along the bottom.
+
+Now the real thing:
+
+```{r}
+#| label: fig-forest-magnesium
+#| eval: true
+#| fig-cap: "The sixteen magnesium trials, sorted by effect size. Note the shape: the small trials (tiny boxes) cluster to the left of the null line, while the single large trial (the big box) sits astride it. The pooled diamond is dragged left by weight of numbers."
+#| fig-width: 10
+#| fig-height: 6.5
+
+forest(m,
+  sortvar = TE,
+  prediction = TRUE,
+  label.left = "Favours magnesium",
+  label.right = "Favours control",
+  col.diamond = "#4a76a8",
+  col.square = "#2c3e50",
+  print.tau2 = TRUE, print.I2 = TRUE, print.pval.Q = TRUE,
+  leftlabs = c("Trial", "Deaths", "Total", "Deaths", "Total")
+)
+```
+
+**What to notice.** Apply check 3 from the list. Fourteen of the fifteen smaller trials sit left of the null line --- several of them far left, with risk ratios of 0.11 to 0.24 --- while the one very large trial sits astride it at 1.05. That pattern, effect size shrinking as trials get bigger, has a name: **small-study effects**. It is the single most useful thing a forest plot can show you.
+
+`meta` also prints two weight columns, and they are worth a moment. ISIS-4 carries **89.8%** of the weight under the common-effect model and **15.9%** under random effects. The mechanism from the callout above is right there in the output: the same trial, the same data, an 80-percentage-point swing in influence purely from adding $\hat{\tau}^2$ to the denominator.
+
+## Heterogeneity: What Actually Varies {#sec-meta-heterogeneity}
+
+**Heterogeneity** means the studies disagree more than chance alone would explain. A tidy pooled estimate can hide wide disagreement underneath, so quantifying it tells you how much to trust the average.
+
+Three statistics get reported, and they answer three genuinely different questions. Confusing them is the most common error in the meta-analysis literature [@borenstein2024mistakes].
+
+| Statistic | The question it answers | What it is *not* |
+|---|---|---|
+| **Cochran's $Q$** (and its p-value) | *Is there any real variation at all?* A hypothesis test. | Not a measure of how much variation there is. Underpowered with few studies; over-powered with many. |
+| **$I^2$** | *What proportion of the observed scatter is real rather than sampling noise?* | **Not** how much the effect varies. A relative quantity: it can be 90% with trivial variation, or 0% with large variation, depending on how precise the studies are. |
+| **$\tau^2$ / $\tau$** | *How much do the true effects vary?* An absolute measure, on the effect scale. | Hard to interpret directly on a log scale. |
 
 $$
+Q = \sum_{i=1}^{k} w_i^{\text{FE}} (\hat{\theta}_i - \hat{\theta}_{\text{FE}})^2,
+\qquad
 I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
 $$
 
-Rules of thumb [@higgins2003inconsistency]:
+::: {.callout-important}
+## $I^2$ does not tell you how much the effect varies
 
-- $I^2 \approx 25\%$: low heterogeneity
-- $I^2 \approx 50\%$: moderate heterogeneity
-- $I^2 \approx 75\%$: high heterogeneity
+You will see the 25% / 50% / 75% "low / moderate / high" thresholds everywhere, including in @higgins2003inconsistency where they were offered as tentative rules of thumb. Current methodological guidance is blunt about them: classifications of heterogeneity based on $Q$, its p-value, or $I^2$ are "uninformative at best, and often misleading" [@borenstein2024mistakes; @borenstein2023heterogeneity].
 
-**$\tau^2$**: The estimated between-study variance on the effect scale. Unlike $I^2$, it is not influenced by study precision and is more interpretable for clinical decision-making.
+The reason is that $I^2$ is a **ratio**, not an amount. It is the share of observed scatter that is real rather than noise. Run the same trials with ten times as many patients each and the sampling noise shrinks, so $I^2$ rises --- without the true effects having moved at all.
 
-### Investigating heterogeneity
-
-When heterogeneity is substantial:
-
-1. **Subgroup analysis**: Split studies by a pre-specified characteristic (e.g., drug dose, patient age group, study quality) and compare pooled effects.
-2. **Meta-regression**: Model the effect as a function of study-level covariates.
-3. **Sensitivity analysis**: re-run the meta-analysis under different reasonable choices --- for example, excluding outlier studies or studies at high risk of bias --- to check whether the conclusion holds up. If the answer barely changes, you can trust it more.
-
-::: {.callout-warning}
-## Ecological fallacy in meta-regression
-Study-level associations do not imply individual-level associations. If trials with older populations show larger treatment effects, this does NOT prove that older individuals benefit more --- the trials may also differ in other ways. This is the **ecological fallacy**, and it is a fundamental limitation of aggregate data meta-analysis.
+The statistic that answers "how much does the effect vary?" is the **prediction interval**. Report it. Use $I^2$, if at all, only to say what fraction of the scatter is signal.
 :::
 
-## Forest Plots
+### The prediction interval
 
-The **forest plot** is the standard visualisation for meta-analysis --- the one figure almost every systematic review puts front and centre, and the one you most need to be able to read at a glance. Each study is shown as a square (its size proportional to that study's weight) with a horizontal line for its 95% confidence interval. The pooled estimate is shown as a diamond at the bottom: the centre of the diamond is the combined best estimate and its width is the combined 95% confidence interval. A vertical line marks "no effect"; if a study's interval crosses it, that study alone did not find a clear effect.
+The confidence interval describes the *average* true effect. The **prediction interval** answers the question a clinician actually has: if this treatment were used in a new setting tomorrow, what range of true effects might we see?
+
+$$
+\hat{\mu} \;\pm\; \underbrace{t_{k-2,\,0.975}}_{\substack{\text{t multiplier, } k-2 \text{ degrees}\\ \text{of freedom (we estimated}\\ \text{both } \mu \text{ and } \tau^2)}} \times \underbrace{\sqrt{\text{SE}(\hat{\mu})^2 + \hat{\tau}^2}}_{\substack{\text{uncertainty in the average,}\\ \text{PLUS genuine variation}\\ \text{between settings}}}
+$$
+
+The extra $\hat{\tau}^2$ under the square root is the whole point: the confidence interval shrinks towards zero width as you add studies, but the prediction interval does not, because real between-setting variation does not go away no matter how much you measure it [@riley2011interpretation; @inthout2016prediction].
+
+For the magnesium data:
+
+| | |
+|---|---|
+| $\tau^2$ | 0.227 (so $\tau = 0.48$ on the log-RR scale --- substantial) |
+| $I^2$ | 66.7% |
+| $Q$ test | p = 0.0001 |
+| Pooled RR (random effects) | 0.511 (95% CI 0.356 to 0.735) |
+| **Prediction interval** | **0.171 to 1.526** |
+
+Read the last two rows together. The confidence interval says the *average* effect is a clear benefit. The prediction interval **includes 1** --- so on this evidence, a new trial could plausibly find magnesium halves mortality, or that it does nothing, or that it causes modest harm. A guideline committee shown only the confidence interval would draw a very different conclusion from one shown both.
+
+## Investigating Heterogeneity
+
+When heterogeneity is substantial, the useful question is not "how big is $I^2$" but "*what* differs between these studies". Two tools:
+
+**Subgroup analysis** splits the studies by a characteristic and compares pooled effects. **Meta-regression** models the effect as a function of a study-level covariate, which is the same idea for a continuous moderator. Both should be **pre-specified**; with a handful of studies and a free choice of moderator you will always find something.
 
 ```{r}
-#| label: fig-forest
+#| label: mag-moderators
 #| eval: false
-#| fig-cap: "Forest plot of a meta-analysis of statin therapy for secondary prevention of cardiovascular events."
 
-# Example data: RCTs of statins for secondary CV prevention
-statin_data <- data.frame(
-  study = c("4S (1994)", "CARE (1996)", "LIPID (1998)", "HPS (2002)",
-            "PROSPER (2002)", "PROVE-IT (2004)", "TNT (2005)",
-            "JUPITER (2008)", "HOPE-3 (2016)"),
-  events_treat = c(111, 212, 287, 1328, 127, 147, 334, 142, 235),
-  n_treat      = c(2221, 2081, 4512, 10269, 2891, 2099, 5006, 8901, 6361),
-  events_ctrl  = c(189, 274, 373, 1507, 143, 172, 418, 251, 260),
-  n_ctrl       = c(2223, 2078, 4502, 10267, 2913, 2063, 5006, 8901, 6344)
-)
+library(meta)
+library(metafor)
 
-# Run random-effects meta-analysis
-m1 <- metabin(
-  event.e = events_treat, n.e = n_treat,
-  event.c = events_ctrl,  n.c = n_ctrl,
-  studlab = study,
-  data = statin_data,
-  sm = "RR",                    # Risk ratio
-  method.tau = "REML",          # Restricted maximum likelihood for tau^2
-  prediction = TRUE             # Include prediction interval
-)
+# --- meta-regression on calendar year -------------------------------------
+es <- escalc(measure = "RR", ai = ai, n1i = n1i, ci = ci, n2i = n2i,
+             data = dat.egger2001)
+mr <- rma(yi, vi, mods = ~ I(year - 1984), data = es, method = "REML")
+cat(sprintf("year slope: %+.4f log RR per year, p = %.3f, R^2 = %.0f%%\n",
+            mr$beta[2], mr$pval[2], mr$R2))
 
-# Forest plot
-forest(m1,
-       sortvar = TE,
-       label.left = "Favours statins",
-       label.right = "Favours control",
-       col.diamond = "steelblue",
-       col.square = "darkblue",
-       print.tau2 = TRUE,
-       print.I2 = TRUE,
-       print.pval.Q = TRUE)
+# --- subgroup analysis by trial size --------------------------------------
+es$size <- ifelse(es$n1i + es$n2i < 400, "small (<400)", "large (>=400)")
+m_sub <- update(m, subgroup = es$size)
+m_sub
 ```
 
-**What the code shows.** We take nine real statin trials, each summarised by the number of events and patients in the treated and control arms, and pool them into a single random-effects risk ratio using `metabin`. We chose `sm = "RR"` (risk ratio) because it is more interpretable than the odds ratio for a cohort-style comparison, and `method.tau = "REML"` to estimate the between-study variance $\tau^2$. The `forest()` call then draws the plot: each row is one trial showing its risk ratio and 95% confidence interval (the square and whisker), with the square's size reflecting how much weight that trial carries. The diamond at the bottom is the pooled risk ratio --- its centre is the best single estimate and its width is the 95% confidence interval. A diamond sitting entirely to the left of the vertical "no effect" line (RR = 1) means statins reduced cardiovascular events overall. Printed alongside are $\tau^2$, $I^2$, and the Q-test p-value, telling you how much the trials disagreed. With `prediction = TRUE`, the plot also draws a wider prediction-interval bar (see below), the honest range you would expect a *new* trial's true effect to fall in.
+**What the code shows and what it finds.** The meta-regression asks whether the effect drifted over calendar time: the slope is $+0.052$ log-RR per year with **p = 0.37**, explaining only 13% of the heterogeneity. On its own that is a null result, and it would be easy to report it as "no evidence of a time trend" and move on.
 
-### Reading a forest plot
+Splitting by trial size instead tells a different story:
 
-Key elements to examine:
+| Subgroup | Trials | Pooled RR (random effects) |
+|---|---|---|
+| Small (<400 patients) | 13 | 0.423 (0.284 to 0.630) |
+| Large ($\ge$400 patients) | 3 | 0.869 (0.362 to 2.085) |
+| *Test for subgroup difference* | | *p = 0.0085* |
 
-1. **Individual study estimates**: Are they all on the same side of the null?
-2. **Confidence intervals**: Do they overlap?
-3. **Pooled estimate (diamond)**: Where does it fall? Does the CI cross the null?
-4. **Prediction interval**: If shown, does it cross the null?
-5. **Heterogeneity statistics**: High $I^2$? Significant Q test?
-6. **Study weights**: Are results driven by one dominant study?
+The small trials say magnesium more than halves mortality. The large trials say it probably does nothing. And these two moderators are entangled --- the large trials are also the later ones --- which is why the year analysis picked up a weak, non-significant signal for what is really a size effect. **A non-significant moderator does not mean there is no explanation for the heterogeneity; it can mean you chose the wrong moderator.**
 
-## Funnel Plots and Publication Bias
+::: {.callout-warning}
+## Two cautions on this subgroup analysis
 
-### The problem
+First, the honest one: splitting by trial size is a **diagnostic**, not a pre-specified subgroup analysis. Size is not a patient characteristic and there is no clinical hypothesis attached to it. It belongs in the small-study-effects investigation below, not in the results table as a subgroup finding.
 
-Studies with positive, statistically significant results are more likely to get published than studies that found nothing. This is **publication bias**. It matters clinically because if the "boring" negative trials are sitting in a drawer unpublished, the evidence you *can* see is skewed towards the good news --- so a meta-analysis of only published studies may overestimate how well a treatment really works.
+Second, the **ecological fallacy**. Study-level associations do not imply individual-level ones. If trials with older populations show larger effects, that does *not* establish that older individuals benefit more --- the trials may differ in a dozen other ways. This is a fundamental limitation of aggregate-data meta-analysis, and the reason individual participant data (@sec-meta-next-steps) is worth the effort when the question is about who benefits.
+:::
+
+## Small-Study Effects and Non-Reporting Bias {#sec-meta-nonreporting}
+
+::: {.callout-note}
+## A note on terminology
+This used to be called "publication bias". Current Cochrane guidance prefers **non-reporting bias**, because studies go missing for several reasons besides never being published --- selective reporting of outcomes, language restrictions, delayed publication --- and because the funnel plot detects the *symptom* (small-study effects) rather than the *cause* [@cochrane2024handbook].
+:::
+
+Studies with positive, statistically significant results are more likely to be published, published sooner, and published in English. If the unremarkable trials are sitting in a drawer, the evidence you can see is skewed towards good news.
 
 ### Funnel plots
 
-A **funnel plot** is a scatter plot used to screen for this problem. It displays each study's effect estimate (x-axis) against its precision, typically the standard error (y-axis, inverted so the most precise studies sit at the top). In the absence of bias, the plot should resemble a symmetric inverted funnel: precise studies cluster tightly at the top, less precise ones spread out below, evenly on both sides.
+A **funnel plot** puts each study's effect estimate on the x-axis against its precision on the y-axis (inverted, so the most precise studies sit at the top). With no small-study effects, it should look like a symmetric inverted funnel: precise studies clustered tightly at the top, imprecise ones fanning out evenly below.
+
+::: {.panel-tabset}
+
+### R
 
 ```{r}
-#| label: fig-funnel
-#| eval: false
-#| fig-cap: "Funnel plot with asymmetry suggesting potential publication bias."
+#| label: fig-funnel-magnesium
+#| eval: true
+#| fig-cap: "Funnel plot of the magnesium trials. Each dot is one trial, plotted by its effect estimate against its standard error, with the most precise trials at the top. The diagonal dashed lines are the pseudo-95% confidence region: the range in which trials of a given precision would be expected to scatter if they were all estimating the same effect. The vertical dashed line is the fixed-effect estimate (1.01), the dotted one the random-effects estimate (0.51) --- their separation is the same disagreement seen in the table above. Read the bottom of the plot, where the imprecise small trials live: the left side (benefit) is populated and the right side (no benefit) is nearly empty."
+#| fig-width: 8
+#| fig-height: 5.5
 
-funnel(m1,
-       xlab = "Risk Ratio (log scale)",
-       studlab = TRUE,
-       col = "steelblue",
-       pch = 16)
-```
-
-**What the code shows.** This draws a funnel plot of our statin meta-analysis. Each dot is one study, plotted by its effect estimate (x-axis) against its precision (y-axis, with the most precise large studies near the top). Large studies cluster tightly near the pooled effect at the top; smaller, noisier studies scatter more widely towards the bottom, producing the characteristic inverted-funnel triangle. The key thing to look for is *symmetry*: if the dots fan out evenly on both sides, that is reassuring. A gap in one corner --- typically missing small studies with unimpressive results --- bends the funnel and hints that some studies may never have been published.
-
-Asymmetry (typically an excess of small studies with large positive effects) suggests publication bias --- but also other causes like genuine heterogeneity, methodological differences in small studies, or chance.
-
-### Statistical tests for funnel plot asymmetry
-
-**Egger's test**: a statistical test that turns the "does the funnel look lopsided?" eyeball judgement into a number. Technically it is a weighted regression of the effect estimate on its standard error; a significant result (non-zero intercept) suggests the funnel is asymmetric.
-
-```{r}
-#| label: egger-test
-#| eval: false
-
-metabias(m1, method.bias = "Egger")
-```
-
-**What the code shows.** `metabias` runs Egger's test, which formalises the "eyeball" judgement of funnel-plot symmetry into a number. It regresses each study's effect on its standard error; if small studies systematically report bigger effects, the regression line is tilted and the intercept is non-zero. The output gives a test statistic and a p-value --- a small p-value (say < 0.05) flags significant asymmetry that *might* reflect publication bias. Treat it as a warning light, not a verdict: asymmetry has several possible causes, and the test is unreliable with fewer than about 10 studies.
-
-**Peters' test**: Preferred for binary outcomes (Egger's test can be biased with odds ratios).
-
-### Trim-and-fill method
-
-The **trim-and-fill** method estimates the number of "missing" studies, imputes them, and recalculates the pooled effect. It provides a sensitivity analysis rather than a definitive correction.
-
-```{r}
-#| label: trim-fill
-#| eval: false
-
-tf <- trimfill(m1)
-summary(tf)
-funnel(tf)
-```
-
-**What the code shows.** `trimfill` asks a "what if" question: if publication bias has hidden some small unfavourable studies, what would the result look like once we add them back? It trims the asymmetric studies, estimates how many are likely missing, imputes mirror-image studies to restore symmetry, and recomputes the pooled effect. The `summary` printout reports the number of imputed studies and the adjusted pooled estimate; the new funnel plot shows the filled-in points as open circles. If the adjusted estimate is close to the original, your conclusion is robust to plausible publication bias; if it shrinks substantially towards the null, be cautious. This is a sensitivity analysis, not a correction --- it tells you how fragile the result is, not the "true" answer.
-
-::: {.callout-note}
-## Publication bias is not the only explanation for asymmetry
-Small-study effects can also arise from:
-
-- Genuine heterogeneity (treatment works better in specific populations studied in smaller trials)
-- Methodological flaws in smaller studies (less rigorous protocols)
-- Chance (especially with fewer than 10 studies)
-
-Egger's test should only be applied when there are at least 10 studies.
-:::
-
-## Advanced Meta-Analysis using metafor
-
-The `metafor` package provides the most comprehensive and flexible meta-analysis framework in R.
-
-```{r}
-#| label: metafor-example
-#| eval: false
-
-library(metafor)
-
-# Compute log risk ratios and sampling variances
-statin_es <- escalc(
-  measure = "RR",
-  ai = events_treat, n1i = n_treat,
-  ci = events_ctrl,  n2i = n_ctrl,
-  data = statin_data
+funnel(m,
+  xlab = "Risk ratio (log scale)",
+  level = 0.95,        # draw the pseudo-95% confidence funnel
+  studlab = FALSE
 )
-
-# Random-effects model with REML
-res <- rma(yi, vi, data = statin_es, method = "REML")
-summary(res)
-
-# Prediction interval
-predict(res)
-
-# Meta-regression: effect of year of publication
-statin_es$year <- c(1994, 1996, 1998, 2002, 2002, 2004, 2005, 2008, 2016)
-res_mr <- rma(yi, vi, mods = ~ year, data = statin_es, method = "REML")
-summary(res_mr)
-
-# Leave-one-out sensitivity analysis
-leave1out(res)
-
-# Influence diagnostics
-inf <- influence(res)
-plot(inf)
 ```
 
-**What the code shows.** This repeats the statin analysis using `metafor`, the most flexible meta-analysis package in R, and adds several diagnostic steps. `escalc` first converts the raw 2x2 counts into log risk ratios (`yi`) and their sampling variances (`vi`) --- the two quantities every meta-analysis actually works with. `rma` then fits the random-effects model, and `summary(res)` prints the pooled effect, its confidence interval, $\tau^2$, $I^2$, and the Q-test. `predict(res)` adds the prediction interval. The meta-regression (`mods = ~ year`) asks whether the treatment effect has drifted over calendar time --- a significant `year` coefficient would suggest newer trials show different effects. `leave1out` re-runs the pooling with each study removed in turn, so you can spot any single trial that is driving the result, and the influence plot flags outliers and high-leverage studies visually.
-
-### Subgroup analysis
-
-```{r}
-#| label: subgroup-analysis
-#| eval: false
-
-# Classify as primary vs secondary prevention
-statin_es$prevention <- c("secondary", "secondary", "secondary", "secondary",
-                           "primary", "secondary", "secondary",
-                           "primary", "primary")
-
-# Subgroup analysis
-res_sub <- rma(yi, vi, mods = ~ prevention, data = statin_es, method = "REML")
-summary(res_sub)
-
-# Forest plot by subgroup using meta package
-update(m1, subgroup = statin_es$prevention, print.subgroup.name = TRUE) |>
-  forest(sortvar = TE)
-```
-
-**What the code shows.** Here we split the trials into primary-prevention (treating people without prior cardiovascular disease) and secondary-prevention (treating those who have already had an event) groups, because the treatment effect could plausibly differ between them. The `rma` model with `mods = ~ prevention` tests whether the two subgroups have statistically different pooled effects, and the updated forest plot draws a separate diamond for each subgroup plus an overall one. Reading it, you compare the two subgroup diamonds: if they sit in clearly different places with little overlap, prevention setting explains some of the heterogeneity. A key caution --- subgroups should be pre-specified before looking at the data, otherwise you risk finding spurious "significant" subgroups by chance.
-
-## Network Meta-Analysis (Brief Overview)
-
-Standard pairwise meta-analysis can only compare two treatments that have actually been tested against each other in head-to-head trials. But clinicians often need to choose among several treatments that have never all been compared directly. **Network meta-analysis (NMA)**, also called mixed-treatment comparison, fills this gap: it compares multiple treatments at once, combining **direct evidence** (from head-to-head trials) with **indirect evidence** (inferred through a shared comparator, such as both being compared against placebo).
-
-### When is NMA useful?
-
-Consider three antihypertensive drugs: A, B, and C. If trials have compared A vs B and B vs C, but never A vs C, NMA can provide an indirect estimate for A vs C:
-
-$$
-\hat{d}_{AC} = \hat{d}_{AB} + \hat{d}_{BC}
-$$
-
-This relies on the **transitivity assumption**: the studies comparing A vs B and those comparing B vs C are similar enough that indirect comparison is valid.
-
-### Key concepts
-
-- **Network geometry**: Nodes represent treatments, edges represent direct comparisons. The network should be well connected.
-- **Consistency**: Direct and indirect evidence agree. Inconsistency suggests the transitivity assumption is violated.
-- **Ranking**: NMA can rank treatments using the surface under the cumulative ranking curve (SUCRA) or P-scores, though rankings should be interpreted cautiously.
-
-```{r}
-#| label: nma-example
-#| eval: false
-
-library(netmeta)
-
-# Example: network meta-analysis of antidepressants
-# (using built-in dataset)
-data(Senn2013)
-
-# Run NMA
-net <- netmeta(TE, seTE, treat1, treat2, studlab,
-               data = Senn2013,
-               sm = "MD",
-               random = TRUE,
-               reference.group = "plac")
-
-summary(net)
-
-# Network graph
-netgraph(net, plastic = FALSE, thickness = "w.random",
-         col = "steelblue")
-
-# Forest plot of all comparisons vs reference
-forest(net, reference.group = "plac", sortvar = TE)
-
-# League table
-netleague(net)
-```
-
-**What the code shows.** This runs a network meta-analysis on a built-in dataset of antidepressant trials, all compared against placebo. `netmeta` pools the direct head-to-head comparisons together with indirect evidence to estimate every treatment-versus-treatment contrast, even pairs that were never tested directly. `netgraph` draws the network: each node is a treatment and each connecting line a set of trials that compared them directly, with thicker lines for better-evidenced comparisons --- a quick way to check the network is well connected. The forest plot then shows every drug versus the placebo reference, and `netleague` produces a "league table", a grid giving the pooled estimate for every possible pairing (the format you often see ranking treatments in a guideline). Interpret rankings cautiously: a drug can top the table on a point estimate while still having wide, overlapping intervals with its rivals.
-
-## Individual Participant Data (IPD) Meta-Analysis
-
-In standard meta-analysis, you combine **aggregate data** --- the summary statistics (effect estimates and standard errors) reported in each paper. In an **individual participant data (IPD) meta-analysis**, you go back to the source and obtain the raw, patient-by-patient data from each study, then analyse it directly. It is far more work, but it lets you ask questions the summary tables cannot answer --- for example, whether a treatment works better in diabetic patients --- which is exactly the kind of question that changes how you treat the patient in front of you.
-
-### Advantages of IPD meta-analysis
-
-1. **Patient-level subgroup analyses** without ecological fallacy
-2. **Standardised outcome definitions** and follow-up times
-3. **Updated analyses** with extended follow-up
-4. **Prediction model development** and validation across multiple settings
-
-### Two-stage vs one-stage approaches
-
-- **Two-stage**: Analyse each study separately, then combine study-level estimates using standard meta-analysis. Familiar and transparent.
-- **One-stage**: Fit a single model to all individual data, accounting for study clustering. More flexible, especially with sparse data.
-
-```{r}
-#| label: ipd-meta
-#| eval: false
-
-# Two-stage IPD meta-analysis example
-# Suppose we have a stacked dataset with individual data from 5 studies
-
-# Stage 1: Fit model in each study
-library(lme4)
-
-# One-stage approach (mixed model with random study effects)
-ipd_model <- glmer(
-  event ~ treatment + age + sex + (1 + treatment | study_id),
-  data = ipd_data,
-  family = binomial
-)
-
-summary(ipd_model)
-
-# The fixed effect for 'treatment' is the pooled effect
-# The random slope for 'treatment' captures between-study heterogeneity
-```
-
-**What the code shows.** This illustrates the *one-stage* IPD approach, where the raw patient-level records from every study are stacked into one dataset and analysed with a single mixed model. The `glmer` call fits a logistic regression for the binary outcome with `treatment`, `age`, and `sex` as fixed effects, and `(1 + treatment | study_id)` as random effects --- meaning each study gets its own baseline risk (random intercept) and its own treatment effect (random slope). The fixed-effect coefficient for `treatment` is the pooled treatment effect (analogous to the diamond in a forest plot), while the variance of the random treatment slope plays the role of $\tau^2$, quantifying how much the effect genuinely varies across studies. The pay-off of using individual data is that you can adjust for patient-level covariates directly and explore who benefits most without falling into the ecological fallacy described above.
-
-### IPD meta-analysis of prediction models
-
-Established frameworks for developing and validating clinical prediction models across multiple studies using IPD follow these steps:
-
-1. Develop the model using one-stage IPD-MA (internal-external cross-validation)
-2. Assess calibration and discrimination in each study
-3. Examine heterogeneity in model performance across settings
-4. Update model intercept or recalibrate for new settings
-
-## Implementation in Python
-
-Python's meta-analysis ecosystem is less mature than R's, but basic analyses are feasible.
+### Python
 
 ```{python}
-#| label: python-meta
-#| eval: false
+#| label: fig-funnel-py
+#| eval: true
+#| fig-cap: "The same funnel plot built from scratch with matplotlib."
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from scipy import stats
 
-# Study data: log risk ratios and standard errors
-studies = pd.DataFrame({
-    'study': ['4S (1994)', 'CARE (1996)', 'LIPID (1998)', 'HPS (2002)',
-              'PROSPER (2002)', 'PROVE-IT (2004)', 'TNT (2005)',
-              'JUPITER (2008)', 'HOPE-3 (2016)'],
-    'events_t': [111, 212, 287, 1328, 127, 147, 334, 142, 235],
-    'n_t': [2221, 2081, 4512, 10269, 2891, 2099, 5006, 8901, 6361],
-    'events_c': [189, 274, 373, 1507, 143, 172, 418, 251, 260],
-    'n_c': [2223, 2078, 4502, 10267, 2913, 2063, 5006, 8901, 6344]
-})
+se = np.sqrt(var)
+fig, ax = plt.subplots(figsize=(7.5, 5.5))
 
-# Compute log risk ratios and variances
-studies['rr'] = (studies['events_t'] / studies['n_t']) / \
-                (studies['events_c'] / studies['n_c'])
-studies['log_rr'] = np.log(studies['rr'])
+# pseudo-confidence region around the fixed-effect estimate
+se_grid = np.linspace(0.001, se.max() * 1.05, 100)
+for z, shade in [(1.96, "0.85"), (2.58, "0.92")]:
+    ax.fill_betweenx(se_grid, te_fe - z * se_grid, te_fe + z * se_grid,
+                     color=shade, zorder=0)
 
-# Variance of log RR
-studies['var_log_rr'] = (
-    1/studies['events_t'] - 1/studies['n_t'] +
-    1/studies['events_c'] - 1/studies['n_c']
-)
-studies['se_log_rr'] = np.sqrt(studies['var_log_rr'])
-
-# --- Fixed-effect meta-analysis (inverse variance) ---
-w_fe = 1 / studies['var_log_rr']
-pooled_fe = np.sum(w_fe * studies['log_rr']) / np.sum(w_fe)
-se_fe = np.sqrt(1 / np.sum(w_fe))
-ci_fe = (pooled_fe - 1.96*se_fe, pooled_fe + 1.96*se_fe)
-
-print(f"Fixed-effect pooled log RR: {pooled_fe:.4f}")
-print(f"Fixed-effect pooled RR: {np.exp(pooled_fe):.4f} "
-      f"(95% CI: {np.exp(ci_fe[0]):.4f} - {np.exp(ci_fe[1]):.4f})")
-
-# --- Random-effects: DerSimonian-Laird ---
-k = len(studies)
-Q = np.sum(w_fe * (studies['log_rr'] - pooled_fe)**2)
-C = np.sum(w_fe) - np.sum(w_fe**2) / np.sum(w_fe)
-tau2 = max(0, (Q - (k - 1)) / C)
-
-w_re = 1 / (studies['var_log_rr'] + tau2)
-pooled_re = np.sum(w_re * studies['log_rr']) / np.sum(w_re)
-se_re = np.sqrt(1 / np.sum(w_re))
-ci_re = (pooled_re - 1.96*se_re, pooled_re + 1.96*se_re)
-
-I2 = max(0, (Q - (k-1)) / Q) * 100
-
-print(f"\nRandom-effects pooled log RR: {pooled_re:.4f}")
-print(f"Random-effects pooled RR: {np.exp(pooled_re):.4f} "
-      f"(95% CI: {np.exp(ci_re[0]):.4f} - {np.exp(ci_re[1]):.4f})")
-print(f"tau^2: {tau2:.4f}, I^2: {I2:.1f}%")
-print(f"Q statistic: {Q:.2f}, p = {1 - stats.chi2.cdf(Q, k-1):.4f}")
+ax.scatter(log_rr, se, s=28, color="#2c3e50", zorder=3)
+ax.axvline(te_fe, color="grey", lw=1.2, ls="--", zorder=2)
+ax.invert_yaxis()                     # most precise studies at the top
+ax.set_xlabel("log risk ratio")
+ax.set_ylabel("Standard error (precision increases upwards)")
+ax.set_title("Funnel plot: magnesium trials")
+plt.tight_layout()
+plt.show()
 ```
 
-**What the code shows.** Because Python lacks a mature one-line meta-analysis package, this builds the whole analysis from first principles --- which is also a useful way to see the formulas in action. We start from the same statin counts, compute each study's log risk ratio and its variance, then form the inverse-variance weights. The first block produces the fixed-effect pooled estimate; the second implements the DerSimonian-Laird random-effects method, calculating Cochran's Q, the between-study variance $\tau^2$, and finally $I^2$. The printed output reports both pooled risk ratios (back-transformed from the log scale and shown with 95% confidence intervals), the $\tau^2$ and $I^2$ heterogeneity statistics, and the Q-test p-value. You should get essentially the same numbers as the R `meta`/`metafor` analyses above --- a good check that the methods, not the software, drive the result.
+:::
 
-### Forest plot in Python
+The asymmetry is stark. Look at the bottom of the plot, where the imprecise little trials live: the left side (benefit) is populated and the right side (no benefit or harm) is nearly empty. Either small trials of magnesium happened to work much better than large ones, or the small trials that found nothing were never published.
 
-```{python}
-#| label: python-forest
+### Testing for asymmetry --- and choosing the right test
+
+You can turn the eyeball judgement into a number, with two important constraints.
+
+**Constraint one: you need at least 10 studies.** Below that, the tests have too little power to distinguish chance from real asymmetry, and Cochrane advises against using them at all [@cochrane2024handbook]. This threshold is rarely met in practice, so most published meta-analyses cannot legitimately test for asymmetry. Saying "we could not assess it" is the correct report, not "the test was non-significant".
+
+**Constraint two: the standard test is wrong for some effect measures.** Egger's test regresses the effect estimate on its standard error [@egger1997bias]. For odds ratios and standardised mean differences, the standard error is *mathematically linked* to the size of the effect, which produces funnel-plot asymmetry and small p-values even when nothing is missing. Cochrane therefore recommends the **Harbord** [@harbord2006modified] or **Peters** [@peters2006comparison] tests for binary outcomes instead.
+
+```{r}
+#| label: mag-bias-tests
 #| eval: false
 
-def forest_plot(studies, pooled_est, pooled_ci, weights, title="Forest Plot"):
-    """Create a basic forest plot."""
-    fig, ax = plt.subplots(figsize=(10, 8))
-
-    k = len(studies)
-    y_pos = list(range(k, 0, -1))
-
-    # Individual studies
-    for i, (_, row) in enumerate(studies.iterrows()):
-        ci_lo = row['log_rr'] - 1.96 * row['se_log_rr']
-        ci_hi = row['log_rr'] + 1.96 * row['se_log_rr']
-        ax.plot([np.exp(ci_lo), np.exp(ci_hi)], [y_pos[i], y_pos[i]],
-                'k-', linewidth=1)
-        size = weights[i] / weights.max() * 200
-        ax.scatter(np.exp(row['log_rr']), y_pos[i],
-                   s=size, c='steelblue', zorder=5, edgecolors='darkblue')
-
-    # Pooled estimate (diamond)
-    ax.axvline(x=np.exp(pooled_est), color='steelblue',
-               linestyle='--', alpha=0.5)
-    ax.axvline(x=1, color='black', linestyle='-', linewidth=0.5)
-
-    # Pooled diamond
-    diamond_y = 0
-    diamond_x = [np.exp(pooled_ci[0]), np.exp(pooled_est),
-                 np.exp(pooled_ci[1]), np.exp(pooled_est)]
-    diamond_yy = [diamond_y, diamond_y + 0.3, diamond_y, diamond_y - 0.3]
-    ax.fill(diamond_x, diamond_yy, color='steelblue', alpha=0.7)
-
-    # Labels
-    ax.set_yticks(y_pos + [0])
-    ax.set_yticklabels(list(studies['study']) + ['Pooled'])
-    ax.set_xlabel('Risk Ratio')
-    ax.set_title(title)
-    ax.set_xscale('log')
-    plt.tight_layout()
-    plt.show()
-
-forest_plot(studies, pooled_re, ci_re, w_re,
-            title="Statins for CV Prevention: Random-Effects Meta-Analysis")
+# k = 16, so testing is legitimate here
+for (test in c("Egger", "Harbord", "Peters")) {
+  r <- metabias(m, method.bias = test)
+  cat(sprintf("%-8s statistic %7.3f   p = %.4f\n", test, r$statistic, r$p.value))
+}
 ```
 
-**What the code shows.** This defines a `forest_plot` function and uses it to draw, by hand, the same kind of forest plot the R `meta` package produces automatically. Each study appears as a marker (sized by its weight) with a horizontal 95% confidence-interval line; the vertical line at RR = 1 marks "no effect", and the shaded diamond at the bottom is the random-effects pooled estimate. Reading it is identical to reading any published forest plot: studies whose intervals sit entirely left of the line favour statins, and a pooled diamond clear of the line indicates an overall benefit. The point of writing it out is to demystify the figure --- nothing about a forest plot is magic, it is just effect estimates and intervals stacked on a common axis.
+**What the code shows.** All three agree emphatically --- Egger p < 0.0001, Harbord p = 0.0001, Peters p = 0.0023. The Peters test is the most conservative of the three, which is the usual pattern and a reason to prefer it when the outcome is binary. When the tests disagree, believe the one appropriate to your effect measure, not the one with the smallest p-value.
 
-### Using PythonMeta or PyMeta
+::: {.callout-warning}
+## Trim-and-fill: know it, do not lean on it
+You will meet **trim-and-fill**, which imputes the "missing" studies needed to make the funnel symmetric and then re-pools. On these data it adds 8 imputed trials and moves the estimate from RR 0.51 to 0.90 (95% CI 0.52 to 1.54) --- in this case, closer to the truth.
 
-```{python}
-#| label: python-meta-pkg
-#| eval: false
+Do not take that as an endorsement. Trim-and-fill assumes one specific mechanism for why studies are missing, it does not estimate what the absent studies actually found, and it is **not among the methods in current Cochrane guidance** [@cochrane2024handbook]. Treat it as a sensitivity analysis that shows how fragile the pooled estimate is, never as a bias-corrected result.
+:::
 
-# For more complete meta-analysis in Python, consider the 'meta-analysis' package
-# Install: pip install meta-analysis
+### What actually happened
 
-# Alternatively, statsmodels has some capabilities
-import statsmodels.api as sm
+The historical answer is known, and it is why this dataset is worth your time.
 
-# Egger's test equivalent: weighted regression of effect on SE
-X = sm.add_constant(studies['se_log_rr'])
-model = sm.WLS(studies['log_rr'], X, weights=w_fe).fit()
-print("Egger's test (intercept):")
-print(f"  Intercept: {model.params[0]:.4f}, p = {model.pvalues[0]:.4f}")
-```
+The first seven trials were pooled in the early 1990s, then combined with LIMIT-2 (1,159 patients) in a 1993 meta-analysis that concluded magnesium was an effective, cheap treatment for acute myocardial infarction. Some clinicians adopted it.
 
-**What the code shows.** This reproduces Egger's test for funnel-plot asymmetry using `statsmodels`. It runs a weighted regression of each study's effect on its standard error; the intercept of that line is what Egger's test cares about. The printout reports that intercept and its p-value --- an intercept far from zero with a small p-value points to small-study effects (possible publication bias). As with the R version, this is a screening tool to be used only when you have around 10 or more studies, and a "significant" result should prompt further investigation rather than an automatic conclusion of bias.
+Then **ISIS-4** reported: 58,050 randomised patients, the largest trial in the set, and a mortality risk ratio of **1.055** --- no benefit, if anything slight harm [@isis4].
 
-## Reporting a Meta-Analysis: PRISMA 2020
+The small trials were wrong. A meta-analysis of them was confidently, publishably wrong, and the funnel plot in @fig-funnel-magnesium was visible years before ISIS-4 reported. The lesson is not that meta-analysis is untrustworthy; it is that **a pooled estimate is only as good as the set of studies you can see**, and that the diagnostics in this chapter exist because that set is often incomplete.
 
-**PRISMA** (Preferred Reporting Items for Systematic Reviews and Meta-Analyses) is the standard checklist that tells authors what they must report so readers can judge a review's quality. The **PRISMA 2020** statement (Page et al., 2021) is the current version. As a reader, you can use it as a quality checklist; as an author, you are expected to follow it. Its key statistical reporting requirements:
+Everything in the standard analysis pointed at this, if you read it properly: a fixed-versus-random gap of 1.006 versus 0.511, a prediction interval crossing 1, and three asymmetry tests with p < 0.01.
 
-1. **Describe the effect measure** and its rationale
-2. **Specify the synthesis model** (fixed/random) and estimation method
-3. **Present heterogeneity statistics** ($\tau^2$, $I^2$, prediction interval)
-4. **Report assessments of bias** (risk of bias, publication bias)
-5. **Include a forest plot** for the primary outcome
-6. **Describe sensitivity analyses** and their results
-7. **Register the protocol** (PROSPERO) and follow it
+## Reporting a Meta-Analysis
+
+Follow **PRISMA 2020** [@page2021prisma] for the review: the 27-item checklist, the flow diagram of records screened and excluded, and a pre-registered protocol (PROSPERO).
+
+For the analysis itself, report these four things together. A pooled estimate on its own is not interpretable:
+
+1. **The pooled effect with its confidence interval**, and which model produced it.
+2. **$\tau^2$ (or $\tau$) and the prediction interval.** Not just $I^2$ --- see @sec-meta-heterogeneity.
+3. **The methods you chose and why**: the $\tau^2$ estimator, the confidence-interval method, and how you handled zero cells.
+4. **What you could and could not assess.** If you had fewer than 10 studies, say that you could not evaluate small-study effects, rather than reporting a non-significant test.
+
+Certainty of evidence is usually summarised with **GRADE**, which downgrades for risk of bias, inconsistency (heterogeneity), indirectness, imprecision, and publication bias. Most clinical journals now expect a GRADE summary-of-findings table alongside the meta-analysis; it is a separate skill from the statistics and worth learning from the GRADE handbook directly.
+
+## Where to Go Next {#sec-meta-next-steps}
+
+This chapter deliberately stops at aggregate-data meta-analysis of one comparison. The methods below are each a chapter in their own right; here is what they are for and where to start.
+
+| Method | The question it answers | Where to start |
+|---|---|---|
+| **Network meta-analysis** | Which of several treatments is best, when few have been compared head to head? Combines direct and indirect evidence. | `netmeta` in R; @salanti2012network. Check the network is connected and that transitivity is plausible before believing any ranking. |
+| **Individual participant data (IPD) meta-analysis** | *Who* benefits? Needs raw patient-level data from each study, which avoids the ecological fallacy. | @riley2019prognostic, @riley2020ipdinteractions; one-stage mixed models or two-stage pooling. |
+| **Bayesian meta-analysis** | The same random-effects model, but with a prior on $\tau^2$ --- which is exactly what you want when there are too few studies to estimate heterogeneity well. | `brms` or `bayesmeta` in R. The natural sequel to @sec-bayesian-inference: a random-effects meta-analysis *is* a hierarchical model. |
+| **Dose-response meta-analysis** | Is there a gradient rather than a yes/no effect? | `dosresmeta` in R. |
+| **Prognostic and prediction-model reviews** | Does a published model work elsewhere? | @riley2019prognostic; connects directly to @sec-performance-validation. |
+
+For everything in this chapter, @harrer2021doing is the best free code-first companion and goes considerably deeper than we do here.
 
 ## Exercises
 
-::: {.callout-tip title="Exercise 1: Basic meta-analysis in R"}
+::: {.callout-tip title="Exercise 1: Fixed versus random effects, and why it mattered"}
 
-The following data come from randomised trials of a hypothetical new anticoagulant vs warfarin for stroke prevention in atrial fibrillation.
+Load `dat.egger2001` from `metafor` and reproduce the core analysis.
 
-```{r}
-#| label: exercise-1-data
-#| eval: false
-
-af_trials <- data.frame(
-  study = c("TRAIL-1", "GUARD-AF", "SHIELD", "ORBIT-AF",
-            "VENTURE", "COMPASS-AF", "PIONEER-2", "ATLAS-AF"),
-  events_new = c(28, 45, 112, 67, 33, 89, 52, 41),
-  n_new      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100),
-  events_warf = c(42, 58, 148, 84, 29, 102, 61, 53),
-  n_warf      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100)
-)
-```
-
-a) Compute the risk ratio and 95% CI for each trial by hand (or using `escalc`).
-b) Perform a random-effects meta-analysis using the `meta` or `metafor` package.
-c) Create a forest plot. Does the pooled effect favour the new anticoagulant?
-d) Calculate and interpret $I^2$ and the prediction interval.
-e) Create a funnel plot and perform Egger's test. Is there evidence of publication bias?
-f) Perform a leave-one-out sensitivity analysis. Is the result robust?
+a) Pool the sixteen trials with a fixed-effect and then a random-effects model (REML, Hartung-Knapp interval). Report both risk ratios.
+b) Compute each trial's *percentage weight* under each model. How much weight does ISIS-4 carry under each, and why does it change so much?
+c) Report $\tau^2$, $I^2$, and the prediction interval. Which of the three tells a clinician how much the effect varies between settings?
+d) In one sentence each, write what you would tell a guideline committee based on (i) the fixed-effect result alone and (ii) the random-effects result alone.
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -654,31 +630,12 @@ f) Perform a leave-one-out sensitivity analysis. Is the result robust?
 
 ::: {.callout-tip title="Exercise 2: Meta-analysis from scratch"}
 
-Using the same trial data as Exercise 1:
+Implement inverse-variance pooling yourself, without a meta-analysis package, and check it against one.
 
-```{python}
-#| label: exercise-2-data
-#| eval: false
-
-import pandas as pd
-import numpy as np
-
-af_trials = pd.DataFrame({
-    'study': ['TRAIL-1', 'GUARD-AF', 'SHIELD', 'ORBIT-AF',
-              'VENTURE', 'COMPASS-AF', 'PIONEER-2', 'ATLAS-AF'],
-    'events_new':  [28, 45, 112, 67, 33, 89, 52, 41],
-    'n_new':       [1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100],
-    'events_warf': [42, 58, 148, 84, 29, 102, 61, 53],
-    'n_warf':      [1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100]
-})
-```
-
-a) Compute log risk ratios and their variances for each study.
-b) Implement the fixed-effect inverse-variance method.
-c) Implement the DerSimonian-Laird random-effects method.
-d) Compute $Q$, $I^2$, and $\tau^2$.
-e) Create a forest plot using matplotlib.
-f) Create a funnel plot and implement Egger's regression test.
+a) From the 2x2 counts, compute each trial's log risk ratio and its variance. Handle the trial with a zero cell explicitly and say what you did.
+b) Compute the fixed-effect pooled estimate and its standard error.
+c) Compute $\tau^2$ by DerSimonian-Laird, then the random-effects estimate.
+d) Compare your numbers with `metabin(..., method.tau = "DL")`. They should agree to three decimal places. Then switch to REML and explain why the answer moves.
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -697,24 +654,14 @@ f) Create a funnel plot and implement Egger's regression test.
 
 :::
 
-::: {.callout-tip title="Exercise 3: Subgroup analysis and meta-regression in R"}
+::: {.callout-tip title="Exercise 3: Detecting the problem before the mega-trial"}
 
-Suppose the trials in Exercise 1 were conducted in different settings:
+Put yourself in 1993, before ISIS-4 reported.
 
-```{r}
-#| label: exercise-3-data
-#| eval: false
-
-af_trials$region <- c("Europe", "North America", "Europe", "Asia",
-                       "North America", "Europe", "Asia", "North America")
-af_trials$mean_age <- c(72, 68, 74, 65, 70, 71, 63, 69)
-af_trials$pct_female <- c(38, 42, 35, 48, 40, 37, 52, 44)
-```
-
-a) Perform a subgroup analysis by region. Do treatment effects differ by region?
-b) Perform meta-regression with mean age as a moderator. Is there a relationship between mean age and treatment effect?
-c) Perform meta-regression with percentage female. Interpret the result, noting the ecological fallacy.
-d) Create a bubble plot showing the meta-regression of effect size on mean age.
+a) Drop ISIS-4 and re-run the random-effects analysis on the remaining 15 trials. What would you have concluded?
+b) Draw the funnel plot for those 15 trials. Is the asymmetry visible without the mega-trial?
+c) Run the Egger, Harbord and Peters tests on the 15. Are they significant? Which should you trust for a binary outcome, and why?
+d) You now have 15 studies, an apparently large benefit, and an asymmetric funnel. Write the two-sentence limitations paragraph you would have put in the 1993 paper.
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -735,20 +682,13 @@ d) Create a bubble plot showing the meta-regression of effect size on mean age.
 
 ::: {.callout-tip title="Exercise 4: Critical appraisal (Conceptual)"}
 
-You are reviewing a published meta-analysis of 12 trials comparing a new surgical technique to standard care for knee osteoarthritis. The reported results are:
+Find a recent meta-analysis in your own field and answer these, in writing:
 
-- Pooled standardised mean difference for pain: -0.62 (95% CI: -0.89 to -0.35), p < 0.001
-- $I^2 = 78\%$, $\tau^2 = 0.15$, Q test p < 0.001
-- Prediction interval: -1.42 to 0.18
-- Egger's test: p = 0.03
-- 8 of 12 trials were single-centre with fewer than 100 participants
-
-a) Interpret the pooled effect and its clinical significance.
-b) What does the prediction interval tell you that the confidence interval does not?
-c) What are the implications of $I^2 = 78\%$?
-d) Given the Egger's test and the predominance of small trials, what concerns do you have?
-e) What additional analyses would you want to see?
-f) Would you change clinical practice based on this meta-analysis? Why or why not?
+a) How many studies were pooled, and what were the largest and smallest sample sizes? Compute the largest trial's share of the total.
+b) Which model was used, and does the paper report both? If not, can you tell whether it would have mattered?
+c) Is $\tau^2$ or a prediction interval reported, or only $I^2$? If only $I^2$, what can you and cannot you conclude about how much the effect varies?
+d) Was a funnel plot or asymmetry test reported? Were there at least 10 studies? Was the test appropriate to the effect measure?
+e) Would you change your practice on the strength of this paper? Say what would have to be true for you to change it.
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -771,23 +711,38 @@ f) Would you change clinical practice based on this meta-analysis? Why or why no
 
 | Concept | Key point |
 |---|---|
-| Fixed-effect model | Assumes one true effect; weights = $1/\sigma_i^2$ |
-| Random-effects model | Allows varying true effects; weights = $1/(\sigma_i^2 + \tau^2)$ |
-| $I^2$ | Proportion of variability due to heterogeneity (25/50/75% thresholds) |
-| Prediction interval | Range for the true effect in a future setting --- often wider than CI |
-| Forest plot | The primary visualisation; always include one |
-| Funnel plot | Checks for small-study effects / publication bias |
-| Network meta-analysis | Combines direct and indirect evidence across multiple treatments |
-| IPD meta-analysis | Uses individual data; avoids ecological fallacy |
-| PRISMA 2020 | The reporting guideline for systematic reviews |
+| Inverse-variance weighting | More precise studies get more say --- this is where all the trouble starts |
+| Fixed effect | Assumes one true effect; the largest trial dominates |
+| Random effects | Assumes a distribution of true effects; **levels the weights, so small studies gain influence** |
+| $\tau^2$ | Between-study variance --- how much the true effects genuinely differ |
+| $I^2$ | The *proportion* of scatter that is real. **Not** how much the effect varies |
+| Prediction interval | The range a new study's true effect might fall in. Report it alongside the CI |
+| Cochran's $Q$ | A test for any heterogeneity, not a measure of its size |
+| Small-study effects | Effects shrinking as trials get larger; the funnel plot's real subject |
+| Asymmetry tests | Need $k \ge 10$; use Harbord or Peters for binary outcomes, not Egger |
+| Trim-and-fill | A fragility check, not a correction; not in current Cochrane guidance |
+| Ecological fallacy | Study-level moderators do not license individual-level claims |
+
+::: {.callout-tip}
+## Key Takeaways
+- The **fixed-versus-random choice can change the conclusion completely.** On the magnesium data it is the difference between "no effect" (RR 1.01) and "halves mortality" (RR 0.51). Report both when they disagree and treat the gap as a finding.
+- **Random effects gives small studies more influence.** That is right when studies genuinely differ and catastrophic when the small studies are biased.
+- **$I^2$ does not tell you how much the effect varies** --- the prediction interval does. The 25/50/75% bands are not a substitute for it.
+- **Read the forest plot for shape, not just for the diamond.** Small studies on one side and large ones on the other is the pattern that has misled clinical practice most often.
+- **Asymmetry tests need at least 10 studies**, and Egger's test is not appropriate for odds ratios or standardised mean differences. If you have fewer than 10, report that you could not assess it.
+- A meta-analysis of the available studies is not the same as a meta-analysis of the evidence. **Magnesium looked like a cheap way to prevent deaths after a heart attack until a trial of 58,050 patients said otherwise.**
+:::
 
 ## References and Further Reading
 
-- For systematic review methodology, see @cochrane2024handbook; for reporting, see @page2021prisma.
-- For the random-effects model, see @dersimonian1986; for heterogeneity, see @higgins2003inconsistency; and for why a prediction interval belongs alongside the confidence interval, see @inthout2016prediction.
-- For publication bias and funnel plot asymmetry, see @egger1997bias.
-- For meta-analysis of prognostic factors and of individual participant data, see @riley2019prognostic and @riley2020ipdinteractions.
-- For network meta-analysis, see @salanti2012network.
+- For systematic review methodology and current guidance on missing evidence, see @cochrane2024handbook; for reporting, see @page2021prisma.
+- For the random-effects model, see @dersimonian1986; for choosing a $\tau^2$ estimator, see @veroniki2016methods; and for the confidence-interval method, see @inthout2014hksj.
+- For heterogeneity, read @borenstein2024mistakes (or the shorter @borenstein2023heterogeneity) on why $I^2$ is not a measure of how much the effect varies, alongside @higgins2003inconsistency for the original $I^2$ paper.
+- For prediction intervals, see @riley2011interpretation and @inthout2016prediction.
+- For funnel plot asymmetry, see @egger1997bias for the original test and @harbord2006modified and @peters2006comparison for the versions appropriate to binary outcomes.
+- For the running example, see @egger2001systematic for the dataset and @isis4 for the trial that settled the question.
+- For network meta-analysis, see @salanti2012network; for individual participant data, see @riley2019prognostic and @riley2020ipdinteractions.
+- For a code-first companion that goes deeper than this chapter, see @harrer2021doing.
 - For software, see @viechtbauer2010metafor and @schwarzer2015metaR.
 
 ::: {.sectionrefs}

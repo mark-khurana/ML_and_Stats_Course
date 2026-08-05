@@ -1035,6 +1035,119 @@
   note = {The bootstrap/Jaccard approach to per-cluster stability, implemented in fpc::clusterboot().}
 }
 
+@article{borenstein2024mistakes,
+  author = {Borenstein, Michael},
+  title = {Avoiding Common Mistakes in Meta-Analysis: Understanding the Distinct Roles of {Q}, {I}-squared, tau-squared, and the Prediction Interval in Reporting Heterogeneity},
+  journal = {Research Synthesis Methods},
+  year = {2024},
+  volume = {15},
+  number = {2},
+  pages = {354--368},
+  doi = {10.1002/jrsm.1678},
+  note = {Argues that I-squared does not measure how much the effect varies and that the prediction interval is the statistic that does.}
+}
+
+@article{borenstein2023heterogeneity,
+  author = {Borenstein, Michael},
+  title = {How to Understand and Report Heterogeneity in a Meta-Analysis: The Difference between {I}-squared and Prediction Intervals},
+  journal = {Integrative Medicine Research},
+  year = {2023},
+  volume = {12},
+  pages = {101014},
+  doi = {10.1016/j.imr.2023.101014},
+  note = {The short, accessible version of the I-squared versus prediction interval argument.}
+}
+
+@article{inthout2014hksj,
+  author = {IntHout, Joanna and Ioannidis, John P. A. and Borm, George F.},
+  title = {The {Hartung-Knapp-Sidik-Jonkman} Method for Random Effects Meta-Analysis Is Straightforward and Considerably Outperforms the Standard {DerSimonian-Laird} Method},
+  journal = {BMC Medical Research Methodology},
+  year = {2014},
+  volume = {14},
+  pages = {25},
+  doi = {10.1186/1471-2288-14-25},
+  note = {The case for the Hartung-Knapp-Sidik-Jonkman confidence interval over the DerSimonian-Laird default.}
+}
+
+@article{veroniki2016methods,
+  author = {Veroniki, Areti Angeliki and Jackson, Dan and Viechtbauer, Wolfgang and Bender, Ralf and Bowden, Jack and Knapp, Guido and Kuss, Oliver and Higgins, Julian P. T. and Langan, Dean and Salanti, Georgia},
+  title = {Methods to Estimate the Between-Study Variance and Its Uncertainty in Meta-Analysis},
+  journal = {Research Synthesis Methods},
+  year = {2016},
+  volume = {7},
+  number = {1},
+  pages = {55--79},
+  doi = {10.1002/jrsm.1164},
+  note = {Systematic comparison of tau-squared estimators; the basis for preferring REML or Paule-Mandel over DerSimonian-Laird.}
+}
+
+@article{harbord2006modified,
+  author = {Harbord, Roger M. and Egger, Matthias and Sterne, Jonathan A. C.},
+  title = {A Modified Test for Small-Study Effects in Meta-Analyses of Controlled Trials with Binary Endpoints},
+  journal = {Statistics in Medicine},
+  year = {2006},
+  volume = {25},
+  number = {20},
+  pages = {3443--3457},
+  doi = {10.1002/sim.2380},
+  note = {Fixes the artefactual correlation that makes Egger's test unreliable for odds ratios.}
+}
+
+@article{peters2006comparison,
+  author = {Peters, Jaime L. and Sutton, Alex J. and Jones, David R. and Abrams, Keith R. and Rushton, Lesley},
+  title = {Comparison of Two Methods to Detect Publication Bias in Meta-Analysis},
+  journal = {JAMA},
+  year = {2006},
+  volume = {295},
+  number = {6},
+  pages = {676--680},
+  doi = {10.1001/jama.295.6.676},
+  note = {The Peters test, recommended alongside Harbord's for binary outcomes.}
+}
+
+@article{riley2011interpretation,
+  author = {Riley, Richard D. and Higgins, Julian P. T. and Deeks, Jonathan J.},
+  title = {Interpretation of Random Effects Meta-Analyses},
+  journal = {BMJ},
+  year = {2011},
+  volume = {342},
+  pages = {d549},
+  doi = {10.1136/bmj.d549},
+  note = {Why a random-effects pooled estimate needs a prediction interval to be interpretable.}
+}
+
+@article{isis4,
+  author = {{ISIS-4 Collaborative Group}},
+  title = {{ISIS-4}: A Randomised Factorial Trial Assessing Early Oral Captopril, Oral Mononitrate, and Intravenous Magnesium Sulphate in 58,050 Patients with Suspected Acute Myocardial Infarction},
+  journal = {The Lancet},
+  year = {1995},
+  volume = {345},
+  number = {8951},
+  pages = {669--685},
+  doi = {10.1016/S0140-6736(95)90865-X},
+  note = {The mega-trial that overturned the earlier magnesium meta-analyses.}
+}
+
+@book{harrer2021doing,
+  author = {Harrer, Mathias and Cuijpers, Pim and Furukawa, Toshi A. and Ebert, David D.},
+  title = {Doing Meta-Analysis with {R}: A Hands-On Guide},
+  publisher = {Chapman and Hall/CRC},
+  year = {2021},
+  doi = {10.1201/9781003107347},
+  note = {The best free, code-first companion for meta-analysis in R; available online.}
+}
+
+@book{egger2001systematic,
+  editor = {Egger, Matthias and Davey Smith, George and Altman, Douglas G.},
+  title = {Systematic Reviews in Health Care: Meta-Analysis in Context},
+  publisher = {BMJ Books},
+  address = {London},
+  edition = {2nd},
+  year = {2001},
+  doi = {10.1002/9780470693926},
+  note = {Table 18.2 is the source of the magnesium-in-myocardial-infarction dataset used in this chapter (shipped as dat.egger2001).}
+}
+
 % Ch00: Setup
 @book{wickham2017r4ds,
   author = {Wickham, Hadley and Grolemund, Garrett},

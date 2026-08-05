@@ -1,184 +1,93 @@
 # =============================================================================
-# Chapter 18 - Exercise 1: Basic Meta-Analysis in R
-# New anticoagulant vs warfarin for stroke prevention in atrial fibrillation
+# Chapter 18 - Exercise 1: Fixed versus random effects, and why it mattered
+# Intravenous magnesium after acute myocardial infarction (16 trials)
 # =============================================================================
-
+#
+# Libraries -------------------------------------------------------------------
+library(meta)     # metabin()
+library(metafor)  # the dat.egger2001 dataset
 library(tidyverse)
-library(meta)
-library(metafor)
 
-# --- Dataset ---
-af_trials <- data.frame(
-  study = c("TRAIL-1", "GUARD-AF", "SHIELD", "ORBIT-AF",
-            "VENTURE", "COMPASS-AF", "PIONEER-2", "ATLAS-AF"),
-  events_new = c(28, 45, 112, 67, 33, 89, 52, 41),
-  n_new      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100),
-  events_warf = c(42, 58, 148, 84, 29, 102, 61, 53),
-  n_warf      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100)
-)
+d <- dat.egger2001
 
-# --- Part (a): Compute RR and 95% CI for each trial ---
-# Using metafor's escalc function
-es <- escalc(measure = "RR",
-             ai = events_new, n1i = n_new,
-             ci = events_warf, n2i = n_warf,
-             data = af_trials)
-
-# Add human-readable columns
-es$RR <- exp(es$yi)
-es$ci_lo <- exp(es$yi - 1.96 * sqrt(es$vi))
-es$ci_hi <- exp(es$yi + 1.96 * sqrt(es$vi))
-
-cat("Individual trial risk ratios:\n")
-print(es[, c("study", "RR", "ci_lo", "ci_hi")], digits = 3)
-
-# By hand verification for first trial
-rr_trail1 <- (28/1200) / (42/1200)
-se_trail1 <- sqrt(1/28 - 1/1200 + 1/42 - 1/1200)
-cat("\nManual check (TRAIL-1):")
-cat("\n  RR =", round(rr_trail1, 3))
-cat("\n  95% CI: (", round(exp(log(rr_trail1) - 1.96*se_trail1), 3),
-    ",", round(exp(log(rr_trail1) + 1.96*se_trail1), 3), ")\n")
-
-# --- Part (b): Random-effects meta-analysis ---
-# Using the meta package
-m1 <- metabin(
-  event.e = events_new, n.e = n_new,
-  event.c = events_warf, n.c = n_warf,
-  studlab = study,
-  data = af_trials,
+# Note: in this dataset the control-arm event count is called `ci`, which reads
+# confusingly next to "confidence interval". It is deaths in the control arm.
+m <- metabin(
+  event.e = ai, n.e = n1i,     # deaths / patients on magnesium
+  event.c = ci, n.c = n2i,     # deaths / patients on control
+  studlab = paste(study, year),
+  data = d,
   sm = "RR",
-  method.tau = "REML",
+  method.tau = "REML",         # REML rather than DerSimonian-Laird
+  method.random.ci = "HK",     # Hartung-Knapp-Sidik-Jonkman interval
   prediction = TRUE
 )
 
-cat("\n--- Random-effects meta-analysis ---\n")
-print(summary(m1))
+rr <- function(x) exp(x)
 
-# Also using metafor for comparison
-res <- rma(yi, vi, data = es, method = "REML")
-cat("\n--- metafor results ---\n")
-print(summary(res))
+# -----------------------------------------------------------------------------
+# (a) Both models
+# -----------------------------------------------------------------------------
+cat("=== (a) Fixed-effect vs random-effects ===\n")
+cat(sprintf("Fixed effect   RR = %.3f (95%% CI %.3f to %.3f)\n",
+            rr(m$TE.common), rr(m$lower.common), rr(m$upper.common)))
+cat(sprintf("Random effects RR = %.3f (95%% CI %.3f to %.3f)\n",
+            rr(m$TE.random), rr(m$lower.random), rr(m$upper.random)))
+cat("\nSame 16 trials, same outcome. One model says magnesium does nothing;\n")
+cat("the other says it roughly halves mortality.\n")
 
-# --- Part (c): Forest plot ---
-forest(m1,
-       sortvar = TE,
-       label.left = "Favours new anticoagulant",
-       label.right = "Favours warfarin",
-       col.diamond = "steelblue",
-       col.square = "darkblue",
-       print.tau2 = TRUE,
-       print.I2 = TRUE,
-       print.pval.Q = TRUE,
-       prediction = TRUE,
-       main = "New Anticoagulant vs Warfarin: Stroke Prevention in AF")
+# -----------------------------------------------------------------------------
+# (b) Where did the weight go?
+# -----------------------------------------------------------------------------
+w <- tibble(
+  trial = m$studlab,
+  n = d$n1i + d$n2i,
+  fixed_pct = 100 * m$w.common / sum(m$w.common),
+  random_pct = 100 * m$w.random / sum(m$w.random)
+) |>
+  arrange(desc(n))
 
-cat("\n--- Does the pooled effect favour the new anticoagulant? ---\n")
-pooled_rr <- exp(m1$TE.random)
-cat("Pooled RR:", round(pooled_rr, 3), "\n")
-cat("95% CI: (", round(exp(m1$lower.random), 3), ",",
-    round(exp(m1$upper.random), 3), ")\n")
-if (pooled_rr < 1 & exp(m1$upper.random) < 1) {
-  cat("Yes, the pooled effect significantly favours the new anticoagulant.\n")
-} else if (pooled_rr < 1) {
-  cat("The point estimate favours the new anticoagulant, but the CI includes 1.\n")
-} else {
-  cat("The pooled effect does not favour the new anticoagulant.\n")
-}
+cat("\n=== (b) Percentage weight under each model ===\n")
+print(as.data.frame(w |> mutate(across(ends_with("pct"), \(x) round(x, 1)))),
+      row.names = FALSE)
 
-# --- Part (d): I-squared and prediction interval ---
-cat("\n--- Heterogeneity ---\n")
-cat("I-squared:", round(m1$I2, 1), "%\n")
-cat("tau-squared:", round(m1$tau2, 4), "\n")
-cat("Q statistic:", round(m1$Q, 2), ", df =", m1$df.Q,
-    ", p =", round(m1$pval.Q, 4), "\n")
+isis <- w |> filter(str_detect(trial, "ISIS"))
+cat(sprintf(
+  "\nISIS-4 has %.0f%% of all the patients but carries %.1f%% of the weight under\n",
+  100 * isis$n / sum(w$n), isis$fixed_pct
+))
+cat(sprintf("the fixed-effect model and only %.1f%% under random effects.\n",
+            isis$random_pct))
+cat("\nWhy: random-effects weights are 1 / (within-study variance + tau^2).\n")
+cat("ISIS-4's within-study variance is tiny, so adding tau^2 = ", round(m$tau2, 3),
+    "\nswamps it and its weight collapses. A small trial's variance is already\n")
+cat("large, so the same addition barely changes it. The effect is to level the\n")
+cat("weights -- which hands the analysis to the 13 small trials.\n")
 
-cat("\n--- Prediction interval ---\n")
-cat("Prediction interval for RR: (",
-    round(exp(m1$lower.predict), 3), ",",
-    round(exp(m1$upper.predict), 3), ")\n")
+# -----------------------------------------------------------------------------
+# (c) Heterogeneity: three statistics, three different questions
+# -----------------------------------------------------------------------------
+cat("\n=== (c) Heterogeneity ===\n")
+cat(sprintf("tau^2 = %.3f  (tau = %.3f on the log-RR scale)\n", m$tau2, sqrt(m$tau2)))
+cat(sprintf("I^2   = %.1f%%   Q test p = %.4f\n", 100 * m$I2, m$pval.Q))
+cat(sprintf("Prediction interval: %.3f to %.3f\n",
+            rr(m$lower.predict), rr(m$upper.predict)))
+cat("\nThe PREDICTION INTERVAL is the one that answers 'how much does the effect\n")
+cat("vary between settings'. I^2 is a ratio -- the share of the observed scatter\n")
+cat("that is real rather than sampling noise -- and would rise if you simply ran\n")
+cat("the same trials with more patients each. Note that the prediction interval\n")
+cat("INCLUDES 1, while the confidence interval does not.\n")
 
-# Interpretation
-if (m1$I2 < 25) {
-  cat("I-squared suggests LOW heterogeneity.\n")
-} else if (m1$I2 < 50) {
-  cat("I-squared suggests MODERATE heterogeneity.\n")
-} else if (m1$I2 < 75) {
-  cat("I-squared suggests SUBSTANTIAL heterogeneity.\n")
-} else {
-  cat("I-squared suggests CONSIDERABLE heterogeneity.\n")
-}
-
-cat("\nThe prediction interval tells us the range within which the true\n")
-cat("effect in a future study is expected to fall. If it crosses 1,\n")
-cat("some settings might see no benefit from the new anticoagulant.\n")
-
-# --- Part (e): Funnel plot and Egger's test ---
-funnel(m1,
-       xlab = "Risk Ratio (log scale)",
-       studlab = TRUE,
-       col = "steelblue",
-       pch = 16,
-       main = "Funnel Plot")
-
-cat("\n--- Egger's test for funnel plot asymmetry ---\n")
-# metabias() REFUSES to run below k.min (default 10) studies, and in that case
-# returns an object with no p-value at all -- so `egger$p.value` is NULL and
-# `if (egger$p.value < 0.05)` errors with "argument is of length zero".
-# Guard on it rather than assume a p-value exists. This is not a nuisance: the
-# refusal IS the finding, because the test is uninformative on 8 studies.
-egger <- metabias(m1, method.bias = "Egger")
-print(egger)
-
-if (is.null(egger$p.value)) {
-  cat("\nEgger's test was NOT performed: with only", length(af_trials$study),
-      "studies it is\n")
-  cat("below the recommended minimum of 10, where the test has almost no power\n")
-  cat("and its false-positive rate is unreliable. Report that you could not\n")
-  cat("assess funnel-plot asymmetry -- do NOT report a non-significant test as\n")
-  cat("evidence that publication bias is absent.\n")
-} else if (egger$p.value < 0.05) {
-  cat("\nEgger's test is significant (p =", signif(egger$p.value, 3),
-      "), suggesting potential\n")
-  cat("publication bias or small-study effects.\n")
-} else {
-  cat("\nEgger's test is not significant (p =", signif(egger$p.value, 3),
-      "), so there is no strong\n")
-  cat("evidence of publication bias -- but absence of evidence is not evidence\n")
-  cat("of absence, especially with few studies.\n")
-}
-
-# Trim-and-fill as additional check
-tf <- trimfill(m1)
-cat("\n--- Trim-and-fill ---\n")
-cat("Imputed missing studies:", tf$k0, "\n")
-cat("Adjusted pooled RR:", round(exp(tf$TE.random), 3), "\n")
-
-# --- Part (f): Leave-one-out sensitivity analysis ---
-cat("\n--- Leave-one-out sensitivity analysis ---\n")
-l1o <- leave1out(res)
-print(l1o)
-
-# Check if removing any single study changes the conclusion
-cat("\nIs the result robust to removing any single study?\n")
-all_sig <- all(exp(l1o$ci.lb) < 1 | exp(l1o$ci.ub) > 1)
-# Check if all leave-one-out CIs exclude 1 (if pooled is significant)
-if (exp(res$ci.ub) < 1) {
-  robust <- all(exp(l1o$ci.ub) < 1)
-} else {
-  robust <- TRUE
-}
-
-if (robust) {
-  cat("Yes - no single study removal changes the direction or significance.\n")
-} else {
-  cat("No - removing at least one study changes the conclusion.\n")
-  cat("The result may be driven by specific influential studies.\n")
-}
-
-# Influence diagnostics
-inf <- influence(res)
-# metafor's plot.infl.rma.uni() sets `main` for each of its panels itself, so
-# passing main = here fails with "formal argument matched by multiple actual
-# arguments". Call it bare.
-plot(inf)
+# -----------------------------------------------------------------------------
+# (d) What you would tell a guideline committee
+# -----------------------------------------------------------------------------
+cat("\n=== (d) Two one-sentence summaries ===\n")
+cat("(i)  Fixed effect only: \"Pooling 62,607 patients across 16 randomised\n")
+cat("     trials, intravenous magnesium had no effect on mortality after\n")
+cat("     myocardial infarction (RR 1.01, 95% CI 0.95 to 1.06).\"\n\n")
+cat("(ii) Random effects only: \"Pooling 16 randomised trials, intravenous\n")
+cat("     magnesium reduced mortality after myocardial infarction by almost\n")
+cat("     half (RR 0.51, 95% CI 0.36 to 0.74).\"\n\n")
+cat("Both sentences are defensible from the same data, which is exactly why you\n")
+cat("must report both models when they disagree, and why the prediction interval\n")
+cat("and the funnel plot are not optional extras.\n")

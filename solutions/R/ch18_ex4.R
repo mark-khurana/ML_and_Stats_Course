@@ -1,193 +1,94 @@
 # =============================================================================
-# Chapter 18 - Exercise 4: Critical Appraisal of a Meta-Analysis (Conceptual)
-# 12 trials of new surgical technique vs standard care for knee OA
+# Chapter 18 - Exercise 4: Critical appraisal of a published meta-analysis
 # =============================================================================
+#
+# This is a conceptual exercise: the answer depends on the paper you chose. What
+# follows is (1) a reusable checklist with the reasoning behind each item, and
+# (2) a worked appraisal of the magnesium literature, which is the one paper we
+# can all read the same way.
+#
+# Libraries -------------------------------------------------------------------
+library(meta)
+library(metafor)
 
-# This is a conceptual exercise. Answers are provided as detailed comments.
+# -----------------------------------------------------------------------------
+# The checklist, and why each item is on it
+# -----------------------------------------------------------------------------
+# (a) HOW MANY STUDIES, AND HOW BIG?
+#     Compute the largest study's share of the total sample. If one trial holds
+#     most of the patients, the fixed/random choice will dominate the answer and
+#     the paper must justify it. If every trial is small, ask what is missing.
+#
+# (b) WHICH MODEL, AND ARE BOTH REPORTED?
+#     Random effects is the usual default. The question is whether the paper
+#     reports the fixed-effect result too. If it does not and one trial is much
+#     larger than the rest, you cannot tell whether the choice mattered -- and it
+#     is exactly then that it matters most.
+#
+# (c) IS tau^2 OR A PREDICTION INTERVAL REPORTED, OR ONLY I^2?
+#     I^2 is the PROPORTION of observed scatter that is real rather than sampling
+#     noise. It does not tell you how much the effect varies, and it rises if you
+#     simply run the same trials with more patients each. If only I^2 is given,
+#     you cannot answer "would this work in my setting?" at all.
+#
+# (d) WAS ASYMMETRY ASSESSED, AND LEGITIMATELY?
+#     Needs k >= 10. Below that the tests have too little power and Cochrane
+#     advises against them; "we could not assess it" is the correct report, not
+#     "the test was non-significant". And check the test suits the effect
+#     measure: Egger's test is not appropriate for odds ratios or standardised
+#     mean differences (use Harbord or Peters).
+#
+# (e) WOULD YOU CHANGE PRACTICE?
+#     Force yourself to name the condition. "I would change if the prediction
+#     interval excluded no effect and the large trials agreed with the small
+#     ones" is a real answer; "the result was significant" is not.
 
-# Given information:
-# - Pooled SMD for pain: -0.62 (95% CI: -0.89 to -0.35), p < 0.001
-# - I^2 = 78%, tau^2 = 0.15, Q test p < 0.001
-# - Prediction interval: -1.42 to 0.18
-# - Egger's test: p = 0.03
-# - 8 of 12 trials were single-centre with fewer than 100 participants
+# -----------------------------------------------------------------------------
+# A worked appraisal: the magnesium literature
+# -----------------------------------------------------------------------------
+d <- dat.egger2001
+m <- metabin(event.e = ai, n.e = n1i, event.c = ci, n.c = n2i,
+             studlab = paste(study, year), data = d, sm = "RR",
+             method.tau = "REML", method.random.ci = "HK", prediction = TRUE)
 
-# --- Part (a): Interpret the pooled effect and clinical significance ---
-#
-# The pooled SMD of -0.62 favours the new surgical technique (negative =
-# lower pain scores = better outcome).
-#
-# Using Cohen's conventions for interpreting SMD:
-#   - Small effect: |d| = 0.2
-#   - Medium effect: |d| = 0.5
-#   - Large effect: |d| = 0.8
-#
-# An SMD of -0.62 is a MEDIUM-TO-LARGE effect size. The 95% CI (-0.89 to
-# -0.35) excludes zero, and the p-value is < 0.001, indicating statistical
-# significance.
-#
-# HOWEVER, statistical significance does not imply clinical significance.
-# To assess clinical importance, we should consider:
-# 1. The MINIMUM CLINICALLY IMPORTANT DIFFERENCE (MCID) for the pain
-#    outcome. For common knee OA pain scales, MCID is typically SMD ~0.3-0.5.
-#    The point estimate exceeds this, but the CI includes values near 0.35.
-# 2. The ABSOLUTE DIFFERENCE on the original scale would be more
-#    interpretable (e.g., "5 points on a 0-100 VAS scale").
-# 3. Whether the pain reduction justifies the RISKS AND COSTS of a new
-#    surgical procedure (risk-benefit analysis).
+n_tot <- d$n1i + d$n2i
+cat("=== (a) Size and spread ===\n")
+cat(sprintf("k = %d trials, %s patients in total\n", m$k, format(sum(n_tot), big.mark = ",")))
+cat(sprintf("smallest %d, largest %s (%.0f%% of all patients)\n",
+            min(n_tot), format(max(n_tot), big.mark = ","),
+            100 * max(n_tot) / sum(n_tot)))
+cat("  -> one trial holds most of the evidence, so the model choice is decisive.\n")
 
-# --- Part (b): Prediction interval vs confidence interval ---
-#
-# The CONFIDENCE INTERVAL (-0.89 to -0.35) tells us about the AVERAGE
-# true effect across all settings. It says: "We are 95% confident that
-# the mean true effect lies between -0.89 and -0.35."
-#
-# The PREDICTION INTERVAL (-1.42 to 0.18) tells us where the true effect
-# of a FUTURE STUDY (in a new setting) is likely to fall. It incorporates
-# BOTH sampling uncertainty AND between-study heterogeneity.
-#
-# Key insight: The prediction interval CROSSES ZERO (includes 0.18).
-# This means:
-# - While the average effect is beneficial, in some settings the new
-#   technique might provide NO BENEFIT or even be slightly harmful.
-# - A new centre implementing this technique cannot be confident of
-#   seeing a benefit.
-# - The prediction interval is the more honest representation of
-#   uncertainty for clinical decision-making.
-#
-# This discrepancy (significant CI but prediction interval crossing null)
-# is common when I^2 is high and highlights why reporting only the pooled
-# CI can be misleading.
+cat("\n=== (b) Model choice ===\n")
+cat(sprintf("fixed effect  RR = %.3f (95%% CI %.3f to %.3f)\n",
+            exp(m$TE.common), exp(m$lower.common), exp(m$upper.common)))
+cat(sprintf("random effects RR = %.3f (95%% CI %.3f to %.3f)\n",
+            exp(m$TE.random), exp(m$lower.random), exp(m$upper.random)))
+cat("  -> the two models give opposite conclusions. Reporting only one would be\n")
+cat("     indefensible here.\n")
 
-# --- Part (c): Implications of I^2 = 78% ---
-#
-# I^2 = 78% means that 78% of the observed variability in effect sizes
-# is due to TRUE BETWEEN-STUDY HETEROGENEITY rather than chance.
-# This is classified as CONSIDERABLE heterogeneity (>75%).
-#
-# Implications:
-# 1. The assumption of a single common effect is clearly violated.
-# 2. The RANDOM-EFFECTS model is appropriate (and was used), but the
-#    pooled estimate should be interpreted as an AVERAGE across heterogeneous
-#    true effects, not as a single definitive answer.
-# 3. The heterogeneity is statistically significant (Q test p < 0.001),
-#    confirming this is not due to sampling variation.
-# 4. INVESTIGATING SOURCES of heterogeneity is essential:
-#    - Subgroup analysis by study characteristics (e.g., surgical
-#      technique variation, patient severity, follow-up duration)
-#    - Meta-regression to model effect modifiers
-#    - Sensitivity analysis excluding outlier or high-risk-of-bias studies
-# 5. The random-effects model gives MORE WEIGHT TO SMALL STUDIES,
-#    which in this case (8 of 12 are small) means the pooled estimate
-#    is heavily influenced by potentially biased small studies.
+cat("\n=== (c) Heterogeneity ===\n")
+cat(sprintf("tau^2 = %.3f | I^2 = %.1f%% | prediction interval %.3f to %.3f\n",
+            m$tau2, 100 * m$I2, exp(m$lower.predict), exp(m$upper.predict)))
+cat("  -> the prediction interval INCLUDES 1 even though the confidence interval\n")
+cat("     does not, so a new setting could plausibly see no benefit.\n")
 
-# --- Part (d): Concerns about Egger's test and small trials ---
-#
-# Egger's test is significant (p = 0.03), suggesting FUNNEL PLOT ASYMMETRY.
-# Combined with the fact that 8 of 12 trials are small single-centre
-# studies, this raises several concerns:
-#
-# 1. PUBLICATION BIAS: Small trials showing no benefit may not have been
-#    published. The available evidence may overestimate the true effect.
-#    This is the most common interpretation of funnel plot asymmetry.
-#
-# 2. SMALL-STUDY EFFECTS: Small studies may have different effect sizes
-#    for legitimate reasons:
-#    - More selected patient populations (more severe cases)
-#    - More enthusiastic, expert surgeons (performance bias)
-#    - Less rigorous outcome assessment (detection bias)
-#    - Higher risk of bias in general
-#
-# 3. SINGLE-CENTRE BIAS: Single-centre trials often report larger effects
-#    than multicentre trials because of:
-#    - Surgeon expertise (learning curve effects)
-#    - Patient selection
-#    - Lack of external validity
-#    - Potential unblinding or outcome assessment bias
-#
-# 4. The combination of significant Egger's test + predominantly small
-#    single-centre trials is a RED FLAG. The pooled effect may be
-#    substantially overestimated.
+cat("\n=== (d) Asymmetry ===\n")
+cat(sprintf("k = %d, so testing is legitimate (threshold is 10)\n", m$k))
+for (test in c("Egger", "Harbord", "Peters")) {
+  r <- metabias(m, method.bias = test)
+  cat(sprintf("  %-8s p = %.4f%s\n", test, r$p.value,
+              if (test == "Egger") "   <- not the right test for a ratio measure" else ""))
+}
+cat("  -> strong evidence of small-study effects on all three tests.\n")
 
-# --- Part (e): Additional analyses wanted ---
-#
-# 1. TRIM-AND-FILL ANALYSIS: To estimate the adjusted pooled effect after
-#    accounting for potentially missing studies.
-#
-# 2. RISK OF BIAS ASSESSMENT: Using Cochrane Risk of Bias tool (RoB 2) for
-#    each trial. Present a risk of bias summary plot.
-#
-# 3. SENSITIVITY ANALYSIS RESTRICTED TO LARGER TRIALS: Re-run the meta-
-#    analysis using only the 4 larger/multicentre trials to see if the
-#    effect persists.
-#
-# 4. SENSITIVITY ANALYSIS BY RISK OF BIAS: Exclude high-risk-of-bias
-#    studies and re-estimate.
-#
-# 5. LEAVE-ONE-OUT ANALYSIS: Check if any single study is driving the
-#    result.
-#
-# 6. SUBGROUP ANALYSIS by:
-#    - Study size (small vs large)
-#    - Single-centre vs multicentre
-#    - Blinding status
-#    - Follow-up duration
-#    - OA severity at baseline
-#
-# 7. META-REGRESSION: Examine whether study-level characteristics
-#    (sample size, year, risk of bias score) moderate the effect.
-#
-# 8. FUNCTIONAL OUTCOMES: Pain is subjective and susceptible to placebo
-#    effects (especially in surgical trials). Objective outcomes (e.g.,
-#    range of motion, need for total knee replacement) would be more
-#    convincing.
-#
-# 9. SHAM SURGERY COMPARISON: Were any trials sham-controlled? Without
-#    sham surgery, the "placebo effect of surgery" cannot be distinguished
-#    from a true treatment effect.
-
-# --- Part (f): Would you change clinical practice? ---
-#
-# NO, I would NOT change clinical practice based on this meta-analysis
-# alone. The reasons are:
-#
-# 1. HIGH HETEROGENEITY (I^2 = 78%): The treatment effect is highly
-#    variable across settings. Some settings may see no benefit.
-#
-# 2. PREDICTION INTERVAL CROSSES NULL: A new centre cannot be confident
-#    of achieving benefit.
-#
-# 3. EVIDENCE OF PUBLICATION BIAS: The significant Egger's test and
-#    predominance of small positive studies suggest the true effect may
-#    be substantially smaller than the pooled estimate.
-#
-# 4. MOSTLY SMALL SINGLE-CENTRE TRIALS: The evidence base lacks large,
-#    multicentre, adequately blinded trials that demonstrate external
-#    validity and generalisability.
-#
-# 5. SURGICAL INTERVENTION: Given the invasiveness, costs, and risks
-#    of surgery, a higher evidence bar is appropriate. One would want
-#    at least one large, multicentre, preferably sham-controlled RCT
-#    showing clinically meaningful benefit.
-#
-# 6. NO SHAM CONTROL: Surgical procedures are known to have strong
-#    placebo effects (cf. Moseley et al., 2002 on arthroscopic surgery
-#    for knee OA). Without sham-controlled trials, the observed benefit
-#    could be largely or entirely due to placebo.
-#
-# RECOMMENDED NEXT STEPS:
-# - Commission a large, multicentre, sham-controlled RCT
-# - Include objective outcomes alongside patient-reported pain
-# - Longer follow-up (surgical effects may wane over time)
-# - Standardise the surgical technique across centres
-# - Register the protocol prospectively
-
-cat("Exercise 4 is a conceptual exercise.\n")
-cat("All answers are provided as detailed comments in this script.\n")
-cat("Review the comments for:\n")
-cat("  (a) Interpretation of pooled SMD and clinical significance\n")
-cat("  (b) Prediction interval vs confidence interval\n")
-cat("  (c) Implications of I^2 = 78%\n")
-cat("  (d) Concerns about Egger's test and small trials\n")
-cat("  (e) Additional analyses wanted\n")
-cat("  (f) Whether to change clinical practice\n")
+cat("\n=== (e) Verdict ===\n")
+cat("No. Three separate signals -- a fixed/random reversal, a prediction interval\n")
+cat("crossing 1, and a markedly asymmetric funnel -- all say the same thing: the\n")
+cat("small trials disagree with the large one, and the pooled benefit is an\n")
+cat("artefact of giving the small trials more weight. What would change my mind:\n")
+cat("a further large trial agreeing with the small ones, or a mechanism for why\n")
+cat("effects should genuinely be larger in the settings the small trials studied.\n")
+cat("\nHistorically the answer was settled by ISIS-4 (58,050 patients, RR 1.06):\n")
+cat("no benefit. The appraisal above would have reached the right answer without\n")
+cat("waiting for it.\n")

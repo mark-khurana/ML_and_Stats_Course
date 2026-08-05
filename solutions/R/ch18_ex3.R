@@ -1,188 +1,105 @@
 # =============================================================================
-# Chapter 18 - Exercise 3: Subgroup Analysis and Meta-Regression in R
+# Chapter 18 - Exercise 3: Detecting the problem before the mega-trial
+# What the magnesium evidence looked like in 1993, before ISIS-4 reported
 # =============================================================================
+#
+# Libraries -------------------------------------------------------------------
+library(meta)     # metabin(), funnel(), metabias()
+library(metafor)  # the dat.egger2001 dataset
 
-library(tidyverse)
-library(meta)
-library(metafor)
+d <- dat.egger2001
+pre <- subset(d, study != "ISIS-4")   # the 15 trials available before 1995
 
-# --- Dataset ---
-af_trials <- data.frame(
-  study = c("TRAIL-1", "GUARD-AF", "SHIELD", "ORBIT-AF",
-            "VENTURE", "COMPASS-AF", "PIONEER-2", "ATLAS-AF"),
-  events_new  = c(28, 45, 112, 67, 33, 89, 52, 41),
-  n_new       = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100),
-  events_warf = c(42, 58, 148, 84, 29, 102, 61, 53),
-  n_warf      = c(1200, 2500, 5400, 3100, 1800, 4200, 2800, 2100),
-  region      = c("Europe", "North America", "Europe", "Asia",
-                   "North America", "Europe", "Asia", "North America"),
-  mean_age    = c(72, 68, 74, 65, 70, 71, 63, 69),
-  pct_female  = c(38, 42, 35, 48, 40, 37, 52, 44)
-)
+cat("Trials available pre-ISIS-4:", nrow(pre),
+    "| total patients:", sum(pre$n1i + pre$n2i), "\n")
+cat("Largest of them:", pre$study[which.max(pre$n1i + pre$n2i)],
+    "with", max(pre$n1i + pre$n2i), "patients\n\n")
 
-# Compute effect sizes using metafor
-es <- escalc(measure = "RR",
-             ai = events_new, n1i = n_new,
-             ci = events_warf, n2i = n_warf,
-             data = af_trials)
-
-# Base meta-analysis
-m1 <- metabin(
-  event.e = events_new, n.e = n_new,
-  event.c = events_warf, n.c = n_warf,
-  studlab = study, data = af_trials,
-  sm = "RR", method.tau = "REML"
-)
-
-# --- Part (a): Subgroup analysis by region ---
-cat("--- Part (a): Subgroup analysis by region ---\n\n")
-
-# Using meta package
-m_sub <- update(m1, subgroup = af_trials$region)
-cat("Subgroup analysis results:\n")
-print(summary(m_sub))
-
-# Forest plot by subgroup
-forest(m_sub,
-       sortvar = TE,
-       label.left = "Favours new anticoagulant",
-       label.right = "Favours warfarin",
-       col.diamond = "steelblue",
-       print.tau2 = TRUE,
-       print.I2 = TRUE,
-       print.subgroup.name = TRUE,
-       main = "Subgroup Analysis by Region")
-
-# Using metafor for the test of subgroup differences
-res_sub <- rma(yi, vi, mods = ~ region, data = es, method = "REML")
-cat("\nTest for subgroup differences (metafor):\n")
-print(summary(res_sub))
-
-cat("\nDo treatment effects differ by region?\n")
-cat("Test for moderation: QM =", round(res_sub$QM, 2),
-    ", df =", res_sub$m, ", p =", round(res_sub$QMp, 4), "\n")
-if (res_sub$QMp < 0.05) {
-  cat("Yes, there is a statistically significant difference between regions.\n")
-} else {
-  cat("No, there is no statistically significant difference between regions.\n")
-  cat("However, with only", nrow(es), "studies split across",
-      length(unique(es$region)), "regions,\n")
-  cat("statistical power for detecting subgroup differences is limited.\n")
+fit <- function(data) {
+  metabin(event.e = ai, n.e = n1i, event.c = ci, n.c = n2i,
+          studlab = paste(study, year), data = data, sm = "RR",
+          method.tau = "REML", method.random.ci = "HK", prediction = TRUE)
 }
+m_pre <- fit(pre)
+m_all <- fit(d)
 
-# --- Part (b): Meta-regression with mean age ---
-cat("\n--- Part (b): Meta-regression with mean age ---\n\n")
+# -----------------------------------------------------------------------------
+# (a) What you would have concluded in 1993
+# -----------------------------------------------------------------------------
+cat("=== (a) The 15 trials, random effects ===\n")
+cat(sprintf("RR = %.3f (95%% CI %.3f to %.3f)\n", exp(m_pre$TE.random),
+            exp(m_pre$lower.random), exp(m_pre$upper.random)))
+cat(sprintf("tau^2 = %.3f | I^2 = %.1f%%\n", m_pre$tau2, 100 * m_pre$I2))
+cat(sprintf("Prediction interval: %.3f to %.3f\n",
+            exp(m_pre$lower.predict), exp(m_pre$upper.predict)))
+cat(sprintf("Fixed effect for comparison: RR = %.3f\n", exp(m_pre$TE.common)))
+cat("\nOn this evidence you would have concluded that intravenous magnesium\n")
+cat("roughly halves mortality after myocardial infarction, and the fixed and\n")
+cat("random models AGREE, because without ISIS-4 there is no dominant large\n")
+cat("trial to disagree with the small ones. That agreement is falsely reassuring.\n")
+cat(sprintf("\nFor contrast, adding ISIS-4 later moves the fixed-effect estimate from\n"))
+cat(sprintf("%.3f to %.3f.\n", exp(m_pre$TE.common), exp(m_all$TE.common)))
 
-res_age <- rma(yi, vi, mods = ~ mean_age, data = es, method = "REML")
-print(summary(res_age))
+# -----------------------------------------------------------------------------
+# (b) The funnel plot on the 15 trials
+# -----------------------------------------------------------------------------
+funnel(m_pre, xlab = "Risk ratio (log scale)",
+       contour = c(0.9, 0.95, 0.99),
+       col.contour = c("grey90", "grey80", "grey70"))
+title(main = "Magnesium trials available before ISIS-4 (k = 15)")
+legend("topright", c("p > 0.10", "p < 0.10", "p < 0.05"),
+       fill = c("grey90", "grey80", "grey70"), bty = "n", cex = 0.8)
 
-cat("\nInterpretation:\n")
-cat("Coefficient for mean_age:", round(coef(res_age)["mean_age"], 4), "\n")
-cat("p-value:", round(res_age$pval[2], 4), "\n")
-cat("R^2 (proportion of heterogeneity explained):",
-    round(max(0, res_age$R2), 1), "%\n")
+cat("\n=== (b) Funnel plot ===\n")
+cat("Yes -- the asymmetry is clearly visible without the mega-trial. The lower\n")
+cat("LEFT of the funnel (small trials showing benefit) is populated; the lower\n")
+cat("RIGHT (small trials showing no benefit) is close to empty. The warning sign\n")
+cat("was available years before ISIS-4 reported.\n")
 
-if (res_age$pval[2] < 0.05) {
-  cat("There IS a statistically significant relationship between mean age\n")
-  cat("and treatment effect. Each 1-year increase in mean age is associated\n")
-  cat("with a", round(coef(res_age)["mean_age"], 4),
-      "change in log RR.\n")
-} else {
-  cat("There is NO statistically significant relationship between mean age\n")
-  cat("and treatment effect (p =", round(res_age$pval[2], 3), ").\n")
+# -----------------------------------------------------------------------------
+# (c) The three asymmetry tests
+# -----------------------------------------------------------------------------
+cat("\n=== (c) Tests for funnel plot asymmetry (k = 15, so testing is allowed) ===\n")
+for (test in c("Egger", "Harbord", "Peters")) {
+  r <- metabias(m_pre, method.bias = test)
+  if (is.null(r$p.value)) {
+    cat(sprintf("  %-8s not performed (too few studies)\n", test))
+  } else {
+    cat(sprintf("  %-8s statistic %7.3f   p = %.4f\n", test, r$statistic, r$p.value))
+  }
 }
+harbord_p <- metabias(m_pre, method.bias = "Harbord")$p.value
 
-# --- Part (c): Meta-regression with percentage female ---
-cat("\n--- Part (c): Meta-regression with percentage female ---\n\n")
+cat("\nWhich to trust: the outcome is BINARY (death), so prefer HARBORD or PETERS.\n")
+cat("Egger's original test regresses the effect estimate on its standard error,\n")
+cat("and for odds ratios and standardised mean differences those two quantities\n")
+cat("are mathematically linked, which manufactures asymmetry and p-values that\n")
+cat("are too small. Harbord's test fixes that correlation; Peters' test is the\n")
+cat("most conservative of the three. Here all three agree, which is the easy case.\n")
 
-res_fem <- rma(yi, vi, mods = ~ pct_female, data = es, method = "REML")
-print(summary(res_fem))
+# -----------------------------------------------------------------------------
+# (d) The limitations paragraph you should have written in 1993
+# -----------------------------------------------------------------------------
+cat("\n=== (d) A two-sentence limitations paragraph ===\n")
+cat(sprintf(
+'"Fifteen trials totalling only %s patients (the largest randomising %s) suggest
+ that intravenous magnesium substantially reduces mortality after myocardial
+ infarction (RR %.2f, 95%% CI %.2f to %.2f); however the funnel plot is markedly
+ asymmetric (Harbord p = %.3f) and the effect size falls as trial size rises, so
+ we cannot exclude that small trials with null results are missing from the
+ literature. The prediction interval spans %.2f to %.2f and therefore includes no
+ effect, so a large pragmatic trial is needed before magnesium is adopted into
+ routine practice."\n',
+  format(sum(pre$n1i + pre$n2i), big.mark = ","),
+  format(max(pre$n1i + pre$n2i), big.mark = ","),
+  exp(m_pre$TE.random), exp(m_pre$lower.random), exp(m_pre$upper.random),
+  harbord_p, exp(m_pre$lower.predict), exp(m_pre$upper.predict)))
 
-cat("\nInterpretation:\n")
-cat("Coefficient for pct_female:", round(coef(res_fem)["pct_female"], 4), "\n")
-cat("p-value:", round(res_fem$pval[2], 4), "\n")
-cat("R^2:", round(max(0, res_fem$R2), 1), "%\n")
-
-cat("\n*** ECOLOGICAL FALLACY WARNING ***\n")
-cat("Even if there is an association between trial-level percentage female\n")
-cat("and the treatment effect, this does NOT prove that individual women\n")
-cat("respond differently to the treatment than individual men.\n")
-cat("Trials with higher percentage female may differ in other ways:\n")
-cat("  - Geographic region (cultural differences in enrolment)\n")
-cat("  - Mean age (women often present with AF at older ages)\n")
-cat("  - Comorbidity profiles\n")
-cat("  - Trial methodology\n")
-cat("Only an individual participant data (IPD) meta-analysis with a\n")
-cat("treatment-by-sex interaction term can properly assess whether\n")
-cat("sex modifies the treatment effect.\n")
-
-# --- Part (d): Bubble plot of meta-regression on mean age ---
-cat("\n--- Part (d): Bubble plot ---\n")
-
-# Method 1: Using metafor's built-in bubble plot
-regplot(res_age,
-        xlab = "Mean Age (years)",
-        ylab = "Log Risk Ratio",
-        main = "Meta-Regression: Treatment Effect vs Mean Age",
-        ci = TRUE,
-        pi = TRUE,  # prediction interval
-        col = "steelblue",
-        bg = "lightblue",
-        las = 1)
-
-# Method 2: Using ggplot2 for more control
-es$w_re <- 1 / (es$vi + res_age$tau2)
-es$w_norm <- es$w_re / max(es$w_re)
-
-# Predicted line from meta-regression
-age_seq <- seq(min(es$mean_age) - 2, max(es$mean_age) + 2, length.out = 100)
-pred <- predict(res_age, newmods = age_seq)
-
-pred_df <- data.frame(
-  mean_age = age_seq,
-  pred = pred$pred,
-  ci_lo = pred$ci.lb,
-  ci_hi = pred$ci.ub,
-  pi_lo = pred$pi.lb,
-  pi_hi = pred$pi.ub
-)
-
-p_bubble <- ggplot() +
-  # Prediction interval
-  geom_ribbon(data = pred_df, aes(x = mean_age, ymin = pi_lo, ymax = pi_hi),
-              fill = "grey90", alpha = 0.5) +
-  # Confidence interval for regression line
-  geom_ribbon(data = pred_df, aes(x = mean_age, ymin = ci_lo, ymax = ci_hi),
-              fill = "steelblue", alpha = 0.2) +
-  # Regression line
-  geom_line(data = pred_df, aes(x = mean_age, y = pred),
-            colour = "steelblue", linewidth = 1) +
-  # Study points (bubbles)
-  geom_point(data = es, aes(x = mean_age, y = yi, size = w_norm),
-             colour = "steelblue", alpha = 0.7) +
-  # Study labels
-  geom_text(data = es, aes(x = mean_age, y = yi, label = study),
-            size = 2.5, vjust = -1.5) +
-  # Reference line at null
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
-  # Aesthetics
-  scale_size_continuous(range = c(3, 10), guide = "none") +
-  labs(x = "Mean Age (years)",
-       y = "Log Risk Ratio",
-       title = "Bubble Plot: Meta-Regression of Treatment Effect on Mean Age",
-       subtitle = paste0("Slope = ", round(coef(res_age)["mean_age"], 4),
-                        ", p = ", round(res_age$pval[2], 3),
-                        "; bubble size proportional to study weight")) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(face = "bold", size = 12),
-    axis.title = element_text(face = "bold")
-  )
-
-print(p_bubble)
-
-ggsave("bubble_plot_age.png", p_bubble, width = 8, height = 6, dpi = 300)
-
-cat("\nBubble plot saved. Larger bubbles indicate more precise studies.\n")
-cat("The regression line shows the relationship between mean age\n")
-cat("and treatment effect, with shaded confidence and prediction intervals.\n")
+cat("\nThat trial was ISIS-4: 58,050 patients, RR 1.06, no benefit.\n")
+cat("\nOne last thing worth noticing about the 1993 evidence:\n")
+cat(sprintf("  I^2 was only %.1f%% -- 'low heterogeneity' by the conventional bands --\n",
+            100 * m_pre$I2))
+cat("  and the fixed and random models broadly agreed. Both of the reassurances\n")
+cat("  people usually look for were present. The two things that were NOT\n")
+cat("  reassuring were the prediction interval crossing 1 and the asymmetric\n")
+cat("  funnel, which is precisely why those deserve more attention than I^2.\n")
