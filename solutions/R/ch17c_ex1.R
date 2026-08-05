@@ -2,11 +2,17 @@
 # Chapter 17c, Exercise 1: Decompose a Known Mediation Effect
 # Simulate exposure -> mediator -> outcome and recover NDE, NIE, total, prop. med.
 # =============================================================================
-# NOTE: The chapter demonstrates this with CMAverse::cmest(). CMAverse is not
-# installed here, so we implement the regression-based / product-of-coefficients
-# estimator manually with base R lm(), which is exactly equivalent to CMAverse's
-# "rb" model for a continuous mediator and continuous outcome WITHOUT an
-# exposure-mediator interaction. A bootstrap gives the CI for the indirect effect.
+# We first implement the regression-based / product-of-coefficients estimator by
+# hand with base R lm(), so that every step is visible. For a continuous mediator
+# and continuous outcome with NO exposure-mediator interaction this is exactly
+# what the packages compute. A bootstrap gives the CI for the indirect effect.
+# Part (d) then cross-checks the answer against the regmedint package.
+#
+# Libraries -------------------------------------------------------------------
+# Base R only for parts (a)-(c). Part (d) is optional and needs:
+#   install.packages("regmedint")
+# (Note: install.packages("CMAverse") does NOT work -- that package is on GitHub
+#  only. See the chapter callout, or use remotes::install_github("BS1125/CMAverse").)
 
 set.seed(42)
 
@@ -87,7 +93,40 @@ cat(sprintf("Truth NIE = 0.75 lies inside CI: %s\n",
 # -----------------------------------------------------------------------------
 # (c) Clinician interpretation of the proportion mediated
 # -----------------------------------------------------------------------------
-# About 43% of the exposure's total effect on the outcome travels through the
-# mediator, so roughly two-fifths of the benefit could in principle be captured
-# by acting on the mediator alone, while the majority is a direct effect that a
-# mediator-targeting intervention would miss.
+cat("\n=== (c) One-sentence interpretation for a clinician ===\n")
+cat(sprintf(
+  "\"About %.0f%% of the treatment's total benefit travels through the mediator,\n",
+  100 * prop_hat
+))
+cat("so a cheaper intervention that moved the mediator by the same amount would\n")
+cat("capture roughly that share of the benefit -- but the majority of the effect\n")
+cat("works by some other route, and would be lost.\"\n")
+
+# -----------------------------------------------------------------------------
+# (d) OPTIONAL cross-check against regmedint
+# -----------------------------------------------------------------------------
+# Never trust a hand-rolled estimator you have not checked against a package.
+# regmedint is on CRAN, so this really does install and run.
+if (requireNamespace("regmedint", quietly = TRUE)) {
+  library(regmedint)
+  fit <- regmedint(
+    data = dat,
+    yvar = "outcome", avar = "exposure", mvar = "mediator",
+    cvar = NULL,
+    a0 = 0, a1 = 1, m_cde = 0, c_cond = NULL,
+    mreg = "linear", yreg = "linear",
+    interaction = FALSE, casecontrol = FALSE
+  )
+  # summary_myreg holds the mediation decomposition: rows cde, pnde, tnie,
+  # tnde, pnie, te, pm; columns est, se, Z, p, lower, upper.
+  decomp <- summary(fit)$summary_myreg
+  cat("\n=== (d) Cross-check with regmedint ===\n")
+  print(round(decomp[c("pnde", "tnie", "te", "pm"), c("est", "lower", "upper")], 4))
+  cat("\nCompare with the hand calculation above:\n")
+  cat(sprintf("  pnde (= NDE) %.4f | tnie (= NIE) %.4f | te %.4f | pm %.4f\n",
+              nde_hat, nie_hat, total_hat, prop_hat))
+  cat("They agree, as they must: with no exposure-mediator interaction, the\n")
+  cat("product-of-coefficients estimator IS the regression-based causal estimator.\n")
+} else {
+  cat("\n(d) Skipped: install.packages(\"regmedint\") to run the cross-check.\n")
+}

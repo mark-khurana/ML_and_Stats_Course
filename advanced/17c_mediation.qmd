@@ -109,13 +109,45 @@ We simulate the clinical story directly: a drug that lowers a continuous mediato
 
 ### R
 
-The modern, unified tool in R is **`CMAverse`**, which implements several causal mediation estimators, handles exposure-mediator interaction, and --- valuably --- includes the E-value sensitivity analysis built in.
+::: {.callout-important}
+## Install this one first: `regmedint` is on CRAN, `CMAverse` is not
+
+The two leading R packages for causal mediation install in completely different ways, and this trips up nearly everyone.
+
+**`regmedint`** is on CRAN, so the ordinary route works:
+
+```r
+install.packages("regmedint")
+```
+
+**`CMAverse`** has never been on CRAN. It lives on GitHub only, so `install.packages("CMAverse")` fails --- and it fails with a message that misleadingly suggests your R version is the problem:
+
+```
+> install.packages("CMAverse")
+Warning message:
+package 'CMAverse' is not available for this version of R
+```
+
+Your R version is fine. The package simply is not in the repository. Install it from GitHub instead:
+
+```r
+install.packages("remotes")                      # once
+remotes::install_github("BS1125/CMAverse")
+```
+
+If you use this book's `pixi` environment, `pixi run -e full post_install` already does both for you.
+
+Because of this, the worked example below uses **`regmedint`** as its primary tool: it is on CRAN, it implements the same regression-based estimator with exposure-mediator interaction, and it covers linear, logistic, Poisson, Cox, and accelerated-failure-time outcomes. `CMAverse` follows as the second example, for its built-in sensitivity analysis.
+:::
+
+#### Option 1: `regmedint` (on CRAN) {.unnumbered}
 
 ```{r}
-#| label: mediation-cmaverse
+#| label: mediation-regmedint
 #| eval: false
 
-library(CMAverse)   # unified causal mediation analysis + E-value
+# install.packages("regmedint")
+library(regmedint)   # regression-based causal mediation with EM interaction
 
 # --- Simulate exposure -> mediator -> outcome with a KNOWN decomposition ---
 set.seed(2024)
@@ -123,15 +155,80 @@ n <- 2000
 conf <- rnorm(n)                              # a measured confounder
 exposure <- rbinom(n, 1, plogis(0.2 * conf))  # drug, depends on confounder
 
-# Mediator (e.g. change in blood pressure): drug lowers it
+# Mediator (e.g. change in blood pressure): the drug moves it by 2.0
 mediator <- 2.0 * exposure + 0.5 * conf + rnorm(n)
 
-# Outcome: a DIRECT drug effect (0.8) PLUS an effect via the mediator (0.6)
+# Outcome: a DIRECT drug effect (0.8) PLUS an effect via the mediator (0.6),
+# so the indirect effect is 2.0 * 0.6 = 1.2 and the total effect is 2.0
 outcome <- 0.8 * exposure + 0.6 * mediator + 0.4 * conf + rnorm(n)
 
 dat <- data.frame(exposure, mediator, outcome, conf)
 
-# --- Estimate natural direct/indirect effects with the regression approach ---
+fit <- regmedint(
+  data = dat,
+  yvar = "outcome",                 # outcome
+  avar = "exposure",                # exposure
+  mvar = "mediator",                # mediator
+  cvar = "conf",                    # baseline confounders
+  a0 = 0, a1 = 1,                   # contrast: exposure 1 vs 0
+  m_cde = 0,                        # value to fix the mediator at, for the CDE
+  c_cond = mean(dat$conf),          # covariate values to report effects at
+  mreg = "linear",                  # mediator model
+  yreg = "linear",                  # outcome model
+  interaction = TRUE,               # allow exposure-mediator interaction
+  casecontrol = FALSE
+)
+
+summary(fit)
+```
+
+**What the code shows.** We build a cohort where the drug has *two* routes to the outcome: a direct effect (coefficient 0.8) and an indirect one through the mediator (the drug moves the mediator by 2.0, and each mediator unit moves the outcome by 0.6, so the indirect effect is $2.0 \times 0.6 = 1.2$ and the total is 2.0). `regmedint()` fits both the mediator model and the outcome model --- the latter including the exposure-mediator interaction, because `interaction = TRUE` --- and then reports the decomposition with delta-method standard errors.
+
+Running it recovers what we built in:
+
+| Row in the output | Meaning | Estimate | What we built |
+|---|---|---|---|
+| `pnde` | **Pure natural direct effect** --- the drug's effect with the mediator held where it would have sat *without* the drug | 0.72 (95% CI 0.58 to 0.87) | 0.8 |
+| `tnie` | **Total natural indirect effect** --- the effect of just the mediator change the drug causes | 1.29 (1.16 to 1.42) | 1.2 |
+| `te` | **Total effect** --- and note that it equals `pnde` + `tnie` | 2.01 (1.91 to 2.12) | 2.0 |
+| `pm` | **Proportion mediated** | 0.64 (0.57 to 0.71) | 0.60 |
+| `cde` | **Controlled direct effect** --- the drug's effect if we *forced* every patient's mediator to `m_cde = 0` | 0.72 (0.58 to 0.87) | --- |
+
+Read clinically: about 64% of the drug's benefit flows through its effect on blood pressure; the remaining third is a direct effect by some other mechanism. The confidence intervals contain the values we built in, which is the check that matters.
+
+::: {.callout-note}
+## Why the output has *four* direct/indirect effects, not two
+
+`regmedint` prints `pnde`, `tnde`, `pnie`, and `tnie`. The prefixes are "pure" and "total", and the distinction only exists when exposure and mediator interact.
+
+- **`pnde`** and **`tnie`** decompose the total effect one way: $\text{TE} = \text{pnde} + \text{tnie}$. Here the direct effect is evaluated with the mediator behaving as it would *without* exposure, and the interaction is bundled into the indirect part.
+- **`tnde`** and **`pnie`** decompose it the other way: $\text{TE} = \text{tnde} + \text{pnie}$, with the interaction bundled into the direct part.
+
+Both are valid; they just assign the interaction to different sides of the ledger. When there is no interaction, `pnde` = `tnde` and `pnie` = `tnie`, and the distinction vanishes. **Report which decomposition you used**, because the proportion mediated differs between them. When in doubt, the `pnde` / `tnie` pair is the conventional default and the one most papers mean by "natural direct and indirect effect".
+:::
+
+#### Option 2: `CMAverse` (GitHub only) {.unnumbered}
+
+`CMAverse` implements several causal mediation estimators behind one interface and --- its main advantage --- includes the E-value sensitivity analysis built in.
+
+```{r}
+#| label: mediation-cmaverse
+#| eval: false
+
+# NOT on CRAN. Install with:
+#   remotes::install_github("BS1125/CMAverse")
+library(CMAverse)   # unified causal mediation analysis + E-value
+
+# --- Same simulated cohort as above ---------------------------------------
+set.seed(2024)
+n <- 2000
+conf <- rnorm(n)
+exposure <- rbinom(n, 1, plogis(0.2 * conf))
+mediator <- 2.0 * exposure + 0.5 * conf + rnorm(n)
+outcome <- 0.8 * exposure + 0.6 * mediator + 0.4 * conf + rnorm(n)
+dat <- data.frame(exposure, mediator, outcome, conf)
+
+# --- Estimate natural direct/indirect effects, regression-based -----------
 res <- cmest(
   data = dat, model = "rb",            # rb = regression-based
   outcome = "outcome", exposure = "exposure",
@@ -143,13 +240,17 @@ res <- cmest(
 )
 summary(res)
 
-# --- Sensitivity analysis for unmeasured mediator-outcome confounding ---
+# --- Sensitivity analysis for unmeasured mediator-outcome confounding ----
 cmsens(object = res, sens = "uc")
 ```
 
-**What the code shows.** We build a cohort where the drug has *two* routes to the outcome: a direct effect (coefficient 0.8) and an indirect one through the mediator (the drug moves the mediator by 2.0, and each mediator unit moves the outcome by 0.6, so the indirect effect is roughly $2.0 \times 0.6 = 1.2$). `cmest()` with `model = "rb"` fits the regression-based estimator: a mediator model and an outcome model, the latter including the exposure-mediator interaction (`EMint = TRUE`). `summary(res)` prints the **natural direct effect** (should land near 0.8), the **natural indirect effect** (near 1.2), the **total effect** (near 2.0, their sum), and the **proportion mediated** (about 1.2/2.0 ~ 60%), each with a bootstrap confidence interval. Read it clinically as: "about 60% of the drug's benefit on the outcome flows through its effect on blood pressure; the remaining 40% is a direct effect by some other mechanism." The final `cmsens()` call performs the E-value-style sensitivity analysis, telling you how strong an *unmeasured* mediator-outcome confounder would have to be to explain away the indirect effect.
+**What the code shows.** `cmest()` with `model = "rb"` fits the same regression-based estimator as `regmedint`, so on this data the two packages agree to three decimal places: `pnde` 0.723 (regmedint: 0.724), `tnie` 1.290 (1.290), `te` 2.012 (2.014), proportion mediated 0.641 (0.641). That is a reassuring cross-check and worth doing once in real work --- if two independent implementations of the same estimator disagree, you have specified something differently in one of them.
 
-An alternative when you want a fast, closed-form regression estimator with explicit interaction handling is **`regmedint`** (the regression-based method of Valeri and VanderWeele), which supports linear, logistic, Poisson, Cox, and accelerated-failure-time outcome models --- useful when your outcome is a binary event or a survival time. The classic **`mediation`** package (Imai and colleagues) is also still widely used and well documented, though `CMAverse` and `regmedint` are the current first choices for causal effect definitions with interaction.
+`cmest()` also prints a fuller decomposition than `regmedint`: alongside the natural effects it reports `intref` and `intmed`, which split out the part of the effect attributable to the exposure-mediator *interaction* specifically. Here they are near zero with intervals spanning zero, which is correct --- we simulated no interaction.
+
+The `cmsens()` call is the reason to bother with the GitHub install. It performs the E-value sensitivity analysis for each effect in the decomposition, on the risk-ratio scale. For the indirect effect it returns an E-value of about **3.4** (and 3.1 for the confidence limit nearest the null), meaning an unmeasured mediator-outcome confounder would have to be associated with both the mediator and the outcome by a risk ratio of at least 3.4 to explain away the mechanism we found. That is a strong confounder --- so this particular result is reasonably robust.
+
+The classic **`mediation`** package (Imai and colleagues) is also on CRAN and still widely used and well documented, though `regmedint` and `CMAverse` are the current first choices when you need causal effect definitions that survive an exposure-mediator interaction.
 
 ### Python
 
@@ -215,7 +316,9 @@ The manual calculation above is the classic product-of-coefficients estimator an
 
 ## Sensitivity Analysis: the E-value for Mediation
 
-Because mediation leans on the strong no-unmeasured-confounding assumptions listed above --- especially no unmeasured *mediator-outcome* confounding, which is often the weakest link --- every mediation result should be accompanied by a sensitivity analysis. The **E-value**, which we met for total effects in the causal-inference chapter, has been extended by VanderWeele and colleagues to direct and indirect effects. It answers: *how strongly would an unmeasured confounder have to be associated with both the mediator and the outcome to fully explain away the indirect (or direct) effect we reported?* A large E-value means only an implausibly strong hidden confounder could erase the mechanism you found; an E-value near 1 means a mild, common confounder could. In `CMAverse` this comes free via `cmsens()`, as shown above; reporting it turns "the drug works through blood pressure" into a claim a sceptical reviewer can weigh.
+Because mediation leans on the strong no-unmeasured-confounding assumptions listed above --- especially no unmeasured *mediator-outcome* confounding, which is often the weakest link --- every mediation result should be accompanied by a sensitivity analysis. The **E-value**, which we met for total effects in the causal-inference chapter, has been extended by VanderWeele and colleagues to direct and indirect effects. It answers: *how strongly would an unmeasured confounder have to be associated with both the mediator and the outcome to fully explain away the indirect (or direct) effect we reported?* A large E-value means only an implausibly strong hidden confounder could erase the mechanism you found; an E-value near 1 means a mild, common confounder could. In `CMAverse` this comes free via `cmsens()`, as shown above (remembering that `CMAverse` installs from GitHub, not CRAN); reporting it turns "the drug works through blood pressure" into a claim a sceptical reviewer can weigh.
+
+If you would rather stay on CRAN, the `EValue` package computes the same quantity from a reported effect estimate and its confidence interval --- you supply the indirect effect on a ratio scale and read off the E-value, exactly as in @sec-causal-sensitivity. It is less convenient than `cmsens()`, which knows about your fitted model, but it does the job.
 
 ## Exercises
 
@@ -295,7 +398,7 @@ c) Suppose a mediator-outcome confounder is itself *caused by* exercise. Why doe
 
 Take your Exercise 1 result.
 
-a) Use `cmsens()` (R) or reason qualitatively (Python) about how strong an unmeasured mediator-outcome confounder would need to be to explain away the indirect effect.
+a) Work out how strong an unmeasured mediator-outcome confounder would need to be to explain away the indirect effect. Compute the E-value from the closed-form formula (which is what the packages report), and if you have `CMAverse` installed from GitHub, cross-check it with `cmsens(object, sens = "uc")`.
 b) If the E-value for the indirect effect were 1.3, how would you temper your conclusion about mechanism?
 
 
@@ -334,7 +437,7 @@ b) If the E-value for the indirect effect were 1.3, how would you temper your co
 - Mediation analysis opens the causal black box, decomposing a **total effect** into a **direct** part and an **indirect (mediated)** part to reveal *mechanism*.
 - The modern **causal** framework (NDE, NIE, CDE) superseded the **Baron and Kenny** recipe because it stays valid with exposure-mediator interaction and non-linear outcomes.
 - Identifying these effects requires **four** no-unmeasured-confounding assumptions --- notably about the mediator-outcome relationship --- so they are stronger than for a total effect.
-- In R, **`CMAverse`** is the unified first choice (interaction handling + built-in E-value); **`regmedint`** suits binary and survival outcomes; the classic **`mediation`** package remains useful.
+- In R, **`regmedint`** is the practical first choice: it is on CRAN, handles exposure-mediator interaction, and covers linear, logistic, Poisson, Cox, and AFT outcomes. **`CMAverse`** adds a built-in sensitivity analysis but installs from **GitHub, not CRAN** (`remotes::install_github("BS1125/CMAverse")` --- `install.packages()` will fail). The classic **`mediation`** package remains useful.
 - **Python's mediation tooling is limited**: the linear product-of-coefficients works, but for binary, survival, or interaction settings, prefer R --- we recommend this honestly rather than overstate the ecosystem.
 - Always pair a mediation estimate with a **sensitivity analysis** (E-value); the proportion mediated is a claim about mechanism that a sceptic must be able to weigh.
 :::
