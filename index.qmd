@@ -104,6 +104,53 @@ This course draws heavily on:
 
 Full references appear at the bottom of each chapter.
 
+## Suggest an improvement {#sec-feedback}
+
+This course is actively maintained, and the most useful feedback we get comes
+from people working through it. Please tell us if you find:
+
+- **code that does not run** when you copy it into your own session --- this is
+  the single most valuable thing you can report, and please paste the error;
+- an explanation that assumes something it never established, or jargon we
+  forgot to define;
+- a figure whose message is not clear from the figure itself;
+- a statistical claim you think is wrong, or a reference that does not support
+  what we say it does;
+- a method you expected to find and could not.
+
+Suggestions go to Mark directly, and nothing you send is published anywhere:
+
+::: {.callout-note appearance="minimal"}
+Write to **<span id="statml-contact">mark dot khurana at sund dot ku dot dk</span>**
+
+<noscript>Written out to keep the crawlers off it --- dot is a full stop, at is the @ sign.</noscript>
+:::
+
+```{=html}
+<script>
+// The address is assembled at run time and never appears in the page source, so
+// the ordinary email-harvesting crawlers find nothing to scrape. Readers with
+// JavaScript enabled get a normal clickable link; everyone else sees the
+// spelled-out version above.
+(function () {
+  var slot = document.getElementById("statml-contact");
+  if (!slot) return;
+  var user = ["mark", "khurana"].join(".");
+  var host = ["sund", "ku", "dk"].join(".");
+  var addr = user + String.fromCharCode(64) + host;
+  var link = document.createElement("a");
+  link.href = "mailto:" + addr +
+    "?subject=" + encodeURIComponent("statML feedback");
+  link.textContent = addr;
+  slot.replaceWith(link);
+})();
+</script>
+```
+
+If you would rather not email, the **Report an issue** link at the bottom of
+every chapter opens a GitHub issue instead --- but note that GitHub issues are
+public, so use email for anything you would rather keep private.
+
 ## Licence
 
 [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).

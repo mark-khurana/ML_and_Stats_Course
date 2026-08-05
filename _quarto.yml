@@ -34,6 +34,8 @@ book:
   page-footer:
     center: |
       **Cite this website as:** Khurana M & Scheidwasser N (2026). *Advanced Statistics and Machine Learning for Health Research.* <https://mlhealthcourse.github.io/>
+
+      Spotted an error or have an idea? [Suggest an improvement](/index.html#sec-feedback) --- we read everything.
   sidebar:
     collapse-level: 1
     style: floating
