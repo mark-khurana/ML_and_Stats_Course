@@ -395,6 +395,8 @@ cat("OOB prediction error:", round(rf_model$prediction.error, 3), "\n")
 #| label: rf-importance-r
 #| eval: true
 #| fig-cap: "Variable importance from the random forest model, measured by Gini impurity reduction."
+library(tidyverse)   # ggplot2 / dplyr / tibble
+
 # Variable importance
 importance_df <- tibble(
   Variable = names(rf_model$variable.importance),
@@ -833,6 +835,7 @@ Note how the data are handled: rather than carving off a single train/test split
 ```{r}
 #| label: comparison-r
 #| eval: true
+library(tidyverse)   # ggplot2 / dplyr / tibble
 library(tidymodels)
 
 set.seed(42)

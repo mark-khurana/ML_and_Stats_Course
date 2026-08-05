@@ -558,6 +558,8 @@ knitr::kable(
 #| warning: false
 #| message: false
 
+library(tidyverse)   # ggplot2 / dplyr / tibble
+
 # Extract coefficients at lambda.min for each method
 coef_ridge <- as.vector(coef(cv_ridge, s = "lambda.min"))[-1]
 coef_enet <- as.vector(coef(cv_enet, s = "lambda.min"))[-1]

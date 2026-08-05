@@ -723,6 +723,8 @@ A hospital performs a new minimally invasive cardiac procedure. In the first 15 
 #| fig-width: 8
 #| fig-height: 5
 
+library(tidyverse)   # ggplot2 / dplyr / tibble
+
 # Data
 y <- 2 # complications
 n <- 15 # procedures

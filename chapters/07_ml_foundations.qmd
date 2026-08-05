@@ -109,6 +109,8 @@ The optimal diagnostic criterion balances sensitivity and specificity. Similarly
 #| echo: false
 #| eval: true
 
+library(tidyverse)   # ggplot2 / dplyr / tibble
+
 complexity <- seq(0.1, 10, length.out = 100)
 bias2 <- 5 * exp(-0.5 * complexity)
 variance <- 0.3 * complexity^1.5
@@ -213,6 +215,7 @@ Plain k-fold works well when the outcome is balanced and every row is an indepen
 ```{r}
 #| label: cv-r
 #| eval: true
+library(tidyverse)   # ggplot2 / dplyr / tibble
 library(tidymodels)
 
 # Simulate clinical data
@@ -344,6 +347,7 @@ With electronic health record data, you might have hundreds or thousands of cand
 ```{r}
 #| label: feature-selection-r
 #| eval: true
+library(tidyverse)   # ggplot2 / dplyr / tibble
 library(tidymodels)
 
 # LASSO for feature selection

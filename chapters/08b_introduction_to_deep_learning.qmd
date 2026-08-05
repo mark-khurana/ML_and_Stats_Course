@@ -112,6 +112,7 @@ flowchart LR
 
 ```{r}
 #| label: nn-tabular-r
+library(tidyverse)   # ggplot2 / dplyr / tibble
 library(keras3)
 
 # Simulate readmission data (same structure as Chapter 8)

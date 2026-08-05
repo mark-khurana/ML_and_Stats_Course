@@ -473,6 +473,8 @@ If the non-linear component is significant, this confirms that a linear term is 
 #| warning: false
 #| message: false
 
+library(tidyverse)   # ggplot2 / dplyr / tibble
+
 x_seq <- seq(min(df_csf$csf_glucose), max(df_csf$csf_glucose), length.out = 200)
 
 # Predictions from each model
