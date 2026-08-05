@@ -848,55 +848,16 @@ c. What does this sequential updating illustrate about the Bayesian framework?
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-
-### R
-
+#### R
 ```{r}
-#| label: exercise-1-solution
 #| eval: false
-
-# Part (a): Mammogram
-sens_mammo <- 0.90
-spec_mammo <- 0.92
-prevalence <- 0.02
-
-post_mammo <- (sens_mammo * prevalence) /
-  (sens_mammo * prevalence + (1 - spec_mammo) * (1 - prevalence))
-cat("P(cancer | positive mammogram):", round(post_mammo, 4), "\n")
-
-# Part (b): Ultrasound, using posterior from (a) as new prior
-sens_us <- 0.95
-spec_us <- 0.85
-prior_us <- post_mammo
-
-post_us <- (sens_us * prior_us) /
-  (sens_us * prior_us + (1 - spec_us) * (1 - prior_us))
-cat(
-  "P(cancer | positive mammogram AND positive ultrasound):",
-  round(post_us, 4),
-  "\n"
-)
+#| file: ../solutions/R/ch13_ex1.R
 ```
-
-### Python
-
+#### Python
 ```{python}
-#| label: exercise-1-solution-py
 #| eval: false
-
-# Part (a)
-sens_mammo, spec_mammo, prevalence = 0.90, 0.92, 0.02
-post_mammo = (sens_mammo * prevalence) / \
-    (sens_mammo * prevalence + (1 - spec_mammo) * (1 - prevalence))
-print(f"P(cancer | positive mammogram): {post_mammo:.4f}")
-
-# Part (b)
-sens_us, spec_us = 0.95, 0.85
-post_us = (sens_us * post_mammo) / \
-    (sens_us * post_mammo + (1 - spec_us) * (1 - post_mammo))
-print(f"P(cancer | pos mammo AND pos ultrasound): {post_us:.4f}")
+#| file: ../solutions/python/ch13_ex1.py
 ```
-
 :::
 :::
 
@@ -912,91 +873,16 @@ c. Which prior has the most influence on the posterior? Why?
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-
-### R
-
+#### R
 ```{r}
-#| label: exercise-2-solution
 #| eval: false
-#| fig-width: 8
-#| fig-height: 5
-
-library(tidyverse) # tibble(), bind_rows(), ggplot()
-
-y <- 21
-n <- 30
-priors <- list(
-  list(name = "Beta(1,1)", a = 1, b = 1),
-  list(name = "Beta(5,5)", a = 5, b = 5),
-  list(name = "Beta(20,10)", a = 20, b = 10)
-)
-
-theta <- seq(0, 1, length.out = 500)
-plot_df <- tibble()
-
-for (p in priors) {
-  a_post <- p$a + y
-  b_post <- p$b + n - y
-  ci <- qbeta(c(0.025, 0.975), a_post, b_post)
-  cat(sprintf(
-    "%s -> Posterior mean: %.3f, 95%% CI: [%.3f, %.3f]\n",
-    p$name,
-    a_post / (a_post + b_post),
-    ci[1],
-    ci[2]
-  ))
-  plot_df <- bind_rows(
-    plot_df,
-    tibble(
-      theta = theta,
-      Density = dbeta(theta, a_post, b_post),
-      Prior = p$name
-    )
-  )
-}
-
-ggplot(plot_df, aes(x = theta, y = Density, colour = Prior)) +
-  geom_line(linewidth = 1.2) +
-  labs(
-    x = "Cure rate",
-    y = "Density",
-    title = "Posterior Distributions Under Different Priors",
-    subtitle = "21/30 patients cured"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "bottom")
+#| file: ../solutions/R/ch13_ex2.R
 ```
-
-### Python
-
+#### Python
 ```{python}
-#| label: exercise-2-solution-py
 #| eval: false
-
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.stats import beta
-
-y, n = 21, 30
-priors = [("Beta(1,1)", 1, 1), ("Beta(5,5)", 5, 5), ("Beta(20,10)", 20, 10)]
-theta = np.linspace(0, 1, 500)
-
-fig, ax = plt.subplots(figsize=(8, 5))
-for name, a0, b0 in priors:
-    a_post, b_post = a0 + y, b0 + n - y
-    ci = beta.ppf([0.025, 0.975], a_post, b_post)
-    mean_post = a_post / (a_post + b_post)
-    print(f"{name} -> Mean: {mean_post:.3f}, 95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]")
-    ax.plot(theta, beta.pdf(theta, a_post, b_post), label=name, linewidth=1.5)
-
-ax.set_xlabel("Cure rate")
-ax.set_ylabel("Density")
-ax.set_title("Posterior Distributions Under Different Priors\n21/30 patients cured")
-ax.legend()
-plt.tight_layout()
-plt.show()
+#| file: ../solutions/python/ch13_ex2.py
 ```
-
 :::
 :::
 

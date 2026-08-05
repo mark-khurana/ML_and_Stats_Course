@@ -134,6 +134,8 @@ Despite its apparent simplicity, this method is recommended as it works for any 
 #| eval: true
 #| fig-cap: "Permutation importance: how far the model's AUC falls when each variable's values are randomly shuffled. Bigger drops mean the model relies on that variable more."
 
+library(tidyverse)   # ggplot2 / dplyr / tibble
+
 auc_for <- function(prob) {
   as.numeric(pROC::auc(
     dat$readmit,
@@ -219,6 +221,7 @@ When predictors are correlated (as clinical variables usually are), forcing one 
 #| eval: true
 #| fig-cap: "Partial dependence of predicted readmission risk on prior admissions: the average risk the model assigns as prior admissions is swept across its range."
 
+library(tidyverse)   # ggplot2 / dplyr / tibble
 library(pdp)
 
 pred_fun <- function(object, newdata) {

@@ -977,108 +977,16 @@ e. Calculate $P(\text{OR}_{\text{APACHE}} > 1.10 \mid \text{data})$ --- the prob
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-
-### R
-
+#### R
 ```{r}
-#| label: exercise-1-solution
-#| message: false
-#| warning: false
-
-library(tidyverse)
-library(brms)
-
-set.seed(101)
-n <- 500
-icu_data <- tibble(
-  age = round(rnorm(n, 62, 15)),
-  apache = round(rnorm(n, 18, 7)),
-  ventilated = rbinom(n, 1, 0.35),
-  mortality = rbinom(
-    n,
-    1,
-    plogis(
-      -4.5 +
-        0.02 * round(rnorm(n, 62, 15)) +
-        0.12 * round(rnorm(n, 18, 7)) +
-        0.8 * rbinom(n, 1, 0.35)
-    )
-  )
-)
-
-fit_icu <- brm(
-  mortality ~ age + apache + ventilated,
-  data = icu_data,
-  family = bernoulli(),
-  prior = c(
-    prior(normal(0, 2.5), class = "b"),
-    prior(normal(0, 5), class = "Intercept")
-  ),
-  chains = 4,
-  iter = 2000,
-  warmup = 1000,
-  seed = 42,
-  silent = 2,
-  refresh = 0
-)
-
-# Posterior OR for APACHE
-post <- as_draws_df(fit_icu)
-or_apache <- exp(post$b_apache)
-cat(sprintf(
-  "OR APACHE: %.3f [%.3f, %.3f]\n",
-  mean(or_apache),
-  quantile(or_apache, 0.025),
-  quantile(or_apache, 0.975)
-))
-cat(sprintf("P(OR > 1.10 | data): %.3f\n", mean(or_apache > 1.10)))
+#| eval: false
+#| file: ../solutions/R/ch14_ex1.R
 ```
-
-### Python
-
+#### Python
 ```{python}
-#| label: exercise-1-solution-py
-
-import numpy as np
-import pandas as pd
-import pymc as pm
-import arviz as az
-from scipy.special import expit
-
-np.random.seed(101)
-n = 500
-icu_data = pd.DataFrame({
-    'age': np.round(np.random.normal(62, 15, n)),
-    'apache': np.round(np.random.normal(18, 7, n)),
-    'ventilated': np.random.binomial(1, 0.35, n)
-})
-lp = -4.5 + 0.02 * icu_data['age'] + 0.12 * icu_data['apache'] + \
-     0.8 * icu_data['ventilated']
-icu_data['mortality'] = np.random.binomial(1, expit(lp))
-
-with pm.Model() as icu_model:
-    intercept = pm.Normal("Intercept", 0, 5)
-    b_age = pm.Normal("b_age", 0, 2.5)
-    b_apache = pm.Normal("b_apache", 0, 2.5)
-    b_vent = pm.Normal("b_ventilated", 0, 2.5)
-
-    logit_p = intercept + b_age * icu_data['age'].values + \
-              b_apache * icu_data['apache'].values + \
-              b_vent * icu_data['ventilated'].values
-
-    y = pm.Bernoulli("mort", logit_p=logit_p,
-                      observed=icu_data['mortality'].values)
-    trace = pm.sample(1000, tune=1000, chains=4, random_seed=42,
-                       progressbar=False)
-
-post = az.extract(trace)
-or_apache = np.exp(post['b_apache'].values)
-print(f"OR APACHE: {or_apache.mean():.3f} "
-      f"[{np.percentile(or_apache, 2.5):.3f}, "
-      f"{np.percentile(or_apache, 97.5):.3f}]")
-print(f"P(OR > 1.10 | data): {(or_apache > 1.10).mean():.3f}")
+#| eval: false
+#| file: ../solutions/python/ch14_ex1.py
 ```
-
 :::
 :::
 

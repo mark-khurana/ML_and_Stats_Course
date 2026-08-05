@@ -406,38 +406,15 @@ iris = pd.DataFrame(iris_data.data, columns=iris_data.feature_names)
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-## R
+#### R
 ```{r}
 #| eval: false
-library(tidyverse)
-
-ggplot(iris, aes(x = Sepal.Width)) +
-  geom_histogram(binwidth = 0.2, fill = "steelblue", color = "white") +
-  labs(
-    title = "Distribution of Sepal Width",
-    x = "Sepal Width (cm)",
-    y = "Count"
-  ) +
-  theme_minimal()
+#| file: ../solutions/R/ch00_ex1.R
 ```
-## Python
+#### Python
 ```{python}
 #| eval: false
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris
-
-iris_data = load_iris()
-iris = pd.DataFrame(iris_data.data, columns=iris_data.feature_names)
-
-plt.figure(figsize=(8, 5))
-sns.histplot(iris["sepal width (cm)"], bins=15, kde=True, color="steelblue")
-plt.title("Distribution of Sepal Width")
-plt.xlabel("Sepal Width (cm)")
-plt.ylabel("Count")
-plt.tight_layout()
-plt.show()
+#| file: ../solutions/python/ch00_ex1.py
 ```
 :::
 :::
@@ -490,57 +467,15 @@ clinical["bmi"] = np.round(np.random.normal(27, 5, n), 1)
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-## R
+#### R
 ```{r}
 #| eval: false
-library(tidyverse)
-
-set.seed(42)
-n <- 200
-clinical <- tibble(
-  age = round(rnorm(n, mean = 55, sd = 12)),
-  systolic_bp = round(100 + 0.8 * age + rnorm(n, sd = 10)),
-  bmi = round(rnorm(n, mean = 27, sd = 5), 1)
-)
-
-ggplot(clinical, aes(x = age, y = systolic_bp)) +
-  geom_point(alpha = 0.5, color = "darkblue") +
-  geom_smooth(method = "lm", color = "firebrick", se = TRUE) +
-  labs(
-    title = "Age vs. Systolic Blood Pressure",
-    subtitle = "Simulated clinical data (n = 200)",
-    x = "Age (years)",
-    y = "Systolic Blood Pressure (mmHg)"
-  ) +
-  theme_minimal()
+#| file: ../solutions/R/ch00_ex2.R
 ```
-## Python
+#### Python
 ```{python}
 #| eval: false
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-np.random.seed(42)
-n = 200
-clinical = pd.DataFrame({
-    "age": np.round(np.random.normal(55, 12, n)).astype(int),
-})
-clinical["systolic_bp"] = np.round(100 + 0.8 * clinical["age"] + np.random.normal(0, 10, n))
-clinical["bmi"] = np.round(np.random.normal(27, 5, n), 1)
-
-plt.figure(figsize=(8, 5))
-sns.regplot(
-    data=clinical, x="age", y="systolic_bp",
-    scatter_kws={"alpha": 0.5, "color": "darkblue"},
-    line_kws={"color": "firebrick"}
-)
-plt.title("Age vs. Systolic Blood Pressure\nSimulated clinical data (n = 200)")
-plt.xlabel("Age (years)")
-plt.ylabel("Systolic Blood Pressure (mmHg)")
-plt.tight_layout()
-plt.show()
+#| file: ../solutions/python/ch00_ex2.py
 ```
 :::
 :::

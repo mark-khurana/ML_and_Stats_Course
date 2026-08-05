@@ -652,7 +652,7 @@ f) Perform a leave-one-out sensitivity analysis. Is the result robust?
 
 :::
 
-::: {.callout-tip title="Exercise 2: Meta-analysis from scratch in Python"}
+::: {.callout-tip title="Exercise 2: Meta-analysis from scratch"}
 
 Using the same trial data as Exercise 1:
 

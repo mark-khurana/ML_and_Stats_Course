@@ -55,7 +55,7 @@ toolchain (no chapter packages), always use `dev` when editing code:
 
 ```bash
 pixi run -e dev render                                    # re-execute changed chunks + render
-pixi run -e dev render chapters/09b_ml_explainability.qmd # single chapter
+pixi run -e dev render chapters/ml_explainability.qmd   # single chapter
 ```
 
 Once the freeze cache is up-to-date, the lightweight `book` environment works

@@ -747,129 +747,15 @@ npvs = # YOUR CODE HERE
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-## R
+#### R
 ```{r}
-#| label: sol-ppv-npv-r
 #| eval: false
-
-library(tidyverse)
-
-# 1. PPV and NPV functions
-calculate_ppv <- function(sensitivity, specificity, prevalence) {
-  numerator <- sensitivity * prevalence
-  denominator <- numerator + (1 - specificity) * (1 - prevalence)
-  return(numerator / denominator)
-}
-
-calculate_npv <- function(sensitivity, specificity, prevalence) {
-  numerator <- specificity * (1 - prevalence)
-  denominator <- numerator + (1 - sensitivity) * prevalence
-  return(numerator / denominator)
-}
-
-# 2. Calculate PPV and NPV for three populations
-cat("=== HIV Rapid Test (Sens=99.7%, Spec=99.5%) ===\n\n")
-
-ppv_general <- calculate_ppv(0.997, 0.995, 0.004)
-npv_general <- calculate_npv(0.997, 0.995, 0.004)
-cat("General population (prevalence 0.4%):\n")
-cat("  PPV:", round(ppv_general * 100, 1), "%\n")
-cat("  NPV:", round(npv_general * 100, 1), "%\n")
-
-ppv_clinic <- calculate_ppv(0.997, 0.995, 0.05)
-npv_clinic <- calculate_npv(0.997, 0.995, 0.05)
-cat("\nSTI clinic (prevalence 5%):\n")
-cat("  PPV:", round(ppv_clinic * 100, 1), "%\n")
-cat("  NPV:", round(npv_clinic * 100, 1), "%\n")
-
-ppv_exposed <- calculate_ppv(0.997, 0.995, 0.30)
-npv_exposed <- calculate_npv(0.997, 0.995, 0.30)
-cat("\nKnown exposure (prevalence 30%):\n")
-cat("  PPV:", round(ppv_exposed * 100, 1), "%\n")
-cat("  NPV:", round(npv_exposed * 100, 1), "%\n")
-
-# 3. Plot PPV and NPV across prevalences
-prevalences <- seq(0.001, 0.5, by = 0.001)
-ppvs <- sapply(prevalences, function(p) calculate_ppv(0.997, 0.995, p))
-npvs <- sapply(prevalences, function(p) calculate_npv(0.997, 0.995, p))
-
-plot_df <- tibble(
-  prevalence = rep(prevalences, 2),
-  value = c(ppvs, npvs),
-  metric = rep(c("PPV", "NPV"), each = length(prevalences))
-)
-
-ggplot(plot_df, aes(x = prevalence * 100, y = value * 100, color = metric)) +
-  geom_line(linewidth = 1.5) +
-  geom_hline(yintercept = 50, linetype = "dashed", color = "grey50") +
-  scale_color_manual(values = c("PPV" = "steelblue", "NPV" = "darkorange")) +
-  labs(
-    x = "Prevalence (%)",
-    y = "Predictive Value (%)",
-    title = "PPV and NPV Depend Heavily on Prevalence",
-    subtitle = "HIV rapid test: Sensitivity=99.7%, Specificity=99.5%",
-    color = "Metric"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "top")
+#| file: ../solutions/R/ch09_ex1.R
 ```
-## Python
+#### Python
 ```{python}
-#| label: sol-ppv-npv-py
 #| eval: false
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-def calculate_ppv(sensitivity, specificity, prevalence):
-    numerator = sensitivity * prevalence
-    denominator = numerator + (1 - specificity) * (1 - prevalence)
-    return numerator / denominator
-
-def calculate_npv(sensitivity, specificity, prevalence):
-    numerator = specificity * (1 - prevalence)
-    denominator = numerator + (1 - sensitivity) * prevalence
-    return numerator / denominator
-
-# Calculate PPV and NPV for three populations
-print("=== HIV Rapid Test (Sens=99.7%, Spec=99.5%) ===\n")
-
-ppv_general = calculate_ppv(0.997, 0.995, 0.004)
-npv_general = calculate_npv(0.997, 0.995, 0.004)
-print(f"General population (prevalence 0.4%):")
-print(f"  PPV: {ppv_general*100:.1f}%")
-print(f"  NPV: {npv_general*100:.1f}%")
-
-ppv_clinic = calculate_ppv(0.997, 0.995, 0.05)
-npv_clinic = calculate_npv(0.997, 0.995, 0.05)
-print(f"\nSTI clinic (prevalence 5%):")
-print(f"  PPV: {ppv_clinic*100:.1f}%")
-print(f"  NPV: {npv_clinic*100:.1f}%")
-
-ppv_exposed = calculate_ppv(0.997, 0.995, 0.30)
-npv_exposed = calculate_npv(0.997, 0.995, 0.30)
-print(f"\nKnown exposure (prevalence 30%):")
-print(f"  PPV: {ppv_exposed*100:.1f}%")
-print(f"  NPV: {npv_exposed*100:.1f}%")
-
-# Plot PPV and NPV across prevalences
-prevalences = np.linspace(0.001, 0.5, 500)
-ppvs = [calculate_ppv(0.997, 0.995, p) for p in prevalences]
-npvs = [calculate_npv(0.997, 0.995, p) for p in prevalences]
-
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(prevalences * 100, np.array(ppvs) * 100, lw=2, color="steelblue",
-        label="PPV")
-ax.plot(prevalences * 100, np.array(npvs) * 100, lw=2, color="darkorange",
-        label="NPV")
-ax.axhline(y=50, linestyle="--", color="grey", alpha=0.7)
-ax.set_xlabel("Prevalence (%)")
-ax.set_ylabel("Predictive Value (%)")
-ax.set_title("PPV and NPV Depend Heavily on Prevalence\n"
-             "HIV rapid test: Sens=99.7%, Spec=99.5%")
-ax.legend()
-plt.tight_layout()
-plt.show()
+#| file: ../solutions/python/ch09_ex1.py
 ```
 :::
 :::
@@ -969,136 +855,15 @@ print(f"PPV at optimal threshold: {ppv:.3f}")
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-## R
+#### R
 ```{r}
-#| label: sol-roc-pr-r
 #| eval: false
-
-library(pROC)
-library(PRROC)
-
-# Simulate an imbalanced dataset (2% prevalence)
-set.seed(123)
-n <- 5000
-true_outcome <- rbinom(n, 1, 0.02)
-pred_prob <- plogis(rnorm(n, mean = -2 + 3 * true_outcome, sd = 1.5))
-
-# 1. ROC curve
-roc_obj <- roc(true_outcome, pred_prob, quiet = TRUE)
-auroc <- auc(roc_obj)
-
-par(mfrow = c(1, 2))
-
-plot(
-  roc_obj,
-  main = paste("ROC Curve\nAUROC =", round(auroc, 3)),
-  col = "steelblue",
-  lwd = 2,
-  legacy.axes = TRUE
-)
-abline(0, 1, lty = 2, col = "grey50")
-
-# 1. PR curve
-pr_obj <- pr.curve(
-  scores.class0 = pred_prob[true_outcome == 1],
-  scores.class1 = pred_prob[true_outcome == 0],
-  curve = TRUE
-)
-auprc <- pr_obj$auc.integral
-
-plot(
-  pr_obj,
-  main = paste("Precision-Recall Curve\nAUPRC =", round(auprc, 3)),
-  color = "darkorange",
-  lwd = 2
-)
-abline(h = mean(true_outcome), lty = 2, col = "grey50")
-
-par(mfrow = c(1, 1))
-
-cat("AUROC:", round(auroc, 3), "\n")
-cat("AUPRC:", round(auprc, 3), "\n")
-cat("Baseline AUPRC (prevalence):", round(mean(true_outcome), 3), "\n")
-
-# 2. Find optimal threshold (Youden's J)
-coords_best <- coords(
-  roc_obj,
-  "best",
-  ret = c("threshold", "sensitivity", "specificity")
-)
-cat("\nOptimal threshold (Youden's J):", round(coords_best$threshold, 3), "\n")
-cat("Sensitivity:", round(coords_best$sensitivity, 3), "\n")
-cat("Specificity:", round(coords_best$specificity, 3), "\n")
-
-# 3. PPV at optimal threshold
-pred_class <- ifelse(pred_prob >= coords_best$threshold, 1, 0)
-tp <- sum(pred_class == 1 & true_outcome == 1)
-fp <- sum(pred_class == 1 & true_outcome == 0)
-ppv_at_optimal <- tp / (tp + fp)
-cat("PPV at optimal threshold:", round(ppv_at_optimal, 3), "\n")
+#| file: ../solutions/R/ch09_ex2.R
 ```
-## Python
+#### Python
 ```{python}
-#| label: sol-roc-pr-py
 #| eval: false
-
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import (roc_curve, roc_auc_score,
-                              precision_recall_curve, average_precision_score)
-from scipy.special import expit
-
-# Simulate an imbalanced dataset (2% prevalence)
-np.random.seed(123)
-n = 5000
-true_outcome = np.random.binomial(1, 0.02, n)
-pred_prob = expit(np.random.normal(-2 + 3 * true_outcome, 1.5))
-
-# 1. ROC and PR curves
-fpr, tpr, roc_thresholds = roc_curve(true_outcome, pred_prob)
-auroc = roc_auc_score(true_outcome, pred_prob)
-
-precision, recall, pr_thresholds = precision_recall_curve(true_outcome, pred_prob)
-auprc = average_precision_score(true_outcome, pred_prob)
-prevalence = true_outcome.mean()
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-
-axes[0].plot(fpr, tpr, color="steelblue", lw=2)
-axes[0].plot([0, 1], [0, 1], "--", color="grey")
-axes[0].set_title(f"ROC Curve (AUROC = {auroc:.3f})")
-axes[0].set_xlabel("False Positive Rate (1 - Specificity)")
-axes[0].set_ylabel("True Positive Rate (Sensitivity)")
-
-axes[1].plot(recall, precision, color="darkorange", lw=2)
-axes[1].axhline(y=prevalence, linestyle="--", color="grey",
-                label=f"Baseline (prevalence={prevalence:.3f})")
-axes[1].set_title(f"Precision-Recall Curve (AUPRC = {auprc:.3f})")
-axes[1].set_xlabel("Recall (Sensitivity)")
-axes[1].set_ylabel("Precision (PPV)")
-axes[1].legend()
-
-plt.tight_layout()
-plt.show()
-
-print(f"AUROC: {auroc:.3f}")
-print(f"AUPRC: {auprc:.3f}")
-print(f"Baseline AUPRC (prevalence): {prevalence:.3f}")
-
-# 2. Find optimal threshold (Youden's J)
-j_scores = tpr - fpr
-best_idx = np.argmax(j_scores)
-optimal_threshold = roc_thresholds[best_idx]
-print(f"\nOptimal threshold (Youden's J): {optimal_threshold:.3f}")
-print(f"Sensitivity: {tpr[best_idx]:.3f}")
-print(f"Specificity: {1 - fpr[best_idx]:.3f}")
-
-# 3. PPV at optimal threshold
-pred_class = (pred_prob >= optimal_threshold).astype(int)
-tp = ((pred_class == 1) & (true_outcome == 1)).sum()
-fp = ((pred_class == 1) & (true_outcome == 0)).sum()
-ppv_at_optimal = tp / (tp + fp) if (tp + fp) > 0 else 0
-print(f"PPV at optimal threshold: {ppv_at_optimal:.3f}")
+#| file: ../solutions/python/ch09_ex2.py
 ```
 :::
 :::
@@ -1200,178 +965,15 @@ for g in ["A", "B"]:
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
-## R
+#### R
 ```{r}
-#| label: sol-fairness-r
 #| eval: false
-
-library(pROC)
-
-# Simulate data with two demographic groups
-set.seed(42)
-n <- 2000
-
-group <- sample(c("A", "B"), n, replace = TRUE)
-true_outcome <- ifelse(group == "A", rbinom(n, 1, 0.10), rbinom(n, 1, 0.15))
-pred_prob <- ifelse(
-  group == "A",
-  plogis(rnorm(n, -1.5 + 2.5 * true_outcome, 1.0)),
-  plogis(rnorm(n, -1.5 + 1.8 * true_outcome, 1.2))
-)
-
-# 1. AUC by group
-cat("=== Discrimination (AUC) by Group ===\n")
-for (g in c("A", "B")) {
-  idx <- group == g
-  roc_g <- roc(true_outcome[idx], pred_prob[idx], quiet = TRUE)
-  ci_g <- ci.auc(roc_g)
-  cat(sprintf(
-    "Group %s: AUC = %.3f (95%% CI: %.3f - %.3f), Prevalence = %.1f%%\n",
-    g,
-    auc(roc_g),
-    ci_g[1],
-    ci_g[3],
-    mean(true_outcome[idx]) * 100
-  ))
-}
-
-# 2. Sensitivity, specificity, and PPV at threshold = 0.3
-cat("\n=== Performance at Threshold = 0.3 ===\n")
-threshold <- 0.3
-for (g in c("A", "B")) {
-  idx <- group == g
-  pred_class <- ifelse(pred_prob[idx] >= threshold, 1, 0)
-  actual <- true_outcome[idx]
-
-  tp <- sum(pred_class == 1 & actual == 1)
-  fn <- sum(pred_class == 0 & actual == 1)
-  tn <- sum(pred_class == 0 & actual == 0)
-  fp <- sum(pred_class == 1 & actual == 0)
-
-  sens <- ifelse(tp + fn > 0, tp / (tp + fn), NA)
-  spec <- ifelse(tn + fp > 0, tn / (tn + fp), NA)
-  ppv <- ifelse(tp + fp > 0, tp / (tp + fp), NA)
-
-  cat(sprintf(
-    "  Group %s: Sens=%.3f  Spec=%.3f  PPV=%.3f\n",
-    g,
-    sens,
-    spec,
-    ppv
-  ))
-}
-
-# 3. Positive prediction rate per group
-cat("\n=== Positive Prediction Rate (Demographic Parity) ===\n")
-for (g in c("A", "B")) {
-  idx <- group == g
-  pred_class <- ifelse(pred_prob[idx] >= threshold, 1, 0)
-  pos_rate <- mean(pred_class)
-  cat(sprintf(
-    "Group %s: %.1f%% predicted positive at threshold %.2f\n",
-    g,
-    pos_rate * 100,
-    threshold
-  ))
-}
-
-# 4. Overlaid ROC curves
-roc_a <- roc(true_outcome[group == "A"], pred_prob[group == "A"], quiet = TRUE)
-roc_b <- roc(true_outcome[group == "B"], pred_prob[group == "B"], quiet = TRUE)
-
-plot(
-  roc_a,
-  col = "steelblue",
-  lwd = 2,
-  legacy.axes = TRUE,
-  main = "ROC Curves by Demographic Group"
-)
-plot(roc_b, col = "darkorange", lwd = 2, add = TRUE)
-legend(
-  "bottomright",
-  legend = c(
-    paste("Group A (AUC =", round(auc(roc_a), 3), ")"),
-    paste("Group B (AUC =", round(auc(roc_b), 3), ")")
-  ),
-  col = c("steelblue", "darkorange"),
-  lwd = 2
-)
+#| file: ../solutions/R/ch09_ex3.R
 ```
-## Python
+#### Python
 ```{python}
-#| label: sol-fairness-py
 #| eval: false
-
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score, roc_curve
-from scipy.special import expit
-
-# Simulate data with two demographic groups
-np.random.seed(42)
-n = 2000
-
-group = np.random.choice(["A", "B"], n)
-true_outcome = np.where(group == "A",
-                        np.random.binomial(1, 0.10, n),
-                        np.random.binomial(1, 0.15, n))
-pred_prob = np.where(group == "A",
-                     expit(np.random.normal(-1.5 + 2.5 * true_outcome, 1.0)),
-                     expit(np.random.normal(-1.5 + 1.8 * true_outcome, 1.2)))
-
-# 1. AUC by group
-print("=== Discrimination (AUC) by Group ===")
-for g in ["A", "B"]:
-    mask = group == g
-    auc = roc_auc_score(true_outcome[mask], pred_prob[mask])
-    prev = true_outcome[mask].mean()
-    print(f"Group {g}: AUC = {auc:.3f}, Prevalence = {prev*100:.1f}%")
-
-# 2. Sensitivity, specificity, and PPV at threshold = 0.3
-print("\n=== Performance at Threshold = 0.3 ===")
-threshold = 0.3
-for g in ["A", "B"]:
-    mask = group == g
-    pred_class = (pred_prob[mask] >= threshold).astype(int)
-    actual = true_outcome[mask]
-
-    tp = ((pred_class == 1) & (actual == 1)).sum()
-    fn = ((pred_class == 0) & (actual == 1)).sum()
-    tn = ((pred_class == 0) & (actual == 0)).sum()
-    fp = ((pred_class == 1) & (actual == 0)).sum()
-
-    sens = tp / (tp + fn) if (tp + fn) > 0 else 0
-    spec = tn / (tn + fp) if (tn + fp) > 0 else 0
-    ppv = tp / (tp + fp) if (tp + fp) > 0 else 0
-
-    print(f"  Group {g}: Sens={sens:.3f}  Spec={spec:.3f}  PPV={ppv:.3f}")
-
-# 3. Positive prediction rate per group
-print("\n=== Positive Prediction Rate (Demographic Parity) ===")
-for g in ["A", "B"]:
-    mask = group == g
-    pred_class = (pred_prob[mask] >= threshold).astype(int)
-    pos_rate = pred_class.mean()
-    print(f"Group {g}: {pos_rate*100:.1f}% predicted positive "
-          f"at threshold {threshold:.2f}")
-
-# 4. Overlaid ROC curves
-fig, ax = plt.subplots(figsize=(7, 7))
-
-for g, color in [("A", "steelblue"), ("B", "darkorange")]:
-    mask = group == g
-    fpr, tpr, _ = roc_curve(true_outcome[mask], pred_prob[mask])
-    auc = roc_auc_score(true_outcome[mask], pred_prob[mask])
-    ax.plot(fpr, tpr, color=color, lw=2,
-            label=f"Group {g} (AUC = {auc:.3f})")
-
-ax.plot([0, 1], [0, 1], "--", color="grey")
-ax.set_xlabel("False Positive Rate (1 - Specificity)")
-ax.set_ylabel("True Positive Rate (Sensitivity)")
-ax.set_title("ROC Curves by Demographic Group")
-ax.legend(loc="lower right")
-plt.tight_layout()
-plt.show()
+#| file: ../solutions/python/ch09_ex3.py
 ```
 :::
 :::

@@ -102,6 +102,21 @@ Focus on:
 5. Is the model available for others to use (coefficients, code, web calculator)?
 
 Write a brief (one paragraph) critical appraisal.
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/ch19_ex1.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/ch19_ex1.py
+```
+:::
+:::
 :::
 
 ## From model to bedside: the implementation gap
@@ -197,22 +212,19 @@ Using the prediction model you developed in earlier chapters (or a hypothetical 
 
 Check your methods section against the TRIPOD+AI checklist. Are all key items covered?
 
-::: {.callout-note collapse="true" title="Example methods section"}
-*Study design and setting.* We conducted a retrospective cohort study using data from the Framingham Heart Study (original cohort, examinations 1–10). Participants were adults aged 30–74 years free of cardiovascular disease at baseline.
-
-*Outcome.* The primary outcome was incident coronary heart disease (CHD) within 10 years of baseline examination, defined as myocardial infarction, coronary insufficiency, or CHD death.
-
-*Predictors.* Candidate predictors were age, sex, systolic blood pressure (modelled with restricted cubic splines, 4 knots), total cholesterol (restricted cubic splines, 4 knots), HDL cholesterol, current smoking status, diabetes status, and use of antihypertensive medication.
-
-*Missing data.* Missing data ranged from 0% (age, sex) to 8% (HDL cholesterol). We used multiple imputation by chained equations (MICE, 20 imputations) assuming data were missing at random.
-
-*Model development.* We fitted a logistic regression model. Continuous predictors were modelled with restricted cubic splines to allow for non-linear associations. No automated variable selection was performed; all pre-specified predictors were retained. The model was fitted on the full imputed dataset using Rubin's rules.
-
-*Model performance.* Discrimination was quantified using the C-statistic with 95% confidence intervals. Calibration was assessed using calibration plots (loess smoother) and the calibration slope and intercept. Clinical utility was evaluated using decision curve analysis, reporting net benefit across decision thresholds from 5% to 40%.
-
-*Validation.* Internal validation was performed using bootstrap resampling (500 samples) to estimate optimism-corrected performance.
-
-*Software.* All analyses were performed in R 4.4.1 using the rms, mice, and dcurves packages.
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/ch19_ex2.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/ch19_ex2.py
+```
+:::
 :::
 :::
 
