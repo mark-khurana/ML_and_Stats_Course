@@ -1,7 +1,11 @@
 [workspace]
+# Deliberately no "Name <email>" here: this file is public, and a plaintext
+# address in a repository is the easiest thing there is for a harvester to find.
+# Reader contact goes through the obfuscated address on the site's welcome page
+# (see the "Suggest an improvement" section in index.qmd).
 authors = [
-    "Neclow <neil.clow@sund.ku.dk>",
-    "mark-khurana <mark.khurana@sund.ku.dk>",
+    "Neil Scheidwasser",
+    "Mark Khurana",
 ]
 channels = ["conda-forge"]
 name = "mlstatscourse"
