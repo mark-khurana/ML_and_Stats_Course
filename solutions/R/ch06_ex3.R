@@ -85,9 +85,14 @@ event <- ifelse(time_obs == time_censor, 0,
                 ifelse(time_obs == time_reject, 1, 2))
 # 0 = censored, 1 = rejection, 2 = death
 
+# tidycmprsk requires the status variable to be a FACTOR whose FIRST level is
+# censoring and whose later levels are the competing events. A numeric 0/1/2
+# column fails with "The LHS of the formula must be of class 'Surv' and type
+# 'mright'".
 df <- data.frame(
   time = time_obs,
-  event = event,
+  event = factor(event, levels = c(0, 1, 2),
+                 labels = c("censored", "rejection", "death")),
   age = age,
   donor_type = factor(donor_type, labels = c("Living", "Deceased")),
   hla_mismatch = hla_mismatch
@@ -95,19 +100,29 @@ df <- data.frame(
 
 cat("=== Dataset summary ===\n")
 cat("N:", n, "\n")
-cat("Rejections (event=1):", sum(event == 1), "\n")
-cat("Deaths (event=2):", sum(event == 2), "\n")
-cat("Censored (event=0):", sum(event == 0), "\n\n")
+cat("Rejections:", sum(df$event == "rejection"), "\n")
+cat("Deaths:    ", sum(df$event == "death"), "\n")
+cat("Censored:  ", sum(df$event == "censored"), "\n\n")
 
 # --- Cumulative Incidence Function (CIF) ---
 # Using tidycmprsk for a tidy interface
 cuminc_fit <- cuminc(Surv(time, event) ~ donor_type, data = df)
 print(cuminc_fit)
 
-# Plot cumulative incidence by donor type
-p <- ggcuminc(cuminc_fit, outcome = "1") +  # outcome 1 = rejection
+# Plot cumulative incidence by donor type.
+# ggcuminc() lives in the ggsurvfit package, which this course does not install,
+# so we take the tidied estimates and draw them with ggplot2 directly. This also
+# makes it explicit that we are plotting ONE failure type out of the two.
+cif <- tidy(cuminc_fit) |>
+  subset(outcome == "rejection")
+
+p <- ggplot(cif, aes(x = time, y = estimate, colour = strata, fill = strata)) +
+  geom_step(linewidth = 1) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high),
+              alpha = 0.15, colour = NA) +
   labs(x = "Time (years)",
        y = "Cumulative Incidence of Rejection",
+       colour = "Donor type", fill = "Donor type",
        title = "Cumulative Incidence of Transplant Rejection by Donor Type") +
   theme_minimal(base_size = 14)
 print(p)
@@ -115,8 +130,10 @@ print(p)
 # --- Fine-Gray subdistribution hazard model ---
 cat("\n=== Fine-Gray Model ===\n")
 # Using tidycmprsk::crr for Fine-Gray regression
-fg_model <- crr(Surv(time, event) ~ age + donor_type + hla_mismatch,
-                data = df, failcode = 1)  # failcode 1 = rejection
+# The event of interest is the first non-censoring level of `event`, i.e.
+# "rejection". (The older cmprsk::crr() took a `failcode =` argument; the tidy
+# interface takes the level order instead.)
+fg_model <- crr(Surv(time, event) ~ age + donor_type + hla_mismatch, data = df)
 print(summary(fg_model))
 
 cat("\nInterpretation:\n")
@@ -128,7 +145,7 @@ cat("- HR > 1 means higher cumulative incidence of rejection.\n")
 # --- Compare with cause-specific Cox model ---
 cat("\n=== Cause-Specific Cox Model (for comparison) ===\n")
 # Censor deaths for cause-specific analysis of rejection
-df$event_cs <- ifelse(df$event == 1, 1, 0)  # only rejection is event
+df$event_cs <- as.integer(df$event == "rejection")  # only rejection is the event
 cox_cs <- coxph(Surv(time, event_cs) ~ age + donor_type + hla_mismatch,
                 data = df)
 print(summary(cox_cs))

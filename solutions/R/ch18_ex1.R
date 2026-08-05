@@ -122,17 +122,30 @@ funnel(m1,
        main = "Funnel Plot")
 
 cat("\n--- Egger's test for funnel plot asymmetry ---\n")
+# metabias() REFUSES to run below k.min (default 10) studies, and in that case
+# returns an object with no p-value at all -- so `egger$p.value` is NULL and
+# `if (egger$p.value < 0.05)` errors with "argument is of length zero".
+# Guard on it rather than assume a p-value exists. This is not a nuisance: the
+# refusal IS the finding, because the test is uninformative on 8 studies.
 egger <- metabias(m1, method.bias = "Egger")
 print(egger)
 
-if (egger$p.value < 0.05) {
-  cat("Egger's test is significant (p < 0.05), suggesting potential\n")
+if (is.null(egger$p.value)) {
+  cat("\nEgger's test was NOT performed: with only", length(af_trials$study),
+      "studies it is\n")
+  cat("below the recommended minimum of 10, where the test has almost no power\n")
+  cat("and its false-positive rate is unreliable. Report that you could not\n")
+  cat("assess funnel-plot asymmetry -- do NOT report a non-significant test as\n")
+  cat("evidence that publication bias is absent.\n")
+} else if (egger$p.value < 0.05) {
+  cat("\nEgger's test is significant (p =", signif(egger$p.value, 3),
+      "), suggesting potential\n")
   cat("publication bias or small-study effects.\n")
 } else {
-  cat("Egger's test is not significant, no strong evidence of\n")
-  cat("publication bias. However, with only", length(af_trials$study),
-      "studies,\n")
-  cat("the test has limited power (recommended: >= 10 studies).\n")
+  cat("\nEgger's test is not significant (p =", signif(egger$p.value, 3),
+      "), so there is no strong\n")
+  cat("evidence of publication bias -- but absence of evidence is not evidence\n")
+  cat("of absence, especially with few studies.\n")
 }
 
 # Trim-and-fill as additional check
@@ -165,4 +178,7 @@ if (robust) {
 
 # Influence diagnostics
 inf <- influence(res)
-plot(inf, main = "Influence Diagnostics")
+# metafor's plot.infl.rma.uni() sets `main` for each of its panels itself, so
+# passing main = here fails with "formal argument matched by multiple actual
+# arguments". Call it bare.
+plot(inf)
