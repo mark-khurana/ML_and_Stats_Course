@@ -62,7 +62,8 @@ In practice, treat these as advisers rather than oracles: run all three, see whe
 #| fig-width: 14
 #| fig-height: 5
 
-library(cluster)
+library(tidyverse)   # tibble(), bind_rows(), ggplot2
+library(cluster)     # silhouette()
 
 set.seed(42)
 n <- 400
@@ -149,6 +150,8 @@ plot(
 #| fig-width: 8
 #| fig-height: 5
 
+library(cluster)  # silhouette()
+
 sil <- silhouette(km3$cluster, dist(lab_scaled))
 
 plot(
@@ -157,7 +160,13 @@ plot(
   main = "Silhouette Plot (k = 3)",
   border = NA
 )
-cat("Average silhouette width:", round(mean(sil[, 3]), 3), "\n")
+
+# The three numbers you actually need to read off
+cat("Overall average silhouette width:", round(mean(sil[, 3]), 3), "\n")
+cat("Per-cluster averages:",
+    paste(round(tapply(sil[, 3], sil[, 1], mean), 3), collapse = ", "), "\n")
+cat("Patients with a NEGATIVE width (probably in the wrong cluster):",
+    sum(sil[, 3] < 0), "\n")
 ```
 
 ### Python
@@ -235,7 +244,9 @@ plt.show()
 #| eval: true
 #| fig-cap: "Silhouette scores by cluster for $k$-means with k=3."
 
-from sklearn.metrics import silhouette_samples
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import silhouette_samples, silhouette_score
 
 sil_vals = silhouette_samples(X_scaled, km3.labels_)
 avg_sil = silhouette_score(X_scaled, km3.labels_)
@@ -258,11 +269,52 @@ ax.set_title("Silhouette Plot (k=3)")
 ax.legend()
 plt.tight_layout()
 plt.show()
+
+# The three numbers you actually need to read off
+print(f"Overall average silhouette width: {avg_sil:.3f}")
+for c in range(3):
+    print(f"  Cluster {c+1} average: {sil_vals[km3.labels_ == c].mean():.3f}")
+print("Patients with a NEGATIVE width (probably in the wrong cluster):",
+      int((sil_vals < 0).sum()))
 ```
 
 :::
 
 **What the code is showing.** We simulate 400 patients drawn from three hidden lab-profile phenotypes (a metabolic, an inflammatory, and a healthier group), scale the labs, and then ask $k$-means to try every value of $k$ from 2 to 10, recording two diagnostics each time. The **elbow plot** (left) shows within-cluster spread falling as $k$ rises, with an elbow around $k = 3$. The **silhouette-vs-k plot** (middle) also peaks around $k = 3$. The **PCA scatter** (right) depicts the first two principal components, with each patient coloured by assigned cluster for $k = 3$, showing well-separated colours overall. Finally, the **per-point silhouette plot** shows one horizontal bar per patient: wide, positive bars mean the patient sits comfortably in its cluster; short or negative bars flag patients near a cluster boundary. If one cluster's bars are systematically shorter, that cluster is poorly defined.
+
+### How to Read a Silhouette Plot
+
+The silhouette plot is the single most useful diagnostic in this chapter, so it is worth spending a page on how to actually read one.
+
+**What one bar means.** Each horizontal bar is one patient. Its length is that patient's silhouette width, which compares two distances: how far the patient sits from the other members of *their own* cluster, versus how far they sit from the members of the *nearest other* cluster. A patient who is much closer to their own group than to the next-best group gets a bar near +1. A patient sitting exactly on the fence gets a bar near 0. A patient who is actually closer to a *different* cluster gets a **negative** bar --- the algorithm has, in effect, filed them in the wrong drawer.
+
+**What a good plot looks like.** Four things, in order of importance:
+
+1. **Long bars.** Most patients should have widths well above 0. Fat, wide blocks mean well-separated groups.
+2. **Few or no negative bars.** A handful in a cohort of several hundred is normal; a visible spike of negative bars means that cluster is not real, or $k$ is too large.
+3. **Clusters of similar quality.** Each cluster's block should be roughly as wide as the others. One conspicuously thin, short-barred block is a cluster that exists only because you asked for it.
+4. **Clusters of sensible size.** A block containing five patients out of 400 is usually noise or outliers, not a phenotype.
+
+**What counts as a good average width?** The measure was introduced by @rousseeuw1987silhouettes, and the conventional benchmarks for reading it come from @kaufman1990finding:
+
+| Average silhouette width | Conventional reading |
+|---|---|
+| 0.71 -- 1.00 | Strong structure: the groups are clearly separated |
+| 0.51 -- 0.70 | Reasonable structure |
+| 0.26 -- 0.50 | Weak structure: could be real, could be an artefact --- do not stop here |
+| $\le$ 0.25 | No substantial structure found |
+
+Treat these as rough signposts, not a significance test. They also fall with dimensionality: in a 50-variable dataset, an average width of 0.35 may be about as good as it gets, because distances between patients become more uniform as variables pile up (see @sec-clustering-dbscan-limits).
+
+::: {.callout-important}
+## Is *our* plot a good plot? Honestly, only middling --- and that is instructive
+
+Our $k = 3$ solution has an **average silhouette width of 0.49**, which lands in the "weak structure" band, just short of "reasonable". The per-cluster averages are uneven: the healthier phenotype scores 0.63 (well separated), while the metabolic and inflammatory phenotypes score 0.44 and 0.41 --- they overlap each other. Six of the 400 patients have negative widths.
+
+And yet we *built* this data with exactly three real phenotypes, and the clustering assigns **97% of patients to the correct one**. So a middling silhouette does not mean there are no clusters. It means the clusters **touch** --- which is what genuine clinical phenotypes almost always do, because patients do not come in tidy, non-overlapping boxes. Sepsis patients shade into each other; that is a fact about sepsis, not a failure of the algorithm.
+
+The practical lesson: use the silhouette to rule out obviously bad choices of $k$ and to spot clusters that are junk, but never let a 0.5 average talk you out of a grouping that is stable (@sec-clustering-validation) and that differs on outcomes. Conversely, never let a 0.8 average convince you a grouping is clinically meaningful --- you can get 0.8 by clustering random noise in two dimensions.
+:::
 
 ## Agglomerative Clustering
 
@@ -275,19 +327,77 @@ plt.show()
 
 To pick $k$, you can use silhouette scores and the gap statistic as in $k$-means. The elbow method is less natural here as we do not explicitly minimise a metric such as the WCSS (except for Ward's method, see *Linkage Methods*). The dendrogram itself can also provide insight into the natural number of clusters by looking for large gaps in the merging heights (see *Reading a Dendrogram*).
 
-```{mermaid}
-%%| echo: false
-%%| eval: true
-%%| label: fig-dendrogram-concept
-%%| fig-cap: "A dendrogram in miniature: similar patients merge low down (early), dissimilar groups merge higher up. Cutting across the tree at a chosen height defines the clusters."
-flowchart TD
-    M2["Merge: all patients"] --> M1["Merge A+B"]
-    M2 --> P5["Patient E"]
-    M1 --> A["Patient A"]
-    M1 --> M0["Merge C+D"]
-    M0 --> C["Patient C"]
-    M0 --> D["Patient D"]
+#### A dendrogram in miniature: five patients {.unnumbered}
+
+Dendrograms are easier to trust once you have seen one built from a handful of patients you can check by eye. Below are five patients described by just two labs, CRP and white cell count, alongside the dendrogram the algorithm produces from them.
+
+```{r}
+#| label: fig-dendrogram-concept
+#| eval: true
+#| fig-cap: "Left: five patients, two labs. A and B are near-identical; C and D are near-identical; E is unlike anyone. Right: the dendrogram built from exactly those five patients. The height at which two branches join is how different they were when they merged: A--B and C--D join near the floor (height 1.4), the A/B and C/D pairs join at 15.3, and E is only absorbed at 24.7. Cutting across at any height gives you clusters --- the dashed line cuts the three vertical lines it crosses, giving {A,B}, {C,D}, and {E}."
+#| fig-width: 11
+#| fig-height: 5
+
+# Five patients, two labs. Rows are named so they are labelled in the tree.
+toy <- data.frame(
+  crp = c(2, 3, 14, 15, 8),
+  wbc = c(6, 7, 15, 14, 30),
+  row.names = c("A", "B", "C", "D", "E")
+)
+
+hc_toy <- hclust(dist(toy), method = "complete")
+
+par(mfrow = c(1, 2), mar = c(4, 4.5, 3, 1))
+
+plot(toy$crp, toy$wbc,
+  pch = 16, col = "steelblue", cex = 1.8,
+  xlim = c(0, 20), ylim = c(0, 35),
+  xlab = "CRP", ylab = "White cell count",
+  main = "The five patients"
+)
+text(toy$crp, toy$wbc,
+  labels = rownames(toy),
+  pos = c(2, 4, 2, 4, 4), offset = 0.7, cex = 1.3, font = 2
+)
+
+par(mar = c(4, 4.5, 3, 6.5))   # room on the right for the cut label
+plot(hc_toy,
+  main = "Their dendrogram",
+  xlab = "", sub = "",
+  ylab = "Merge height (how different they were when joined)",
+  hang = -1, cex = 1.3
+)
+abline(h = 12, col = "firebrick", lty = 2, lwd = 2)
+mtext("cut here\n-> 3 clusters",
+  side = 4, at = 12, las = 1,
+  col = "firebrick", line = 0.4, cex = 0.9, font = 2
+)
 ```
+
+Read the right-hand panel from the bottom up, which is the order the algorithm actually works in:
+
+1. Every patient starts alone, sitting on the floor of the plot.
+2. The two most similar patients are joined first. A and B differ by 1 point of CRP and 1 of white cells, so they are joined at **height 1.4** --- essentially the floor. C and D likewise.
+3. Next, the closest two *groups* are joined: the {A, B} pair and the {C, D} pair, at **height 15.3**. That is much higher up, because those two pairs are genuinely unlike each other.
+4. Finally E, who resembles nobody, is absorbed at **height 24.7** --- the very top.
+
+The height is the whole point of the figure: **low join = similar, high join = different.** And once you have the tree, you choose clusters not by re-running anything, but simply by drawing a horizontal line across it. The dashed line at height 12 crosses three vertical branches, so it splits the patients into three clusters: {A, B}, {C, D}, and {E} on their own. Slide the line up to height 20 and it crosses only two branches, giving {A, B, C, D} and {E}.
+
+::: {.callout-note}
+## A dendrogram is not a decision tree
+
+The tree structure invites a comparison with the classification trees and random forests of @sec-trees-ensembles, and they are worth keeping firmly apart, because they are built in opposite directions and answer different questions.
+
+| | Dendrogram (this chapter) | Decision tree / random forest |
+|---|---|---|
+| Needs an outcome? | **No** --- unsupervised; there is no right answer to learn | **Yes** --- supervised; it is trained to predict a known label |
+| Direction of build | **Bottom-up**: starts with 400 single patients and merges | **Top-down**: starts with all 400 patients and splits |
+| What a node means | A *group of patients* that were merged | A *question about one variable* ("is CRP > 12?") |
+| What the height/depth means | How different the two groups were | Which split best separated the outcome |
+| What you do with it | Cut it at a height to define subgroups | Follow a new patient down it to get a prediction |
+
+The confusion is understandable but the practical difference is sharp: you can push a brand-new patient through a decision tree and read off a prediction. You cannot do that with a dendrogram --- adding one patient can change which branches merge, so the whole tree may be redrawn. If you want the *predictive* cousin of clustering, that is what supervised learning is for.
+:::
 
 ### Linkage Methods
 
@@ -389,6 +499,9 @@ plt.show()
 #| eval: true
 #| fig-cap: "Comparison of linkage methods."
 
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage
+
 fig, axes = plt.subplots(1, 4, figsize=(18, 4))
 methods = ['single', 'complete', 'average', 'ward']
 titles = ['Single', 'Complete', 'Average', "Ward's"]
@@ -434,7 +547,7 @@ The algorithm then sorts every sample into one of three types:
 
 Clusters grow by linking up core points that fall within $\varepsilon$ of each other, so a cluster can snake into any shape the dense region happens to take.
 
-### Advantages and Limitations
+### Advantages and Limitations {#sec-clustering-dbscan-limits}
 
 **Advantages:**
 
@@ -446,7 +559,24 @@ Clusters grow by linking up core points that fall within $\varepsilon$ of each o
 
 - Sensitive to the choice of $\varepsilon$ and `min_samples`.
 - Struggles when clusters have very different densities.
-- Not ideal for very high-dimensional data. In high dimensions, pairwise distances concentrate, which makes it hard to distinguish dense from sparse regions. Applying dimensionality reduction first (PCA) can help.
+- Not ideal for very high-dimensional data, for the reason spelled out just below.
+
+::: {.callout-warning}
+## Why many variables break density-based clustering
+
+DBSCAN works by asking, of each patient, "how many other patients are within $\varepsilon$ of you?" That question only discriminates if some patients have many close neighbours and others have few. With a lot of variables, that stops being true.
+
+Here is the intuition, no algebra required. Two patients count as close only if they are similar on *every* variable at once. With 4 labs, two patients from the same phenotype have a fair chance of matching on all 4. With 60 labs, almost every pair of patients will differ noticeably on *something* --- a random high potassium here, an odd liver enzyme there. Each extra variable is another opportunity to be far apart, and none of them are opportunities to be closer. So as variables accumulate, **every** pair of patients drifts towards being roughly equally far apart.
+
+The consequence is fatal for DBSCAN specifically. If the nearest patient is 8.9 units away and the average patient is 9.4 units away, there is no radius $\varepsilon$ you can choose that puts the neighbours inside and the strangers outside: pick $\varepsilon$ slightly too small and everyone is "noise"; pick it slightly too large and everyone is one giant cluster. You will see exactly this symptom in practice --- DBSCAN returning either 95% noise or a single cluster, with almost nothing in between, and flipping between the two as you nudge $\varepsilon$.
+
+This is one face of the **curse of dimensionality** met in @sec-dimensionality-reduction. Two practical responses:
+
+- **Reduce first.** Run PCA and cluster on the first 10--20 components rather than the 60 raw labs. This is the standard fix and is discussed in @sec-clustering-workflow.
+- **Choose variables deliberately.** Twelve labs picked because they are clinically relevant to your question usually beat sixty labs thrown in because the database had them.
+
+The same pressure affects $k$-means and hierarchical clustering, since they use the same distances --- but they are somewhat less fragile, because they only need distances to be *relatively* informative in order to partition, whereas DBSCAN needs an absolute radius that separates dense from sparse.
+:::
 
 ::: {.panel-tabset}
 
@@ -587,7 +717,7 @@ plt.show()
 
 **What the code is showing.** We deliberately build a hard case: two interlocking crescent (banana) shapes plus a scatter of random "noise" patients who belong to neither. The left panel is $k$-means asked for two clusters. Because it can only carve out round blobs, it slices each crescent in half. The right panel is DBSCAN, which grows clusters by following dense trails of points, so it traces each crescent correctly and marks the scattered outliers as "noise" (the crosses).
 
-## Cluster Validation
+## Cluster Validation {#sec-clustering-validation}
 
 Beyond internal metrics described above (e.g., the silhouette score, as well as other existing ones such as the Calinski-Harabasz index), a stronger test is whether the clusters are **stable**. Internal metrics can be misleading: they can be high even for meaningless clusters.
 
@@ -598,6 +728,129 @@ Beyond internal metrics described above (e.g., the silhouette score, as well as 
 3. Measure how often the same points end up in the same cluster.
 
 If clusters are stable across resamples, they likely reflect real structure. If membership changes dramatically, the clusters may be artefacts.
+
+### Bootstrap stability in practice
+
+The logic is worth writing out in code, because it is short and because it will change how you choose $k$.
+
+The question we are asking is: *if I had happened to recruit a slightly different set of patients, would I have found the same groups?* We cannot recruit again, so we fake it. A **bootstrap resample** is a new dataset of the same size drawn from our patients *with replacement*, so some patients appear twice or three times and others not at all --- a plausible alternative cohort. We re-cluster that alternative cohort and ask how much its groups look like the original ones.
+
+To compare two groupings we use the **Jaccard index**: for a cluster in the original solution and a cluster in the resampled solution, it is the number of patients in *both* divided by the number in *either*. It runs from 0 (no shared patients) to 1 (identical membership). For each original cluster we take its best match in the resample, then average over many resamples. @hennig2007stability, who developed this approach, suggests reading the result as:
+
+- **above 0.85** --- a highly stable cluster, safe to interpret;
+- **0.6 to 0.85** --- a real pattern but with fuzzy edges; report it cautiously;
+- **below 0.6** --- do not trust this cluster; it is an artefact of these particular patients.
+
+One implementation detail matters. After re-clustering a resample, we assign *every original patient* to their nearest resampled centroid. That way both groupings cover the same 400 patients and can be compared patient by patient, even though the resample itself contains duplicates.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: bootstrap-stability-r
+#| eval: true
+
+library(tidyverse)  # tibble(), bind_rows()
+
+# Jaccard index: overlap between two sets of patient IDs
+jaccard <- function(a, b) length(intersect(a, b)) / length(union(a, b))
+
+cluster_stability <- function(x, k, B = 100, seed = 1) {
+  set.seed(seed)
+  original <- kmeans(x, centers = k, nstart = 25)
+
+  best <- matrix(NA_real_, nrow = B, ncol = k)
+  for (b in seq_len(B)) {
+    # (1) a plausible alternative cohort: resample patients WITH replacement
+    idx <- sample(nrow(x), replace = TRUE)
+    km_b <- kmeans(x[idx, ], centers = k, nstart = 25)
+
+    # (2) label every ORIGINAL patient by their nearest bootstrap centroid,
+    #     so the two groupings cover the same patients and are comparable
+    d <- as.matrix(dist(rbind(x, km_b$centers)))
+    d <- d[seq_len(nrow(x)), nrow(x) + seq_len(k)]
+    lab_b <- apply(d, 1, which.min)
+
+    # (3) for each original cluster, how well does its best match overlap?
+    for (j in seq_len(k)) {
+      orig_j <- which(original$cluster == j)
+      best[b, j] <- max(vapply(
+        seq_len(k),
+        function(m) jaccard(orig_j, which(lab_b == m)),
+        numeric(1)
+      ))
+    }
+  }
+  colMeans(best)   # mean best-match Jaccard per original cluster
+}
+
+stability <- lapply(2:5, function(k) {
+  s <- cluster_stability(lab_scaled, k)
+  tibble(
+    k = k,
+    mean_jaccard = round(mean(s), 2),
+    per_cluster = paste(round(s, 2), collapse = ", ")
+  )
+}) |>
+  bind_rows()
+
+stability
+```
+
+### Python
+
+```{python}
+#| label: bootstrap-stability-py
+#| eval: true
+
+import numpy as np
+from sklearn.cluster import KMeans
+
+# Jaccard index: overlap between two sets of patient indices
+def jaccard(a, b):
+    a, b = set(a), set(b)
+    return len(a & b) / len(a | b)
+
+def cluster_stability(X, k, B=100, seed=1):
+    rng = np.random.default_rng(seed)
+    original = KMeans(n_clusters=k, n_init=25, random_state=42).fit(X)
+
+    best = np.zeros((B, k))
+    for b in range(B):
+        # (1) a plausible alternative cohort: resample WITH replacement
+        idx = rng.integers(0, len(X), len(X))
+        km_b = KMeans(n_clusters=k, n_init=25, random_state=b).fit(X[idx])
+
+        # (2) label every ORIGINAL patient by their nearest bootstrap centroid
+        lab_b = km_b.predict(X)
+
+        # (3) for each original cluster, how well does its best match overlap?
+        for j in range(k):
+            orig_j = np.where(original.labels_ == j)[0]
+            best[b, j] = max(jaccard(orig_j, np.where(lab_b == m)[0])
+                             for m in range(k))
+    return best.mean(axis=0)
+
+for k in range(2, 6):
+    s = cluster_stability(X_scaled, k)
+    print(f"k = {k}:  mean Jaccard = {s.mean():.2f}   "
+          f"per cluster = {np.round(s, 2)}")
+```
+
+:::
+
+**What the code is showing.** For each candidate $k$ from 2 to 5, we build 100 alternative cohorts, re-cluster each one, and report how reliably each original cluster reappears. The pattern is clear-cut: $k = 2$ and $k = 3$ come back essentially every time (mean Jaccard around 0.99--1.00), whereas at $k = 4$ two of the four clusters drop to roughly 0.6 and at $k = 5$ the picture degrades further. In plain terms, the fourth and fifth clusters are not phenotypes --- they are the algorithm slicing an existing group along a line that shifts depending on which patients happen to be in the sample.
+
+Notice what this adds to the silhouette analysis. The silhouette gently *preferred* $k = 3$ (0.49 versus 0.46 at $k = 2$) but the margin was small enough to argue about. Stability *rules out* $k \ge 4$ outright, which is the more valuable statement. Read the two together: stability tells you which values of $k$ are defensible at all, and the silhouette, plus clinical judgement, chooses among the survivors.
+
+::: {.callout-tip}
+## Two shortcuts, and one thing to report
+
+In R, `fpc::clusterboot()` implements this procedure (and several variants) in one call, and works with hierarchical clustering and DBSCAN as well as $k$-means. It is what you would reach for in a real analysis; we have written it out longhand here so that the number you report is a number you understand.
+
+Whatever you use, **report per-cluster stability, not just the average**. An average of 0.81 sounds respectable, but at $k = 4$ above it is hiding two rock-solid clusters and two that fall apart. It is the individual weak cluster that will embarrass you in review.
+:::
 
 ## Clinical Applications
 
@@ -611,7 +864,7 @@ The most impactful use of clustering in clinical research is identifying disease
 
 - **Heart failure subtypes.** @shah2015phenomapping applied hierarchical clustering to echocardiographic and clinical data from HFpEF patients and identified three phenotypes with different pathophysiology and prognosis.
 
-### Disease Subtyping from Lab Panels
+### Disease Subtyping from Lab Panels {#sec-clustering-workflow}
 
 A practical workflow for phenotyping:
 
@@ -623,6 +876,32 @@ A practical workflow for phenotyping:
 6. Validate: silhouette scores, stability analysis, and (most importantly) clinical interpretation.
 7. Compare clusters on outcomes (mortality, length of stay, treatment response).
 
+#### Why steps 3 and 4? Why not just cluster the raw values? {.unnumbered}
+
+Two of those steps look like unnecessary bureaucracy, and they are the two that most often get skipped. Both matter, for different reasons.
+
+**Step 3, standardising, is not optional --- skip it and one variable silently decides everything.** Every algorithm in this chapter measures how far apart two patients are by adding up their differences across all variables. But raw clinical variables come in wildly different units. Two patients might differ by 40 mg/dL of glucose and by 0.4 g/dL of albumin. In raw units, the glucose difference is 100 times larger, so it contributes 10,000 times more to the squared distance --- and albumin, along with every other variable measured on a small numeric scale, is effectively ignored. You have not clustered patients; you have sorted them by glucose. Standardising (subtract the mean, divide by the standard deviation) puts every variable on the same footing, so "different" means *different relative to how much this variable normally varies between patients*, which is what a clinician means by the word.
+
+**Step 4, reducing dimensions, is a genuine judgement call --- and no, you would not usually cluster 60 raw labs.** Three reasons, in order of how often they bite:
+
+- **Redundancy.** Clinical variables are heavily correlated. If your panel contains urea, creatinine, and eGFR, you have measured kidney function three times, and the distance calculation counts it three times. Kidney function will then dominate the clustering purely because your database happened to store three versions of it. PCA collapses those three into roughly one component, so kidney function gets one vote instead of three. This is the reason that matters most in practice, and it is *not* fixed by standardising.
+- **Noise.** Each individual lab carries measurement error. Sixty labs contribute sixty independent doses of noise to every pairwise distance, while the real phenotype signal lives in a handful of underlying patterns. Keeping the first 10--20 principal components keeps most of the shared signal and discards a good deal of the noise.
+- **Distances stop discriminating.** With enough variables, all patients drift towards being equidistant, for the reason set out in @sec-clustering-dbscan-limits.
+
+::: {.callout-warning}
+## But do not reduce reflexively --- there is a real cost
+
+PCA buys you those three benefits and charges you **interpretability**, which is the currency clinical phenotyping runs on. A cluster described as "high CRP, high white cells, low albumin" is a phenotype a clinician can recognise on a ward round. A cluster described as "high on component 3" is not, until you go back and work out what component 3 is made of.
+
+So the honest guidance is:
+
+- **Fewer than about 10 variables, not badly correlated:** cluster the standardised raw values. Nothing is gained by reducing, and you keep direct interpretability. This is what we did earlier with the four labs.
+- **Dozens of variables, or obvious redundancy:** reduce first. Cluster on the components, then **always profile the resulting clusters back on the original variables** (step 7's table of means per cluster) so you can describe them clinically. The PCA is scaffolding for finding the groups; it is not how you report them.
+- **Either way, check it both ways.** Run the clustering on raw standardised values and on components, and see whether you get the same groups. If the answer depends on that choice, say so in the paper.
+
+And note the one thing you must not do: reduce with **t-SNE or UMAP** and cluster the result. PCA is a fair, distance-preserving summary; t-SNE and UMAP are not, for the reasons in the next section.
+:::
+
 ## Visualising Clusters
 
 ::: {.callout-warning}
@@ -631,7 +910,11 @@ A practical workflow for phenotyping:
 t-SNE and UMAP distort distances and densities. They can create apparent clusters where none exist, and deform continuous structure into misleading shapes [@chari2023]. Always **cluster first on the original scaled data**, then use t-SNE/UMAP only for visualisation. PCA does not suffer from this problem because it is a linear projection that preserves distances.
 :::
 
-To see why this matters, consider the following toy datasets. First, we build a single multivariate Gaussian with no apparent clusters at all. We draw 1000 points from a 100-dimensional Gaussian where all variables are correlated ($\rho = 0.8$), then colour each point by its rank along the first principal component (blue = low, red = high).
+To see why this matters, we will run the methods on data that we know for certain has **no groups in it at all**, and watch what each one draws.
+
+The test data is one single cloud of patients. Concretely: 1000 simulated patients, each with 100 measurements, generated so that all the measurements move together (correlation 0.8 between every pair) --- think of a cohort where everyone who is a bit sicker is a bit worse on *every* marker at once. That produces the simplest possible structure: a smooth gradient from healthiest to sickest, with nobody falling into a distinct group. There is no "type" of patient here, only a spectrum.
+
+We then colour each patient by where they sit on that spectrum (blue = the healthy end, red = the sick end) and ask each method to draw the 1000 patients on a flat page. A method that is telling the truth should show one continuous cloud with the colours changing smoothly across it. Any distinct blobs it shows are inventions.
 
 ::: {.panel-tabset}
 
@@ -644,10 +927,10 @@ To see why this matters, consider the following toy datasets. First, we build a 
 #| fig-width: 12
 #| fig-height: 4
 
-library(uwot)
-library(Rtsne)
-library(MASS)
-library(patchwork)
+library(tidyverse)  # ggplot2
+library(MASS)       # mvrnorm() -- note: also masks dplyr::select()
+library(Rtsne)      # t-SNE
+library(uwot)       # UMAP
 
 set.seed(42)
 
@@ -742,7 +1025,7 @@ plt.show()
 
 **What the code is showing.** The data is a single smooth cloud, yet t-SNE folds the gradient into a ribbon and UMAP bends it into an arc or splits it into blobs. Both create shapes that could invite false clustering. PCA shows the truth: one continuous cloud with a smooth colour gradient.
 
-In a second example, we draw just 100 observations from a 3-dimensional correlated Gaussian (the same generating process as above, but with $p = 3$ and $n = 100$). Once again, there are no clusters in this data.
+The second example is the same experiment shrunk to a size that looks much more like a real pilot study: **100 patients with 3 measurements**, generated by the identical process (all measurements correlated at 0.8, so again a single smooth spectrum and no groups whatsoever).
 
 ::: {.panel-tabset}
 
@@ -755,8 +1038,10 @@ In a second example, we draw just 100 observations from a 3-dimensional correlat
 #| fig-width: 12
 #| fig-height: 4
 
-library(uwot)
-library(Rtsne)
+library(tidyverse)  # ggplot2
+library(MASS)       # mvrnorm()
+library(Rtsne)      # t-SNE
+library(uwot)       # UMAP
 
 set.seed(42)
 
@@ -986,6 +1271,7 @@ Clustering is a powerful tool for discovering patient subgroups. $k$-means is si
 
 - For clinical phenotyping applications, see @seymour2019sepsis (A practical guide to PyMC for applied researchers), @calfee2014ards (applied latent class analysis to identify ARDS subtypes with differential treatment response), and @shah2015phenomapping (demonstrated the use of hierarchical clustering for HFpEF phenotyping).
 - For clustering algorithms and methods, see @rodriguez2024clustering (a review synthesising methodological best practices and the gap between statistical clusters and actionable clinical subtypes), @ester1996dbscan (the original DBSCAN paper; surprisingly readable), and @james2021islr.
+- For choosing and validating the number of clusters, see @rousseeuw1987silhouettes (the paper that introduced the silhouette width), @kaufman1990finding (source of the conventional bands for reading an average silhouette width), and @hennig2007stability (the bootstrap/Jaccard approach to per-cluster stability used above).
 
 ::: {.sectionrefs}
 :::
