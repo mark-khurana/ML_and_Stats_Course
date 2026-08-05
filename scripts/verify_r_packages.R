@@ -18,7 +18,7 @@ conda_pkgs <- c(
 
 cran_pkgs <- c(
   "brms", "rstanarm", "bayesplot", "keras3", "dcurves", "EValue",
-  "vip", "dagitty", "regmedint", "CMAverse"
+  "vip", "dagitty", "regmedint", "gtsummary", "CMAverse"
 )
 
 pkgs <- if (conda_only) conda_pkgs else c(conda_pkgs, cran_pkgs)

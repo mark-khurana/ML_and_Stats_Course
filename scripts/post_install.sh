@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # --- R packages on CRAN but better packaged outside of conda-forge ---
-Rscript -e 'install.packages(c("keras3", "dcurves", "EValue", "brms", "rstanarm", "bayesplot", "remotes", "dagitty", "regmedint"), repos = "https://cloud.r-project.org")'
+Rscript -e 'install.packages(c("keras3", "dcurves", "EValue", "brms", "rstanarm", "bayesplot", "remotes", "dagitty", "regmedint", "gtsummary"), repos = "https://cloud.r-project.org")'
 
 # --- CMAverse is GitHub-only (not on CRAN) ---
 Rscript -e 'if (!requireNamespace("CMAverse", quietly = TRUE)) remotes::install_github("bs1125/CMAverse")'

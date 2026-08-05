@@ -1,5 +1,5 @@
 # =============================================================================
-# Chapter 19 - Exercise 4: TRIPOD+AI Checklist (Conceptual)
+# Chapter 19 - Exercise 1: TRIPOD+AI audit of a published paper
 # Completed for Capstone 1: Cardiovascular Risk Prediction Model
 # =============================================================================
 

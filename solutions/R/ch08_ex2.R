@@ -7,7 +7,6 @@
 
 library(tidyverse)
 library(tidymodels)
-library(vip)
 
 # --- Simulate the readmission dataset (same as chapter) ---
 set.seed(42)
@@ -136,19 +135,31 @@ if (xgb_auc$.estimate > rf_auc$.estimate) {
 }
 
 # --- Part 5: Variable importance plots ---
-# Random Forest
-rf_vi <- rf_final_fit %>%
-  extract_fit_parsnip() %>%
-  vip(num_features = 8) +
-  ggtitle("Random Forest Variable Importance")
-print(rf_vi)
+# NOTE: the `vip` package was archived from CRAN and is no longer installable,
+# so we read the importance scores straight out of the fitted engine objects
+# and plot them ourselves. This is a few more lines but has no dependency and
+# makes it obvious which importance measure is being shown.
 
-# XGBoost
-xgb_vi <- xgb_final_fit %>%
-  extract_fit_parsnip() %>%
-  vip(num_features = 8) +
-  ggtitle("XGBoost Variable Importance")
-print(xgb_vi)
+importance_plot <- function(scores, title) {
+  tibble(variable = names(scores), importance = as.numeric(scores)) |>
+    slice_max(importance, n = 8) |>
+    ggplot(aes(x = importance, y = reorder(variable, importance))) +
+    geom_col(fill = "steelblue") +
+    labs(x = "Importance", y = NULL, title = title) +
+    theme_minimal()
+}
+
+# Random Forest: ranger stores impurity importance because the spec above set
+# `importance = "impurity"`.
+rf_scores <- rf_final_fit |>
+  extract_fit_engine() |>
+  (\(x) x$variable.importance)()
+print(importance_plot(rf_scores, "Random Forest variable importance (impurity)"))
+
+# XGBoost: xgb.importance() returns a data frame, so reshape it to a named vector.
+xgb_imp <- xgboost::xgb.importance(model = extract_fit_engine(xgb_final_fit))
+xgb_scores <- setNames(xgb_imp$Gain, xgb_imp$Feature)
+print(importance_plot(xgb_scores, "XGBoost variable importance (gain)"))
 
 cat("\nBoth models should generally agree on the most important features,\n")
 cat("though rankings may differ. Continuous variables with more possible\n")

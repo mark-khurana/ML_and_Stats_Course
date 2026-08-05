@@ -93,4 +93,7 @@ coef_comparison <- data.frame(
 )
 
 cat("\n=== Coefficient comparison (lambda.1se) ===\n")
-print(round(coef_comparison, 4))
+# round() cannot be applied to a whole data frame that has a character column,
+# so round the numeric columns only.
+coef_comparison[-1] <- round(coef_comparison[-1], 4)
+print(coef_comparison, row.names = FALSE)

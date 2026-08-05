@@ -98,14 +98,17 @@ X_sub = sm.add_constant(region_dummies)
 wls_sub = sm.WLS(af_trials['log_rr'], X_sub,
                  weights=1/af_trials['var_log_rr']).fit()
 
-# Wald test for region coefficients
-from scipy.stats import chi2
+# Wald test for region coefficients.
+# NOTE: statsmodels used to return fvalue/pvalue as 2-D arrays and now returns
+# plain floats, so np.ravel(...)[0] works with either version.
 f_stat = wls_sub.f_test(np.eye(len(wls_sub.params))[1:])
-print(f"\nTest for subgroup differences:")
-print(f"  F-statistic: {f_stat.fvalue[0][0]:.3f}")
-print(f"  p-value: {f_stat.pvalue:.4f}")
+f_value = float(np.ravel(f_stat.fvalue)[0])
+p_value = float(np.ravel(f_stat.pvalue)[0])
+print("\nTest for subgroup differences:")
+print(f"  F-statistic: {f_value:.3f}")
+print(f"  p-value: {p_value:.4f}")
 
-if f_stat.pvalue < 0.05:
+if p_value < 0.05:
     print("  Significant difference between regions.")
 else:
     print("  No significant difference between regions.")
@@ -180,7 +183,7 @@ for _, row in af_trials.iterrows():
     ax.annotate(row['study'],
                 (row['mean_age'], row['log_rr']),
                 textcoords="offset points", xytext=(8, 8),
-                fontsize=8, color='grey30')
+                fontsize=8, color='0.3')
 
 # Meta-regression line
 age_range = np.linspace(af_trials['mean_age'].min() - 2,

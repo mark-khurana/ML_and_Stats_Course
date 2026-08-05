@@ -74,6 +74,9 @@ pkgs <- c(
   "dagitty", # DAG analysis
   "EValue", # E-values for unmeasured confounding
   "regmedint", # Causal mediation with exposure-mediator interaction (CRAN)
+
+  # Reporting
+  "gtsummary", # Publication-quality Table 1
   "CMAverse", # Causal mediation analysis (installed from GitHub below)
 
   # Deep learning

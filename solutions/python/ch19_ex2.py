@@ -1,5 +1,5 @@
 # =============================================================================
-# Chapter 19 - Exercise 3: Write a Statistical Methods Section
+# Chapter 19 - Exercise 2: Write a Statistical Methods Section
 # Retrospective cohort study: SGLT2i vs DPP4i and MACE in T2DM
 # =============================================================================
 

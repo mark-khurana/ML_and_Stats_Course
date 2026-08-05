@@ -42,7 +42,10 @@ hr_table <- data.frame(
   Upper_95 = exp(confint(cox_model))[, 2],
   p_value = summary(cox_model)$coefficients[, 5]
 )
-print(round(hr_table, 4))
+# round() cannot be applied to a whole data frame that has a character column,
+# so round the numeric columns only.
+hr_table[-1] <- round(hr_table[-1], 4)
+print(hr_table, row.names = FALSE)
 
 # Forest plot
 ggforest(cox_model, data = pbc_clean)

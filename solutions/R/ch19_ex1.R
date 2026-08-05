@@ -1,5 +1,5 @@
 # =============================================================================
-# Chapter 19 - Exercise 4: TRIPOD+AI Checklist (Conceptual)
+# Chapter 19 - Exercise 1: TRIPOD+AI audit of a published paper
 # Completed for Capstone 1: Cardiovascular Risk Prediction Model
 # =============================================================================
 
@@ -262,9 +262,9 @@ checklist <- data.frame(
 )
 
 # Print the checklist
-cat("=" * 70, "\n")
+cat(strrep("=", 70), "\n")
 cat("TRIPOD+AI Checklist - Capstone 1: CV Risk Prediction Model\n")
-cat("=" * 70, "\n\n")
+cat(strrep("=", 70), "\n\n")
 
 for (i in 1:nrow(checklist)) {
   cat("ITEM:", checklist$Item[i], "\n")

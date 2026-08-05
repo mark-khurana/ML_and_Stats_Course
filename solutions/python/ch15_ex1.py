@@ -120,10 +120,10 @@ for i, lab in enumerate(labels):
     ax.annotate("", xy=(loadings_2d[i, 0]*scale_factor,
                           loadings_2d[i, 1]*scale_factor),
                  xytext=(0, 0),
-                 arrowprops=dict(arrowstyle="->", color="grey30", lw=1.5))
+                 arrowprops=dict(arrowstyle="->", color="0.3", lw=1.5))
     ax.text(loadings_2d[i, 0]*scale_factor*1.15,
              loadings_2d[i, 1]*scale_factor*1.15,
-             lab, fontsize=8, color="grey20", ha="center")
+             lab, fontsize=8, color="0.2", ha="center")
 
 ax.set_xlabel(f"PC1 ({var_prop[0]:.1%} var)")
 ax.set_ylabel(f"PC2 ({var_prop[1]:.1%} var)")
