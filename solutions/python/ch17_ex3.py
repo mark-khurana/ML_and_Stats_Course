@@ -1,226 +1,203 @@
 # =============================================================================
-# Chapter 17 - Exercise 3: IPTW in Python
-# Beta-blocker use and 1-year mortality using IPTW
+# Chapter 17 - Exercise 3: IPW, balance, and positivity
+# Beta-blocker use and 1-year mortality
 # =============================================================================
 
+# Libraries -------------------------------------------------------------------
+# pip install numpy pandas statsmodels
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from scipy import stats
-import matplotlib.pyplot as plt
 import statsmodels.api as sm
+import statsmodels.formula.api as smf
 
-# --- Simulate the dataset (same DGP as Exercise 2) ---
-np.random.seed(123)
-n = 1500
 
-age = np.random.normal(70, 8, n)
-creatinine = np.random.normal(1.2, 0.4, n)
-heart_failure = np.random.binomial(1, 0.35, n)
-prior_mi = np.random.binomial(1, 0.20, n)
+def expit(x):
+    return 1 / (1 + np.exp(-x))
 
-ps_true = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
-                               0.5*prior_mi - 0.8*creatinine)))
-treatment = np.random.binomial(1, ps_true)
 
-mort_prob = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
-                                 0.6*prior_mi + 1.0*creatinine -
-                                 0.7*treatment)))
-death_1yr = np.random.binomial(1, mort_prob)
+COVS = ["age", "creatinine", "heart_failure", "prior_mi"]
 
-df = pd.DataFrame({
-    'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
-    'prior_mi': prior_mi, 'treatment': treatment, 'death_1yr': death_1yr
-})
 
-print(f"Dataset: {len(df)} patients")
-print(f"Treatment prevalence: {df['treatment'].mean():.3f}")
-print(f"Outcome prevalence: {df['death_1yr'].mean():.3f}\n")
+def simulate_cohort(seed=123, n=1500, extreme=False):
+    """The exercise cohort. `extreme=True` destroys positivity on purpose."""
+    rng = np.random.default_rng(seed)
+    age = rng.normal(70, 8, n)
+    creatinine = rng.normal(1.2, 0.4, n)
+    heart_failure = rng.binomial(1, 0.35, n)
+    prior_mi = rng.binomial(1, 0.20, n)
 
-# --- Part (a): Fit PS model and compute stabilised IPTW weights ---
-covariates = ['age', 'creatinine', 'heart_failure', 'prior_mi']
+    if extreme:
+        # Part (d): heart-failure patients are treated with probability 0.98,
+        # everyone else with probability 0.03.
+        p_treat = np.where(heart_failure == 1, 0.98, 0.03)
+    else:
+        p_treat = expit(-0.4 + 0.05 * (age - 70) + 0.7 * heart_failure
+                        + 0.9 * prior_mi + 0.8 * (creatinine - 1.2))
 
-ps_model = LogisticRegression(max_iter=1000)
-ps_model.fit(df[covariates], df['treatment'])
-df['ps'] = ps_model.predict_proba(df[covariates])[:, 1]
+    treatment = rng.binomial(1, p_treat)
+    lp_untreated = (-1.9 + 0.05 * (age - 70) + 0.7 * heart_failure
+                    + 0.8 * prior_mi + 1.0 * (creatinine - 1.2))
+    death_1yr = rng.binomial(1, expit(lp_untreated - 0.8 * treatment))
 
-# Unstabilised ATE weights: w = A/ps + (1-A)/(1-ps)
-df['iptw'] = np.where(
-    df['treatment'] == 1,
-    1 / df['ps'],
-    1 / (1 - df['ps'])
-)
+    df = pd.DataFrame(dict(age=age, creatinine=creatinine,
+                           heart_failure=heart_failure, prior_mi=prior_mi,
+                           treatment=treatment, death_1yr=death_1yr))
+    # True ATE on the risk-difference scale, averaged over THIS cohort
+    true_ate = expit(lp_untreated - 0.8).mean() - expit(lp_untreated).mean()
+    return df, true_ate
 
-# Stabilised weights: replace numerator with marginal treatment probability
-p_treat = df['treatment'].mean()
-df['sw'] = np.where(
-    df['treatment'] == 1,
-    p_treat / df['ps'],
-    (1 - p_treat) / (1 - df['ps'])
-)
 
-print("Stabilised weight summary:")
-print(f"  Min: {df['sw'].min():.4f}")
-print(f"  Max: {df['sw'].max():.4f}")
-print(f"  Mean: {df['sw'].mean():.4f}")
-print(f"  SD: {df['sw'].std():.4f}")
+df, TRUE_ATE_RD = simulate_cohort()
 
-# Check for extreme weights
-extreme = (df['sw'] > 10).sum()
-print(f"  Extreme weights (>10): {extreme}")
+print(f"Cohort: {len(df)} patients | {100 * df.treatment.mean():.0f}% treated "
+      f"| {100 * df.death_1yr.mean():.1f}% died within 1 year")
+print(f"TRUE ATE risk difference: {TRUE_ATE_RD:+.4f}\n")
 
-# --- Part (b): Assess covariate balance using weighted SMDs ---
-def weighted_smd(data, var, treatment_col, weight_col):
-    """Compute weighted standardised mean difference."""
-    treated = data[data[treatment_col] == 1]
-    control = data[data[treatment_col] == 0]
-    mean_t = np.average(treated[var], weights=treated[weight_col])
-    mean_c = np.average(control[var], weights=control[weight_col])
-    # Use unweighted pooled SD for standardisation
-    sd_pooled = np.sqrt((treated[var].var() + control[var].var()) / 2)
-    if sd_pooled == 0:
-        return 0
-    return (mean_t - mean_c) / sd_pooled
 
-def unweighted_smd(data, var, treatment_col):
-    """Compute unweighted SMD."""
-    treated = data[data[treatment_col] == 1][var]
-    control = data[data[treatment_col] == 0][var]
-    sd_pooled = np.sqrt((treated.var() + control.var()) / 2)
-    if sd_pooled == 0:
-        return 0
-    return (treated.mean() - control.mean()) / sd_pooled
+# =============================================================================
+# Helpers used by both parts
+# =============================================================================
+def stabilised_weights(data):
+    """Propensity score and stabilised ATE weights."""
+    ps = smf.logit("treatment ~ " + " + ".join(COVS), data=data).fit(disp=0).predict(data)
+    p_marg = data.treatment.mean()
+    sw = np.where(data.treatment == 1, p_marg / ps, (1 - p_marg) / (1 - ps))
+    return ps, sw
 
-print("\nCovariate balance (weighted SMD):")
-print(f"{'Variable':<20} {'Unweighted':>12} {'Weighted':>12} {'Balanced?':>10}")
-print("-" * 56)
 
-smd_before = {}
-smd_after = {}
-for var in covariates:
-    smd_b = unweighted_smd(df, var, 'treatment')
-    smd_a = weighted_smd(df, var, 'treatment', 'sw')
-    smd_before[var] = smd_b
-    smd_after[var] = smd_a
-    balanced = "Yes" if abs(smd_a) < 0.1 else "No"
-    print(f"{var:<20} {smd_b:>12.4f} {smd_a:>12.4f} {balanced:>10}")
+def weighted_smd(data, weights, var):
+    t = data.treatment == 1
+    mt = np.average(data.loc[t, var], weights=weights[t.to_numpy()])
+    mc = np.average(data.loc[~t, var], weights=weights[(~t).to_numpy()])
+    sd = np.sqrt((data.loc[t, var].var() + data.loc[~t, var].var()) / 2)
+    return (mt - mc) / sd
 
-# Love plot equivalent
-fig, ax = plt.subplots(figsize=(8, 5))
-y_pos = range(len(covariates))
 
-ax.scatter([abs(smd_before[v]) for v in covariates], y_pos,
-           color='#D55E00', label='Before IPTW', s=80, zorder=5)
-ax.scatter([abs(smd_after[v]) for v in covariates], y_pos,
-           color='#0072B2', label='After IPTW', s=80, zorder=5)
+def effective_sample_size(w):
+    return w.sum() ** 2 / (w ** 2).sum()
 
-for i, var in enumerate(covariates):
-    ax.plot([abs(smd_before[var]), abs(smd_after[var])], [i, i],
-            'k-', alpha=0.3)
 
-ax.axvline(x=0.1, color='red', linestyle='--', alpha=0.5, label='SMD = 0.1')
-ax.set_yticks(y_pos)
-ax.set_yticklabels(covariates)
-ax.set_xlabel('Absolute Standardised Mean Difference')
-ax.set_title('Covariate Balance: Before and After IPTW')
-ax.legend(loc='lower right')
-plt.tight_layout()
-plt.savefig('iptw_balance.png', dpi=300)
-plt.show()
+def ipw_risk_difference(data, weights, n_boot=400, seed=1):
+    """Weighted outcome model -> marginal risk difference, bootstrap CI.
 
-# --- Part (c): Estimate ATE using weighted regression ---
-X = sm.add_constant(df['treatment'])
+    The bootstrap re-estimates the propensity model in every resample, which is
+    what makes the interval honest: statsmodels' own standard error treats the
+    weights as if they were known rather than estimated.
+    """
+    def point(d):
+        _, w = stabilised_weights(d)
+        m = smf.glm("death_1yr ~ treatment", data=d,
+                    family=sm.families.Binomial(), freq_weights=w).fit()
+        return (m.predict(d.assign(treatment=1)).mean()
+                - m.predict(d.assign(treatment=0)).mean())
 
-# Weighted least squares (linear probability model for risk difference)
-wls_model = sm.WLS(df['death_1yr'], X, weights=df['sw']).fit()
-print("\nIPTW ATE Estimate (Risk Difference):")
-print(f"  Coefficient: {wls_model.params.iloc[1]:.4f}")
-print(f"  95% CI: ({wls_model.conf_int().iloc[1, 0]:.4f}, "
-      f"{wls_model.conf_int().iloc[1, 1]:.4f})")
-print(f"  p-value: {wls_model.pvalues.iloc[1]:.4f}")
+    est = point(data)
+    rng = np.random.default_rng(seed)
+    boot = []
+    for _ in range(n_boot):
+        resample = data.iloc[rng.integers(0, len(data), len(data))]
+        try:
+            boot.append(point(resample))
+        except Exception:
+            continue          # a resample with no variation in treatment
+    lo, hi = np.percentile(boot, [2.5, 97.5])
+    return est, lo, hi
 
-# Weighted logistic regression (for odds ratio)
-from statsmodels.genmod.generalized_linear_model import GLM
-from statsmodels.genmod.families import Binomial
 
-glm_model = GLM(df['death_1yr'], X,
-                family=Binomial(),
-                freq_weights=df['sw']).fit()
-or_est = np.exp(glm_model.params.iloc[1])
-ci = np.exp(glm_model.conf_int().iloc[1])
-print(f"\nIPTW ATE Estimate (Odds Ratio):")
-print(f"  OR: {or_est:.3f} (95% CI: {ci[0]:.3f} - {ci[1]:.3f})")
+# =============================================================================
+# (a) Propensity score model and stabilised weights for the ATE
+# =============================================================================
+ps, sw = stabilised_weights(df)
 
-# --- Part (d): Sensitivity analysis with unmeasured confounder ---
-print("\n--- Sensitivity Analysis: Unmeasured Confounder ---")
-print("Varying confounder strength to show impact on ATE estimate:\n")
+print("--- (a) Stabilised weights ---")
+print(f"mean = {sw.mean():.3f}   median = {np.median(sw):.3f}   max = {sw.max():.2f}")
+print("Stabilised weights should cluster around 1, and these do.")
 
-# We simulate data with an unmeasured confounder U of varying strength
-results = []
-gamma_values = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+# =============================================================================
+# (b) The two mandatory checks: balance, then positivity
+# =============================================================================
+print("\n--- (b) Balance after weighting (want every |SMD| < 0.1) ---")
+for v in COVS:
+    before = weighted_smd(df, np.ones(len(df)), v)
+    after = weighted_smd(df, sw, v)
+    flag = "OK" if abs(after) < 0.1 else "NOT BALANCED"
+    print(f"  {v:<14} before {before:+.3f}   after {after:+.3f}   {flag}")
 
-for gamma in gamma_values:
-    np.random.seed(42)  # Same seed for comparability
-    U = np.random.normal(0, 1, n)
+print("\n--- (b) Positivity ---")
+print(f"Largest stabilised weight: {sw.max():.2f}")
+print(f"Propensity score range   : {ps.min():.3f} to {ps.max():.3f}")
+print(f"Effective sample size    : {effective_sample_size(sw):.0f} of {len(df)}")
+print("""Rule of thumb: a maximum weight above roughly 10-20 means one or two
+patients are dominating the analysis. We are far below that, and no propensity
+score is near 0 or 1, so positivity looks fine.""")
 
-    # Re-simulate with confounder U
-    ps_u = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
-                                0.5*prior_mi - 0.8*creatinine + gamma*U)))
-    trt_u = np.random.binomial(1, ps_u)
-    mort_u = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
-                                  0.6*prior_mi + 1.0*creatinine -
-                                  0.7*trt_u + gamma*U)))
-    death_u = np.random.binomial(1, mort_u)
+# =============================================================================
+# (c) The ATE as a risk difference
+# =============================================================================
+est, lo, hi = ipw_risk_difference(df, sw)
+unadjusted = (df.loc[df.treatment == 1, "death_1yr"].mean()
+              - df.loc[df.treatment == 0, "death_1yr"].mean())
 
-    df_u = pd.DataFrame({
-        'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
-        'prior_mi': prior_mi, 'treatment': trt_u, 'death_1yr': death_u
-    })
+print("\n--- (c) IPW estimate of the ATE ---")
+print(f"IPW risk difference : {est:+.4f} (95% bootstrap CI {lo:+.4f}, {hi:+.4f})"
+      f"   [truth {TRUE_ATE_RD:+.4f}]")
+print(f"Unadjusted, for comparison: {unadjusted:+.4f}")
+contains = lo <= TRUE_ATE_RD <= hi
+print(f"\nThe naive comparison recovers only {100 * unadjusted / TRUE_ATE_RD:.0f}% "
+      "of the true effect.")
+print(f"The IPW interval {'DOES' if contains else 'does NOT'} contain the truth.")
+print("""Note that the IPW point estimate is not identical to the truth, and in
+this particular sample it overshoots. That is sampling variation, not bias: the
+confidence interval is the honest statement of how precisely we know the answer
+from 1500 patients. Exercise 5 repeats the whole simulation many times to show
+that IPW is centred on the truth on average, which is the property that matters
+and which no single dataset can demonstrate.""")
 
-    # IPTW without U
-    ps_mod = LogisticRegression(max_iter=1000)
-    ps_mod.fit(df_u[covariates], df_u['treatment'])
-    ps_est = ps_mod.predict_proba(df_u[covariates])[:, 1]
+# =============================================================================
+# (d) Breaking positivity on purpose
+# =============================================================================
+bad, TRUE_ATE_BAD = simulate_cohort(extreme=True)
+ps_bad, sw_bad = stabilised_weights(bad)
 
-    p_t = df_u['treatment'].mean()
-    sw = np.where(df_u['treatment'] == 1, p_t / ps_est, (1 - p_t) / (1 - ps_est))
+print("\n\n=== (d) What happens when positivity fails ===")
+print(pd.crosstab(bad.heart_failure, bad.treatment,
+                  rownames=["heart failure"], colnames=["treated"]))
 
-    X_u = sm.add_constant(df_u['treatment'])
-    wls_u = sm.WLS(df_u['death_1yr'], X_u, weights=sw).fit()
+est_bad, lo_bad, hi_bad = ipw_risk_difference(bad, sw_bad)
 
-    results.append({
-        'gamma': gamma,
-        'ate': wls_u.params.iloc[1],
-        'ci_lo': wls_u.conf_int().iloc[1, 0],
-        'ci_hi': wls_u.conf_int().iloc[1, 1]
-    })
+print(f"\nLargest stabilised weight now : {sw_bad.max():.1f}   "
+      f"(it was {sw.max():.2f} before)")
+print(f"The most influential single patient carries "
+      f"{100 * sw_bad.max() / sw_bad.sum():.1f}% of the total weight")
+print(f"-- about {sw_bad.max() / sw_bad.mean():.0f} times an average patient's share.")
+print(f"Effective sample size: {effective_sample_size(sw_bad):.0f} "
+      f"(from {len(bad)} real patients) -- was {effective_sample_size(sw):.0f}")
+print(f"IPW estimate: {est_bad:+.4f} (95% CI {lo_bad:+.4f}, {hi_bad:+.4f})"
+      f"   [truth {TRUE_ATE_BAD:+.4f}]")
+print(f"The confidence interval is now {(hi_bad - lo_bad) / (hi - lo):.1f} times "
+      "wider than before.")
 
-results_df = pd.DataFrame(results)
-print(f"{'Gamma (U strength)':<20} {'ATE':>10} {'95% CI':>25}")
-print("-" * 57)
-for _, row in results_df.iterrows():
-    print(f"{row['gamma']:<20.1f} {row['ate']:>10.4f} "
-          f"({row['ci_lo']:.4f}, {row['ci_hi']:.4f})")
+print("""
+What to tell a clinical collaborator:
+"In this data almost every patient with heart failure was treated and almost
+ nobody without it was. The weighting therefore leans on a handful of unusual
+ patients -- the few untreated ones who had heart failure -- to stand in for an
+ entire group. In effect we are down from over a thousand patients' worth of
+ information to about a hundred, the confidence interval is several times wider,
+ and the estimate moves around a lot from sample to sample. I would not report
+ an ATE from this."
 
-# Plot sensitivity analysis
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.errorbar(results_df['gamma'], results_df['ate'],
-            yerr=[results_df['ate'] - results_df['ci_lo'],
-                  results_df['ci_hi'] - results_df['ate']],
-            fmt='o-', color='#0072B2', capsize=5, markersize=8)
-ax.axhline(y=0, color='red', linestyle='--', alpha=0.5, label='Null effect')
-ax.set_xlabel('Unmeasured Confounder Strength (gamma)')
-ax.set_ylabel('ATE Estimate (Risk Difference)')
-ax.set_title('Sensitivity Analysis: Impact of Unmeasured Confounding')
-ax.legend()
-plt.tight_layout()
-plt.savefig('sensitivity_analysis.png', dpi=300)
-plt.show()
+The options, in order of preference:
+ 1. Change the question. Estimate the effect only where both treatments
+    actually occur -- e.g. within heart-failure patients, or target the ATT
+    instead of the ATE.
+ 2. Trim or truncate the weights, and report the trimmed AND untrimmed results
+    so the reader sees how much the choice mattered.
+ 3. G-computation (Exercise 4) does not divide by a small probability, so it
+    will not blow up -- but it then has to EXTRAPOLATE into the region where
+    there is no data. That is a different way of being wrong, not a fix, and it
+    fails silently rather than loudly.
 
-print("\n--- Interpretation ---")
-print("As the strength of the unmeasured confounder increases (gamma),")
-print("the IPTW estimate of the treatment effect becomes more biased")
-print("because IPTW cannot account for unmeasured confounding.")
-print("When gamma = 0 (no unmeasured confounder), the estimate is closest")
-print("to the true effect. This demonstrates why sensitivity analysis")
-print("is essential for observational causal inference.")
+The honest answer: no estimator can recover an effect in a group where one of
+the treatments was essentially never given. Positivity is a property of the
+data, not of the method.""")

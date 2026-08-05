@@ -47,7 +47,7 @@ The course runs in seven parts, in this order:
 | **Supervised Learning**                                   | 12–16    | ML foundations, trees and ensembles, neural networks, model evaluation beyond accuracy, explainability |
 | **Applied Supervised Learning: Clinical Prediction Models** | 17–19  | Developing models, performance assessment and validation (calibration, decision curves), reporting to TRIPOD+AI |
 | **Unsupervised Learning**                                 | 20–21    | Dimensionality reduction with PCA, t-SNE and UMAP; clustering                                       |
-| **Advanced Research Toolkit**                              | 22–25    | Causal inference, g-methods and inverse probability weighting, mediation analysis, meta-analysis    |
+| **Advanced Research Toolkit**                              | 22–24    | Causal inference (DAGs, propensity scores, weighting, g-computation, target trial emulation), mediation analysis, meta-analysis |
 
 A few notes on how the parts fit together. The **Pre-Course** material should be
 completed before Day 1 if you are taking this in person; if you are

@@ -88,7 +88,6 @@ book:
     - part: "Advanced Research Toolkit"
       chapters:
         - advanced/17_causal_inference.qmd
-        - advanced/17b_g_methods.qmd
         - advanced/17c_mediation.qmd
         - advanced/18_meta_analysis.qmd
 

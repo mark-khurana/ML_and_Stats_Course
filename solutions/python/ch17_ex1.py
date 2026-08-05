@@ -1,144 +1,162 @@
 # =============================================================================
-# Chapter 17 - Exercise 1: DAG Construction (Conceptual)
-# Studying the relationship between ACE inhibitor use and Acute Kidney Injury
+# Chapter 17 - Exercise 1: Build a DAG and derive the adjustment set
+# ACE inhibitor use and acute kidney injury (AKI) in hospitalised patients
 # =============================================================================
 
-# This is a conceptual exercise. The answers are provided as detailed comments
-# with optional code to illustrate DAG concepts.
-
-# --- Part (a): List at least five relevant variables ---
-#
-# 1. Baseline kidney function (eGFR / serum creatinine)
-#    - Patients with worse kidney function are more likely to receive ACE inhibitors
-#      (for renoprotective effects) AND are at higher risk of AKI.
-#
-# 2. Heart failure severity
-#    - Heart failure is a major indication for ACE inhibitors AND independently
-#      increases AKI risk (through haemodynamic changes).
-#
-# 3. Diabetes
-#    - Diabetes is an indication for ACE inhibitors (nephroprotection) AND a risk
-#      factor for AKI.
-#
-# 4. Age
-#    - Older patients are more likely to be on ACE inhibitors and are at higher
-#      risk of AKI.
-#
-# 5. Hypertension
-#    - Primary indication for ACE inhibitors and can contribute to kidney injury.
-#
-# 6. Concomitant nephrotoxic drugs (e.g., NSAIDs, contrast agents)
-#    - May be prescribed alongside or instead of ACE inhibitors and directly
-#      cause AKI.
-#
-# 7. Volume status / dehydration
-#    - Dehydration increases AKI risk and may influence whether ACE inhibitors
-#      are held or continued.
-#
-# 8. Proteinuria
-#    - An indication for ACE inhibitors and a marker of kidney disease severity
-#      (related to AKI risk).
-
-# --- Part (b): Draw a DAG ---
-# We represent the DAG as an adjacency list and visualise with networkx.
-
+# Libraries -------------------------------------------------------------------
+# pip install networkx statsmodels
+import numpy as np
+import pandas as pd
 import networkx as nx
-import matplotlib.pyplot as plt
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
 
-# Define the DAG
-dag = nx.DiGraph()
+# -----------------------------------------------------------------------------
+# (a) Relevant variables, and the causal ROLE of each
+# -----------------------------------------------------------------------------
+# The role matters more than the list: it decides whether you adjust or not.
+#
+# CONFOUNDERS (arrow into BOTH ACEi and AKI) -> MUST adjust
+#   1. Baseline kidney function (eGFR / creatinine): a reason to prescribe an
+#      ACE inhibitor (renoprotection) AND an independent risk factor for AKI.
+#   2. Heart failure: a major indication for ACE inhibitors AND independently
+#      raises AKI risk through haemodynamic changes.
+#   3. Age: older patients are more likely to be treated and more likely to
+#      develop AKI.
+#   4. Diabetes / hypertension: both are indications for ACE inhibitors and
+#      both raise AKI risk.
+#
+# MEDIATOR (on the causal path) -> do NOT adjust for a total effect
+#   5. Renal perfusion pressure: part of HOW an ACE inhibitor precipitates AKI.
+#      Adjust for it and you remove part of the effect you want to measure.
+#
+# COMPETING CAUSE (arrow into AKI only) -> optional; harmless but unnecessary
+#   6. Concomitant nephrotoxic drugs (NSAIDs, contrast).
+#
+# COLLIDER (arrow in from BOTH) -> NEVER adjust
+#   7. ICU admission: caused by ACEi-related complications AND by AKI itself.
 
-# Add edges representing causal relationships
+# -----------------------------------------------------------------------------
+# (b) Encode the DAG
+# -----------------------------------------------------------------------------
 edges = [
-    # Age affects many variables
-    ("Age", "ACEi"), ("Age", "AKI"), ("Age", "eGFR"),
-    ("Age", "HeartFailure"), ("Age", "Diabetes"),
-    # eGFR confounds ACEi-AKI
-    ("eGFR", "ACEi"), ("eGFR", "AKI"),
-    # Heart failure confounds ACEi-AKI
+    ("Age", "ACEi"), ("Age", "AKI"), ("Age", "BaselineEGFR"),
+    ("BaselineEGFR", "ACEi"), ("BaselineEGFR", "AKI"),
     ("HeartFailure", "ACEi"), ("HeartFailure", "AKI"),
-    ("HeartFailure", "VolumeStatus"),
-    # Diabetes confounds ACEi-AKI
-    ("Diabetes", "ACEi"), ("Diabetes", "AKI"), ("Diabetes", "eGFR"),
-    # Hypertension confounds ACEi-AKI
+    ("Diabetes", "ACEi"), ("Diabetes", "AKI"), ("Diabetes", "BaselineEGFR"),
     ("Hypertension", "ACEi"), ("Hypertension", "AKI"),
-    # Other causes of AKI
     ("NephrotoxicDrugs", "AKI"),
-    ("VolumeStatus", "AKI"),
-    # Treatment -> Outcome (causal effect of interest)
     ("ACEi", "AKI"),
-    # Collider: ICU admission caused by both ACEi complications and AKI
+    ("ACEi", "RenalPerfusion"), ("RenalPerfusion", "AKI"),
     ("ACEi", "ICUAdmission"), ("AKI", "ICUAdmission"),
 ]
+dag = nx.DiGraph(edges)
+assert nx.is_directed_acyclic_graph(dag), "a DAG must not contain cycles"
 
-dag.add_edges_from(edges)
+EXPOSURE, OUTCOME = "ACEi", "AKI"
 
-# Visualise the DAG
-plt.figure(figsize=(12, 8))
-pos = nx.spring_layout(dag, seed=42, k=2)
-nx.draw(dag, pos, with_labels=True, node_color='lightblue',
-        node_size=2000, font_size=9, font_weight='bold',
-        arrows=True, arrowsize=20, edge_color='gray')
-plt.title("DAG: ACE Inhibitor Use and Acute Kidney Injury")
-plt.tight_layout()
-plt.savefig("dag_acei_aki.png", dpi=300)
-plt.show()
+# -----------------------------------------------------------------------------
+# (c) Check an adjustment set with the backdoor criterion
+# -----------------------------------------------------------------------------
+# Python has no direct equivalent of R's dagitty::adjustmentSets(), but the
+# backdoor criterion is short to implement with networkx:
+#   1. delete every edge LEAVING the exposure (this removes the causal paths,
+#      leaving only the backdoor paths behind);
+#   2. the set Z is sufficient if, in that modified graph, exposure and outcome
+#      are d-separated given Z;
+#   3. and Z must not contain any descendant of the exposure.
 
-# --- Part (c): Minimal sufficient adjustment set ---
-#
-# To estimate the causal effect of ACEi on AKI, we need to block all
-# backdoor paths (non-causal paths from ACEi to AKI).
-#
-# Backdoor paths from ACEi to AKI:
-# 1. ACEi <- Age -> AKI
-# 2. ACEi <- eGFR -> AKI
-# 3. ACEi <- HeartFailure -> AKI
-# 4. ACEi <- Diabetes -> AKI
-# 5. ACEi <- Diabetes -> eGFR -> AKI
-# 6. ACEi <- Hypertension -> AKI
-# 7. ACEi <- Age -> eGFR -> AKI
-# 8. ACEi <- Age -> HeartFailure -> AKI
-# 9. ACEi <- Age -> Diabetes -> AKI
-# 10. ACEi <- HeartFailure -> VolumeStatus -> AKI
-#
-# Minimal sufficient adjustment set:
-# {Age, eGFR, HeartFailure, Diabetes, Hypertension}
-#
-# This blocks all backdoor paths. Note:
-# - NephrotoxicDrugs only affects AKI (not a confounder), so no need to adjust.
-# - VolumeStatus is blocked by conditioning on HeartFailure (the path goes
-#   through HeartFailure).
 
-print("Minimal sufficient adjustment set:")
-print("  {Age, eGFR, HeartFailure, Diabetes, Hypertension}")
+def satisfies_backdoor(graph, exposure, outcome, adjust_for):
+    """True if `adjust_for` blocks every backdoor path from exposure to outcome."""
+    adjust_for = set(adjust_for)
+    descendants = nx.descendants(graph, exposure)
+    offenders = sorted(adjust_for & descendants)
+    if offenders:
+        return False, offenders
+    backdoor_graph = graph.copy()
+    backdoor_graph.remove_edges_from(list(graph.out_edges(exposure)))
+    ok = nx.is_d_separator(backdoor_graph, {exposure}, {outcome}, adjust_for)
+    return ok, []
 
-# --- Part (d): Identify a collider ---
-#
-# ICU Admission is a COLLIDER in the DAG:
-#   ACEi -> ICUAdmission <- AKI
-#
-# Both ACEi use (through complications or monitoring) and AKI (as a
-# critical condition) can cause ICU admission.
-#
-# What happens if we adjust for ICU Admission?
-#
-# Conditioning on a collider OPENS a spurious path between its causes.
-# This creates "collider bias" (Berkson's bias):
-#
-# - Among ICU patients, if a patient was NOT admitted because of AKI,
-#   they were more likely admitted due to ACEi-related issues (and vice versa).
-# - This induces an artificial negative association between ACEi and AKI,
-#   even if no true causal relationship exists.
-#
-# Practical lesson: Never adjust for variables that are consequences of both
-# the exposure and the outcome. Restricting the analysis to ICU patients
-# only would similarly introduce collider bias.
 
-print("\nCollider identified: ICU Admission")
-print("  ACEi -> ICUAdmission <- AKI")
-print("  Adjusting for ICU admission would OPEN a spurious path (collider bias)")
+confounders = {"Age", "BaselineEGFR", "HeartFailure", "Diabetes", "Hypertension"}
 
-print("\n--- Summary ---")
-print("Key confounders to adjust for: Age, eGFR, Heart Failure, Diabetes, Hypertension")
-print("Collider to AVOID adjusting for: ICU Admission")
-print("Mediators to consider: Volume status changes caused by ACEi")
+candidates = {
+    "nothing (unadjusted)": set(),
+    "the five confounders": confounders,
+    "confounders + RenalPerfusion (a mediator)": confounders | {"RenalPerfusion"},
+    "confounders + ICUAdmission (a collider)": confounders | {"ICUAdmission"},
+    "confounders + NephrotoxicDrugs": confounders | {"NephrotoxicDrugs"},
+}
+
+print("--- (c) Which adjustment sets satisfy the backdoor criterion? ---")
+for label, z in candidates.items():
+    ok, offenders = satisfies_backdoor(dag, EXPOSURE, OUTCOME, z)
+    verdict = "VALID  " if ok else "INVALID"
+    note = f"  (contains descendants of {EXPOSURE}: {offenders})" if offenders else ""
+    print(f"  {verdict}  adjust for {label}{note}")
+
+# Find the minimal sufficient set by search rather than by intuition. We look
+# for a d-separator in the backdoor graph, restricted to non-descendants of the
+# exposure (so mediators and colliders below it can never be chosen).
+backdoor_graph = dag.copy()
+backdoor_graph.remove_edges_from(list(dag.out_edges(EXPOSURE)))
+allowed = set(dag.nodes) - {EXPOSURE, OUTCOME} - nx.descendants(dag, EXPOSURE)
+minimal = nx.find_minimal_d_separator(
+    backdoor_graph, {EXPOSURE}, {OUTCOME}, restricted=allowed
+)
+print(f"\nMinimal sufficient adjustment set: {sorted(minimal)}")
+print("Note what is EXCLUDED: RenalPerfusion (mediator), ICUAdmission")
+print("(collider), NephrotoxicDrugs (opens no backdoor path).")
+
+# -----------------------------------------------------------------------------
+# (d) The collider, demonstrated on simulated data
+# -----------------------------------------------------------------------------
+# Simulate a small version of the DAG in which the ACE inhibitor has NO effect
+# whatsoever on AKI (true log-odds = 0), then estimate the association
+# three ways.
+
+rng = np.random.default_rng(42)
+n = 20_000
+
+
+def expit(x):
+    return 1 / (1 + np.exp(-x))
+
+
+ckd = rng.binomial(1, 0.35, n)                               # one confounder
+acei = rng.binomial(1, expit(-0.5 + 1.2 * ckd))              # prescribed more in CKD
+aki = rng.binomial(1, expit(-2.0 + 1.5 * ckd + 0.0 * acei))  # TRUE effect = 0
+icu = rng.binomial(1, expit(-2.0 + 1.0 * acei + 2.0 * aki))  # the collider
+
+dat = pd.DataFrame(dict(ckd=ckd, acei=acei, aki=aki, icu=icu))
+
+
+def log_odds(formula, data):
+    fit = smf.glm(formula, data=data, family=sm.families.Binomial()).fit(disp=0)
+    return fit.params["acei"]
+
+
+print("\n--- (d) Log-odds of ACEi on AKI (TRUE value = 0.000) ---")
+print(f"Unadjusted (confounded by CKD)     : "
+      f"{log_odds('aki ~ acei', dat):+.3f}")
+print(f"Adjusted for the confounder (CKD)  : "
+      f"{log_odds('aki ~ acei + ckd', dat):+.3f}   <- correct")
+print(f"ALSO adjusted for ICU (a collider) : "
+      f"{log_odds('aki ~ acei + ckd + icu', dat):+.3f}   <- bias re-introduced")
+print(f"Restricted to ICU patients only    : "
+      f"{log_odds('aki ~ acei + ckd', dat[dat.icu == 1]):+.3f}   <- same bias")
+
+print("""
+Interpretation:
+Adjusting for CKD removes the confounding and recovers the truth (0).
+Adding ICU admission -- or studying only ICU patients -- pushes the estimate
+NEGATIVE, inventing a protective effect for a drug that does nothing. Why:
+among ICU patients, someone who is NOT on an ACE inhibitor probably got there
+because of their AKI, so 'no ACEi' starts to predict AKI. The association is
+real inside the ICU and absent outside it.
+
+Practical lesson: never adjust for, or select on, a variable that is a
+consequence of both the exposure and the outcome.
+""")

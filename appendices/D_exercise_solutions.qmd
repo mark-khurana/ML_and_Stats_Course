@@ -8308,7 +8308,6 @@ print("another group or scatter as outliers.")
 
 ## Chapter 16: Clustering
 
-
 ### Exercise 1
 
 ::: {.panel-tabset}
@@ -8320,112 +8319,7 @@ print("another group or scatter as outliers.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# Chapter 16, Exercise 1: K-Means on Simulated Patient Data
-# 600 patients, 6 clinical variables, 3 underlying phenotypes
-
-library(tidyverse)
-library(cluster)
-
-# ---- Simulate data ----
-set.seed(42)
-n <- 600
-
-# Phenotype 1: Septic shock (high HR, RR, lactate, low SBP)
-p1 <- tibble(
-  hr = rnorm(200, 115, 12), rr = rnorm(200, 28, 5),
-  temp = rnorm(200, 38.5, 0.8), sbp = rnorm(200, 80, 12),
-  creat = rnorm(200, 2.5, 0.8), lactate = rnorm(200, 5, 2)
-)
-
-# Phenotype 2: Stable critical (moderate vitals)
-p2 <- tibble(
-  hr = rnorm(200, 90, 10), rr = rnorm(200, 20, 3),
-  temp = rnorm(200, 37.2, 0.5), sbp = rnorm(200, 110, 15),
-  creat = rnorm(200, 1.2, 0.3), lactate = rnorm(200, 1.5, 0.5)
-)
-
-# Phenotype 3: Febrile, preserved hemodynamics
-p3 <- tibble(
-  hr = rnorm(200, 100, 10), rr = rnorm(200, 22, 4),
-  temp = rnorm(200, 39.2, 0.7), sbp = rnorm(200, 120, 10),
-  creat = rnorm(200, 1.0, 0.2), lactate = rnorm(200, 2.0, 0.8)
-)
-
-dat <- bind_rows(p1, p2, p3)
-true_labels <- rep(1:3, each = 200)
-
-# ---- (a) Scale and apply K-means for k = 2 to 6 ----
-dat_scaled <- scale(dat)
-
-wcss <- numeric(6)
-sil_avg <- numeric(6)
-
-for (k in 2:6) {
-  km <- kmeans(dat_scaled, centers = k, nstart = 25)
-  wcss[k] <- km$tot.withinss
-  sil_avg[k] <- mean(silhouette(km$cluster, dist(dat_scaled))[, 3])
-}
-
-# ---- (b) Elbow and silhouette plots ----
-par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
-
-plot(2:6, wcss[2:6], type = "b", pch = 16, col = "steelblue",
-     xlab = "Number of clusters (k)", ylab = "Within-cluster SS",
-     main = "Elbow Method")
-
-plot(2:6, sil_avg[2:6], type = "b", pch = 16, col = "firebrick",
-     xlab = "Number of clusters (k)", ylab = "Average Silhouette",
-     main = "Silhouette Scores")
-
-cat("=== Part (b): Optimal k ===\n")
-cat("Elbow plot: The elbow appears at k = 3, where WCSS decreases\n")
-cat("  sharply and then flattens.\n")
-cat("Silhouette: Maximum average silhouette at k =", which.max(sil_avg[2:6]) + 1, "\n")
-cat("Both methods suggest k = 3, consistent with the 3 simulated phenotypes.\n")
-
-# ---- (c) Visualise k=3 solution using PCA ----
-km3 <- kmeans(dat_scaled, centers = 3, nstart = 25)
-pca2 <- prcomp(dat_scaled)$x[, 1:2]
-
-par(mfrow = c(1, 1))
-cols <- c("steelblue", "firebrick", "forestgreen")
-plot(pca2, col = cols[km3$cluster], pch = 16, cex = 0.7,
-     main = "K-means (k=3) on First 2 PCs",
-     xlab = "PC1", ylab = "PC2")
-legend("topright", paste("Cluster", 1:3), col = cols, pch = 16, cex = 0.8)
-
-# ---- (d) Profile the clusters ----
-cat("\n=== Part (d): Cluster Profiles ===\n\n")
-
-dat$cluster <- km3$cluster
-profiles <- dat %>%
-  group_by(cluster) %>%
-  summarise(across(hr:lactate, mean), n = n(), .groups = "drop")
-
-print(profiles)
-
-cat("\nClinical interpretation of cluster profiles:\n\n")
-
-# Identify which cluster matches which phenotype
-for (cl in 1:3) {
-  prof <- profiles %>% filter(cluster == cl)
-  cat(sprintf("Cluster %d (n = %d):\n", cl, prof$n))
-  cat(sprintf("  HR=%.0f, RR=%.0f, Temp=%.1f, SBP=%.0f, Creat=%.1f, Lactate=%.1f\n",
-              prof$hr, prof$rr, prof$temp, prof$sbp, prof$creat, prof$lactate))
-
-  if (prof$lactate > 3 && prof$sbp < 90) {
-    cat("  -> Matches SEPTIC SHOCK phenotype: high HR, RR, lactate; low SBP\n")
-  } else if (prof$temp > 38.5) {
-    cat("  -> Matches FEBRILE phenotype: high temp, preserved hemodynamics\n")
-  } else {
-    cat("  -> Matches STABLE CRITICAL phenotype: moderate vitals\n")
-  }
-  cat("\n")
-}
-
-cat("The cluster profiles make clinical sense. The algorithm has\n")
-cat("successfully recovered the three simulated phenotypes, each\n")
-cat("with a distinct clinical profile that a clinician would recognise.\n")
+#| file: ../solutions/R/ch16_ex1.R
 ```
 
 #### Python
@@ -8435,136 +8329,10 @@ cat("with a distinct clinical profile that a clinician would recognise.\n")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# Chapter 16, Exercise 1: K-Means on Simulated Patient Data
-# 600 patients, 6 clinical variables, 3 underlying phenotypes
-
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from sklearn.decomposition import PCA
-
-# ---- Simulate data ----
-np.random.seed(42)
-
-# Phenotype 1: Septic shock
-p1 = np.column_stack([
-    np.random.normal(115, 12, 200),   # hr
-    np.random.normal(28, 5, 200),     # rr
-    np.random.normal(38.5, 0.8, 200), # temp
-    np.random.normal(80, 12, 200),    # sbp
-    np.random.normal(2.5, 0.8, 200),  # creat
-    np.random.normal(5, 2, 200)       # lactate
-])
-
-# Phenotype 2: Stable critical
-p2 = np.column_stack([
-    np.random.normal(90, 10, 200),
-    np.random.normal(20, 3, 200),
-    np.random.normal(37.2, 0.5, 200),
-    np.random.normal(110, 15, 200),
-    np.random.normal(1.2, 0.3, 200),
-    np.random.normal(1.5, 0.5, 200)
-])
-
-# Phenotype 3: Febrile
-p3 = np.column_stack([
-    np.random.normal(100, 10, 200),
-    np.random.normal(22, 4, 200),
-    np.random.normal(39.2, 0.7, 200),
-    np.random.normal(120, 10, 200),
-    np.random.normal(1.0, 0.2, 200),
-    np.random.normal(2.0, 0.8, 200)
-])
-
-X = np.vstack([p1, p2, p3])
-cols = ['hr', 'rr', 'temp', 'sbp', 'creat', 'lactate']
-df = pd.DataFrame(X, columns=cols)
-
-# ---- (a) Scale and K-means for k = 2 to 6 ----
-X_scaled = StandardScaler().fit_transform(X)
-
-ks = range(2, 7)
-wcss_list = []
-sil_list = []
-
-for k in ks:
-    km = KMeans(n_clusters=k, n_init=25, random_state=42)
-    km.fit(X_scaled)
-    wcss_list.append(km.inertia_)
-    sil_list.append(silhouette_score(X_scaled, km.labels_))
-
-# ---- (b) Elbow and silhouette plots ----
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-axes[0].plot(list(ks), wcss_list, "o-", color="steelblue")
-axes[0].set_xlabel("Number of clusters (k)")
-axes[0].set_ylabel("Within-cluster SS")
-axes[0].set_title("Elbow Method")
-
-axes[1].plot(list(ks), sil_list, "o-", color="firebrick")
-axes[1].set_xlabel("Number of clusters (k)")
-axes[1].set_ylabel("Average Silhouette")
-axes[1].set_title("Silhouette Scores")
-
-plt.tight_layout()
-plt.savefig("ch16_ex1_elbow_silhouette.png", dpi=150)
-plt.show()
-
-best_k = list(ks)[np.argmax(sil_list)]
-print(f"=== Part (b): Optimal k ===")
-print(f"Elbow: Elbow appears at k = 3")
-print(f"Silhouette: Maximum at k = {best_k}")
-print(f"Both methods suggest k = 3, matching the 3 simulated phenotypes.")
-
-# ---- (c) Visualise k=3 with PCA ----
-km3 = KMeans(n_clusters=3, n_init=25, random_state=42).fit(X_scaled)
-pca2 = PCA(n_components=2).fit_transform(X_scaled)
-
-fig, ax = plt.subplots(figsize=(8, 6))
-colors_3 = ["steelblue", "firebrick", "forestgreen"]
-for c in range(3):
-    mask = km3.labels_ == c
-    ax.scatter(pca2[mask, 0], pca2[mask, 1], c=colors_3[c],
-               s=15, alpha=0.6, label=f"Cluster {c+1}")
-ax.set_xlabel("PC1")
-ax.set_ylabel("PC2")
-ax.set_title("K-means (k=3) on First 2 PCs")
-ax.legend()
-plt.tight_layout()
-plt.savefig("ch16_ex1_pca_clusters.png", dpi=150)
-plt.show()
-
-# ---- (d) Profile the clusters ----
-print("\n=== Part (d): Cluster Profiles ===\n")
-
-df['cluster'] = km3.labels_
-profiles = df.groupby('cluster')[cols].mean()
-print(profiles.round(1))
-
-print("\nClinical interpretation:")
-for cl in range(3):
-    prof = profiles.loc[cl]
-    n_cl = (km3.labels_ == cl).sum()
-    print(f"\nCluster {cl+1} (n = {n_cl}):")
-    print(f"  HR={prof['hr']:.0f}, RR={prof['rr']:.0f}, Temp={prof['temp']:.1f}, "
-          f"SBP={prof['sbp']:.0f}, Creat={prof['creat']:.1f}, Lactate={prof['lactate']:.1f}")
-
-    if prof['lactate'] > 3 and prof['sbp'] < 90:
-        print("  -> SEPTIC SHOCK: high HR, RR, lactate; low SBP")
-    elif prof['temp'] > 38.5:
-        print("  -> FEBRILE: high temperature, preserved hemodynamics")
-    else:
-        print("  -> STABLE CRITICAL: moderate vitals")
-
-print("\nThe cluster profiles make clinical sense. The algorithm")
-print("successfully recovered the three simulated phenotypes.")
+#| file: ../solutions/python/ch16_ex1.py
 ```
 
 :::
-
 
 ### Exercise 2
 
@@ -8577,103 +8345,7 @@ print("successfully recovered the three simulated phenotypes.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# Chapter 16, Exercise 2: Hierarchical Clustering with Different Linkage Methods
-# Using the same dataset from Exercise 1
-
-library(tidyverse)
-library(cluster)
-library(mclust)  # for adjustedRandIndex
-
-# ---- Simulate data (same as Exercise 1) ----
-set.seed(42)
-
-p1 <- tibble(hr = rnorm(200, 115, 12), rr = rnorm(200, 28, 5),
-             temp = rnorm(200, 38.5, 0.8), sbp = rnorm(200, 80, 12),
-             creat = rnorm(200, 2.5, 0.8), lactate = rnorm(200, 5, 2))
-p2 <- tibble(hr = rnorm(200, 90, 10), rr = rnorm(200, 20, 3),
-             temp = rnorm(200, 37.2, 0.5), sbp = rnorm(200, 110, 15),
-             creat = rnorm(200, 1.2, 0.3), lactate = rnorm(200, 1.5, 0.5))
-p3 <- tibble(hr = rnorm(200, 100, 10), rr = rnorm(200, 22, 4),
-             temp = rnorm(200, 39.2, 0.7), sbp = rnorm(200, 120, 10),
-             creat = rnorm(200, 1.0, 0.2), lactate = rnorm(200, 2.0, 0.8))
-
-dat <- bind_rows(p1, p2, p3)
-dat_scaled <- scale(dat)
-
-# K-means reference solution
-km3 <- kmeans(dat_scaled, centers = 3, nstart = 25)
-
-# ---- (a) Hierarchical clustering with 4 linkage methods ----
-cat("=== Part (a): Hierarchical Clustering ===\n\n")
-
-d <- dist(dat_scaled)
-methods <- c("single", "complete", "average", "ward.D2")
-titles <- c("Single", "Complete", "Average", "Ward's")
-
-# Use a subset for readable dendrograms
-set.seed(42)
-idx <- sample(nrow(dat_scaled), 80)
-
-par(mfrow = c(2, 2), mar = c(2, 3, 3, 1))
-for (i in seq_along(methods)) {
-  hc <- hclust(dist(dat_scaled[idx, ]), method = methods[i])
-  plot(hc, labels = FALSE, main = titles[i], xlab = "", sub = "",
-       hang = -1, cex = 0.5)
-  rect.hclust(hc, k = 3, border = "firebrick")
-}
-
-# ---- (b) Cut each dendrogram at k=3, compare assignments ----
-cat("=== Part (b): Cluster Assignments ===\n\n")
-
-hc_clusters <- list()
-for (i in seq_along(methods)) {
-  hc <- hclust(d, method = methods[i])
-  hc_clusters[[methods[i]]] <- cutree(hc, k = 3)
-}
-
-# Crosstabulation between methods
-cat("Crosstab: Ward's vs Complete linkage:\n")
-print(table(Ward = hc_clusters[["ward.D2"]],
-            Complete = hc_clusters[["complete"]]))
-
-cat("\nCrosstab: Ward's vs Single linkage:\n")
-print(table(Ward = hc_clusters[["ward.D2"]],
-            Single = hc_clusters[["single"]]))
-
-# ---- (c) ARI comparison with K-means ----
-cat("\n=== Part (c): Adjusted Rand Index vs K-means ===\n\n")
-
-for (i in seq_along(methods)) {
-  ari <- adjustedRandIndex(km3$cluster, hc_clusters[[methods[i]]])
-  cat(sprintf("ARI(%s vs K-means): %.3f\n", titles[i], ari))
-}
-
-cat("\nWard's method produces clusters most similar to K-means (highest ARI).\n")
-cat("This is expected because both Ward's method and K-means minimise\n")
-cat("within-cluster variance (WCSS), so they have similar objectives.\n")
-
-# ---- (d) Recommendation for clinical data ----
-cat("\n=== Part (d): Recommendation ===\n\n")
-
-cat("Ward's method is the recommended default for clinical data because:\n\n")
-cat("1. OBJECTIVE: Ward's minimises within-cluster variance, which\n")
-cat("   aligns with the goal of finding compact, homogeneous clusters.\n\n")
-cat("2. CONSISTENCY: It produces results most similar to K-means,\n")
-cat("   which is the most widely used method. Using both and checking\n")
-cat("   for agreement strengthens confidence in the results.\n\n")
-cat("3. ROBUSTNESS: Complete linkage can be distorted by outliers;\n")
-cat("   single linkage creates chaining effects (long, straggling\n")
-cat("   clusters). Ward's avoids both issues.\n\n")
-cat("4. COMPACT CLUSTERS: Clinical phenotypes are typically expected\n")
-cat("   to be compact groups of similar patients, which Ward's\n")
-cat("   naturally produces.\n\n")
-cat("5. INTERPRETABILITY: The dendrogram from Ward's method is\n")
-cat("   usually the easiest to interpret, with clear height gaps\n")
-cat("   indicating natural cluster boundaries.\n\n")
-cat("CAVEAT: If you suspect non-spherical clusters (e.g., disease\n")
-cat("trajectories that form elongated shapes), average linkage\n")
-cat("might be more appropriate. But for most clinical phenotyping\n")
-cat("applications, Ward's is the safe default.\n")
+#| file: ../solutions/R/ch16_ex2.R
 ```
 
 #### Python
@@ -8683,117 +8355,10 @@ cat("applications, Ward's is the safe default.\n")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# Chapter 16, Exercise 2: Hierarchical Clustering with Different Linkage Methods
-# Using the same dataset from Exercise 1
-
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans, AgglomerativeClustering
-from sklearn.metrics import adjusted_rand_score
-from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
-
-# ---- Simulate data (same as Exercise 1) ----
-np.random.seed(42)
-
-p1 = np.column_stack([
-    np.random.normal(115, 12, 200), np.random.normal(28, 5, 200),
-    np.random.normal(38.5, 0.8, 200), np.random.normal(80, 12, 200),
-    np.random.normal(2.5, 0.8, 200), np.random.normal(5, 2, 200)
-])
-p2 = np.column_stack([
-    np.random.normal(90, 10, 200), np.random.normal(20, 3, 200),
-    np.random.normal(37.2, 0.5, 200), np.random.normal(110, 15, 200),
-    np.random.normal(1.2, 0.3, 200), np.random.normal(1.5, 0.5, 200)
-])
-p3 = np.column_stack([
-    np.random.normal(100, 10, 200), np.random.normal(22, 4, 200),
-    np.random.normal(39.2, 0.7, 200), np.random.normal(120, 10, 200),
-    np.random.normal(1.0, 0.2, 200), np.random.normal(2.0, 0.8, 200)
-])
-
-X = np.vstack([p1, p2, p3])
-X_scaled = StandardScaler().fit_transform(X)
-
-# K-means reference
-km3 = KMeans(n_clusters=3, n_init=25, random_state=42).fit(X_scaled)
-
-# ---- (a) Hierarchical clustering with 4 linkage methods ----
-print("=== Part (a): Hierarchical Clustering ===\n")
-
-methods = ['single', 'complete', 'average', 'ward']
-titles = ['Single', 'Complete', 'Average', "Ward's"]
-
-# Dendrograms (use subset for readability)
-np.random.seed(42)
-idx = np.random.choice(len(X_scaled), 80, replace=False)
-X_sub = X_scaled[idx]
-
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-axes = axes.flatten()
-
-for ax, method, title in zip(axes, methods, titles):
-    Z = linkage(X_sub, method=method)
-    dendrogram(Z, ax=ax, no_labels=True, color_threshold=0)
-    ax.set_title(title)
-    ax.set_xlabel("")
-
-plt.suptitle("Hierarchical Clustering: Linkage Method Comparison", fontsize=14)
-plt.tight_layout()
-plt.savefig("ch16_ex2_dendrograms.png", dpi=150)
-plt.show()
-
-# ---- (b) Cut at k=3 and compare ----
-print("=== Part (b): Cluster Assignments ===\n")
-
-hc_labels = {}
-for method in methods:
-    Z = linkage(X_scaled, method=method)
-    hc_labels[method] = fcluster(Z, t=3, criterion='maxclust')
-
-# Crosstabs
-print("Crosstab: Ward's vs Complete:")
-ct = pd.crosstab(pd.Series(hc_labels['ward'], name='Ward'),
-                  pd.Series(hc_labels['complete'], name='Complete'))
-print(ct)
-
-print("\nCrosstab: Ward's vs Single:")
-ct2 = pd.crosstab(pd.Series(hc_labels['ward'], name='Ward'),
-                   pd.Series(hc_labels['single'], name='Single'))
-print(ct2)
-
-# ---- (c) ARI comparison with K-means ----
-print("\n=== Part (c): Adjusted Rand Index vs K-means ===\n")
-
-for method, title in zip(methods, titles):
-    ari = adjusted_rand_score(km3.labels_, hc_labels[method])
-    print(f"ARI({title} vs K-means): {ari:.3f}")
-
-print("\nWard's method produces clusters most similar to K-means (highest ARI).")
-print("Both minimise within-cluster variance, so they share similar objectives.")
-
-# ---- (d) Recommendation ----
-print("\n=== Part (d): Recommendation ===\n")
-
-print("Ward's method is recommended for clinical data because:\n")
-print("1. OBJECTIVE: Minimises within-cluster variance, producing")
-print("   compact, homogeneous clusters.\n")
-print("2. CONSISTENCY: Most similar to K-means, strengthening")
-print("   confidence when both methods agree.\n")
-print("3. ROBUSTNESS: Avoids chaining (single linkage) and outlier")
-print("   sensitivity (complete linkage).\n")
-print("4. COMPACT CLUSTERS: Clinical phenotypes are typically compact")
-print("   groups, which Ward's naturally produces.\n")
-print("5. INTERPRETABILITY: Dendrogram with clear height gaps at")
-print("   natural cluster boundaries.\n")
-print("CAVEAT: For non-spherical clusters, average linkage may be")
-print("more appropriate. But Ward's is the safe default for most")
-print("clinical phenotyping applications.")
+#| file: ../solutions/python/ch16_ex2.py
 ```
 
 :::
-
 
 ### Exercise 3
 
@@ -8806,160 +8371,7 @@ print("clinical phenotyping applications.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# Chapter 16, Exercise 3: DBSCAN for Outlier Detection
-# Add outlier patients to the Exercise 1 dataset
-
-library(tidyverse)
-library(cluster)
-library(dbscan)
-
-# ---- Simulate data (same as Exercise 1) ----
-set.seed(42)
-
-p1 <- tibble(hr = rnorm(200, 115, 12), rr = rnorm(200, 28, 5),
-             temp = rnorm(200, 38.5, 0.8), sbp = rnorm(200, 80, 12),
-             creat = rnorm(200, 2.5, 0.8), lactate = rnorm(200, 5, 2))
-p2 <- tibble(hr = rnorm(200, 90, 10), rr = rnorm(200, 20, 3),
-             temp = rnorm(200, 37.2, 0.5), sbp = rnorm(200, 110, 15),
-             creat = rnorm(200, 1.2, 0.3), lactate = rnorm(200, 1.5, 0.5))
-p3 <- tibble(hr = rnorm(200, 100, 10), rr = rnorm(200, 22, 4),
-             temp = rnorm(200, 39.2, 0.7), sbp = rnorm(200, 120, 10),
-             creat = rnorm(200, 1.0, 0.2), lactate = rnorm(200, 2.0, 0.8))
-
-dat <- bind_rows(p1, p2, p3)
-is_outlier <- rep(FALSE, 600)
-
-# Add 30 outlier patients with extreme values
-set.seed(99)
-outliers <- tibble(
-  hr = rnorm(30, 180, 10),       # Extreme heart rate
-  rr = rnorm(30, 40, 5),         # Extreme respiratory rate
-  temp = rnorm(30, 40.5, 0.5),   # Very high temperature
-  sbp = rnorm(30, 50, 10),       # Very low blood pressure
-  creat = rnorm(30, 8, 1.5),     # Very high creatinine
-  lactate = rnorm(30, 15, 3)     # Very high lactate
-)
-
-dat <- bind_rows(dat, outliers)
-is_outlier <- c(is_outlier, rep(TRUE, 30))
-dat_scaled <- scale(dat)
-
-cat("Total patients:", nrow(dat), "(600 normal + 30 outliers)\n\n")
-
-# ---- (a) K-means with k=3 ----
-cat("=== Part (a): K-means with k=3 ===\n")
-
-km3 <- kmeans(dat_scaled, centers = 3, nstart = 25)
-
-# Where do outliers end up?
-outlier_clusters <- km3$cluster[is_outlier]
-cat("Outlier distribution across K-means clusters:\n")
-print(table(outlier_clusters))
-
-cat("\nK-means assigns outliers to one of the existing clusters,\n")
-cat("typically the cluster whose centroid is nearest (even if far).\n")
-cat("This can distort the centroid and corrupt the cluster profiles.\n")
-
-# Show how outliers affect cluster means
-dat$km_cluster <- km3$cluster
-dat$is_outlier <- is_outlier
-
-for (cl in 1:3) {
-  n_outlier_in_cl <- sum(dat$km_cluster == cl & dat$is_outlier)
-  n_total_in_cl <- sum(dat$km_cluster == cl)
-  cat(sprintf("Cluster %d: %d patients (%d outliers)\n",
-              cl, n_total_in_cl, n_outlier_in_cl))
-}
-
-# ---- (b) DBSCAN ----
-cat("\n=== Part (b): DBSCAN ===\n")
-
-# Use kNNdistplot to help choose eps
-kNNdistplot(dat_scaled, k = 5)
-abline(h = 2.5, col = "firebrick", lty = 2)
-
-# Run DBSCAN
-db <- dbscan(dat_scaled, eps = 2.5, minPts = 10)
-
-cat("DBSCAN results:\n")
-cat("  Number of clusters:", max(db$cluster), "\n")
-cat("  Noise points (outliers):", sum(db$cluster == 0), "\n")
-cat("  Actual outliers detected as noise:",
-    sum(db$cluster == 0 & is_outlier), "out of 30\n")
-
-cat("\nDBSCAN cluster sizes:\n")
-print(table(db$cluster))
-
-# ---- (c) Compare non-outlier assignments ----
-cat("\n=== Part (c): Comparison for Non-Outlier Patients ===\n")
-
-# Get cluster assignments for non-outlier patients only
-normal_idx <- !is_outlier
-km_normal <- km3$cluster[normal_idx]
-db_normal <- db$cluster[normal_idx]
-
-# For DBSCAN, remove any normal patients assigned as noise
-db_noise_normal <- sum(db_normal == 0)
-cat("Normal patients misclassified as noise by DBSCAN:", db_noise_normal, "\n")
-
-# ARI for non-noise, non-outlier patients
-both_assigned <- db_normal > 0
-if (sum(both_assigned) > 0) {
-  # Use mclust for ARI
-  library(mclust)
-  ari <- adjustedRandIndex(km_normal[both_assigned], db_normal[both_assigned])
-  cat("ARI between K-means and DBSCAN (non-outlier, non-noise):", round(ari, 3), "\n")
-}
-
-# ---- (d) Which approach for outlier handling? ----
-cat("\n=== Part (d): Preferred Approach for Outlier Handling ===\n\n")
-
-cat("DBSCAN is preferred for clinical phenotyping when outliers are expected.\n\n")
-
-cat("Reasons:\n")
-cat("1. EXPLICIT OUTLIER IDENTIFICATION: DBSCAN labels outliers as noise,\n")
-cat("   making them visible for clinical review. K-means silently absorbs\n")
-cat("   them into clusters, distorting the results.\n\n")
-
-cat("2. CLINICAL RELEVANCE: Outlier patients (e.g., with extreme vitals)\n")
-cat("   may represent data errors, rare presentations, or patients who\n")
-cat("   need individual assessment. Identifying them is valuable.\n\n")
-
-cat("3. CLUSTER INTEGRITY: By excluding outliers, DBSCAN preserves the\n")
-cat("   purity of the main clusters. K-means cluster centroids can be\n")
-cat("   pulled by outliers, producing misleading profiles.\n\n")
-
-cat("4. PRACTICAL WORKFLOW:\n")
-cat("   - Use DBSCAN to identify outliers first.\n")
-cat("   - Review outliers clinically (data errors? rare cases?).\n")
-cat("   - Apply K-means to the remaining non-outlier patients for\n")
-cat("     cleaner phenotyping.\n\n")
-
-cat("5. CAVEAT: DBSCAN requires tuning eps and minPts, which can be\n")
-cat("   challenging. The kNN distance plot helps, but the choice\n")
-cat("   affects how many points are labelled as noise.\n")
-
-# Visualise comparison
-pca2 <- prcomp(dat_scaled)$x[, 1:2]
-
-par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
-
-# K-means
-cols_km <- c("steelblue", "firebrick", "forestgreen")[km3$cluster]
-pch_km <- ifelse(is_outlier, 4, 16)
-plot(pca2, col = cols_km, pch = pch_km, cex = 0.7,
-     main = "K-means (k=3)\n(X = outlier patients)",
-     xlab = "PC1", ylab = "PC2")
-
-# DBSCAN
-db_cols <- c("grey50", "steelblue", "firebrick", "forestgreen")
-cols_db <- db_cols[db$cluster + 1]
-pch_db <- ifelse(db$cluster == 0, 4, 16)
-plot(pca2, col = cols_db, pch = pch_db, cex = 0.7,
-     main = "DBSCAN\n(X/grey = noise)",
-     xlab = "PC1", ylab = "PC2")
-legend("topright", c("Noise", "Cluster 1", "Cluster 2", "Cluster 3"),
-       col = db_cols, pch = c(4, 16, 16, 16), cex = 0.7)
+#| file: ../solutions/R/ch16_ex3.R
 ```
 
 #### Python
@@ -8969,170 +8381,10 @@ legend("topright", c("Noise", "Cluster 1", "Cluster 2", "Cluster 3"),
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# Chapter 16, Exercise 3: DBSCAN for Outlier Detection
-# Add outlier patients to the Exercise 1 dataset
-
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans, DBSCAN
-from sklearn.metrics import adjusted_rand_score
-from sklearn.decomposition import PCA
-from sklearn.neighbors import NearestNeighbors
-
-# ---- Simulate data (same as Exercise 1) ----
-np.random.seed(42)
-
-p1 = np.column_stack([
-    np.random.normal(115, 12, 200), np.random.normal(28, 5, 200),
-    np.random.normal(38.5, 0.8, 200), np.random.normal(80, 12, 200),
-    np.random.normal(2.5, 0.8, 200), np.random.normal(5, 2, 200)
-])
-p2 = np.column_stack([
-    np.random.normal(90, 10, 200), np.random.normal(20, 3, 200),
-    np.random.normal(37.2, 0.5, 200), np.random.normal(110, 15, 200),
-    np.random.normal(1.2, 0.3, 200), np.random.normal(1.5, 0.5, 200)
-])
-p3 = np.column_stack([
-    np.random.normal(100, 10, 200), np.random.normal(22, 4, 200),
-    np.random.normal(39.2, 0.7, 200), np.random.normal(120, 10, 200),
-    np.random.normal(1.0, 0.2, 200), np.random.normal(2.0, 0.8, 200)
-])
-
-X_normal = np.vstack([p1, p2, p3])
-is_outlier = np.array([False] * 600)
-
-# Add 30 outlier patients
-np.random.seed(99)
-outliers = np.column_stack([
-    np.random.normal(180, 10, 30),     # Extreme HR
-    np.random.normal(40, 5, 30),       # Extreme RR
-    np.random.normal(40.5, 0.5, 30),   # Very high temp
-    np.random.normal(50, 10, 30),      # Very low SBP
-    np.random.normal(8, 1.5, 30),      # Very high creatinine
-    np.random.normal(15, 3, 30)        # Very high lactate
-])
-
-X = np.vstack([X_normal, outliers])
-is_outlier = np.concatenate([is_outlier, np.array([True] * 30)])
-X_scaled = StandardScaler().fit_transform(X)
-
-print(f"Total patients: {len(X)} (600 normal + 30 outliers)\n")
-
-# ---- (a) K-means with k=3 ----
-print("=== Part (a): K-means with k=3 ===")
-
-km3 = KMeans(n_clusters=3, n_init=25, random_state=42).fit(X_scaled)
-
-outlier_clusters = km3.labels_[is_outlier]
-print("Outlier distribution across K-means clusters:")
-for c in range(3):
-    n_out = (outlier_clusters == c).sum()
-    n_tot = (km3.labels_ == c).sum()
-    print(f"  Cluster {c+1}: {n_tot} patients ({n_out} outliers)")
-
-print("\nK-means assigns outliers to existing clusters, distorting centroids.")
-
-# ---- (b) DBSCAN ----
-print("\n=== Part (b): DBSCAN ===")
-
-# kNN distance plot to choose eps
-nn = NearestNeighbors(n_neighbors=5).fit(X_scaled)
-distances, _ = nn.kneighbors(X_scaled)
-knn_dist = np.sort(distances[:, -1])
-
-plt.figure(figsize=(8, 4))
-plt.plot(knn_dist, color="steelblue")
-plt.axhline(y=2.5, color="firebrick", linestyle="--", label="eps = 2.5")
-plt.xlabel("Points (sorted)")
-plt.ylabel("5-NN Distance")
-plt.title("kNN Distance Plot for eps Selection")
-plt.legend()
-plt.tight_layout()
-plt.savefig("ch16_ex3_knn_dist.png", dpi=150)
-plt.show()
-
-# Run DBSCAN
-db = DBSCAN(eps=2.5, min_samples=10).fit(X_scaled)
-
-n_clusters = len(set(db.labels_)) - (1 if -1 in db.labels_ else 0)
-n_noise = (db.labels_ == -1).sum()
-outliers_as_noise = ((db.labels_ == -1) & is_outlier).sum()
-
-print(f"Number of clusters: {n_clusters}")
-print(f"Noise points (outliers): {n_noise}")
-print(f"Actual outliers detected as noise: {outliers_as_noise} out of 30")
-
-# ---- (c) Compare non-outlier assignments ----
-print("\n=== Part (c): Comparison for Non-Outlier Patients ===")
-
-normal_mask = ~is_outlier
-km_normal = km3.labels_[normal_mask]
-db_normal = db.labels_[normal_mask]
-
-db_noise_normal = (db_normal == -1).sum()
-print(f"Normal patients misclassified as noise: {db_noise_normal}")
-
-# ARI for non-noise, non-outlier patients
-both_assigned = db_normal >= 0
-if both_assigned.sum() > 0:
-    ari = adjusted_rand_score(km_normal[both_assigned], db_normal[both_assigned])
-    print(f"ARI (K-means vs DBSCAN, non-outlier, non-noise): {ari:.3f}")
-
-# ---- Visualise comparison ----
-pca2 = PCA(n_components=2).fit_transform(X_scaled)
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# K-means
-colors_km = ["steelblue", "firebrick", "forestgreen"]
-for c in range(3):
-    mask = (km3.labels_ == c) & ~is_outlier
-    axes[0].scatter(pca2[mask, 0], pca2[mask, 1], c=colors_km[c], s=12, alpha=0.6)
-    mask_out = (km3.labels_ == c) & is_outlier
-    axes[0].scatter(pca2[mask_out, 0], pca2[mask_out, 1], c=colors_km[c],
-                    marker="x", s=50, linewidths=2)
-axes[0].set_title("K-means (k=3)\n(X = outlier patients)")
-axes[0].set_xlabel("PC1")
-axes[0].set_ylabel("PC2")
-
-# DBSCAN
-color_map = {-1: "grey", 0: "steelblue", 1: "firebrick", 2: "forestgreen"}
-for c_val in sorted(set(db.labels_)):
-    mask = db.labels_ == c_val
-    marker = "x" if c_val == -1 else "o"
-    label = "Noise" if c_val == -1 else f"Cluster {c_val+1}"
-    axes[1].scatter(pca2[mask, 0], pca2[mask, 1],
-                    c=color_map.get(c_val, "purple"),
-                    marker=marker, s=15 if c_val >= 0 else 40,
-                    alpha=0.6, label=label)
-axes[1].set_title("DBSCAN\n(X/grey = noise)")
-axes[1].set_xlabel("PC1")
-axes[1].set_ylabel("PC2")
-axes[1].legend(fontsize=8)
-
-plt.tight_layout()
-plt.savefig("ch16_ex3_comparison.png", dpi=150)
-plt.show()
-
-# ---- (d) Preferred approach ----
-print("\n=== Part (d): Preferred Approach ===\n")
-print("DBSCAN is preferred for clinical phenotyping when outliers are expected.\n")
-print("1. EXPLICIT OUTLIER IDENTIFICATION: DBSCAN labels outliers as noise,")
-print("   making them visible. K-means silently absorbs them.\n")
-print("2. CLINICAL RELEVANCE: Outlier patients may represent data errors,")
-print("   rare presentations, or patients needing individual assessment.\n")
-print("3. CLUSTER INTEGRITY: DBSCAN preserves cluster purity by excluding")
-print("   outliers. K-means centroids can be pulled by outliers.\n")
-print("4. PRACTICAL WORKFLOW: Use DBSCAN first to identify outliers,")
-print("   review them clinically, then apply K-means to non-outliers.\n")
-print("5. CAVEAT: DBSCAN requires tuning eps and min_samples, which")
-print("   affects how many points are labelled as noise.")
+#| file: ../solutions/python/ch16_ex3.py
 ```
 
 :::
-
 
 ### Exercise 4
 
@@ -9145,178 +8397,7 @@ print("   affects how many points are labelled as noise.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# Chapter 16, Exercise 4: Full Pipeline - PCA + Clustering + UMAP Visualisation
-# 800 patients, 30 clinical variables, 4 underlying subtypes
-
-library(tidyverse)
-library(cluster)
-library(uwot)
-
-# ---- Simulate data ----
-set.seed(42)
-n <- 800
-p <- 30
-
-# 4 subtypes with different prevalences
-subtype_probs <- c(0.30, 0.30, 0.25, 0.15)
-true_subtype <- sample(1:4, n, replace = TRUE, prob = subtype_probs)
-
-cat("True subtype distribution:\n")
-print(table(true_subtype))
-
-# Generate base data
-X <- matrix(rnorm(n * p), ncol = p)
-
-# Add subtype-specific signals in different feature subsets
-for (s in 1:4) {
-  feature_start <- (s - 1) * 6 + 1
-  feature_end <- min(s * 6, p)
-  X[true_subtype == s, feature_start:feature_end] <-
-    X[true_subtype == s, feature_start:feature_end] + 2.5
-}
-
-# ---- (a) Standardise and PCA ----
-cat("\n=== Part (a): PCA ===\n")
-
-X_scaled <- scale(X)
-pca_result <- prcomp(X_scaled)
-
-var_prop <- pca_result$sdev^2 / sum(pca_result$sdev^2)
-cum_var <- cumsum(var_prop)
-
-# Scree plot
-par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
-barplot(var_prop[1:15], names.arg = 1:15, col = "steelblue",
-        main = "Scree Plot (first 15 PCs)",
-        xlab = "Component", ylab = "Proportion of Variance")
-abline(h = 1/p, col = "firebrick", lty = 2)
-
-plot(1:15, cum_var[1:15], type = "b", pch = 16, col = "steelblue",
-     main = "Cumulative Variance", xlab = "Components",
-     ylab = "Cumulative Proportion", ylim = c(0, 1))
-abline(h = 0.80, col = "firebrick", lty = 2)
-
-n_80 <- which(cum_var >= 0.80)[1]
-cat("PCs needed for 80% variance:", n_80, "\n")
-
-# Use first 10 PCs for clustering
-n_pcs <- 10
-pca_scores <- pca_result$x[, 1:n_pcs]
-
-# ---- (b) K-means on PCA scores ----
-cat("\n=== Part (b): K-means on PCA Scores ===\n")
-
-sil_scores <- numeric(5)
-for (k in 2:5) {
-  km <- kmeans(pca_scores, centers = k, nstart = 50)
-  sil_scores[k] <- mean(silhouette(km$cluster, dist(pca_scores))[, 3])
-  cat(sprintf("k = %d: Silhouette = %.3f\n", k, sil_scores[k]))
-}
-
-best_k <- which.max(sil_scores[2:5]) + 1
-cat("Best k by silhouette:", best_k, "\n")
-
-# Fit final clustering
-km_final <- kmeans(pca_scores, centers = best_k, nstart = 50)
-
-# ---- (c) UMAP visualisation ----
-cat("\n=== Part (c): UMAP Visualisation ===\n")
-
-set.seed(42)
-umap_result <- umap(pca_scores, n_neighbors = 15, min_dist = 0.1,
-                     verbose = FALSE)
-
-plot_df <- tibble(
-  UMAP1 = umap_result[, 1],
-  UMAP2 = umap_result[, 2],
-  Cluster = factor(km_final$cluster),
-  True_subtype = factor(true_subtype)
-)
-
-cols4 <- c("steelblue", "firebrick", "forestgreen", "goldenrod")
-
-par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
-
-# Discovered clusters
-plot(umap_result, col = cols4[km_final$cluster], pch = 16, cex = 0.6,
-     main = "K-means Clusters on UMAP", xlab = "UMAP 1", ylab = "UMAP 2")
-legend("topright", paste("Cluster", 1:best_k), col = cols4[1:best_k],
-       pch = 16, cex = 0.7)
-
-# True subtypes
-plot(umap_result, col = cols4[true_subtype], pch = 16, cex = 0.6,
-     main = "True Subtypes on UMAP", xlab = "UMAP 1", ylab = "UMAP 2")
-legend("topright", paste("Subtype", 1:4), col = cols4, pch = 16, cex = 0.7)
-
-# ---- (d) Cluster profiles ----
-cat("\n=== Part (d): Cluster Profiles ===\n\n")
-
-# Name variables for interpretability
-var_names <- paste0("V", 1:p)
-dat_df <- as.data.frame(X)
-colnames(dat_df) <- var_names
-dat_df$cluster <- km_final$cluster
-
-# Compute mean of each variable by cluster
-profiles <- dat_df %>%
-  group_by(cluster) %>%
-  summarise(across(everything(), mean), n = n(), .groups = "drop")
-
-cat("Cluster sizes:\n")
-print(table(km_final$cluster))
-
-cat("\nCluster means for key variables (first 24, showing subtype signals):\n\n")
-
-# Show means for the signal variables
-signal_vars <- paste0("V", 1:24)
-profile_table <- profiles %>%
-  select(cluster, n, all_of(signal_vars))
-
-# Print in a compact format
-for (cl in 1:best_k) {
-  prof <- profile_table %>% filter(cluster == cl)
-  cat(sprintf("Cluster %d (n = %d):\n", cl, prof$n))
-  for (s in 1:4) {
-    start <- (s - 1) * 6 + 1
-    end <- s * 6
-    vars <- paste0("V", start:end)
-    means <- round(unlist(prof[vars]), 2)
-    cat(sprintf("  Subtype %d signal vars (V%d-V%d): mean = %.2f\n",
-                s, start, end, mean(means)))
-  }
-  cat("\n")
-}
-
-# ---- (e) Discussion ----
-cat("=== Part (e): Validation Discussion ===\n\n")
-
-cat("To validate these clusters in a real clinical study:\n\n")
-
-cat("1. EXTERNAL OUTCOMES: Compare clusters on outcomes NOT used in\n")
-cat("   clustering (mortality, length of stay, treatment response).\n")
-cat("   If clusters predict outcomes they were not trained on, the\n")
-cat("   structure is likely clinically meaningful.\n\n")
-
-cat("2. STABILITY ANALYSIS: Resample the data (bootstrap) and re-run\n")
-cat("   clustering. If the same patients consistently end up in the\n")
-cat("   same clusters, the results are robust. If clusters change\n")
-cat("   substantially across resamples, they may be artefacts.\n\n")
-
-cat("3. INDEPENDENT REPLICATION: Apply the same pipeline to an\n")
-cat("   independent dataset (different hospital, different time period).\n")
-cat("   If similar clusters emerge, the findings are generalisable.\n\n")
-
-cat("4. CLINICAL EXPERT REVIEW: Present cluster profiles to clinicians.\n")
-cat("   Do the clusters correspond to recognisable patient types?\n")
-cat("   Do they suggest different management strategies?\n\n")
-
-cat("5. MULTIPLE ALGORITHMS: Compare results from K-means, hierarchical\n")
-cat("   clustering, and DBSCAN. Agreement across methods strengthens\n")
-cat("   confidence. Disagreement suggests fragile structure.\n\n")
-
-cat("6. AVOID CIRCULAR REASONING: Do NOT validate clusters by showing\n")
-cat("   they differ on the same variables used to create them.\n")
-cat("   This is guaranteed by construction and proves nothing.\n")
+#| file: ../solutions/R/ch16_ex4.R
 ```
 
 #### Python
@@ -9326,168 +8407,12 @@ cat("   This is guaranteed by construction and proves nothing.\n")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# Chapter 16, Exercise 4: Full Pipeline - PCA + Clustering + UMAP Visualisation
-# 800 patients, 30 clinical variables, 4 underlying subtypes
-
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from umap import UMAP
-
-# ---- Simulate data ----
-np.random.seed(42)
-n = 800
-p = 30
-
-# 4 subtypes
-true_subtype = np.random.choice(4, n, p=[0.30, 0.30, 0.25, 0.15])
-print("True subtype distribution:", {i: (true_subtype == i).sum() for i in range(4)})
-
-X = np.random.normal(0, 1, (n, p))
-
-# Add subtype-specific signals
-for s in range(4):
-    start = s * 6
-    end = min((s + 1) * 6, p)
-    X[true_subtype == s, start:end] += 2.5
-
-# ---- (a) Standardise and PCA ----
-print("\n=== Part (a): PCA ===")
-
-X_scaled = StandardScaler().fit_transform(X)
-pca = PCA()
-scores = pca.fit_transform(X_scaled)
-
-cum_var = np.cumsum(pca.explained_variance_ratio_)
-n_80 = np.argmax(cum_var >= 0.80) + 1
-print(f"PCs needed for 80% variance: {n_80}")
-
-# Scree plot
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-axes[0].bar(range(1, 16), pca.explained_variance_ratio_[:15],
-            color="steelblue", edgecolor="white")
-axes[0].axhline(y=1/p, color="firebrick", linestyle="--", label="1/p")
-axes[0].set_xlabel("Component")
-axes[0].set_ylabel("Proportion of Variance")
-axes[0].set_title("Scree Plot")
-axes[0].legend()
-
-axes[1].plot(range(1, 16), cum_var[:15], "o-", color="steelblue")
-axes[1].axhline(y=0.80, color="firebrick", linestyle="--", label="80%")
-axes[1].set_xlabel("Components")
-axes[1].set_ylabel("Cumulative Proportion")
-axes[1].set_title("Cumulative Variance")
-axes[1].legend()
-
-plt.tight_layout()
-plt.savefig("ch16_ex4_scree.png", dpi=150)
-plt.show()
-
-# Use 10 PCs
-n_pcs = 10
-pca_scores = scores[:, :n_pcs]
-
-# ---- (b) K-means on PCA scores ----
-print("\n=== Part (b): K-means on PCA Scores ===")
-
-sil_list = []
-for k in range(2, 6):
-    km = KMeans(n_clusters=k, n_init=50, random_state=42).fit(pca_scores)
-    sil = silhouette_score(pca_scores, km.labels_)
-    sil_list.append(sil)
-    print(f"k = {k}: Silhouette = {sil:.3f}")
-
-best_k = list(range(2, 6))[np.argmax(sil_list)]
-print(f"Best k by silhouette: {best_k}")
-
-# Fit final clustering
-km_final = KMeans(n_clusters=best_k, n_init=50, random_state=42).fit(pca_scores)
-
-# ---- (c) UMAP visualisation ----
-print("\n=== Part (c): UMAP Visualisation ===")
-
-umap_2d = UMAP(n_components=2, n_neighbors=15, min_dist=0.1,
-                random_state=42).fit_transform(pca_scores)
-
-colors_4 = ["steelblue", "firebrick", "forestgreen", "goldenrod"]
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# Discovered clusters
-for c in range(best_k):
-    mask = km_final.labels_ == c
-    axes[0].scatter(umap_2d[mask, 0], umap_2d[mask, 1], c=colors_4[c],
-                    s=10, alpha=0.6, label=f"Cluster {c+1}")
-axes[0].set_title("K-means Clusters on UMAP")
-axes[0].set_xlabel("UMAP 1")
-axes[0].set_ylabel("UMAP 2")
-axes[0].legend(fontsize=8)
-
-# True subtypes
-for s in range(4):
-    mask = true_subtype == s
-    axes[1].scatter(umap_2d[mask, 0], umap_2d[mask, 1], c=colors_4[s],
-                    s=10, alpha=0.6, label=f"Subtype {s+1}")
-axes[1].set_title("True Subtypes on UMAP")
-axes[1].set_xlabel("UMAP 1")
-axes[1].set_ylabel("UMAP 2")
-axes[1].legend(fontsize=8)
-
-plt.tight_layout()
-plt.savefig("ch16_ex4_umap.png", dpi=150)
-plt.show()
-
-# ---- (d) Cluster profiles ----
-print("\n=== Part (d): Cluster Profiles ===\n")
-
-var_names = [f"V{i+1}" for i in range(p)]
-df = pd.DataFrame(X, columns=var_names)
-df['cluster'] = km_final.labels_
-
-print("Cluster sizes:")
-print(df['cluster'].value_counts().sort_index())
-
-print("\nCluster means for signal variables:")
-for cl in range(best_k):
-    mask = df['cluster'] == cl
-    n_cl = mask.sum()
-    print(f"\nCluster {cl+1} (n = {n_cl}):")
-    for s in range(4):
-        start = s * 6
-        end = (s + 1) * 6
-        signal_vars = [f"V{i+1}" for i in range(start, min(end, p))]
-        mean_val = df.loc[mask, signal_vars].mean().mean()
-        print(f"  Subtype {s+1} signal vars (V{start+1}-V{min(end,p)}): mean = {mean_val:.2f}")
-
-# ---- (e) Discussion ----
-print("\n=== Part (e): Validation Discussion ===\n")
-
-print("To validate these clusters in a real clinical study:\n")
-print("1. EXTERNAL OUTCOMES: Compare clusters on outcomes NOT used in")
-print("   clustering (mortality, LOS, treatment response). Clusters")
-print("   that predict external outcomes are clinically meaningful.\n")
-print("2. STABILITY ANALYSIS: Bootstrap resampling + re-clustering.")
-print("   Consistent membership = robust; variable = artefact.\n")
-print("3. INDEPENDENT REPLICATION: Apply pipeline to an independent")
-print("   dataset (different hospital/time). Similar clusters = generalisable.\n")
-print("4. CLINICAL EXPERT REVIEW: Do clusters correspond to")
-print("   recognisable patient types? Do they suggest different management?\n")
-print("5. MULTIPLE ALGORITHMS: Compare K-means, hierarchical, DBSCAN.")
-print("   Agreement across methods strengthens confidence.\n")
-print("6. AVOID CIRCULAR REASONING: Do NOT validate on the same")
-print("   variables used for clustering. That proves nothing.")
+#| file: ../solutions/python/ch16_ex4.py
 ```
 
 :::
 
-
-## Chapter 17: Causal Inference
-
+## Chapter 17: Causal Inference and Treatment Effects
 
 ### Exercise 1
 
@@ -9500,138 +8425,7 @@ print("   variables used for clustering. That proves nothing.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# =============================================================================
-# Chapter 17 - Exercise 1: DAG Construction (Conceptual)
-# Studying the relationship between ACE inhibitor use and Acute Kidney Injury
-# =============================================================================
-
-# This is a conceptual exercise. The answers are provided as detailed comments
-# with optional code to illustrate DAG concepts using the dagitty package.
-
-# --- Part (a): List at least five relevant variables ---
-#
-# 1. Baseline kidney function (eGFR / serum creatinine)
-#    - Patients with worse kidney function are more likely to receive ACE inhibitors
-#      (for renoprotective effects) AND are at higher risk of AKI.
-#
-# 2. Heart failure severity
-#    - Heart failure is a major indication for ACE inhibitors AND independently
-#      increases AKI risk (through haemodynamic changes).
-#
-# 3. Diabetes
-#    - Diabetes is an indication for ACE inhibitors (nephroprotection) AND a risk
-#      factor for AKI.
-#
-# 4. Age
-#    - Older patients are more likely to be on ACE inhibitors and are at higher
-#      risk of AKI.
-#
-# 5. Hypertension
-#    - Primary indication for ACE inhibitors and can contribute to kidney injury.
-#
-# 6. Concomitant nephrotoxic drugs (e.g., NSAIDs, contrast agents)
-#    - May be prescribed alongside or instead of ACE inhibitors and directly
-#      cause AKI.
-#
-# 7. Volume status / dehydration
-#    - Dehydration increases AKI risk and may influence whether ACE inhibitors
-#      are held or continued.
-#
-# 8. Proteinuria
-#    - An indication for ACE inhibitors and a marker of kidney disease severity
-#      (related to AKI risk).
-
-# --- Part (b): Draw a DAG ---
-# We use the dagitty package to encode the DAG programmatically.
-
-# install.packages("dagitty")
-library(dagitty)
-
-dag <- dagitty('dag {
-  ACEi [exposure]
-  AKI [outcome]
-  eGFR [confounder]
-  HeartFailure [confounder]
-  Diabetes [confounder]
-  Age [confounder]
-  Hypertension [confounder]
-  NephrotoxicDrugs [confounder]
-  VolumeStatus [confounder]
-  ICUAdmission [collider]
-
-  Age -> ACEi
-
-  Age -> AKI
-  Age -> eGFR
-  Age -> HeartFailure
-  Age -> Diabetes
-
-  eGFR -> ACEi
-  eGFR -> AKI
-
-  HeartFailure -> ACEi
-  HeartFailure -> AKI
-  HeartFailure -> VolumeStatus
-
-  Diabetes -> ACEi
-  Diabetes -> AKI
-  Diabetes -> eGFR
-
-  Hypertension -> ACEi
-  Hypertension -> AKI
-
-  NephrotoxicDrugs -> AKI
-
-  VolumeStatus -> AKI
-
-  ACEi -> AKI
-
-  # Collider: ICU Admission is caused by both ACEi use patterns
-  # and by AKI itself (patients with AKI go to ICU)
-  ACEi -> ICUAdmission
-  AKI -> ICUAdmission
-}')
-
-# Visualise the DAG (if running interactively)
-# plot(dag)
-
-# --- Part (c): Minimal sufficient adjustment set ---
-# Using dagitty to compute the adjustment set automatically
-adj_set <- adjustmentSets(dag, exposure = "ACEi", outcome = "AKI", type = "minimal")
-cat("Minimal sufficient adjustment sets:\n")
-print(adj_set)
-
-# Explanation:
-# The minimal adjustment set includes confounders that block all backdoor paths
-# from ACEi to AKI. Based on our DAG, this includes:
-# - Age, eGFR, HeartFailure, Diabetes, Hypertension
-# These are the common causes of both ACEi use and AKI.
-# We do NOT need to adjust for VolumeStatus (it's not a confounder of ACEi->AKI
-# unless there's a direct path from ACEi to VolumeStatus).
-# We do NOT need to adjust for NephrotoxicDrugs (it only affects AKI, not ACEi).
-
-# --- Part (d): Identify a collider ---
-#
-# ICU Admission is a COLLIDER: it is caused by both ACEi use (patients on
-# ACE inhibitors who develop complications may be admitted to ICU) and AKI
-# (AKI itself is a reason for ICU admission).
-#
-# What happens if we adjust for ICU Admission?
-# Conditioning on a collider OPENS a spurious path between ACEi and AKI.
-# This would create "collider bias" (also known as Berkson's bias in clinical
-# settings). Even if ACEi had no effect on AKI, adjusting for ICU admission
-# would create an artificial association because:
-# - Among ICU patients, if they were NOT admitted for AKI, they were more
-#   likely admitted for ACEi-related reasons (and vice versa).
-# - This induces a negative correlation between the two causes of the collider.
-#
-# Practical lesson: Do NOT adjust for variables that are consequences of both
-# the exposure and the outcome (or that lie on causal paths from both).
-
-cat("\n--- Summary ---\n")
-cat("Key confounders to adjust for: Age, eGFR, Heart Failure, Diabetes, Hypertension\n")
-cat("Collider to AVOID adjusting for: ICU Admission\n")
-cat("Mediators to consider carefully: Volume status changes caused by ACEi\n")
+#| file: ../solutions/R/ch17_ex1.R
 ```
 
 #### Python
@@ -9641,154 +8435,10 @@ cat("Mediators to consider carefully: Volume status changes caused by ACEi\n")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# =============================================================================
-# Chapter 17 - Exercise 1: DAG Construction (Conceptual)
-# Studying the relationship between ACE inhibitor use and Acute Kidney Injury
-# =============================================================================
-
-# This is a conceptual exercise. The answers are provided as detailed comments
-# with optional code to illustrate DAG concepts.
-
-# --- Part (a): List at least five relevant variables ---
-#
-# 1. Baseline kidney function (eGFR / serum creatinine)
-#    - Patients with worse kidney function are more likely to receive ACE inhibitors
-#      (for renoprotective effects) AND are at higher risk of AKI.
-#
-# 2. Heart failure severity
-#    - Heart failure is a major indication for ACE inhibitors AND independently
-#      increases AKI risk (through haemodynamic changes).
-#
-# 3. Diabetes
-#    - Diabetes is an indication for ACE inhibitors (nephroprotection) AND a risk
-#      factor for AKI.
-#
-# 4. Age
-#    - Older patients are more likely to be on ACE inhibitors and are at higher
-#      risk of AKI.
-#
-# 5. Hypertension
-#    - Primary indication for ACE inhibitors and can contribute to kidney injury.
-#
-# 6. Concomitant nephrotoxic drugs (e.g., NSAIDs, contrast agents)
-#    - May be prescribed alongside or instead of ACE inhibitors and directly
-#      cause AKI.
-#
-# 7. Volume status / dehydration
-#    - Dehydration increases AKI risk and may influence whether ACE inhibitors
-#      are held or continued.
-#
-# 8. Proteinuria
-#    - An indication for ACE inhibitors and a marker of kidney disease severity
-#      (related to AKI risk).
-
-# --- Part (b): Draw a DAG ---
-# We represent the DAG as an adjacency list and visualise with networkx.
-
-import networkx as nx
-import matplotlib.pyplot as plt
-
-# Define the DAG
-dag = nx.DiGraph()
-
-# Add edges representing causal relationships
-edges = [
-    # Age affects many variables
-    ("Age", "ACEi"), ("Age", "AKI"), ("Age", "eGFR"),
-    ("Age", "HeartFailure"), ("Age", "Diabetes"),
-    # eGFR confounds ACEi-AKI
-    ("eGFR", "ACEi"), ("eGFR", "AKI"),
-    # Heart failure confounds ACEi-AKI
-    ("HeartFailure", "ACEi"), ("HeartFailure", "AKI"),
-    ("HeartFailure", "VolumeStatus"),
-    # Diabetes confounds ACEi-AKI
-    ("Diabetes", "ACEi"), ("Diabetes", "AKI"), ("Diabetes", "eGFR"),
-    # Hypertension confounds ACEi-AKI
-    ("Hypertension", "ACEi"), ("Hypertension", "AKI"),
-    # Other causes of AKI
-    ("NephrotoxicDrugs", "AKI"),
-    ("VolumeStatus", "AKI"),
-    # Treatment -> Outcome (causal effect of interest)
-    ("ACEi", "AKI"),
-    # Collider: ICU admission caused by both ACEi complications and AKI
-    ("ACEi", "ICUAdmission"), ("AKI", "ICUAdmission"),
-]
-
-dag.add_edges_from(edges)
-
-# Visualise the DAG
-plt.figure(figsize=(12, 8))
-pos = nx.spring_layout(dag, seed=42, k=2)
-nx.draw(dag, pos, with_labels=True, node_color='lightblue',
-        node_size=2000, font_size=9, font_weight='bold',
-        arrows=True, arrowsize=20, edge_color='gray')
-plt.title("DAG: ACE Inhibitor Use and Acute Kidney Injury")
-plt.tight_layout()
-plt.savefig("dag_acei_aki.png", dpi=300)
-plt.show()
-
-# --- Part (c): Minimal sufficient adjustment set ---
-#
-# To estimate the causal effect of ACEi on AKI, we need to block all
-# backdoor paths (non-causal paths from ACEi to AKI).
-#
-# Backdoor paths from ACEi to AKI:
-# 1. ACEi <- Age -> AKI
-# 2. ACEi <- eGFR -> AKI
-# 3. ACEi <- HeartFailure -> AKI
-# 4. ACEi <- Diabetes -> AKI
-# 5. ACEi <- Diabetes -> eGFR -> AKI
-# 6. ACEi <- Hypertension -> AKI
-# 7. ACEi <- Age -> eGFR -> AKI
-# 8. ACEi <- Age -> HeartFailure -> AKI
-# 9. ACEi <- Age -> Diabetes -> AKI
-# 10. ACEi <- HeartFailure -> VolumeStatus -> AKI
-#
-# Minimal sufficient adjustment set:
-# {Age, eGFR, HeartFailure, Diabetes, Hypertension}
-#
-# This blocks all backdoor paths. Note:
-# - NephrotoxicDrugs only affects AKI (not a confounder), so no need to adjust.
-# - VolumeStatus is blocked by conditioning on HeartFailure (the path goes
-#   through HeartFailure).
-
-print("Minimal sufficient adjustment set:")
-print("  {Age, eGFR, HeartFailure, Diabetes, Hypertension}")
-
-# --- Part (d): Identify a collider ---
-#
-# ICU Admission is a COLLIDER in the DAG:
-#   ACEi -> ICUAdmission <- AKI
-#
-# Both ACEi use (through complications or monitoring) and AKI (as a
-# critical condition) can cause ICU admission.
-#
-# What happens if we adjust for ICU Admission?
-#
-# Conditioning on a collider OPENS a spurious path between its causes.
-# This creates "collider bias" (Berkson's bias):
-#
-# - Among ICU patients, if a patient was NOT admitted because of AKI,
-#   they were more likely admitted due to ACEi-related issues (and vice versa).
-# - This induces an artificial negative association between ACEi and AKI,
-#   even if no true causal relationship exists.
-#
-# Practical lesson: Never adjust for variables that are consequences of both
-# the exposure and the outcome. Restricting the analysis to ICU patients
-# only would similarly introduce collider bias.
-
-print("\nCollider identified: ICU Admission")
-print("  ACEi -> ICUAdmission <- AKI")
-print("  Adjusting for ICU admission would OPEN a spurious path (collider bias)")
-
-print("\n--- Summary ---")
-print("Key confounders to adjust for: Age, eGFR, Heart Failure, Diabetes, Hypertension")
-print("Collider to AVOID adjusting for: ICU Admission")
-print("Mediators to consider: Volume status changes caused by ACEi")
+#| file: ../solutions/python/ch17_ex1.py
 ```
 
 :::
-
 
 ### Exercise 2
 
@@ -9801,149 +8451,7 @@ print("Mediators to consider: Volume status changes caused by ACEi")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# =============================================================================
-# Chapter 17 - Exercise 2: Propensity Score Matching in R
-# Beta-blocker use and 1-year mortality
-# =============================================================================
-
-library(tidyverse)
-library(MatchIt)
-library(cobalt)
-library(broom)
-
-# --- Simulate the dataset (from the exercise) ---
-set.seed(123)
-n <- 1500
-exercise_dat <- tibble(
-  age = rnorm(n, 70, 8),
-  creatinine = rnorm(n, 1.2, 0.4),
-  heart_failure = rbinom(n, 1, 0.35),
-  prior_mi = rbinom(n, 1, 0.20),
-  # Confounded treatment (beta-blocker use)
-  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
-                                     0.5*prior_mi - 0.8*creatinine)),
-  # Outcome: 1-year mortality
-  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
-                                     0.6*prior_mi + 1.0*creatinine -
-                                     0.7*treatment))
-)
-
-cat("Dataset dimensions:", nrow(exercise_dat), "patients\n")
-cat("Treatment prevalence:", mean(exercise_dat$treatment), "\n")
-cat("Outcome prevalence:", mean(exercise_dat$death_1yr), "\n\n")
-
-# --- Part (a): Estimate propensity scores using logistic regression ---
-ps_model <- glm(treatment ~ age + creatinine + heart_failure + prior_mi,
-                data = exercise_dat, family = binomial)
-
-exercise_dat$ps <- predict(ps_model, type = "response")
-
-cat("Propensity score summary:\n")
-print(summary(exercise_dat$ps))
-
-# Visualise propensity score overlap
-ggplot(exercise_dat, aes(x = ps, fill = factor(treatment))) +
-  geom_density(alpha = 0.5) +
-  labs(x = "Propensity Score", fill = "Beta-blocker",
-       title = "Propensity Score Distribution by Treatment Group") +
-  scale_fill_manual(values = c("#0072B2", "#D55E00"),
-                    labels = c("No", "Yes")) +
-  theme_minimal()
-
-# --- Part (b): 1:1 nearest-neighbour matching with caliper of 0.2 SD ---
-m_out <- matchit(treatment ~ age + creatinine + heart_failure + prior_mi,
-                 data = exercise_dat,
-                 method = "nearest",
-                 distance = "glm",        # logistic regression PS
-                 caliper = 0.2,           # 0.2 SD of logit PS
-                 ratio = 1)               # 1:1 matching
-
-cat("\nMatching summary:\n")
-summary(m_out)
-
-# --- Part (c): Love plot to assess balance ---
-love.plot(m_out,
-          thresholds = c(m = 0.1),    # SMD threshold of 0.1
-          binary = "std",
-          var.order = "unadjusted",
-          title = "Covariate Balance: Before and After Matching",
-          colors = c("#D55E00", "#0072B2"))
-
-# Also check numeric balance
-cat("\nBalance table:\n")
-print(bal.tab(m_out, thresholds = c(m = 0.1)))
-
-# --- Part (d): Estimate ATT for beta-blocker use on 1-year mortality ---
-m_data <- match.data(m_out)
-
-cat("\nMatched sample size:", nrow(m_data), "patients\n")
-cat("Treated in matched sample:", sum(m_data$treatment == 1), "\n")
-cat("Control in matched sample:", sum(m_data$treatment == 0), "\n")
-
-# Outcome model in matched sample
-outcome_model <- glm(death_1yr ~ treatment,
-                     data = m_data,
-                     family = binomial,
-                     weights = weights)
-
-cat("\nATT estimate (logistic regression in matched sample):\n")
-result <- tidy(outcome_model, conf.int = TRUE, exponentiate = TRUE)
-print(result)
-
-# Risk difference (linear probability model)
-rd_model <- lm(death_1yr ~ treatment, data = m_data, weights = weights)
-cat("\nRisk difference estimate:\n")
-print(tidy(rd_model, conf.int = TRUE))
-
-# Mortality rates in matched sample
-cat("\nMortality in matched sample:\n")
-cat("  Treated:", mean(m_data$death_1yr[m_data$treatment == 1]), "\n")
-cat("  Control:", mean(m_data$death_1yr[m_data$treatment == 0]), "\n")
-
-# --- Part (e): E-value calculation ---
-# Extract the odds ratio from the matched analysis
-or_est <- result$estimate[result$term == "treatment"]
-or_lo <- result$conf.low[result$term == "treatment"]
-or_hi <- result$conf.high[result$term == "treatment"]
-
-cat("\nOdds Ratio:", round(or_est, 3),
-    "(95% CI:", round(or_lo, 3), "-", round(or_hi, 3), ")\n")
-
-# Convert OR to RR approximation (for rare outcomes, OR ~ RR)
-# For the E-value, we need RR on the above-null scale
-# Since treatment is protective (OR < 1), convert: RR_above_null = 1/OR
-rr_est <- 1 / or_est
-rr_lo_bound <- 1 / or_hi  # Note: CI bounds flip when inverting
-
-# E-value formula: E = RR + sqrt(RR * (RR - 1))
-e_value <- function(rr) {
-  if (rr < 1) rr <- 1 / rr  # Convert to above-null
-  return(rr + sqrt(rr * (rr - 1)))
-}
-
-e_val_point <- e_value(rr_est)
-
-# E-value for the CI bound closest to null
-# If protective, the upper bound of RR (lower bound of 1/OR) is closest to null
-e_val_ci <- e_value(rr_lo_bound)
-
-cat("\nE-value for point estimate:", round(e_val_point, 2), "\n")
-cat("E-value for CI bound closest to null:", round(e_val_ci, 2), "\n")
-
-# Interpretation
-cat("\n--- E-value Interpretation ---\n")
-cat("The E-value of", round(e_val_point, 2), "means that an unmeasured\n")
-cat("confounder would need to be associated with BOTH beta-blocker use AND\n")
-cat("1-year mortality by a risk ratio of at least", round(e_val_point, 2), "\n")
-cat("(above and beyond measured confounders) to fully explain away the\n")
-cat("observed protective association.\n")
-cat("\nThe E-value for the confidence interval bound is", round(e_val_ci, 2), ",\n")
-cat("meaning a confounder of that strength could shift the CI to include the null.\n")
-cat("If these values are larger than plausible confounders, the result is robust.\n")
-
-# Optional: use EValue package if available
-# library(EValue)
-# evalues.OR(or_est, lo = or_lo, hi = or_hi, rare = FALSE)
+#| file: ../solutions/R/ch17_ex2.R
 ```
 
 #### Python
@@ -9953,207 +8461,10 @@ cat("If these values are larger than plausible confounders, the result is robust
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# =============================================================================
-# Chapter 17 - Exercise 2: Propensity Score Matching in Python
-# Beta-blocker use and 1-year mortality
-# =============================================================================
-
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import NearestNeighbors
-from scipy import stats
-import matplotlib.pyplot as plt
-
-# --- Simulate the dataset (same DGP as the R exercise) ---
-np.random.seed(123)
-n = 1500
-
-age = np.random.normal(70, 8, n)
-creatinine = np.random.normal(1.2, 0.4, n)
-heart_failure = np.random.binomial(1, 0.35, n)
-prior_mi = np.random.binomial(1, 0.20, n)
-
-# Confounded treatment assignment
-ps_true = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
-                               0.5*prior_mi - 0.8*creatinine)))
-treatment = np.random.binomial(1, ps_true)
-
-# Outcome
-mort_prob = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
-                                 0.6*prior_mi + 1.0*creatinine -
-                                 0.7*treatment)))
-death_1yr = np.random.binomial(1, mort_prob)
-
-df = pd.DataFrame({
-    'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
-    'prior_mi': prior_mi, 'treatment': treatment, 'death_1yr': death_1yr
-})
-
-print(f"Dataset: {len(df)} patients")
-print(f"Treatment prevalence: {df['treatment'].mean():.3f}")
-print(f"Outcome prevalence: {df['death_1yr'].mean():.3f}\n")
-
-# --- Part (a): Estimate propensity scores ---
-covariates = ['age', 'creatinine', 'heart_failure', 'prior_mi']
-ps_model = LogisticRegression(max_iter=1000)
-ps_model.fit(df[covariates], df['treatment'])
-df['ps'] = ps_model.predict_proba(df[covariates])[:, 1]
-
-# Compute logit of PS for caliper matching
-df['logit_ps'] = np.log(df['ps'] / (1 - df['ps']))
-
-print("Propensity score summary:")
-print(df['ps'].describe())
-
-# Visualise PS overlap
-fig, ax = plt.subplots(figsize=(8, 5))
-df[df['treatment'] == 0]['ps'].plot.kde(ax=ax, label='Control', color='#0072B2')
-df[df['treatment'] == 1]['ps'].plot.kde(ax=ax, label='Treated', color='#D55E00')
-ax.set_xlabel('Propensity Score')
-ax.set_ylabel('Density')
-ax.set_title('Propensity Score Distribution by Treatment Group')
-ax.legend()
-plt.tight_layout()
-plt.savefig('ps_overlap.png', dpi=300)
-plt.show()
-
-# --- Part (b): 1:1 nearest-neighbour matching with caliper ---
-treated = df[df['treatment'] == 1].copy()
-control = df[df['treatment'] == 0].copy()
-
-# Caliper: 0.2 * SD of logit PS
-caliper = 0.2 * df['logit_ps'].std()
-print(f"\nCaliper (0.2 SD of logit PS): {caliper:.4f}")
-
-# Nearest-neighbour matching on logit PS
-nn = NearestNeighbors(n_neighbors=1, metric='euclidean')
-nn.fit(control[['logit_ps']].values)
-
-distances, indices = nn.kneighbors(treated[['logit_ps']].values)
-
-# Apply caliper: keep only matches within the caliper
-matched_treated_idx = []
-matched_control_idx = []
-used_controls = set()
-
-for i in range(len(treated)):
-    dist = distances[i, 0]
-    ctrl_idx = indices[i, 0]
-    if dist <= caliper and ctrl_idx not in used_controls:
-        matched_treated_idx.append(treated.index[i])
-        matched_control_idx.append(control.index[ctrl_idx])
-        used_controls.add(ctrl_idx)
-
-# Create matched dataset
-matched_df = pd.concat([
-    df.loc[matched_treated_idx],
-    df.loc[matched_control_idx]
-])
-
-print(f"Matched sample: {len(matched_df)} patients")
-print(f"  Treated: {len(matched_treated_idx)}")
-print(f"  Control: {len(matched_control_idx)}")
-print(f"  Unmatched treated: {len(treated) - len(matched_treated_idx)}")
-
-# --- Part (c): Assess balance using SMD (Love plot equivalent) ---
-def compute_smd(data, var, group_col):
-    """Compute standardised mean difference."""
-    treated = data[data[group_col] == 1][var]
-    control = data[data[group_col] == 0][var]
-    pooled_sd = np.sqrt((treated.var() + control.var()) / 2)
-    if pooled_sd == 0:
-        return 0
-    return (treated.mean() - control.mean()) / pooled_sd
-
-print("\nCovariate balance (SMD):")
-print(f"{'Variable':<20} {'Before':>10} {'After':>10} {'Balanced?':>10}")
-print("-" * 52)
-
-smd_before = {}
-smd_after = {}
-for var in covariates:
-    smd_b = compute_smd(df, var, 'treatment')
-    smd_a = compute_smd(matched_df, var, 'treatment')
-    smd_before[var] = smd_b
-    smd_after[var] = smd_a
-    balanced = "Yes" if abs(smd_a) < 0.1 else "No"
-    print(f"{var:<20} {smd_b:>10.4f} {smd_a:>10.4f} {balanced:>10}")
-
-# Love plot
-fig, ax = plt.subplots(figsize=(8, 5))
-y_pos = range(len(covariates))
-
-ax.scatter([abs(smd_before[v]) for v in covariates], y_pos,
-           color='#D55E00', label='Before matching', s=80, zorder=5)
-ax.scatter([abs(smd_after[v]) for v in covariates], y_pos,
-           color='#0072B2', label='After matching', s=80, zorder=5)
-
-# Connect before and after
-for i, var in enumerate(covariates):
-    ax.plot([abs(smd_before[var]), abs(smd_after[var])], [i, i],
-            'k-', alpha=0.3)
-
-ax.axvline(x=0.1, color='red', linestyle='--', alpha=0.5, label='SMD = 0.1 threshold')
-ax.set_yticks(y_pos)
-ax.set_yticklabels(covariates)
-ax.set_xlabel('Absolute Standardised Mean Difference')
-ax.set_title('Love Plot: Covariate Balance Before and After Matching')
-ax.legend(loc='lower right')
-plt.tight_layout()
-plt.savefig('love_plot.png', dpi=300)
-plt.show()
-
-# --- Part (d): Estimate ATT ---
-# Mortality rates in matched sample
-mort_treated = matched_df[matched_df['treatment'] == 1]['death_1yr'].mean()
-mort_control = matched_df[matched_df['treatment'] == 0]['death_1yr'].mean()
-
-print(f"\nMortality in matched sample:")
-print(f"  Treated (beta-blocker): {mort_treated:.4f}")
-print(f"  Control (no beta-blocker): {mort_control:.4f}")
-print(f"  Risk difference (ATT): {mort_treated - mort_control:.4f}")
-
-# Odds ratio
-from statsmodels.api import Logit, add_constant
-
-X = add_constant(matched_df['treatment'])
-logit_model = Logit(matched_df['death_1yr'], X).fit(disp=0)
-print(f"\nLogistic regression in matched sample:")
-print(logit_model.summary2().tables[1])
-
-or_est = np.exp(logit_model.params['treatment'])
-ci = np.exp(logit_model.conf_int().loc['treatment'])
-print(f"\nOdds Ratio: {or_est:.3f} (95% CI: {ci[0]:.3f} - {ci[1]:.3f})")
-
-# --- Part (e): E-value ---
-# Convert protective OR to RR on above-null scale
-rr_est = 1 / or_est  # Flip because protective
-rr_ci_closest_null = 1 / ci[1]  # Upper CI of OR -> lower bound of 1/OR
-
-def e_value(rr):
-    """Compute E-value for a risk ratio."""
-    if rr < 1:
-        rr = 1 / rr
-    return rr + np.sqrt(rr * (rr - 1))
-
-e_val_point = e_value(rr_est)
-e_val_ci = e_value(rr_ci_closest_null)
-
-print(f"\n--- E-value Analysis ---")
-print(f"E-value for point estimate: {e_val_point:.2f}")
-print(f"E-value for CI bound closest to null: {e_val_ci:.2f}")
-
-print(f"\nInterpretation:")
-print(f"An unmeasured confounder would need to be associated with BOTH")
-print(f"beta-blocker use AND 1-year mortality by a risk ratio of at least")
-print(f"{e_val_point:.2f} to fully explain away the observed protective effect.")
-print(f"For the confidence interval, a confounder with RR >= {e_val_ci:.2f}")
-print(f"could shift the CI to include the null.")
+#| file: ../solutions/python/ch17_ex2.py
 ```
 
 :::
-
 
 ### Exercise 3
 
@@ -10166,135 +8477,7 @@ print(f"could shift the CI to include the null.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# =============================================================================
-# Chapter 17 - Exercise 3: IPTW in R
-# (Exercise specifies Python, but we provide an R version as well)
-# Beta-blocker use and 1-year mortality using IPTW
-# =============================================================================
-
-library(tidyverse)
-library(WeightIt)
-library(cobalt)
-library(survey)
-library(broom)
-
-# --- Simulate the dataset (same DGP as Exercise 2) ---
-set.seed(123)
-n <- 1500
-
-exercise_dat <- tibble(
-  age = rnorm(n, 70, 8),
-  creatinine = rnorm(n, 1.2, 0.4),
-  heart_failure = rbinom(n, 1, 0.35),
-  prior_mi = rbinom(n, 1, 0.20),
-  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
-                                     0.5*prior_mi - 0.8*creatinine)),
-  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
-                                     0.6*prior_mi + 1.0*creatinine -
-                                     0.7*treatment))
-)
-
-# --- Part (a): Fit PS model and compute stabilised IPTW weights ---
-w_out <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi,
-                  data = exercise_dat,
-                  method = "ps",
-                  estimand = "ATE")
-
-cat("Weight summary:\n")
-summary(w_out)
-
-# Check for extreme weights
-cat("\nWeight distribution:\n")
-cat("  Min:", min(w_out$weights), "\n")
-cat("  Max:", max(w_out$weights), "\n")
-cat("  Mean:", mean(w_out$weights), "\n")
-cat("  SD:", sd(w_out$weights), "\n")
-
-# --- Part (b): Assess covariate balance using weighted SMDs ---
-cat("\nBalance table:\n")
-bt <- bal.tab(w_out, thresholds = c(m = 0.1))
-print(bt)
-
-# Love plot
-love.plot(w_out,
-          thresholds = c(m = 0.1),
-          binary = "std",
-          var.order = "unadjusted",
-          title = "Covariate Balance: Before and After IPTW",
-          colors = c("#D55E00", "#0072B2"))
-
-# --- Part (c): Estimate ATE using weighted regression ---
-d_weighted <- svydesign(ids = ~1, weights = w_out$weights, data = exercise_dat)
-
-# Logistic regression (odds ratio)
-ate_model <- svyglm(death_1yr ~ treatment, design = d_weighted,
-                    family = quasibinomial)
-cat("\nIPTW ATE estimate (logistic):\n")
-print(tidy(ate_model, conf.int = TRUE, exponentiate = TRUE))
-
-# Linear probability model (risk difference)
-rd_model <- svyglm(death_1yr ~ treatment, design = d_weighted,
-                   family = gaussian())
-cat("\nIPTW ATE estimate (risk difference):\n")
-print(tidy(rd_model, conf.int = TRUE))
-
-# --- Part (d): Sensitivity analysis with simulated unmeasured confounder ---
-cat("\n--- Sensitivity Analysis: Unmeasured Confounder ---\n")
-
-# Simulate an unmeasured confounder U that affects both treatment and outcome
-set.seed(456)
-U <- rnorm(n, 0, 1)
-
-# Re-simulate treatment and outcome with U included
-exercise_dat_u <- tibble(
-  age = exercise_dat$age,
-  creatinine = exercise_dat$creatinine,
-  heart_failure = exercise_dat$heart_failure,
-  prior_mi = exercise_dat$prior_mi,
-  U = U,
-  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
-                                     0.5*prior_mi - 0.8*creatinine +
-                                     0.6*U)),  # U affects treatment
-  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
-                                     0.6*prior_mi + 1.0*creatinine -
-                                     0.7*treatment +
-                                     0.8*U))   # U affects outcome
-)
-
-# Analysis WITHOUT adjusting for U (biased)
-w_no_u <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi,
-                   data = exercise_dat_u,
-                   method = "ps", estimand = "ATE")
-
-d_no_u <- svydesign(ids = ~1, weights = w_no_u$weights, data = exercise_dat_u)
-model_no_u <- svyglm(death_1yr ~ treatment, design = d_no_u,
-                     family = quasibinomial)
-res_no_u <- tidy(model_no_u, conf.int = TRUE, exponentiate = TRUE)
-
-cat("\nWithout adjusting for U:\n")
-print(res_no_u)
-
-# Analysis WITH adjusting for U (unbiased)
-w_with_u <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi + U,
-                     data = exercise_dat_u,
-                     method = "ps", estimand = "ATE")
-
-d_with_u <- svydesign(ids = ~1, weights = w_with_u$weights, data = exercise_dat_u)
-model_with_u <- svyglm(death_1yr ~ treatment, design = d_with_u,
-                       family = quasibinomial)
-res_with_u <- tidy(model_with_u, conf.int = TRUE, exponentiate = TRUE)
-
-cat("\nWith adjusting for U:\n")
-print(res_with_u)
-
-cat("\n--- Interpretation ---\n")
-cat("The unmeasured confounder U (with associations of 0.6 with treatment\n")
-cat("and 0.8 with outcome on the log-odds scale) shifts the treatment effect\n")
-cat("estimate when not adjusted for. This demonstrates:\n")
-cat("  1. IPTW cannot correct for unmeasured confounding.\n")
-cat("  2. Sensitivity analysis helps quantify how strong a confounder\n")
-cat("     would need to be to change conclusions.\n")
-cat("  3. The E-value provides a formal framework for this assessment.\n")
+#| file: ../solutions/R/ch17_ex3.R
 ```
 
 #### Python
@@ -10304,236 +8487,10 @@ cat("  3. The E-value provides a formal framework for this assessment.\n")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# =============================================================================
-# Chapter 17 - Exercise 3: IPTW in Python
-# Beta-blocker use and 1-year mortality using IPTW
-# =============================================================================
-
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from scipy import stats
-import matplotlib.pyplot as plt
-import statsmodels.api as sm
-
-# --- Simulate the dataset (same DGP as Exercise 2) ---
-np.random.seed(123)
-n = 1500
-
-age = np.random.normal(70, 8, n)
-creatinine = np.random.normal(1.2, 0.4, n)
-heart_failure = np.random.binomial(1, 0.35, n)
-prior_mi = np.random.binomial(1, 0.20, n)
-
-ps_true = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
-                               0.5*prior_mi - 0.8*creatinine)))
-treatment = np.random.binomial(1, ps_true)
-
-mort_prob = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
-                                 0.6*prior_mi + 1.0*creatinine -
-                                 0.7*treatment)))
-death_1yr = np.random.binomial(1, mort_prob)
-
-df = pd.DataFrame({
-    'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
-    'prior_mi': prior_mi, 'treatment': treatment, 'death_1yr': death_1yr
-})
-
-print(f"Dataset: {len(df)} patients")
-print(f"Treatment prevalence: {df['treatment'].mean():.3f}")
-print(f"Outcome prevalence: {df['death_1yr'].mean():.3f}\n")
-
-# --- Part (a): Fit PS model and compute stabilised IPTW weights ---
-covariates = ['age', 'creatinine', 'heart_failure', 'prior_mi']
-
-ps_model = LogisticRegression(max_iter=1000)
-ps_model.fit(df[covariates], df['treatment'])
-df['ps'] = ps_model.predict_proba(df[covariates])[:, 1]
-
-# Unstabilised ATE weights: w = A/ps + (1-A)/(1-ps)
-df['iptw'] = np.where(
-    df['treatment'] == 1,
-    1 / df['ps'],
-    1 / (1 - df['ps'])
-)
-
-# Stabilised weights: replace numerator with marginal treatment probability
-p_treat = df['treatment'].mean()
-df['sw'] = np.where(
-    df['treatment'] == 1,
-    p_treat / df['ps'],
-    (1 - p_treat) / (1 - df['ps'])
-)
-
-print("Stabilised weight summary:")
-print(f"  Min: {df['sw'].min():.4f}")
-print(f"  Max: {df['sw'].max():.4f}")
-print(f"  Mean: {df['sw'].mean():.4f}")
-print(f"  SD: {df['sw'].std():.4f}")
-
-# Check for extreme weights
-extreme = (df['sw'] > 10).sum()
-print(f"  Extreme weights (>10): {extreme}")
-
-# --- Part (b): Assess covariate balance using weighted SMDs ---
-def weighted_smd(data, var, treatment_col, weight_col):
-    """Compute weighted standardised mean difference."""
-    treated = data[data[treatment_col] == 1]
-    control = data[data[treatment_col] == 0]
-    mean_t = np.average(treated[var], weights=treated[weight_col])
-    mean_c = np.average(control[var], weights=control[weight_col])
-    # Use unweighted pooled SD for standardisation
-    sd_pooled = np.sqrt((treated[var].var() + control[var].var()) / 2)
-    if sd_pooled == 0:
-        return 0
-    return (mean_t - mean_c) / sd_pooled
-
-def unweighted_smd(data, var, treatment_col):
-    """Compute unweighted SMD."""
-    treated = data[data[treatment_col] == 1][var]
-    control = data[data[treatment_col] == 0][var]
-    sd_pooled = np.sqrt((treated.var() + control.var()) / 2)
-    if sd_pooled == 0:
-        return 0
-    return (treated.mean() - control.mean()) / sd_pooled
-
-print("\nCovariate balance (weighted SMD):")
-print(f"{'Variable':<20} {'Unweighted':>12} {'Weighted':>12} {'Balanced?':>10}")
-print("-" * 56)
-
-smd_before = {}
-smd_after = {}
-for var in covariates:
-    smd_b = unweighted_smd(df, var, 'treatment')
-    smd_a = weighted_smd(df, var, 'treatment', 'sw')
-    smd_before[var] = smd_b
-    smd_after[var] = smd_a
-    balanced = "Yes" if abs(smd_a) < 0.1 else "No"
-    print(f"{var:<20} {smd_b:>12.4f} {smd_a:>12.4f} {balanced:>10}")
-
-# Love plot equivalent
-fig, ax = plt.subplots(figsize=(8, 5))
-y_pos = range(len(covariates))
-
-ax.scatter([abs(smd_before[v]) for v in covariates], y_pos,
-           color='#D55E00', label='Before IPTW', s=80, zorder=5)
-ax.scatter([abs(smd_after[v]) for v in covariates], y_pos,
-           color='#0072B2', label='After IPTW', s=80, zorder=5)
-
-for i, var in enumerate(covariates):
-    ax.plot([abs(smd_before[var]), abs(smd_after[var])], [i, i],
-            'k-', alpha=0.3)
-
-ax.axvline(x=0.1, color='red', linestyle='--', alpha=0.5, label='SMD = 0.1')
-ax.set_yticks(y_pos)
-ax.set_yticklabels(covariates)
-ax.set_xlabel('Absolute Standardised Mean Difference')
-ax.set_title('Covariate Balance: Before and After IPTW')
-ax.legend(loc='lower right')
-plt.tight_layout()
-plt.savefig('iptw_balance.png', dpi=300)
-plt.show()
-
-# --- Part (c): Estimate ATE using weighted regression ---
-X = sm.add_constant(df['treatment'])
-
-# Weighted least squares (linear probability model for risk difference)
-wls_model = sm.WLS(df['death_1yr'], X, weights=df['sw']).fit()
-print("\nIPTW ATE Estimate (Risk Difference):")
-print(f"  Coefficient: {wls_model.params.iloc[1]:.4f}")
-print(f"  95% CI: ({wls_model.conf_int().iloc[1, 0]:.4f}, "
-      f"{wls_model.conf_int().iloc[1, 1]:.4f})")
-print(f"  p-value: {wls_model.pvalues.iloc[1]:.4f}")
-
-# Weighted logistic regression (for odds ratio)
-from statsmodels.genmod.generalized_linear_model import GLM
-from statsmodels.genmod.families import Binomial
-
-glm_model = GLM(df['death_1yr'], X,
-                family=Binomial(),
-                freq_weights=df['sw']).fit()
-or_est = np.exp(glm_model.params.iloc[1])
-ci = np.exp(glm_model.conf_int().iloc[1])
-print(f"\nIPTW ATE Estimate (Odds Ratio):")
-print(f"  OR: {or_est:.3f} (95% CI: {ci[0]:.3f} - {ci[1]:.3f})")
-
-# --- Part (d): Sensitivity analysis with unmeasured confounder ---
-print("\n--- Sensitivity Analysis: Unmeasured Confounder ---")
-print("Varying confounder strength to show impact on ATE estimate:\n")
-
-# We simulate data with an unmeasured confounder U of varying strength
-results = []
-gamma_values = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-
-for gamma in gamma_values:
-    np.random.seed(42)  # Same seed for comparability
-    U = np.random.normal(0, 1, n)
-
-    # Re-simulate with confounder U
-    ps_u = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
-                                0.5*prior_mi - 0.8*creatinine + gamma*U)))
-    trt_u = np.random.binomial(1, ps_u)
-    mort_u = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
-                                  0.6*prior_mi + 1.0*creatinine -
-                                  0.7*trt_u + gamma*U)))
-    death_u = np.random.binomial(1, mort_u)
-
-    df_u = pd.DataFrame({
-        'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
-        'prior_mi': prior_mi, 'treatment': trt_u, 'death_1yr': death_u
-    })
-
-    # IPTW without U
-    ps_mod = LogisticRegression(max_iter=1000)
-    ps_mod.fit(df_u[covariates], df_u['treatment'])
-    ps_est = ps_mod.predict_proba(df_u[covariates])[:, 1]
-
-    p_t = df_u['treatment'].mean()
-    sw = np.where(df_u['treatment'] == 1, p_t / ps_est, (1 - p_t) / (1 - ps_est))
-
-    X_u = sm.add_constant(df_u['treatment'])
-    wls_u = sm.WLS(df_u['death_1yr'], X_u, weights=sw).fit()
-
-    results.append({
-        'gamma': gamma,
-        'ate': wls_u.params.iloc[1],
-        'ci_lo': wls_u.conf_int().iloc[1, 0],
-        'ci_hi': wls_u.conf_int().iloc[1, 1]
-    })
-
-results_df = pd.DataFrame(results)
-print(f"{'Gamma (U strength)':<20} {'ATE':>10} {'95% CI':>25}")
-print("-" * 57)
-for _, row in results_df.iterrows():
-    print(f"{row['gamma']:<20.1f} {row['ate']:>10.4f} "
-          f"({row['ci_lo']:.4f}, {row['ci_hi']:.4f})")
-
-# Plot sensitivity analysis
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.errorbar(results_df['gamma'], results_df['ate'],
-            yerr=[results_df['ate'] - results_df['ci_lo'],
-                  results_df['ci_hi'] - results_df['ate']],
-            fmt='o-', color='#0072B2', capsize=5, markersize=8)
-ax.axhline(y=0, color='red', linestyle='--', alpha=0.5, label='Null effect')
-ax.set_xlabel('Unmeasured Confounder Strength (gamma)')
-ax.set_ylabel('ATE Estimate (Risk Difference)')
-ax.set_title('Sensitivity Analysis: Impact of Unmeasured Confounding')
-ax.legend()
-plt.tight_layout()
-plt.savefig('sensitivity_analysis.png', dpi=300)
-plt.show()
-
-print("\n--- Interpretation ---")
-print("As the strength of the unmeasured confounder increases (gamma),")
-print("the IPTW estimate of the treatment effect becomes more biased")
-print("because IPTW cannot account for unmeasured confounding.")
-print("When gamma = 0 (no unmeasured confounder), the estimate is closest")
-print("to the true effect. This demonstrates why sensitivity analysis")
-print("is essential for observational causal inference.")
+#| file: ../solutions/python/ch17_ex3.py
 ```
 
 :::
-
 
 ### Exercise 4
 
@@ -10546,167 +8503,7 @@ print("is essential for observational causal inference.")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-# =============================================================================
-# Chapter 17 - Exercise 4: Target Trial Emulation (Conceptual)
-# Early vs delayed metformin initiation and 5-year cardiovascular events
-# =============================================================================
-
-# This is a conceptual exercise. All answers are provided as detailed comments.
-
-# --- Part (a): Complete target trial protocol table ---
-#
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Protocol component         | Target trial                                | Observational emulation                   |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Eligibility criteria       | Adults aged 30-80 with new T2DM diagnosis,  | Same criteria applied to EHR database:    |
-# |                            | no prior CVD, no prior metformin use,        | first T2DM diagnosis code (ICD-10 E11),   |
-# |                            | eGFR >= 30, no contraindications to          | no prior MACE, no metformin dispensing     |
-# |                            | metformin (e.g., severe renal impairment).   | before index date, eGFR >= 30 in prior    |
-# |                            |                                             | 6 months.                                 |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Treatment strategies       | Strategy 1: Initiate metformin within       | Same. Defined by first metformin          |
-# |                            | 3 months of T2DM diagnosis.                 | prescription fill date relative to T2DM   |
-# |                            | Strategy 2: Do not initiate metformin       | diagnosis date.                           |
-# |                            | within 3 months (delayed, 3-12 months).     |                                           |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Treatment assignment       | Random assignment at time of T2DM           | Not random. Adjusted using IPTW or        |
-# |                            | diagnosis.                                  | propensity score matching, conditioning   |
-# |                            |                                             | on baseline confounders.                  |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Start of follow-up         | Date of randomisation (= date of T2DM       | Date of T2DM diagnosis (time zero).       |
-# | (time zero)                | diagnosis).                                 | All eligible patients enter at this date. |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Outcome                    | First major adverse cardiovascular event     | Same. MACE defined by ICD-10 codes for    |
-# |                            | (MACE): composite of MI, stroke, or CV      | MI (I21), stroke (I63, I64), or CV death  |
-# |                            | death within 5 years.                       | (cause of death codes). Censored at 5     |
-# |                            |                                             | years, loss to follow-up, or death from   |
-# |                            |                                             | non-CV causes.                            |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Causal contrast            | Intention-to-treat: effect of being          | Intention-to-treat: compare early vs      |
-# |                            | assigned to early vs delayed initiation.     | delayed initiation regardless of          |
-# |                            | Per-protocol: effect of adhering to the      | subsequent adherence. Per-protocol:       |
-# |                            | assigned strategy.                           | use clone-censor-weight approach.         |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Analysis plan              | Cox proportional hazards model.              | IPTW-weighted Cox PH model for ITT.       |
-# |                            | ITT analysis is primary.                     | For per-protocol: clone each patient      |
-# |                            | Per-protocol as sensitivity analysis.        | into both strategies, censor when they    |
-# |                            |                                             | deviate, and apply IPCW to correct for    |
-# |                            |                                             | informative censoring.                    |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-
-# --- Part (b): Sources of immortal time bias in a naive analysis ---
-#
-# In a naive analysis comparing "early initiators" (metformin within 3 months)
-# vs "delayed initiators" (3-12 months), several sources of immortal time
-# bias can arise:
-#
-# 1. SURVIVAL REQUIREMENT FOR CLASSIFICATION:
-#    To be classified as a "delayed initiator," a patient must survive at least
-#    3 months (to reach the delayed window). The time between T2DM diagnosis
-#    and 3 months is "immortal" for the delayed group -- they cannot experience
-#    the outcome during this period by definition. This artificially inflates
-#    survival in the delayed group.
-#
-# 2. MISCLASSIFICATION OF PERSON-TIME:
-#    If follow-up starts at T2DM diagnosis for both groups but treatment
-#    classification depends on future events (whether and when metformin is
-#    started), person-time before treatment initiation is misclassified.
-#    A patient who starts metformin at month 2 contributes 2 months of
-#    "untreated" time that is credited to the "early" group.
-#
-# 3. EXCLUSION OF NON-INITIATORS WHO DIE EARLY:
-#    Patients who die before 3 months and never start metformin may be excluded
-#    entirely if the study requires treatment initiation. This creates
-#    survivorship bias.
-#
-# HOW TARGET TRIAL EMULATION AVOIDS THIS:
-# - Time zero is aligned with eligibility (T2DM diagnosis), not treatment start
-# - The clone-censor-weight approach assigns each patient to BOTH strategies
-#   at time zero, censors them when they deviate from their assigned strategy,
-#   and uses inverse probability of censoring weights (IPCW) to correct for
-#   the informative censoring
-
-# --- Part (c): How new-user, active comparator design addresses confounding ---
-#
-# The NEW-USER (INCIDENT USER) DESIGN:
-# - Only includes patients at the TIME OF FIRST metformin prescription
-#   (or the decision point: T2DM diagnosis)
-# - Avoids "prevalent user bias" where including patients already on metformin
-#   selectively includes those who tolerated and responded to the drug
-#   (survivors of the initial treatment period)
-# - Captures early effects (including side effects) that might be missed
-#   in prevalent user analyses
-#
-# The ACTIVE COMPARATOR DESIGN:
-# - Compares early metformin vs delayed metformin (not metformin vs no treatment)
-# - Patients choosing delayed initiation are more comparable to early initiators
-#   than patients who never initiate (who may differ fundamentally in disease
-#   severity, healthcare access, or physician preferences)
-# - Reduces confounding by indication because both groups are deemed to need
-#   metformin -- the question is only about TIMING
-# - Makes the positivity assumption more plausible: most patients have a
-#   realistic probability of being in either group
-# - Mimics the clinical question: "Should I start metformin now or wait?"
-
-# --- Part (d): Unmeasured confounders and sensitivity analysis ---
-#
-# POTENTIAL UNMEASURED CONFOUNDERS:
-#
-# 1. HbA1c trajectory / diabetes severity:
-#    Patients with more rapidly rising HbA1c may receive metformin earlier.
-#    If severity also affects CVD risk, this confounds the comparison.
-#    (May be partially captured in EHR but with measurement timing issues.)
-#
-# 2. Patient health literacy and adherence behaviour:
-#    Patients who seek care promptly and fill prescriptions early may also
-#    engage in other health-promoting behaviours (exercise, diet) that
-#    independently reduce CVD risk. This is a form of "healthy user bias."
-#
-# 3. Physician prescribing patterns / quality of care:
-#    Physicians who prescribe metformin early may also provide better
-#    overall cardiovascular risk management.
-#
-# 4. Socioeconomic status / insurance:
-#    Patients with better insurance or higher SES may fill prescriptions
-#    faster and have better access to follow-up care.
-#
-# 5. Diet, exercise, and lifestyle factors:
-#    Rarely captured in EHR data but strongly associated with both
-#    treatment initiation patterns and CVD outcomes.
-#
-# SENSITIVITY ANALYSIS APPROACHES:
-#
-# 1. E-VALUE:
-#    Calculate the E-value for the primary estimate to quantify how strong
-#    an unmeasured confounder would need to be (in terms of associations with
-#    both treatment and outcome) to fully explain away the observed effect.
-#
-# 2. QUANTITATIVE BIAS ANALYSIS:
-#    Use external data (e.g., surveys with lifestyle data) to estimate the
-#    likely magnitude of confounding by specific unmeasured factors. Apply
-#    the bias formula to adjust the estimate.
-#
-# 3. NEGATIVE CONTROL OUTCOMES:
-#    Test outcomes that should NOT be affected by metformin timing (e.g.,
-#    accidental injuries). If an association is found, it suggests residual
-#    confounding.
-#
-# 4. NEGATIVE CONTROL EXPOSURES:
-#    Test treatments that share the same confounding structure but should
-#    not affect CVD (e.g., timing of proton pump inhibitor initiation).
-#
-# 5. INSTRUMENTAL VARIABLE ANALYSIS:
-#    If a valid instrument exists (e.g., physician preference for early
-#    prescribing), IV analysis can estimate the causal effect even with
-#    unmeasured confounding.
-
-cat("Exercise 4 is a conceptual exercise.\n")
-cat("All answers are provided as detailed comments in this script.\n")
-cat("Review the comments for:\n")
-cat("  (a) Complete target trial protocol table\n")
-cat("  (b) Sources of immortal time bias\n")
-cat("  (c) How new-user, active comparator design helps\n")
-cat("  (d) Unmeasured confounders and sensitivity approaches\n")
+#| file: ../solutions/R/ch17_ex4.R
 ```
 
 #### Python
@@ -10716,122 +8513,168 @@ cat("  (d) Unmeasured confounders and sensitivity approaches\n")
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-# =============================================================================
-# Chapter 17 - Exercise 4: Target Trial Emulation (Conceptual)
-# Early vs delayed metformin initiation and 5-year cardiovascular events
-# =============================================================================
-
-# This is a conceptual exercise. All answers are provided as detailed comments.
-
-# --- Part (a): Complete target trial protocol table ---
-#
-# Protocol Component     | Target Trial                          | Observational Emulation
-# -----------------------|---------------------------------------|---------------------------------------
-# Eligibility criteria   | Adults aged 30-80 with new T2DM       | Same criteria in EHR: first T2DM
-#                        | diagnosis, no prior CVD, no prior      | ICD-10 E11 code, no prior MACE,
-#                        | metformin use, eGFR >= 30, no          | no metformin dispensing before index,
-#                        | contraindications to metformin.        | eGFR >= 30 within prior 6 months.
-#                        |                                       |
-# Treatment strategies   | Strategy 1: Initiate metformin        | Same. Defined by first metformin
-#                        | within 3 months of T2DM diagnosis.    | prescription fill date relative to
-#                        | Strategy 2: Do not initiate within     | T2DM diagnosis date.
-#                        | 3 months (delayed: 3-12 months).      |
-#                        |                                       |
-# Treatment assignment   | Random assignment at T2DM diagnosis.  | Not random. Adjusted via IPTW or
-#                        |                                       | PS matching on baseline confounders.
-#                        |                                       |
-# Start of follow-up     | Date of randomisation (= date of      | Date of T2DM diagnosis (time zero).
-# (time zero)            | T2DM diagnosis).                      | All eligible patients enter at this
-#                        |                                       | date, regardless of treatment timing.
-#                        |                                       |
-# Outcome                | First MACE (MI, stroke, or CV death)  | Same. MACE via ICD-10 codes.
-#                        | within 5 years.                       | Censored at 5 years, loss to
-#                        |                                       | follow-up, or non-CV death.
-#                        |                                       |
-# Causal contrast        | ITT: effect of assignment to early    | ITT: compare groups as assigned.
-#                        | vs delayed. Per-protocol: effect of   | Per-protocol: clone-censor-weight.
-#                        | adhering to assignment.                |
-#                        |                                       |
-# Analysis plan          | Cox PH model; ITT primary.            | IPTW-weighted Cox PH for ITT.
-#                        |                                       | Clone-censor-weight for per-protocol.
-
-# --- Part (b): Sources of immortal time bias ---
-#
-# 1. SURVIVAL REQUIREMENT FOR CLASSIFICATION:
-#    To be classified as a "delayed initiator," a patient must survive at
-#    least 3 months without starting metformin. This period is "immortal
-#    time" -- the patient cannot die (by definition) during this window.
-#    This artificially inflates survival in the delayed group.
-#
-# 2. MISCLASSIFICATION OF PERSON-TIME:
-#    If follow-up starts at T2DM diagnosis but treatment classification
-#    depends on future behavior, person-time before treatment initiation
-#    is misclassified. The period before a patient's first metformin
-#    prescription is attributed to the wrong treatment group.
-#
-# 3. EXCLUSION OF EARLY DEATHS:
-#    Patients who die before initiating metformin may be excluded from
-#    the analysis entirely, creating survivorship bias.
-#
-# HOW TARGET TRIAL EMULATION AVOIDS THIS:
-# - Aligns time zero with eligibility (T2DM diagnosis), not treatment
-# - Uses clone-censor-weight: clones each patient into both strategies,
-#   censors when they deviate, and applies IPCW to correct for the
-#   informative censoring introduced by this approach.
-
-# --- Part (c): New-user, active comparator design ---
-#
-# NEW-USER (INCIDENT USER) DESIGN:
-# - Includes patients only at the point of first treatment decision
-# - Avoids prevalent user bias (selective survival of tolerators)
-# - Captures early effects including initial side effects
-# - Provides a clear "time zero" aligned with treatment decision
-#
-# ACTIVE COMPARATOR DESIGN:
-# - Compares early metformin vs delayed metformin (not vs no treatment)
-# - Patients in both groups are deemed to need metformin
-# - Reduces confounding by indication: the comparison is about timing,
-#   not about treatment vs no treatment
-# - Improves positivity: most T2DM patients can plausibly be in either
-#   timing group
-# - Reduces healthy user bias: both groups seek treatment
-# - Mimics the clinically relevant question
-
-# --- Part (d): Unmeasured confounders and sensitivity analysis ---
-#
-# POTENTIAL UNMEASURED CONFOUNDERS:
-# 1. Diabetes severity trajectory (HbA1c trends)
-# 2. Health literacy and medication adherence behaviour
-# 3. Physician quality / prescribing culture
-# 4. Socioeconomic status / insurance coverage
-# 5. Diet, exercise, and lifestyle factors
-# 6. Patient preferences and shared decision-making
-#
-# SENSITIVITY ANALYSIS APPROACHES:
-# 1. E-value: quantify minimum confounder strength to nullify the result
-# 2. Quantitative bias analysis: use external data to model bias
-# 3. Negative control outcomes: test outcomes unrelated to metformin
-# 4. Negative control exposures: test unrelated treatments
-# 5. Instrumental variable analysis: e.g., physician preference
-
-print("=" * 70)
-print("Exercise 4: Target Trial Emulation (Conceptual)")
-print("=" * 70)
-print()
-print("All answers are provided as comments in this script.")
-print("Review the comments for:")
-print("  (a) Complete target trial protocol table")
-print("  (b) Sources of immortal time bias in a naive analysis")
-print("  (c) How new-user, active comparator design addresses confounding")
-print("  (d) Unmeasured confounders and sensitivity analysis approaches")
-print()
-print("Key takeaway: Target trial emulation forces explicit specification")
-print("of all protocol components, making assumptions transparent and")
-print("reducing common biases like immortal time bias and prevalent user bias.")
+#| file: ../solutions/python/ch17_ex4.py
 ```
 
 :::
 
+### Exercise 5
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex5-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/ch17_ex5.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex5-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/ch17_ex5.py
+```
+
+:::
+
+### Exercise 6
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex6-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/ch17_ex6.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex6-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/ch17_ex6.py
+```
+
+:::
+
+## Chapter 17c: Mediation Analysis
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/ch17c_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/ch17c_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/ch17c_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/ch17c_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/ch17c_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/ch17c_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/ch17c_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/ch17c_ex4.py
+```
+
+:::
 
 ## Chapter 18: Meta-Analysis
 

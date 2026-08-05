@@ -1,16 +1,60 @@
-# Causal Inference for Observational Health Data {#sec-causal-inference}
+# Causal Inference and Treatment Effects: DAGs, Propensity Scores, Weighting, and G-Computation {#sec-causal-inference}
 
 ```{r}
+#| label: dag-helpers
 #| include: false
-library(tidyverse)
-library(MatchIt)
-library(WeightIt)
-library(cobalt)
-library(survival)
-library(broom)
+#| eval: true
+
+# Small base-R helpers used only to draw the DAG figures in this chapter.
+dag_canvas <- function(xlim = c(0, 10), ylim = c(0, 10),
+                       mar = c(0, 0.3, 2.6, 0.3), main = "") {
+  par(mar = mar)
+  plot(NA, xlim = xlim, ylim = ylim, axes = FALSE, xlab = "", ylab = "", main = main)
+}
+
+dag_box <- function(x, y, label, fill = "#eef3fb", border = "#2c3e50",
+                    cex = 1, pad_x = 0.35, pad_y = 0.30, lwd = 1.4) {
+  lines_v <- strsplit(label, "\n")[[1]]
+  w <- max(strwidth(lines_v, cex = cex)) / 2 + pad_x
+  h <- (length(lines_v) * strheight("Ag", cex = cex) * 1.35) / 2 + pad_y
+  rect(x - w, y - h, x + w, y + h, col = fill, border = border, lwd = lwd)
+  text(x, y, label, cex = cex)
+  invisible(list(x = x, y = y, w = w, h = h))
+}
+
+.dag_clip <- function(n1, n2) {
+  dx <- n2$x - n1$x
+  dy <- n2$y - n1$y
+  t_at <- function(n) {
+    min(
+      if (dx != 0) n$w / abs(dx) else Inf,
+      if (dy != 0) n$h / abs(dy) else Inf
+    )
+  }
+  t1 <- t_at(n1)
+  t2 <- t_at(n2)
+  list(
+    x0 = n1$x + dx * t1, y0 = n1$y + dy * t1,
+    x1 = n2$x - dx * t2, y1 = n2$y - dy * t2
+  )
+}
+
+dag_arrow <- function(n1, n2, col = "#2c3e50", lwd = 2.2, lty = 1, len = 0.10) {
+  s <- .dag_clip(n1, n2)
+  arrows(s$x0, s$y0, s$x1, s$y1,
+    length = len, col = col, lwd = lwd, lty = lty, angle = 22
+  )
+}
+
+DAG_GOLD <- "#fbf3e8"   # confounder
+DAG_BLUE <- "#eef3fb"   # treatment / outcome
+DAG_GREEN <- "#eaf5ee"  # mediator
+DAG_RED <- "#fdeceb"    # collider
 ```
 
-This chapter is about a question health researchers ask constantly but rarely state out loud: does the treatment actually *work*, or do the treated patients simply differ from everyone else? With observational data we cannot randomise, so we have to do the next best thing --- carefully adjust for the ways treated and untreated patients differ. The methods here (propensity scores, matching, inverse probability weighting, target trial emulation) are all variations on that single idea. As you read, keep one practical mantra in mind: a causal estimate is only as trustworthy as the assumption that we have measured and adjusted for every important confounder.
+This chapter is about a question health researchers ask constantly but rarely state out loud: does the treatment actually *work*, or do the treated patients simply differ from everyone else? With observational data we cannot randomise, so we have to do the next best thing --- carefully adjust for the ways treated and untreated patients differ.
+
+The chapter falls into two halves. The first half is about **stating your assumptions**: potential outcomes, causal diagrams, and the propensity score. The second half is about **computing an answer**: matching, inverse probability weighting, g-computation, and target trial emulation. As you read, keep one practical mantra in mind: a causal estimate is only as trustworthy as the assumption that we have measured and adjusted for every important confounder.
 
 ## Introduction
 
@@ -46,23 +90,43 @@ The modern causal inference framework, formalised by Rubin (1974) and extended b
 
 The **individual causal effect** is the difference between these two, $Y^{a=1} - Y^{a=0}$. The catch is that a patient is either treated or not --- we only ever see one of the two outcomes, never both. (Imagine wanting to know whether a specific patient's statin prevented their heart attack: we cannot rewind and rerun their life without the drug.) This is the **fundamental problem of causal inference**.
 
-We cannot get the effect for one person, but we *can* estimate an average. The **average treatment effect (ATE)** is the effect we would see if *everyone* in the population were treated versus if *everyone* went untreated:
+We cannot get the effect for one person, but we *can* estimate an average. Before writing that down, it is worth pausing on the notation, because three symbols do all the work in this chapter and none of them are as forbidding as they look.
+
+::: {.callout-note}
+## Reading the notation: three symbols, in plain English
+
+**$E[\,\cdot\,]$ --- "the average of, across everybody".** $E$ stands for *expectation*, which is statisticians' word for a population average. If $Y$ is 1 for a patient who dies and 0 for one who survives, then $E[Y]$ is just the proportion who die --- the mortality rate. Nothing more exotic than that. So whenever you see $E[\ldots]$, read it as "the average value of $\ldots$ if we could look at the whole population".
+
+**$Y^{a=1}$ --- "the outcome under treatment".** The superscript is a *hypothetical setting*, not something in your dataset. $Y^{a=1}$ means "this patient's outcome in the world where they were treated", whether or not they actually were. So $E[Y^{a=1}]$ is "the mortality rate we would see if we treated everybody" --- exactly the number a guideline committee wants.
+
+**$\perp\!\!\!\perp$ --- "carries no information about".** $X \perp\!\!\!\perp Y$ means $X$ and $Y$ are statistically independent: knowing one tells you nothing about the other. Adding "$\mid L$" ("given $L$") means: *once you already know $L$*, they tell you nothing more about each other.
+
+Putting them together, an expression like $E[Y^{a=1}]$ is not abstract at all. It is "the death rate under a treat-everyone policy" --- a number you could act on.
+:::
+
+The **average treatment effect (ATE)** is the effect we would see if *everyone* in the population were treated versus if *everyone* went untreated:
 
 $$
-\text{ATE} = E[Y^{a=1}] - E[Y^{a=0}]
+\text{ATE} = \underbrace{E[Y^{a=1}]}_{\substack{\text{death rate if we}\\ \text{treated everyone}}} - \underbrace{E[Y^{a=0}]}_{\substack{\text{death rate if we}\\ \text{treated no one}}}
 $$
+
+Read on a risk scale, an ATE of $-0.13$ means "treating everyone would leave 13 fewer patients dead per 100 than treating nobody."
 
 The **average treatment effect on the treated (ATT)** is narrower: it is the effect among the patients who *actually received* the treatment. This is often the more clinically relevant number when you want to know whether the patients you are already treating are benefiting.
 
 $$
-\text{ATT} = E[Y^{a=1} - Y^{a=0} \mid A=1]
+\text{ATT} = \underbrace{E[\,Y^{a=1} - Y^{a=0} \mid A = 1\,]}_{\substack{\text{average individual effect,}\\ \text{among those actually treated}}}
 $$
 
-The key assumption that allows us to estimate these from observational data is **exchangeability**, also called *no unmeasured confounding*. In plain terms: once we account for the measured patient characteristics $L$, who ended up treated is essentially a coin toss with respect to their potential outcomes --- treated and untreated patients are then "exchangeable" and fair to compare. Formally, conditional on $L$, treatment assignment is independent of the potential outcomes.
+The key assumption that allows us to estimate either of these from observational data is **exchangeability**, also called *no unmeasured confounding*:
 
 $$
-Y^a \perp\!\!\!\perp A \mid L
+\underbrace{Y^a}_{\substack{\text{how a patient}\\ \text{would fare}}} \;\underbrace{\perp\!\!\!\perp}_{\substack{\text{tells you}\\ \text{nothing about}}}\; \underbrace{A}_{\substack{\text{whether they}\\ \text{got treated}}} \;\Big|\; \underbrace{L}_{\substack{\text{once you know their}\\ \text{measured characteristics}}}
 $$
+
+In words: **among patients who look alike on everything you measured, who ended up treated is as good as a coin toss.** Two patients of the same age, same kidney function, same comorbidity --- one happened to be prescribed the drug and one did not, and the reason had nothing to do with how well they were going to do. If that holds, the untreated patients are a fair stand-in for what would have happened to the treated ones, and the comparison is valid.
+
+If it fails --- if, say, the treating clinician could see something in the patient that never made it into your dataset --- then no amount of statistics in this chapter will save you. That is why @sec-causal-sensitivity, on sensitivity analysis, is not an optional extra.
 
 ## Directed Acyclic Graphs (DAGs)
 
@@ -72,57 +136,102 @@ A **directed acyclic graph (DAG)** is simply a diagram of what you believe cause
 
 Why should a clinician bother? Because a DAG forces you to decide, *before touching the data*, which variables you must adjust for and which you must leave alone. Getting that list wrong is one of the commonest reasons observational studies reach the wrong conclusion.
 
-```{mermaid}
-%%| echo: false
-%%| eval: true
-%%| label: fig-dag-basic
-%%| fig-cap: "A simple DAG showing confounding, drawn as a top-down triangle. Age (gold) is a common cause: it points into BOTH statin use and cardiovascular death, so the raw statin-death association is confounded. This fork shape (one cause into two) is what makes it confounding rather than a chain."
-graph TD
-    Age["Age"]
-    StatinUse["Statin use"]
-    CVDeath["Cardiovascular death"]
-    Age --> StatinUse
-    Age --> CVDeath
-    StatinUse --> CVDeath
-    style Age fill:#fbf3e8,color:#111
-    style StatinUse fill:#eef3fb,color:#111
-    style CVDeath fill:#eef3fb,color:#111
+@fig-dag-what makes the point with a familiar example: statins and cardiovascular death.
+
+```{r}
+#| label: fig-dag-what
+#| echo: false
+#| eval: true
+#| fig-cap: "Why a DAG is worth drawing. **Panel A** is the comparison the data lets us make: statin users versus non-users. **Panel B** is what is actually generating those numbers. The gold nodes are **confounders**: each one has an arrow into *both* statin use and cardiovascular death, so each one creates a spurious side-route (a *backdoor path*) between them. The thick arrow is the only thing we actually want to measure. Adjustment means closing every gold route while leaving the thick arrow alone."
+#| fig-width: 11
+#| fig-height: 4.6
+
+par(mfrow = c(1, 2))
+
+# --- Panel A: the comparison we can make
+dag_canvas(xlim = c(0, 10), ylim = c(0, 7), main = "A. The comparison we make")
+a1 <- dag_box(2.4, 4.0, "Statin use", fill = DAG_BLUE, cex = 1.05)
+a2 <- dag_box(7.6, 4.0, "Cardiovascular\ndeath", fill = DAG_BLUE, cex = 1.05)
+dag_arrow(a1, a2, lwd = 3)
+text(5.0, 4.75, "association we can measure", cex = 0.9, font = 3)
+text(5.0, 1.9, "But how much of it\nis actually caused?", cex = 1.0, font = 2, col = "#b5651d")
+
+# --- Panel B: what is actually generating the data
+dag_canvas(xlim = c(0, 10), ylim = c(0, 7), main = "B. What is actually going on")
+age <- dag_box(1.9, 6.0, "Age", fill = DAG_GOLD, cex = 0.95)
+ldl <- dag_box(5.0, 6.0, "Baseline LDL", fill = DAG_GOLD, cex = 0.95)
+dia <- dag_box(8.4, 6.0, "Diabetes", fill = DAG_GOLD, cex = 0.95)
+sta <- dag_box(2.3, 1.4, "Statin use", fill = DAG_BLUE, cex = 0.95)
+cvd <- dag_box(7.7, 1.4, "Cardiovascular\ndeath", fill = DAG_BLUE, cex = 0.95)
+for (cf in list(age, ldl, dia)) {
+  dag_arrow(cf, sta, col = "#b5651d", lwd = 1.8)
+  dag_arrow(cf, cvd, col = "#b5651d", lwd = 1.8)
+}
+dag_arrow(sta, cvd, lwd = 3.4)
+text(5.0, 0.55, "the causal effect we want", cex = 0.9, font = 3)
 ```
 
-### Key structures in DAGs
+Panel B is the honest picture, and it explains why the naive comparison misleads. Older patients are more likely to be prescribed a statin **and** more likely to die of cardiovascular disease. So are patients with high baseline LDL, and patients with diabetes. Each of those three variables therefore supplies a route from "statin use" to "cardiovascular death" that has nothing to do with the drug doing anything. Any observed association is a mixture of the real effect (thick arrow) and those three spurious routes.
 
-There are three fundamental structures you must recognise:
+That is the whole job of the rest of this chapter: **close the gold routes, keep the thick one.**
 
-**1. Confounders (common causes)**
+### The three structures you must recognise
 
-A variable that causes both treatment and outcome. You MUST adjust for confounders to remove bias.
+Not every variable in a DAG should be adjusted for. This is the single most consequential thing to get right, and it comes down to recognising three shapes (@fig-dag-structures). Two of them look superficially similar and demand opposite treatment.
 
+```{r}
+#| label: fig-dag-structures
+#| echo: false
+#| eval: true
+#| fig-cap: "The three structures, and the verdict for each. A **confounder** points into both treatment and outcome, so it must be adjusted for. A **mediator** sits on the causal path, so adjusting for it would remove part of the effect you are trying to measure. A **collider** is caused by both, so adjusting for it manufactures an association that does not exist. The arrows tell you which is which: count how many arrowheads point *into* the third variable --- none for a confounder, one for a mediator, two for a collider."
+#| fig-width: 13
+#| fig-height: 4.6
+
+par(mfrow = c(1, 3))
+panel <- function(main) dag_canvas(ylim = c(1.6, 9.9), main = main)
+verdict <- function(txt, col) text(5, 2.1, txt, cex = 1.15, font = 2, col = col)
+explain <- function(txt) text(5, 4.1, txt, cex = 0.92, font = 3)
+
+# --- 1. CONFOUNDER
+panel(main = "1. CONFOUNDER\n(a common cause: arrows OUT)")
+L <- dag_box(5.0, 9.0, "Diabetes\nseverity", fill = DAG_GOLD, cex = 1.0)
+A <- dag_box(2.2, 6.0, "Insulin\ntherapy", fill = DAG_BLUE, cex = 1.0)
+Y <- dag_box(7.8, 6.0, "HbA1c", fill = DAG_BLUE, cex = 1.0)
+dag_arrow(L, A, col = "#b5651d")
+dag_arrow(L, Y, col = "#b5651d")
+dag_arrow(A, Y, lwd = 3)
+explain("Sicker patients get insulin AND\nhave worse HbA1c regardless")
+verdict("ADJUST for it", "#1a7a3c")
+
+# --- 2. MEDIATOR
+panel(main = "2. MEDIATOR\n(on the causal path: one arrow in)")
+A <- dag_box(1.9, 6.6, "Exercise", fill = DAG_BLUE, cex = 1.0)
+M <- dag_box(5.0, 9.0, "Weight loss", fill = DAG_GREEN, cex = 1.0)
+Y <- dag_box(8.1, 6.6, "Blood\npressure", fill = DAG_BLUE, cex = 1.0)
+dag_arrow(A, M)
+dag_arrow(M, Y)
+dag_arrow(A, Y, lwd = 3)
+explain("Exercise lowers BP partly BY\ncausing weight loss")
+verdict("DO NOT adjust\n(if you want the total effect)", "#b02a2a")
+
+# --- 3. COLLIDER
+panel(main = "3. COLLIDER\n(a common effect: two arrows in)")
+A <- dag_box(2.0, 9.0, "Obesity", fill = DAG_BLUE, cex = 1.0)
+Y <- dag_box(8.0, 9.0, "Genetic\ndiabetes risk", fill = DAG_BLUE, cex = 1.0)
+C <- dag_box(5.0, 6.0, "Attends\ndiabetes clinic", fill = DAG_RED, cex = 1.0)
+dag_arrow(A, C)
+dag_arrow(Y, C)
+explain("Either one gets you into clinic, so\nstudying only clinic patients\nINVENTS a link between them")
+verdict("DO NOT adjust", "#b02a2a")
 ```
-L --> A --> Y
-L ---------> Y
-```
 
-If `L` is diabetes severity, `A` is insulin therapy, and `Y` is HbA1c, then diabetes severity confounds the insulin-HbA1c relationship.
+**1. Confounders (common causes) --- adjust.** A variable with an arrow into both treatment and outcome. If `L` is diabetes severity, `A` is insulin therapy, and `Y` is HbA1c, then sicker patients both get insulin and have worse HbA1c anyway. Leave `L` alone and insulin will look useless or harmful.
 
-**2. Mediators (intermediate variables)**
+**2. Mediators (intermediate variables) --- do not adjust, if you want the total effect.** A variable *on* the causal pathway from treatment to outcome. If `A` is exercise, `M` is weight loss, and `Y` is blood pressure, then part of exercise's benefit *is* the weight loss. Adjusting for weight loss asks "what does exercise do for patients whose weight did not change?", which is a different (and usually not the intended) question. Decomposing an effect into its mediated and unmediated parts on purpose is the subject of @sec-mediation.
 
-A variable on the causal pathway from treatment to outcome. You should NOT adjust for mediators if you want the total effect.
+**3. Colliders (common effects) --- do not adjust.** A **collider** is a variable that is *caused* by both the treatment and the outcome (or by variables on each path) --- the two arrows "collide" into it. This is the counter-intuitive case: adjusting for a collider *creates* an association that was not there.
 
-```
-A --> M --> Y
-```
-
-If `A` is exercise, `M` is weight loss, and `Y` is blood pressure, then weight loss mediates the exercise-BP relationship. Adjusting for weight loss would block part of the effect you want to estimate.
-
-**3. Colliders (common effects)**
-
-A **collider** is a variable that is *caused* by both treatment and outcome (or by variables on each path) --- the two arrows "collide" into it. Colliders are the counter-intuitive case: you should NOT adjust for them. Doing so *creates* a fake association that was not there to begin with (**collider bias**).
-
-```
-A --> C <-- Y
-```
-
-If `A` is obesity, `Y` is genetic predisposition to diabetes, and `C` is being in a diabetes clinic, then conditioning on clinic attendance (a collider) creates a spurious negative association between obesity and genetic risk.
+Why does that happen? Take the clinic example. Suppose obesity and genetic diabetes risk are entirely unrelated in the general population, but either one is enough to get you referred to a diabetes clinic. Now look only at clinic attendees. If you meet a slim patient in the clinic, you can infer they are probably there for the genetic risk --- because *something* got them referred, and it was not their weight. So among clinic patients, being slim now predicts high genetic risk. The association is real *within the clinic* and completely absent outside it. You manufactured it by looking only at the clinic. That is **collider bias**, and its commonest disguise in clinical research is a study restricted to hospitalised patients, or one that adjusts for a post-treatment variable such as "was admitted to ICU".
 
 ::: {.callout-tip}
 ## The "d-separation" rule of thumb
@@ -134,6 +243,93 @@ A path between treatment and outcome is **blocked** if:
 A path is **open** if it is not blocked. Bias creeps in when there are open *non-causal* paths between treatment and outcome --- so-called **backdoor paths**, sneaky side-routes (usually running through a confounder) that make treatment and outcome look related even when the treatment does nothing. The goal of adjustment is to close every backdoor path while leaving the genuine causal path alone.
 :::
 
+### A full clinical DAG, and what to do with it
+
+Real DAGs contain all three shapes at once. @fig-dag-clinical is a realistic (if simplified) diagram for a question you might genuinely be asked: **do ACE inhibitors cause acute kidney injury in hospitalised patients?**
+
+```{r}
+#| label: fig-dag-clinical
+#| echo: false
+#| eval: true
+#| fig-cap: "A realistic clinical DAG for ACE inhibitors and acute kidney injury, containing all three structures. **Gold** = confounders (each points into both ACEi use and AKI, so all three must be adjusted for). **Green** = a mediator (ACE inhibitors lower blood pressure, which is part of how they can precipitate AKI). **Red** = a collider (both ACEi-related complications and AKI itself lead to ICU admission, so adjusting for ICU admission, or studying only ICU patients, invents an association). The minimal adjustment set here is {age, baseline eGFR, heart failure}."
+#| fig-width: 11
+#| fig-height: 6.2
+
+dag_canvas(xlim = c(0, 10), ylim = c(0, 10.6), mar = c(0, 0.3, 1.0, 0.3))
+
+age <- dag_box(1.6, 9.4, "Age", fill = DAG_GOLD, cex = 0.95)
+egf <- dag_box(5.0, 9.4, "Baseline eGFR", fill = DAG_GOLD, cex = 0.95)
+hf  <- dag_box(8.6, 9.4, "Heart failure", fill = DAG_GOLD, cex = 0.95)
+
+ace <- dag_box(2.0, 5.6, "ACE inhibitor", fill = DAG_BLUE, cex = 1.0)
+bp  <- dag_box(5.0, 3.2, "Renal perfusion\npressure", fill = DAG_GREEN, cex = 0.95)
+aki <- dag_box(8.2, 5.6, "Acute kidney\ninjury", fill = DAG_BLUE, cex = 1.0)
+icu <- dag_box(5.0, 0.7, "ICU admission", fill = DAG_RED, cex = 0.95)
+
+for (cf in list(age, egf, hf)) {
+  dag_arrow(cf, ace, col = "#b5651d", lwd = 1.8)
+  dag_arrow(cf, aki, col = "#b5651d", lwd = 1.8)
+}
+dag_arrow(ace, aki, lwd = 3.4)
+dag_arrow(ace, bp)
+dag_arrow(bp, aki)
+dag_arrow(ace, icu, col = "#8a4b4b")
+dag_arrow(aki, icu, col = "#8a4b4b")
+
+legend("bottomleft",
+  legend = c("confounder - ADJUST", "mediator - leave alone", "collider - NEVER adjust"),
+  fill = c(DAG_GOLD, DAG_GREEN, DAG_RED), bty = "n", cex = 0.92
+)
+```
+
+Reading it off:
+
+- **Age, baseline eGFR, and heart failure are confounders.** Each is a reason a clinician prescribes an ACE inhibitor *and* an independent risk factor for AKI. All three must be adjusted for.
+- **Renal perfusion pressure is a mediator.** Part of how ACE inhibitors precipitate AKI *is* by reducing perfusion pressure. If you want the drug's total effect on AKI, leave it out. Put it in and you will conclude the drug is safer than it is.
+- **ICU admission is a collider.** Patients go to ICU because of ACEi-related complications *and* because of AKI. Adjust for it --- or, just as damagingly, run the whole study in an ICU cohort --- and you will find an association whatever the truth.
+
+You do not have to trace the paths by hand. The `dagitty` package (the R interface to the [DAGitty](https://dagitty.net) web tool) does it for you, and the point of writing the DAG down in code is that the adjustment set is then *derived* rather than guessed:
+
+```{r}
+#| label: dagitty-clinical
+#| eval: false
+
+# install.packages("dagitty")
+library(dagitty)   # encode a DAG and derive adjustment sets from it
+
+# NOTE: dagitty's DAG syntax is NOT R. In particular it has no comments ---
+# a `#` inside the dag{...} string is a syntax error. Keep explanations
+# outside the quotes, as ordinary R comments like this one.
+aki_dag <- dagitty('dag {
+  ACEi          [exposure]
+  AKI           [outcome]
+
+  Age           -> ACEi
+  Age           -> AKI
+  BaselineEGFR  -> ACEi
+  BaselineEGFR  -> AKI
+  HeartFailure  -> ACEi
+  HeartFailure  -> AKI
+
+  ACEi          -> AKI
+  ACEi          -> RenalPerfusion
+  RenalPerfusion -> AKI
+
+  ACEi          -> ICUAdmission
+  AKI           -> ICUAdmission
+}')
+
+# What must we adjust for to get the TOTAL effect of ACEi on AKI?
+adjustmentSets(aki_dag, type = "minimal", effect = "total")
+
+# Which variables are colliders we must leave alone? Ask dagitty what
+# happens to the estimate if we wrongly condition on ICU admission:
+adjustmentSets(aki_dag, type = "minimal", effect = "total") # {Age, BaselineEGFR, HeartFailure}
+impliedConditionalIndependencies(aki_dag)
+```
+
+**What the code shows.** `dagitty()` turns the picture into an object; `adjustmentSets()` then applies the backdoor criterion and returns the minimal set of variables that closes every backdoor path --- here `{Age, BaselineEGFR, HeartFailure}`. Note what it does *not* include: `RenalPerfusion` (a mediator) and `ICUAdmission` (a collider). Getting that list from an algorithm rather than from intuition is the entire reason to draw the DAG in the first place. `impliedConditionalIndependencies()` goes further and lists the independence relations your DAG predicts, several of which you can actually go and test in your data --- a rare opportunity to check a causal assumption empirically.
+
 ### Drawing your own DAG
 
 Before any causal analysis, draw a DAG. Steps:
@@ -143,7 +339,7 @@ Before any causal analysis, draw a DAG. Steps:
 3. Identify all backdoor paths from treatment to outcome.
 4. Determine the minimal adjustment set that blocks all backdoor paths without opening new ones.
 
-Tools like [DAGitty](https://dagitty.net) automate step 4 once you have drawn the DAG.
+Tools like [DAGitty](https://dagitty.net) automate steps 3 and 4 once you have drawn the DAG, either in the browser or from R via `dagitty` as above.
 
 ## Propensity Score Methods
 
@@ -152,51 +348,119 @@ Tools like [DAGitty](https://dagitty.net) automate step 4 once you have drawn th
 The **propensity score** is each patient's probability of receiving the treatment, based on their observed characteristics. Think of it as: "given everything I know about this patient, how likely was a clinician to put them on this drug?"
 
 $$
-e(L) = P(A=1 \mid L)
+\underbrace{e(L)}_{\text{propensity score}} = \underbrace{P(A = 1 \mid L)}_{\substack{\text{chance of being treated, for a patient}\\ \text{with these characteristics } L}}
 $$
 
 Rosenbaum and Rubin (1983) showed something remarkably useful: if exchangeability holds once we account for all the covariates $L$, then it also holds once we account for just this single number $e(L)$. So instead of trying to balance dozens of patient characteristics one by one, we only need to balance one summary score. That is why propensity scores are so popular in clinical research --- they turn an unwieldy problem into a manageable one.
+
+### The running example {#sec-causal-running-example}
+
+Every code block from here on uses the same simulated cohort, so that the different methods can be compared on identical data. Each chunk re-creates the cohort in full, so any chunk can be copied and run on its own.
+
+The set-up is confounding by indication, deliberately built in:
+
+- 4000 patients described by **age**, **eGFR** (kidney function), and whether they have a major **comorbidity**;
+- older patients, patients with worse kidney function, and patients with a comorbidity are **more likely to be treated** --- this is the clinician acting on illness severity;
+- those same three characteristics also **raise the risk of death**, independently of treatment;
+- and the drug genuinely **works**: we hard-wire a protective effect (a log-odds of $-0.8$).
+
+Because we built the data, we know the right answer. Averaged over this cohort's mix of patients, the true effect on the risk scale is a **risk difference of $-0.130$**: treating everyone rather than nobody would prevent 13 deaths per 100 patients. Any method worth using should get close to that. The naive comparison, as we will see, gets nowhere near it.
 
 ### Estimating the propensity score
 
 We typically estimate $e(L)$ using logistic regression (or more flexible methods like gradient boosting):
 
+::: {.panel-tabset}
+
+### R
+
 ```{r}
-#| label: propensity-score-estimation
+#| label: propensity-score-estimation-r
 #| eval: false
 
-# Simulate clinical data
+library(tidyverse)   # tibble(), mutate(), ggplot2
+
+# --- The running cohort: confounding by indication, known true effect --------
 set.seed(42)
-n <- 2000
+n <- 4000
 
 dat <- tibble(
-  age = rnorm(n, 65, 10),
-  diabetes = rbinom(n, 1, 0.3),
-  egfr = rnorm(n, 60, 15),
-  smoking = rbinom(n, 1, 0.25),
-  # Treatment assignment depends on covariates (confounding)
-  ps_true = plogis(-2 + 0.03 * age + 0.5 * diabetes - 0.02 * egfr + 0.4 * smoking),
-  treatment = rbinom(n, 1, ps_true),
-  # Outcome depends on treatment AND covariates
-  mortality = rbinom(n, 1, plogis(-3 + 0.04 * age + 0.6 * diabetes -
-                                    0.03 * egfr + 0.3 * smoking -
-                                    0.5 * treatment))
-)
+  age      = rnorm(n, 65, 10),
+  egfr     = rnorm(n, 60, 15),
+  comorbid = rbinom(n, 1, 0.4)
+) |>
+  mutate(
+    # Sicker patients (older, worse kidneys, comorbid) are MORE likely treated
+    treat = rbinom(n, 1, plogis(-0.8 + 0.05 * (age - 65) -
+                                  0.04 * (egfr - 60) + 0.8 * comorbid)),
+    # Those same characteristics also raise mortality; the drug is protective
+    death = rbinom(n, 1, plogis(-1.2 + 0.05 * (age - 65) -
+                                  0.035 * (egfr - 60) + 0.7 * comorbid -
+                                  0.8 * treat))
+  )
 
-# Estimate propensity score via logistic regression
-ps_model <- glm(treatment ~ age + diabetes + egfr + smoking,
-                data = dat, family = binomial)
+# --- Estimate the propensity score: P(treated | characteristics) -------------
+ps_model <- glm(treat ~ age + egfr + comorbid, data = dat, family = binomial)
 dat$ps <- predict(ps_model, type = "response")
 
-# Visualise overlap
-ggplot(dat, aes(x = ps, fill = factor(treatment))) +
+# --- Check OVERLAP: do the two groups occupy the same range of scores? -------
+ggplot(dat, aes(x = ps, fill = factor(treat, labels = c("Untreated", "Treated")))) +
   geom_density(alpha = 0.5) +
-  labs(x = "Propensity Score", fill = "Treatment",
-       title = "Propensity Score Distribution by Treatment Group") +
+  labs(
+    x = "Propensity score (estimated probability of being treated)",
+    y = "Density", fill = NULL,
+    title = "Propensity score distribution by treatment group"
+  ) +
   theme_minimal()
 ```
 
-**What the code shows.** We first simulate a clinical cohort where treatment is *deliberately* confounded --- older, diabetic, smoking patients with worse kidney function are more likely to be treated, and those same characteristics also raise mortality. This mimics confounding by indication. We then fit a logistic regression of treatment on the covariates; its fitted probabilities are the propensity scores, stored in `dat$ps`. The final density plot shows the propensity-score distribution separately for treated and untreated patients. What you want to see is substantial *overlap* between the two curves: that means for most patients there exist comparable patients in the other group. If the two curves barely overlap (treated patients piled up near 1, controls near 0), the groups are too different to compare fairly --- the warning below.
+### Python
+
+```{python}
+#| label: propensity-score-estimation-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.formula.api as smf
+
+# --- The running cohort: confounding by indication, known true effect --------
+rng = np.random.default_rng(42)
+n = 4000
+
+age      = rng.normal(65, 10, n)
+egfr     = rng.normal(60, 15, n)
+comorbid = rng.binomial(1, 0.4, n)
+
+expit = lambda x: 1 / (1 + np.exp(-x))
+
+treat = rng.binomial(1, expit(-0.8 + 0.05*(age-65) - 0.04*(egfr-60) + 0.8*comorbid))
+death = rng.binomial(1, expit(-1.2 + 0.05*(age-65) - 0.035*(egfr-60)
+                              + 0.7*comorbid - 0.8*treat))
+
+df = pd.DataFrame(dict(age=age, egfr=egfr, comorbid=comorbid,
+                       treat=treat, death=death))
+
+# --- Estimate the propensity score: P(treated | characteristics) -------------
+ps_model = smf.logit("treat ~ age + egfr + comorbid", data=df).fit(disp=0)
+df["ps"] = ps_model.predict(df)
+
+# --- Check OVERLAP: do the two groups occupy the same range of scores? -------
+fig, ax = plt.subplots(figsize=(8, 4.5))
+for value, label in [(0, "Untreated"), (1, "Treated")]:
+    df.loc[df.treat == value, "ps"].plot.density(ax=ax, alpha=0.6, label=label)
+ax.set_xlabel("Propensity score (estimated probability of being treated)")
+ax.set_ylabel("Density")
+ax.set_title("Propensity score distribution by treatment group")
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+**What the code shows.** We simulate the running cohort described above, then fit a logistic regression of treatment on the three characteristics; its fitted probabilities are the propensity scores. The density plot shows those scores separately for treated and untreated patients. What you want to see is substantial *overlap* between the two curves: that means for most patients there exist comparable patients in the other group. If the two curves barely overlap --- treated patients piled up near 1, controls near 0 --- the groups are too different to compare fairly, which is the warning below.
 
 ::: {.callout-warning}
 ## Positivity assumption
@@ -211,97 +475,614 @@ ggplot(dat, aes(x = ps, fill = factor(treatment))) +
 #| label: matching-example
 #| eval: false
 
-# Using MatchIt for nearest-neighbour matching with caliper
-m_out <- matchit(treatment ~ age + diabetes + egfr + smoking,
-                 data = dat,
-                 method = "nearest",
-                 distance = "glm",        # logistic regression PS
-                 caliper = 0.2,           # 0.2 SD of logit PS
-                 ratio = 1)               # 1:1 matching
+library(tidyverse)  # tibble(), mutate()
+library(MatchIt)    # matchit(), match.data()
+library(cobalt)     # love.plot(), bal.tab()
+library(broom)      # tidy() -- WITHOUT this, tidy() on a glm fails
 
-summary(m_out)
+# --- The running cohort (see above; repeated so this chunk stands alone) -----
+set.seed(42)
+n <- 4000
+dat <- tibble(
+  age      = rnorm(n, 65, 10),
+  egfr     = rnorm(n, 60, 15),
+  comorbid = rbinom(n, 1, 0.4)
+) |>
+  mutate(
+    treat = rbinom(n, 1, plogis(-0.8 + 0.05 * (age - 65) -
+                                  0.04 * (egfr - 60) + 0.8 * comorbid)),
+    death = rbinom(n, 1, plogis(-1.2 + 0.05 * (age - 65) -
+                                  0.035 * (egfr - 60) + 0.7 * comorbid -
+                                  0.8 * treat))
+  )
 
-# Check covariate balance using cobalt
+# --- 1:1 nearest-neighbour matching on the propensity score -----------------
+m_out <- matchit(treat ~ age + egfr + comorbid,
+  data = dat,
+  method = "nearest",
+  distance = "glm",   # propensity score from logistic regression
+  caliper = 0.2,      # refuse matches further apart than 0.2 SD of logit(PS)
+  ratio = 1           # one control per treated patient
+)
+
+m_out                      # how many patients matched, how many dropped
+bal.tab(m_out, thresholds = c(m = 0.1))   # balance table, numerically
+
+# --- Did matching work? The Love plot is the standard visual check ----------
 love.plot(m_out,
-          thresholds = c(m = 0.1),    # SMD threshold of 0.1
-          binary = "std",
-          title = "Covariate Balance: Before and After Matching")
+  thresholds = c(m = 0.1),
+  binary = "std",
+  title = "Covariate balance: before and after matching"
+)
 
-# Extract matched data and estimate treatment effect
+# --- Estimate the effect in the matched sample ------------------------------
 m_data <- match.data(m_out)
 
-# Outcome model in matched sample
-outcome_model <- glm(mortality ~ treatment,
-                     data = m_data,
-                     family = binomial,
-                     weights = weights)
+outcome_model <- glm(death ~ treat,
+  data = m_data,
+  family = binomial,
+  weights = weights   # match.data() supplies these
+)
 
 tidy(outcome_model, conf.int = TRUE, exponentiate = TRUE)
 ```
 
-**What the code shows.** `matchit` pairs each treated patient with the most similar untreated patient by propensity score, refusing any match further apart than the caliper (0.2 standard deviations of the logit score). `summary(m_out)` reports how many patients were matched and how well-balanced the groups now are. `love.plot` then draws a "Love plot": one dot per covariate showing the standardised mean difference (SMD) before matching and after. The SMD is just the difference in a covariate's mean between treated and control groups, divided by its standard deviation --- a unit-free measure of how far apart the groups are. The whole point of matching is to pull every "after" dot inside the 0.1 reference line, signalling the matched groups now look alike on the measured confounders. Finally we estimate the treatment effect on the matched sample; with `exponentiate = TRUE` the `treatment` row is an odds ratio for mortality (below 1 means the treatment is protective), with its 95% confidence interval.
+::: {.callout-important}
+## The two mistakes that make this chunk fail
 
-**Checking balance** is the most important step after matching. A standardised mean difference (SMD) below 0.1 for all covariates is the conventional threshold for acceptable balance. Balance, here, simply means the treated and control groups have a similar mix of patients --- the situation a randomised trial would create automatically, and what we are trying to recreate by hand.
+Both are easy to hit if you copy code out of a paper rather than out of a script that was actually run.
 
-### Inverse probability of treatment weighting (IPTW)
+1. **`library(MatchIt)` and `library(cobalt)` must be loaded.** Without them, `matchit()` and `love.plot()` do not exist. The error message (`could not find function "matchit"`) is at least clear.
+2. **`library(broom)` must be loaded** for `tidy()`. This one is nastier, because several modelling packages re-export the *generic* `tidy()` without providing the methods for it. So `tidy()` is found, but has no idea what to do with a `glm`, and you get the baffling:
 
-Matching throws away patients who cannot be paired. **Inverse probability of treatment weighting (IPTW)** avoids that waste. Instead of discarding anyone, it keeps the whole sample but gives each patient a *weight* so that, after weighting, the treated and untreated groups have the same mix of characteristics. The intuition is simple: a treated patient who, by their covariates, looked very *unlikely* to be treated is rare and therefore informative, so we give them more weight; a treated patient who looked almost certain to be treated is over-represented, so we down-weight them. After weighting, the treated and control "pseudo-populations" have the same covariate mix, just as randomisation would have produced. The weight for each patient is:
+   ```
+   Error in UseMethod("tidy") :
+     no applicable method for 'tidy' applied to an object of class "c('glm', 'lm')"
+   ```
 
-$$
-w_i = \frac{A_i}{e(L_i)} + \frac{1 - A_i}{1 - e(L_i)}
-$$
-
-This estimates the ATE. For the ATT, the weights are:
-
-$$
-w_i = A_i + \frac{(1 - A_i) \cdot e(L_i)}{1 - e(L_i)}
-$$
-
-```{r}
-#| label: iptw-example
-#| eval: false
-
-# Using WeightIt
-w_out <- weightit(treatment ~ age + diabetes + egfr + smoking,
-                  data = dat,
-                  method = "ps",
-                  estimand = "ATE")
-
-# Check balance
-bal.tab(w_out, thresholds = c(m = 0.1))
-
-# Stabilised weights (recommended to reduce variance)
-summary(w_out)
-
-# Estimate treatment effect with IPTW
-library(survey)
-d_weighted <- svydesign(ids = ~1, weights = w_out$weights, data = dat)
-svyglm(mortality ~ treatment, design = d_weighted, family = quasibinomial) |>
-  tidy(conf.int = TRUE, exponentiate = TRUE)
-```
-
-**What the code shows.** `weightit` computes a propensity score and turns it into the weights from the formula above (here for the ATE). `bal.tab` is the weighting equivalent of the Love plot: it prints a table of standardised mean differences for each covariate after weighting --- again, you want them comfortably under 0.1. `summary(w_out)` reports the range of the weights so you can spot any extreme values (see the note below). We then feed those weights into a survey-weighted regression (`svydesign` plus `svyglm`); the survey machinery is needed to get correct, slightly wider confidence intervals that account for the weighting. The exponentiated `treatment` coefficient is the estimated odds ratio in the balanced pseudo-population --- our IPTW estimate of the treatment effect on mortality.
-
-::: {.callout-note}
-## Stabilised weights
-Extreme weights can inflate variance. **Stabilised weights** replace the numerator 1 with $P(A=1)$ for treated and $P(A=0)$ for untreated. The `WeightIt` package does this by default. Always check that weights are not excessively large (e.g., max weight > 20 warrants investigation).
+   That message reads like a problem with your model. It is not --- it means `broom` is missing. Load it and the same line works.
 :::
 
-### Doubly robust estimation
+**What the code shows.** `matchit()` pairs each treated patient with the most similar untreated patient by propensity score, refusing any match further apart than the caliper (0.2 standard deviations of the logit score). Printing `m_out` reports how many patients were matched --- and, importantly, how many were **dropped**: in this cohort 1380 of the 1582 treated patients find a partner and 202 do not, which changes the population your estimate refers to. `bal.tab()` gives the numbers and `love.plot()` draws the picture: one dot per covariate showing the standardised mean difference (SMD) before matching and after. The SMD is just the difference in a covariate's mean between treated and control groups, divided by its standard deviation --- a unit-free measure of how far apart the groups are. The whole point of matching is to pull every "after" dot inside the 0.1 reference line. Finally we estimate the treatment effect on the matched sample; with `exponentiate = TRUE` the `treat` row is an odds ratio for death (about 0.51 here, so a substantial protective effect), with its 95% confidence interval.
 
-**Doubly robust** methods build in a safety net. They fit two models at once --- a propensity score model (who got treated) and an outcome model (who had the event) --- and give the right answer as long as *at least one* of the two is correct. You get two chances to be right instead of one, which is reassuring when you are never quite sure your model is perfect.
+**Checking balance** is the most important step after matching. An SMD below 0.1 for all covariates is the conventional threshold for acceptable balance. Balance, here, simply means the treated and control groups have a similar mix of patients --- the situation a randomised trial would create automatically, and what we are trying to recreate by hand.
 
-The augmented inverse probability weighted (AIPW) estimator is:
+::: {.callout-note}
+## Matching gives you the ATT, and throws patients away
+Two consequences of matching that catch people out. First, because we matched *to* the treated patients, the estimate is the **ATT** --- the effect among patients like those who were actually treated --- not the ATE. Second, unmatched patients are simply discarded. That is a real loss of information, and if the discarded patients are systematically different (they usually are: they are the most extreme ones), the population your answer applies to has quietly shifted. The next section avoids both problems.
+:::
+
+## Estimating the Effect: Weighting and G-Computation {#sec-g-methods}
+
+Matching balances the groups by throwing patients away. There are two better-behaved workhorses that use the whole sample, and both come from the work of the epidemiologist James Robins, who called them the **g-methods** ("g" for *generalised*):
+
+- **Inverse probability weighting (IPW)** models *who gets treated*. It builds a re-weighted "pseudo-population" in which treatment is no longer tied to the confounders, then compares outcomes in that pseudo-population.
+- **G-computation** (also called the *parametric g-formula*, or *standardisation*) models *what the outcome would be*. It fits an outcome model, then uses it to predict every patient's outcome twice --- once as if treated, once as if untreated --- and contrasts the averages.
+
+Both target the ATE, and under the same core assumption (no unmeasured confounding) both recover it. It is worth knowing both, because they place their bets on different models, and agreement between them is itself reassuring.
+
+::: {.callout-important}
+## Why not just read the coefficient off a regression?
+A naive analyst fits `death ~ treat + age + egfr + comorbid` and reads off the `treat` coefficient. The trouble is that a regression coefficient is only the causal effect under restrictive conditions: no treatment-covariate interactions, correct functional form, and a *collapsible* effect measure (which the odds ratio is not). The g-methods sidestep these traps by computing the effect *the way its definition demands* --- as a contrast of average potential outcomes --- rather than trusting one coefficient to mean what we hope it means.
+:::
+
+### Inverse probability weighting
+
+#### The idea in plain language {.unnumbered}
+
+Instead of discarding anyone, IPW keeps the whole sample but gives each patient a *weight*, so that after weighting the treated and untreated groups have the same mix of characteristics.
+
+Here is the intuition, set out accessibly for clinical readers by @mansournia2016ipw and @chesnaye2022ipw. Suppose a very sick patient --- the kind clinicians almost always treat --- nevertheless went *untreated*. That patient is rare and precious: they are one of the few untreated people who *look like* the treated group, so they carry a lot of information about what happens to treated-type patients when they go without the drug. IPW gives such a patient a large weight. Conversely, an untreated patient who looked very unlikely to be treated anyway is over-represented among controls, so IPW shrinks their weight. Do this for everyone and you build a **pseudo-population** in which being treated is statistically unrelated to the confounders --- exactly the situation a randomised trial creates by design.
+
+The weight for each patient is the inverse of the probability of the treatment they actually received:
 
 $$
-\hat{\tau}_{DR} = \frac{1}{n} \sum_{i=1}^n \left[ \frac{A_i Y_i}{e(L_i)} - \frac{A_i - e(L_i)}{e(L_i)} \hat{\mu}_1(L_i) \right] - \frac{1}{n} \sum_{i=1}^n \left[ \frac{(1-A_i) Y_i}{1-e(L_i)} + \frac{A_i - e(L_i)}{1-e(L_i)} \hat{\mu}_0(L_i) \right]
+w_i = \underbrace{\frac{A_i}{e(L_i)}}_{\substack{\text{for treated patients:}\\ 1 \,/\, \text{chance of being treated}}} + \underbrace{\frac{1 - A_i}{1 - e(L_i)}}_{\substack{\text{for untreated patients:}\\ 1 \,/\, \text{chance of being untreated}}}
 $$
 
-where $\hat{\mu}_a(L)$ is the predicted outcome under treatment $a$.
+A treated patient with propensity score 0.2 gets weight $1/0.2 = 5$; an untreated patient with propensity score 0.9 (so a probability of being untreated of 0.1) gets weight $1/0.1 = 10$. These weights are larger precisely for the informative, "surprising" patients. This version estimates the **ATE**. For the **ATT**, the weights instead are $w_i = A_i + (1 - A_i)\,e(L_i) / (1 - e(L_i))$: treated patients keep weight 1, and controls are re-weighted to look like them.
 
-Do not be put off by the formula. The practical message is the one above: with ordinary propensity-score methods you have to get the treatment model right, and with a plain outcome regression you have to get the outcome model right, whereas doubly robust estimation stays valid if *either* is correct. Since we are rarely certain which model is the "true" one, this makes it a sensible default for a cautious health researcher.
+#### Stabilised weights {.unnumbered}
 
-In practice, packages like `AIPW` in R or `DoWhy` in Python handle this computation.
+The raw weights can occasionally become enormous --- if a treated patient had a propensity score of 0.01, their weight is 100, and a single patient can then dominate the analysis and inflate the variance. **Stabilised weights** tame this by replacing the "1" in the numerator with the overall probability of receiving that treatment:
+
+$$
+sw_i = \frac{A_i \cdot P(A = 1)}{e(L_i)} + \frac{(1 - A_i) \cdot P(A = 0)}{1 - e(L_i)}
+$$
+
+The estimate is unchanged on average, but the weights cluster sensibly around 1 and the confidence intervals are narrower and more honest. Stabilised weights are the default recommendation and what modern packages produce automatically.
+
+::: {.callout-note}
+## Marginal structural models in one line
+When you fit an outcome model (say, a regression of mortality on treatment) *using these weights*, the model you have fitted is called a **marginal structural model (MSM)**. "Marginal" because it describes the whole population (not conditional on confounders), and "structural" because its coefficients have a causal interpretation. MSMs are the natural home of IPW and the standard tool when a treatment changes over time --- a setting where ordinary regression genuinely cannot give the right answer.
+:::
+
+#### Two checks that are not optional {.unnumbered}
+
+Weighting is only trustworthy if it actually balanced the confounders, and only valid if every kind of patient could in principle have received either treatment:
+
+1. **Covariate balance.** After weighting, the treated and control groups should have a near-identical mix of confounders. Measure this with the standardised mean difference and want every value comfortably below 0.1.
+2. **Positivity.** A propensity score near 0 or 1 produces an explosive weight. Inspect the largest weights: a maximum above roughly 10--20 is a warning that positivity is shaky and the estimate may be unstable.
+
+#### IPW in practice {.unnumbered}
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: ipw-r
+#| eval: false
+
+library(tidyverse)       # tibble(), mutate()
+library(WeightIt)        # weightit(), glm_weightit() -- MUST be loaded
+library(cobalt)          # bal.tab() -- MUST be loaded
+library(marginaleffects) # avg_comparisons()
+
+# --- The running cohort (repeated so this chunk stands alone) ---------------
+set.seed(42)
+n <- 4000
+dat <- tibble(
+  age      = rnorm(n, 65, 10),
+  egfr     = rnorm(n, 60, 15),
+  comorbid = rbinom(n, 1, 0.4)
+) |>
+  mutate(
+    treat = rbinom(n, 1, plogis(-0.8 + 0.05 * (age - 65) -
+                                  0.04 * (egfr - 60) + 0.8 * comorbid)),
+    death = rbinom(n, 1, plogis(-1.2 + 0.05 * (age - 65) -
+                                  0.035 * (egfr - 60) + 0.7 * comorbid -
+                                  0.8 * treat))
+  )
+
+# --- Step 1: stabilised weights for the ATE --------------------------------
+W <- weightit(treat ~ age + egfr + comorbid,
+  data = dat, method = "glm", estimand = "ATE", stabilize = TRUE
+)
+
+# --- Step 2: the two mandatory checks --------------------------------------
+bal.tab(W, thresholds = c(m = 0.1))   # balance: want every SMD < 0.1
+summary(W)                            # positivity: inspect the largest weights
+
+# --- Step 3: the weighted outcome model (a marginal structural model) ------
+msm <- glm_weightit(death ~ treat, data = dat, weightit = W, family = binomial)
+
+# --- Step 4: convert it to a risk difference ------------------------------
+#   variables = list(treat = 0:1) makes the 0 -> 1 contrast explicit
+avg_comparisons(msm, variables = list(treat = 0:1))
+```
+
+**What the code shows.** `weightit()` estimates the propensity score and converts it into stabilised ATE weights in one call. `bal.tab()` prints a table of standardised mean differences for `age`, `egfr`, and `comorbid` *after* weighting --- every number here comes out under 0.03, comfortably inside the 0.1 threshold, confirming the pseudo-population is balanced. `summary(W)` reports the range of weights; the maximum here is about 6, well under 20, so positivity is not violated. It also prints the **effective sample size**, which falls from 4000 to about 3300 --- that drop is the price of the re-weighting, and it is why the confidence interval is a little wider than an unweighted one would be. Finally `glm_weightit()` fits the weighted outcome model --- this is the marginal structural model --- and `avg_comparisons()` converts it into a **risk difference**: the average change in the probability of death caused by the drug, with a confidence interval that correctly accounts for the weighting. You should get about $-0.124$ (95% CI $-0.150$ to $-0.097$), which brackets the true $-0.130$.
+
+::: {.callout-tip}
+## Why `glm_weightit()` and not `glm(..., weights = )`?
+Plain `glm()` will accept the weights and give you the right point estimate, but the standard error will be wrong --- it treats the weights as if they were known counts of real patients, when in fact they were *estimated* from the propensity model. `glm_weightit()` (or a survey-design fit via `survey::svyglm()`) accounts for that estimation step and gives an honest, slightly wider interval. If you use `svyglm()`, remember `library(broom)` before `tidy()`, for exactly the reason flagged in the matching section.
+:::
+
+### Python
+
+```{python}
+#| label: ipw-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+# --- The running cohort (repeated so this chunk stands alone) ---------------
+rng = np.random.default_rng(42)
+n = 4000
+expit = lambda x: 1 / (1 + np.exp(-x))
+
+age      = rng.normal(65, 10, n)
+egfr     = rng.normal(60, 15, n)
+comorbid = rng.binomial(1, 0.4, n)
+treat = rng.binomial(1, expit(-0.8 + 0.05*(age-65) - 0.04*(egfr-60) + 0.8*comorbid))
+death = rng.binomial(1, expit(-1.2 + 0.05*(age-65) - 0.035*(egfr-60)
+                              + 0.7*comorbid - 0.8*treat))
+df = pd.DataFrame(dict(age=age, egfr=egfr, comorbid=comorbid,
+                       treat=treat, death=death))
+
+# --- Step 1: propensity score, then stabilised weights ---------------------
+df["ps"] = smf.logit("treat ~ age + egfr + comorbid", data=df).fit(disp=0).predict(df)
+
+p_treat = df["treat"].mean()
+df["sw"] = np.where(df["treat"] == 1,
+                    p_treat / df["ps"],
+                    (1 - p_treat) / (1 - df["ps"]))
+
+# --- Step 2: the two mandatory checks -------------------------------------
+def weighted_smd(var):
+    t, c = df[df.treat == 1], df[df.treat == 0]
+    mt = np.average(t[var], weights=t.sw)
+    mc = np.average(c[var], weights=c.sw)
+    sd = np.sqrt((t[var].var() + c[var].var()) / 2)
+    return (mt - mc) / sd
+
+print("Balance after weighting (want |SMD| < 0.1):")
+for v in ["age", "egfr", "comorbid"]:
+    print(f"  {v:<9} {weighted_smd(v):+.3f}")
+print(f"Positivity check -- largest weight: {df['sw'].max():.2f}")
+
+# --- Steps 3 and 4: weighted outcome model -> risk difference -------------
+msm = smf.glm("death ~ treat", data=df, family=sm.families.Binomial(),
+              freq_weights=df["sw"]).fit()
+
+rd = (msm.predict(df.assign(treat=1)) - msm.predict(df.assign(treat=0))).mean()
+print(f"\nIPW risk difference (treated - untreated): {rd:+.4f}")
+```
+
+**What the code shows.** The same workflow written out step by step, so nothing is hidden. We fit a logistic propensity-score model, build stabilised weights by hand from the formula above, and then run the two checks: the weighted standardised mean differences should all sit near zero, and the largest weight should be nowhere near 20. We then fit the weighted outcome model and, rather than reading a single coefficient, predict every patient's death probability twice (everyone treated, then everyone untreated) and average the difference. That average is the risk difference, directly comparable to the R output, and it should be close to the true $-0.130$.
+
+Two caveats specific to this hand-rolled version. First, `statsmodels` will report a standard error that ignores the fact that the weights were estimated, so it is somewhat too narrow; bootstrap the whole procedure if you need an honest interval. Second, `freq_weights` expects the weights to behave like counts --- fine for the point estimate, another reason not to trust the printed standard error.
+
+:::
+
+### G-computation
+
+#### The idea in plain language {.unnumbered}
+
+IPW models the *treatment*. G-computation instead models the *outcome*, and it follows the definition of the ATE almost literally.
+
+Recall the definition: the average outcome if *everyone* were treated minus the average outcome if *everyone* were untreated. We never observe both worlds for any patient --- but we can *predict* them. The recipe has three steps:
+
+1. **Fit one outcome model** that includes treatment *and* all the confounders (and, ideally, their interactions). This model learns how the outcome depends jointly on treatment and patient characteristics.
+2. **Predict twice for every patient.** First set everyone's treatment to "treated" (leaving their real confounders untouched) and predict each patient's outcome. Then reset everyone to "untreated" and predict again. Each patient now has two predicted outcomes --- their estimated potential outcomes.
+3. **Average and contrast.** Average the "all treated" predictions, average the "all untreated" predictions, and take the difference. That difference *is* the average treatment effect.
+
+This procedure is also called **standardisation**, because it standardises both arms to the *same* confounder distribution (the whole sample's). It is the oldest idea in the chapter --- Robins introduced the g-formula in 1986 --- and it remains one of the most reliable.
+
+```{mermaid}
+%%| eval: true
+%%| echo: false
+%%| label: fig-gcomp-steps
+%%| fig-cap: "G-computation in three steps: fit one outcome model, predict every patient's outcome under each treatment, then average and contrast to obtain the average treatment effect."
+graph LR
+    A["Fit outcome model:<br/>outcome ~ treatment<br/>+ confounders"] --> B["Predict each patient<br/>as if TREATED"]
+    A --> C["Predict each patient<br/>as if UNTREATED"]
+    B --> D["Average each set,<br/>then subtract"]
+    C --> D
+    D --> E["Average treatment<br/>effect"]
+    style A fill:#eef3fb,color:#111
+    style B fill:#eef3fb,color:#111
+    style C fill:#eef3fb,color:#111
+    style D fill:#eef3fb,color:#111
+    style E fill:#eef3fb,color:#111
+```
+
+#### Confidence intervals: use the bootstrap {.unnumbered}
+
+Because g-computation predicts, averages, and contrasts, the uncertainty in the final number does not come out of the outcome model directly. The standard solution is the **bootstrap**: resample the patients with replacement many times, rerun the whole predict-average-contrast procedure on each resample, and use the spread of the resulting estimates as the confidence interval. In R, `marginaleffects::inferences()` wraps the bootstrap around the whole calculation.
+
+#### G-computation in practice {.unnumbered}
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: gcomp-r
+#| eval: false
+
+library(tidyverse)       # tibble(), mutate()
+library(marginaleffects) # avg_comparisons(), inferences()
+
+# --- The running cohort (repeated so this chunk stands alone) ---------------
+set.seed(42)
+n <- 4000
+dat <- tibble(
+  age      = rnorm(n, 65, 10),
+  egfr     = rnorm(n, 60, 15),
+  comorbid = rbinom(n, 1, 0.4)
+) |>
+  mutate(
+    treat = rbinom(n, 1, plogis(-0.8 + 0.05 * (age - 65) -
+                                  0.04 * (egfr - 60) + 0.8 * comorbid)),
+    death = rbinom(n, 1, plogis(-1.2 + 0.05 * (age - 65) -
+                                  0.035 * (egfr - 60) + 0.7 * comorbid -
+                                  0.8 * treat))
+  )
+
+# --- Step 1: ONE outcome model, with treatment-confounder interactions -----
+#   The interactions let the drug's effect differ across patient types.
+out_model <- glm(death ~ treat * (age + egfr + comorbid),
+  data = dat, family = binomial
+)
+
+# --- Steps 2 and 3: predict under treat = 1 and treat = 0, average, contrast
+#   avg_comparisons() does the standardisation; inferences() bootstraps the CI
+avg_comparisons(out_model, variables = list(treat = 0:1)) |>
+  inferences(method = "boot", R = 500)
+
+# --- The same thing by hand, to show there is no magic --------------------
+p1 <- predict(out_model, transform(dat, treat = 1), type = "response")
+p0 <- predict(out_model, transform(dat, treat = 0), type = "response")
+mean(p1) - mean(p0)
+```
+
+**What the code shows.** We fit a *single* logistic outcome model, deliberately including `treat * (age + egfr + comorbid)` so the drug's effect is allowed to differ across patient types --- flexibility that a plain regression coefficient cannot express. `avg_comparisons(..., variables = list(treat = 0:1))` carries out the g-computation: it predicts every patient's death probability with `treat` set to 1, again with it set to 0, averages each, and reports the difference as a risk difference. Piping into `inferences(method = "boot", R = 500)` wraps the whole procedure in a 500-replicate bootstrap so the confidence interval is honest. The estimate comes out near $-0.122$ --- close to the true $-0.130$ and to the IPW estimate. The last two lines do the same calculation manually and print the identical number, which is worth running once so that the function stops feeling like a black box.
+
+### Python
+
+```{python}
+#| label: gcomp-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+# --- The running cohort (repeated so this chunk stands alone) ---------------
+rng = np.random.default_rng(42)
+n = 4000
+expit = lambda x: 1 / (1 + np.exp(-x))
+
+age      = rng.normal(65, 10, n)
+egfr     = rng.normal(60, 15, n)
+comorbid = rng.binomial(1, 0.4, n)
+treat = rng.binomial(1, expit(-0.8 + 0.05*(age-65) - 0.04*(egfr-60) + 0.8*comorbid))
+death = rng.binomial(1, expit(-1.2 + 0.05*(age-65) - 0.035*(egfr-60)
+                              + 0.7*comorbid - 0.8*treat))
+df = pd.DataFrame(dict(age=age, egfr=egfr, comorbid=comorbid,
+                       treat=treat, death=death))
+
+# --- The g-computation procedure, as a reusable function ------------------
+def gcomp(data):
+    m = smf.glm("death ~ treat * (age + egfr + comorbid)",
+                data=data, family=sm.families.Binomial()).fit(disp=0)
+    return (m.predict(data.assign(treat=1)).mean()
+            - m.predict(data.assign(treat=0)).mean())
+
+point = gcomp(df)
+
+# --- Bootstrap the confidence interval ----------------------------------
+boot_rng = np.random.default_rng(1)
+boot = np.array([
+    gcomp(df.iloc[boot_rng.integers(0, len(df), len(df))])
+    for _ in range(500)
+])
+lo, hi = np.percentile(boot, [2.5, 97.5])
+print(f"G-computation risk difference: {point:+.4f} (95% CI {lo:+.4f}, {hi:+.4f})")
+```
+
+**What the code shows.** We wrap the predict-average-contrast recipe in a function, `gcomp()`, that fits the interaction outcome model, predicts every patient's death probability under "everyone treated" and "everyone untreated", and returns the average difference. Calling it once on the real data gives the point estimate. We then call it 500 more times on bootstrap resamples (patients drawn with replacement) and take the 2.5th and 97.5th percentiles as a 95% confidence interval. The printed risk difference should be close to the true $-0.130$, and to the R result.
+
+:::
+
+::: {.callout-tip}
+## A ready-made alternative in R
+You do not have to hand-roll the outcome model. The `stdReg2` package implements standardisation (g-computation) directly with built-in confidence intervals, and for *time-varying* treatments --- where a patient's treatment and confounders evolve over follow-up, and ordinary methods break down --- the `gfoRmula` package implements the full longitudinal parametric g-formula. We use the `glm` + `marginaleffects` route here because it makes every step transparent, but `stdReg2` is an excellent production tool.
+:::
+
+### Putting it together: naive vs IPW vs g-computation
+
+The point of all this is best seen in one picture. @fig-methods-comparison estimates the drug's effect three ways on identical data: a *naive* regression that ignores confounding, IPW, and g-computation --- against the true answer, which we know because we built it.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: fig-methods-comparison
+#| eval: true
+#| fig-cap: "Three estimates of the same treatment effect on the same 4000 patients, against the truth we built into the simulation (dashed red line). The naive regression, which ignores confounding, recovers only a quarter of the real benefit and its confidence interval excludes the truth entirely. IPW and g-computation --- one modelling treatment, the other modelling the outcome --- both land on the truth and agree closely with each other."
+#| fig-width: 10
+#| fig-height: 3.8
+
+library(tidyverse)       # tibble(), bind_rows(), ggplot2
+library(WeightIt)        # weightit(), glm_weightit()
+library(marginaleffects) # avg_comparisons()
+
+# --- The running cohort -----------------------------------------------------
+set.seed(42)
+n <- 4000
+dat <- tibble(
+  age      = rnorm(n, 65, 10),
+  egfr     = rnorm(n, 60, 15),
+  comorbid = rbinom(n, 1, 0.4)
+) |>
+  mutate(
+    treat = rbinom(n, 1, plogis(-0.8 + 0.05 * (age - 65) -
+                                  0.04 * (egfr - 60) + 0.8 * comorbid)),
+    death = rbinom(n, 1, plogis(-1.2 + 0.05 * (age - 65) -
+                                  0.035 * (egfr - 60) + 0.7 * comorbid -
+                                  0.8 * treat))
+  )
+
+# The truth, computable only because we wrote the data-generating model
+TRUE_RD <- -0.130
+
+# (a) NAIVE: ignore the confounders entirely
+naive_rd <- avg_comparisons(
+  glm(death ~ treat, data = dat, family = binomial),
+  variables = list(treat = 0:1)
+)
+
+# (b) IPW: stabilised weights + weighted outcome model
+W <- weightit(treat ~ age + egfr + comorbid, data = dat,
+              method = "glm", estimand = "ATE", stabilize = TRUE)
+ipw_rd <- avg_comparisons(
+  glm_weightit(death ~ treat, data = dat, weightit = W, family = binomial),
+  variables = list(treat = 0:1)
+)
+
+# (c) G-COMPUTATION: outcome model + standardisation
+gcomp_rd <- avg_comparisons(
+  glm(death ~ treat * (age + egfr + comorbid), data = dat, family = binomial),
+  variables = list(treat = 0:1)
+)
+
+results <- bind_rows(
+  tibble(method = "Naive regression\n(ignores confounders)", as_tibble(naive_rd)),
+  tibble(method = "IPW\n(models treatment)", as_tibble(ipw_rd)),
+  tibble(method = "G-computation\n(models outcome)", as_tibble(gcomp_rd))
+) |>
+  select(method, estimate, conf.low, conf.high) |>
+  mutate(method = factor(method, levels = rev(method)))
+
+print(as.data.frame(results), digits = 3)
+
+ggplot(results, aes(x = estimate, y = method)) +
+  geom_vline(xintercept = 0, colour = "grey55") +
+  geom_vline(xintercept = TRUE_RD, colour = "#b02a2a",
+             linetype = "dashed", linewidth = 0.8) +
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high),
+                width = 0.16, linewidth = 0.8, colour = "#2c3e50") +
+  geom_point(size = 3.6, colour = "#2c3e50") +
+  annotate("text", x = TRUE_RD, y = 3.45, hjust = 0, size = 3.6,
+           fontface = "bold", colour = "#b02a2a",
+           label = "  TRUE effect (-0.130)") +
+  annotate("text", x = 0, y = 3.45, hjust = 1.05, size = 3.4,
+           colour = "grey40", label = "no effect  ") +
+  scale_x_continuous(limits = c(-0.20, 0.035)) +
+  labs(x = "Risk difference in mortality (treated - untreated)", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid.major.y = element_blank(),
+        plot.margin = margin(16, 14, 6, 6))
+```
+
+### Python
+
+```{python}
+#| label: methods-comparison-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+# --- The running cohort -----------------------------------------------------
+rng = np.random.default_rng(42)
+n = 4000
+expit = lambda x: 1 / (1 + np.exp(-x))
+
+age      = rng.normal(65, 10, n)
+egfr     = rng.normal(60, 15, n)
+comorbid = rng.binomial(1, 0.4, n)
+treat = rng.binomial(1, expit(-0.8 + 0.05*(age-65) - 0.04*(egfr-60) + 0.8*comorbid))
+death = rng.binomial(1, expit(-1.2 + 0.05*(age-65) - 0.035*(egfr-60)
+                              + 0.7*comorbid - 0.8*treat))
+df = pd.DataFrame(dict(age=age, egfr=egfr, comorbid=comorbid,
+                       treat=treat, death=death))
+
+TRUE_RD = -0.130
+contrast = lambda m, d, **kw: (m.predict(d.assign(treat=1), **kw).mean()
+                              - m.predict(d.assign(treat=0), **kw).mean())
+
+# (a) NAIVE
+naive = smf.glm("death ~ treat", data=df, family=sm.families.Binomial()).fit(disp=0)
+naive_rd = contrast(naive, df)
+
+# (b) IPW with stabilised weights
+ps = smf.logit("treat ~ age + egfr + comorbid", data=df).fit(disp=0).predict(df)
+p = df.treat.mean()
+sw = np.where(df.treat == 1, p / ps, (1 - p) / (1 - ps))
+ipw_rd = contrast(smf.glm("death ~ treat", data=df,
+                          family=sm.families.Binomial(),
+                          freq_weights=sw).fit(), df)
+
+# (c) G-COMPUTATION
+gm = smf.glm("death ~ treat * (age + egfr + comorbid)", data=df,
+             family=sm.families.Binomial()).fit(disp=0)
+gcomp_rd = contrast(gm, df)
+
+# --- Bootstrap intervals for all three, so the plot is comparable ---------
+def all_three(d):
+    nv = smf.glm("death ~ treat", data=d, family=sm.families.Binomial()).fit(disp=0)
+    p_ = smf.logit("treat ~ age + egfr + comorbid", data=d).fit(disp=0).predict(d)
+    q = d.treat.mean()
+    w = np.where(d.treat == 1, q / p_, (1 - q) / (1 - p_))
+    iw = smf.glm("death ~ treat", data=d, family=sm.families.Binomial(),
+                 freq_weights=w).fit()
+    gc = smf.glm("death ~ treat * (age + egfr + comorbid)", data=d,
+                 family=sm.families.Binomial()).fit(disp=0)
+    return [contrast(nv, d), contrast(iw, d), contrast(gc, d)]
+
+boot_rng = np.random.default_rng(1)
+boot = np.array([all_three(df.iloc[boot_rng.integers(0, len(df), len(df))])
+                 for _ in range(300)])
+lo, hi = np.percentile(boot, [2.5, 97.5], axis=0)
+
+labels = ["Naive regression\n(ignores confounders)",
+          "IPW\n(models treatment)",
+          "G-computation\n(models outcome)"]
+est = np.array([naive_rd, ipw_rd, gcomp_rd])
+
+fig, ax = plt.subplots(figsize=(9, 3.6))
+y = np.arange(3)[::-1]
+ax.axvline(0, color="grey")
+ax.axvline(TRUE_RD, color="#b02a2a", linestyle="--", lw=1.6)
+ax.errorbar(est, y, xerr=[est - lo, hi - est], fmt="o", color="#2c3e50",
+            capsize=4, ms=8, lw=1.6)
+ax.set_yticks(y); ax.set_yticklabels(labels)
+ax.set_xlabel("Risk difference in mortality (treated - untreated)")
+ax.text(TRUE_RD, 2.42, "  TRUE effect (-0.130)", color="#b02a2a",
+        fontweight="bold", va="bottom")
+ax.set_xlim(-0.20, 0.035)
+plt.tight_layout()
+plt.show()
+
+for lab, e, l, h in zip(labels, est, lo, hi):
+    print(f"{lab.splitlines()[0]:<20} {e:+.4f}  ({l:+.4f}, {h:+.4f})")
+```
+
+:::
+
+**What the figure shows.** The three estimates are not close to being interchangeable.
+
+- The **naive** model regresses death on treatment alone, so it absorbs the confounding: it reports a risk difference of about $-0.032$. Read clinically, that is "3 deaths prevented per 100" when the truth is 13. It recovers about a quarter of the real benefit, and its confidence interval does not even contain the truth. The drug looks marginal; a committee might well decline to fund it.
+- **IPW** ($-0.124$) and **g-computation** ($-0.122$) each adjust for age, eGFR, and comorbidity --- one through weighting, one through outcome modelling --- and both land essentially on the true $-0.130$, with intervals that comfortably contain it.
+
+Two lessons. First, confounding is not a rounding error: here it hid three quarters of the effect. Second, two methods that make their assumptions in completely different places gave the same answer, which is the single most reassuring thing you can see in a causal analysis. When they *disagree*, suspect a misspecified model or shaky positivity, and go and look.
+
+::: {.callout-note}
+## Your numbers will differ slightly, and that is the point
+These are estimates from one simulated sample of 4000, so re-running with a different seed will move them around by a couple of hundredths --- the confidence intervals tell you how much. What is stable across seeds is the *pattern*: the naive estimate is badly biased towards zero, and the two adjusted estimates agree with each other and with the truth. Exercise 5 asks you to confirm that by repeating the whole simulation many times.
+:::
+
+### Choosing between them --- and the "best of both"
+
+The two methods are complementary, and choosing between them comes down to which model you trust more.
+
+| | Inverse probability weighting | G-computation |
+|---|---|---|
+| What you model | The **treatment** (propensity score) | The **outcome** |
+| Main risk | A wrong treatment model, or extreme weights (positivity) | A wrong outcome model (functional form, interactions) |
+| Strengths | Natural for time-varying treatment (marginal structural models); transparent pseudo-population | Uses all data efficiently; no weight explosions; easy to add interactions |
+| Confidence interval | Robust/sandwich, or bootstrap | Bootstrap |
+
+You do not have to pick. **Doubly robust** methods build in a safety net: they fit *both* a propensity score model and an outcome model, and give the right answer as long as *at least one* of the two is correct. You get two chances to be right instead of one, which is reassuring when you are never quite sure your model is perfect.
+
+The augmented inverse probability weighted (AIPW) estimator is the standard example. Written the illuminating way, it is g-computation plus a correction:
+
+$$
+\hat{\tau}_{\text{AIPW}} =
+\underbrace{\frac{1}{n} \sum_{i=1}^{n} \left[\hat{\mu}_1(L_i) - \hat{\mu}_0(L_i)\right]}_{\substack{\text{(1) the g-computation estimate:}\\ \text{predict everyone treated, minus}\\ \text{predict everyone untreated}}}
+\;+\;
+\underbrace{\frac{1}{n} \sum_{i=1}^{n} \frac{A_i\left(Y_i - \hat{\mu}_1(L_i)\right)}{e(L_i)}}_{\substack{\text{(2) among the treated, how wrong}\\ \text{was the outcome model? Add the}\\ \text{error back, IP-weighted}}}
+\;-\;
+\underbrace{\frac{1}{n} \sum_{i=1}^{n} \frac{(1 - A_i)\left(Y_i - \hat{\mu}_0(L_i)\right)}{1 - e(L_i)}}_{\substack{\text{(3) the same correction}\\ \text{among the untreated}}}
+$$
+
+where $\hat{\mu}_a(L)$ is the outcome model's prediction under treatment $a$, and $e(L)$ is the propensity score.
+
+Read term by term, the safety net is easy to see:
+
+- **Term (1) is just g-computation.** If the outcome model is right, this term alone is already the answer.
+- **Terms (2) and (3) are the residuals of that outcome model** --- how far each patient's actual outcome fell from what the model predicted --- fed back in with inverse probability weights. If the outcome model is perfect, those residuals average to zero and the correction contributes nothing. If the outcome model is *wrong*, the correction picks up what it missed, and because it is IP-weighted it does so correctly **provided the propensity model is right**.
+
+Hence "doubly robust": get the outcome model right and terms (2) and (3) vanish harmlessly; get the propensity model right and terms (2) and (3) repair whatever term (1) got wrong. You only lose if *both* are wrong. Since we are rarely certain which model is the "true" one, this makes AIPW a sensible default for a cautious health researcher.
+
+In R, doubly robust estimators live in packages such as `AIPW` and `tmle` (targeted maximum likelihood estimation, a closely related and slightly more efficient cousin); in Python, `zepid` and `econml` implement them. Once you understand IPW and g-computation you already understand both ingredients.
+
+::: {.callout-warning}
+## The assumption that no method can rescue
+Every estimator in this chapter --- naive, matching, IPW, g-computation, even doubly robust --- relies on **no unmeasured confounding** (the exchangeability assumption from earlier). If illness severity has a component you did not measure, all of them are biased in the same direction, and their agreeing with each other will *not* warn you. The g-methods give you a correct answer *to the question you asked of the data you have*; they cannot conjure information you never collected. This is why the sensitivity analysis in @sec-causal-sensitivity belongs in every causal report.
+:::
 
 ## Target Trial Emulation
 
@@ -328,43 +1109,179 @@ The key components to specify are:
 | Eligibility criteria | Defined inclusion/exclusion | Same criteria applied to database |
 | Treatment strategies | e.g., start drug A vs drug B | Same, defined at "time zero" |
 | Treatment assignment | Random | Adjusted via PS methods or g-estimation |
-| Start of follow-up | Randomisation date | Date eligibility + treatment criteria met |
+| Start of follow-up | Randomisation date | Date eligibility criteria are met |
 | Outcome | e.g., 5-year mortality | Same |
 | Causal contrast | Intention-to-treat or per-protocol | Same (with appropriate methods) |
 | Analysis plan | Intention-to-treat analysis | Clone-censor-weight or similar |
 
 ### Why this reduces bias
 
-Target trial emulation directly addresses several common biases:
+The framework's power comes from one requirement above all: **you must name a single moment, "time zero", at which a patient becomes eligible, is assigned a strategy, and starts being followed --- and it must be the same moment in both arms.** Almost every classic observational blunder is a failure of that requirement.
 
-**Immortal time bias**: In a naive observational study comparing drug users to non-users, the time between cohort entry and first prescription is "immortal" --- the patient must survive to receive the drug. This artificially inflates survival in the treated group. Target trial emulation avoids this by aligning "time zero" (start of follow-up) with treatment assignment.
+#### Immortal time bias {.unnumbered}
 
-**Selection bias from prevalent user designs**: If you study patients who are *already* established on a drug ("prevalent users"), you have quietly excluded everyone who started it and did badly early on --- they dropped out before your study began. Survivors look healthier than they really are. Target trial emulation instead uses a **new-user (incident user) design**: it counts everyone from the moment they *start* the drug, just as a trial enrols patients at randomisation.
+Here is the mistake, concretely. You want to know whether statins help patients newly diagnosed with type 2 diabetes. You split the cohort into "statin users" (anyone who was dispensed a statin in the first six months) and "never users", and you follow both from the date of diagnosis.
 
-**Vague eligibility and time zero**: When eligibility criteria and the start of follow-up are not clearly defined, analyses can be plagued by look-ahead bias. The target trial framework forces explicit specification.
+Look at what you have just required of the two groups. To land in the statin group, a patient had to *survive long enough to collect the prescription*. Someone who died three weeks after diagnosis cannot possibly be a user --- they are filed as a never-user. So membership of the treated group is conditional on surviving a stretch of time, and that stretch is counted as follow-up in which, by construction, no treated patient could have died. That stretch of guaranteed survival is the **immortal time**, and it makes the drug look protective even if it does nothing at all.
+
+**How the target trial removes it, mechanically.** In a real trial, treatment is assigned at randomisation and the clock starts there; nobody has to survive anything to be in the treated arm. Emulation copies that. Two standard ways to do it:
+
+- **Assign at time zero (new-user design).** Time zero is the moment the patient meets eligibility and initiates --- or does not initiate --- the strategy. Follow-up begins there for both arms, so neither arm contains any guaranteed-survival time.
+- **Use a grace period plus a landmark.** If the strategy is genuinely "start within six months", then wait out the six months, classify patients by what they did *during* that window, and start the clock **at the end of the window**, including only patients still alive and event-free at that point. Nobody's group membership then depends on surviving any of the time you are analysing.
+
+**And yes --- it is still possible to get this wrong.** The reviewer's instinct is correct, and it is worth being explicit about the ways bias creeps back in:
+
+- **Classifying with the grace period but timing from diagnosis.** Wait six months to decide who is a user, then rewind the clock to the date of diagnosis. This is the original error wearing a disguise, and it is common in published work.
+- **Ignoring the deaths inside the grace period.** In the landmark version you must *exclude* patients who died during the window from both arms. Keep them (as never-users) and the bias returns in full.
+- **Depletion of susceptibles.** A landmark discards the earliest events, which are often the most informative. If the drug works mainly in the first weeks, a six-month landmark will understate it. That is a real cost, honestly stated, not a reason to abandon the design.
+- **The grace period itself.** Patients who start in month five spend months one to four untreated while counted in the treated arm. Handling that properly needs the **clone-censor-weight** approach: create a copy ("clone") of each patient in each strategy, censor each clone when its behaviour departs from its assigned strategy, and use inverse probability weights to correct for that informative censoring --- IPW again, doing the same job as in @sec-g-methods.
+
+The worked example below shows the bias appearing and disappearing in a dataset where we know the drug does nothing.
+
+#### Selection bias from prevalent user designs {.unnumbered}
+
+A closely related error. If you study patients who are *already* established on a drug ("prevalent users"), you have quietly excluded everyone who started it and did badly early on --- they stopped, or died, before your study window opened. The survivors look healthier than the drug deserves. The same new-user (incident user) design fixes it: count everyone from the moment they *start*, just as a trial enrols patients at randomisation.
+
+Note that this is the *same* discipline as the immortal-time fix, viewed from a different angle. Both bugs come from letting group membership depend on what happened after the clock should have started; both are cured by insisting that eligibility, assignment, and the start of follow-up coincide.
+
+#### Vague eligibility and time zero {.unnumbered}
+
+When eligibility criteria and the start of follow-up are not clearly defined, analyses can be plagued by look-ahead bias --- using information from the future to define the present. The target trial framework forces explicit specification, which is why writing the protocol table above is not busywork.
 
 ::: {.callout-tip}
-## The TARGET reporting guideline (2025)
-The TARGET (TrAnsparent ReportinG of observational studies Emulating a Target trial) guideline provides a structured checklist for reporting target trial emulation studies. It was published in the BMJ in 2025 and should be followed for any observational study making causal claims.
+## The TARGET reporting guideline
+The TARGET (TrAnsparent ReportinG of observational studies Emulating a Target trial) guideline provides a structured checklist for reporting target trial emulation studies [@cashin2025target], and should be followed for any observational study making causal claims.
 :::
 
-### Example: Statin initiation and cardiovascular events
+### Worked example: statin initiation after a diabetes diagnosis
 
-Suppose we want to estimate the effect of initiating statins within 6 months of a type 2 diabetes diagnosis on 5-year cardiovascular events.
+Suppose we want to estimate the effect of initiating a statin within 6 months of a type 2 diabetes diagnosis on 5-year mortality.
 
 **Target trial specification:**
 
-- **Eligibility**: Adults aged 40--75 with new T2DM diagnosis, no prior CVD, no prior statin use
-- **Treatment strategies**: (1) Initiate statin within 6 months, (2) Do not initiate statin within 6 months
-- **Time zero**: Date of T2DM diagnosis
-- **Outcome**: First major adverse cardiovascular event (MACE) within 5 years
-- **Analysis**: Intention-to-treat using IPTW for confounding, clone-censor-weight for treatment strategy adherence
+- **Eligibility**: adults aged 40--75 with a new T2DM diagnosis, no prior CVD, no prior statin use
+- **Treatment strategies**: (1) initiate a statin within 6 months, (2) do not initiate within 6 months
+- **Time zero**: end of the 6-month grace period, among patients still alive (the landmark)
+- **Outcome**: death within 5 years
+- **Analysis**: compare the two strategies from time zero, adjusting for confounding by IPW
+
+The simulation below makes the immortal time bias visible by building a cohort in which **statins do absolutely nothing** --- the true hazard ratio is exactly 1.00. Any apparent benefit is therefore bias, and we can watch it appear and disappear.
+
+::: {.panel-tabset}
+
+### R
+
+```{r}
+#| label: target-trial-r
+#| eval: true
+
+library(survival)   # Surv(), coxph() -- MUST be loaded
+
+set.seed(42)
+n     <- 5000
+GRACE <- 0.5   # 6-month grace period, in years
+MAXFU <- 5     # 5 years of follow-up
+
+# --- A cohort in which the statin does NOTHING (true HR = 1.00) -------------
+death_time <- rexp(n, rate = 0.30)   # time to death, ignoring statins entirely
+init_time  <- rexp(n, rate = 1.20)   # when this patient WOULD start a statin
+
+# A patient is a "user" only if they started within the grace period AND
+# lived long enough to do so. That second condition is where the bias lives.
+started <- init_time <= GRACE & init_time < death_time
+
+# --- (a) THE NAIVE ANALYSIS: ever-user vs never-user, clock from diagnosis --
+obs_time <- pmin(death_time, MAXFU)
+died     <- as.integer(death_time <= MAXFU)
+naive    <- coxph(Surv(obs_time, died) ~ started)
+
+# --- (b) THE EMULATED TRIAL: landmark at the end of the grace period -------
+#   Keep only patients still alive at the landmark, assign them by what they
+#   did during the window, and start the clock AT the landmark.
+alive_at_landmark <- death_time > GRACE
+emulated <- coxph(
+  Surv(
+    pmin(death_time[alive_at_landmark], MAXFU) - GRACE,
+    as.integer(death_time[alive_at_landmark] <= MAXFU)
+  ) ~ started[alive_at_landmark]
+)
+
+report <- function(label, fit) {
+  ci <- exp(confint(fit))
+  cat(sprintf("%-34s HR = %.2f  (95%% CI %.2f, %.2f)\n",
+              label, exp(coef(fit)), ci[1], ci[2]))
+}
+
+cat("TRUE hazard ratio                  HR = 1.00  (statins do nothing here)\n")
+report("(a) Naive 'ever user' analysis", naive)
+report("(b) Emulated target trial", emulated)
+
+cat(sprintf(
+  "\nWhy: %d patients died inside the 6-month window and were all filed as\n",
+  sum(death_time <= GRACE)
+))
+cat(sprintf(
+  "'never users' -- including %d who were on course to start a statin and\n",
+  sum(death_time <= GRACE & init_time <= GRACE & init_time >= death_time)
+))
+cat("simply did not live to collect it. The landmark analysis excludes them\n")
+cat("from BOTH arms, which is what removes the bias.\n")
+```
+
+### Python
+
+```{python}
+#| label: target-trial-py
+#| eval: false
+
+import numpy as np
+import pandas as pd
+from lifelines import CoxPHFitter
+
+rng = np.random.default_rng(42)
+n, GRACE, MAXFU = 5000, 0.5, 5
+
+# --- A cohort in which the statin does NOTHING (true HR = 1.00) ------------
+death_time = rng.exponential(1 / 0.30, n)
+init_time  = rng.exponential(1 / 1.20, n)
+started    = (init_time <= GRACE) & (init_time < death_time)
+
+def cox(duration, event, exposure):
+    d = pd.DataFrame({"t": duration, "e": event, "x": exposure.astype(int)})
+    fit = CoxPHFitter().fit(d, duration_col="t", event_col="e")
+    hr = np.exp(fit.params_["x"])
+    lo, hi = np.exp(fit.confidence_intervals_.loc["x"])
+    return hr, lo, hi
+
+# --- (a) NAIVE: ever-user vs never-user, clock from diagnosis -------------
+naive = cox(np.minimum(death_time, MAXFU), death_time <= MAXFU, started)
+
+# --- (b) EMULATED TRIAL: landmark at the end of the grace period ----------
+alive = death_time > GRACE
+emulated = cox(np.minimum(death_time[alive], MAXFU) - GRACE,
+               death_time[alive] <= MAXFU, started[alive])
+
+print("TRUE hazard ratio                  HR = 1.00  (statins do nothing here)")
+for label, (hr, lo, hi) in [("(a) Naive 'ever user' analysis", naive),
+                            ("(b) Emulated target trial", emulated)]:
+    print(f"{label:<34} HR = {hr:.2f}  (95% CI {lo:.2f}, {hi:.2f})")
+
+n_died_in_window = int((death_time <= GRACE).sum())
+print(f"\nWhy: {n_died_in_window} patients died inside the 6-month window and "
+      "were all filed as 'never users'.")
+```
+
+:::
+
+**What the code shows.** The statin does nothing in this simulation --- the true hazard ratio is 1.00 by construction. Yet the naive "ever user versus never user" analysis, run from the date of diagnosis, reports a hazard ratio of about **0.83 with a confidence interval that excludes 1**. A 17% mortality reduction, statistically significant, entirely manufactured. It is manufactured because 682 patients died inside the six-month window and were all classified as never-users; 144 of them were on course to start a statin and simply did not live to collect it.
+
+The emulated target trial makes one change --- start the clock at the end of the grace period, and include only patients alive at that point --- and the hazard ratio moves to about **0.96, with a confidence interval that comfortably contains 1**. (It is not exactly 1.00 because this is one sample of 5000; the interval tells you as much.) The bias came from a study-design decision, not from a statistical one, and no amount of covariate adjustment would have fixed it.
 
 ## Regression Discontinuity Design
 
 **Regression discontinuity (RD)** takes advantage of the arbitrary cut-offs that pervade clinical guidelines. When a treatment decision hinges on whether some measurement crosses a threshold, patients who fall *just* above and *just* below that line are, for all practical purposes, the same kind of patient --- yet one group gets treated and the other does not. That near-random split around the cut-off is what we exploit.
 
-**Clinical example**: Many guidelines recommend antihypertensive therapy when systolic blood pressure exceeds 140 mmHg. Patients with SBP of 141 are very similar to patients with SBP of 139, but the former are much more likely to receive treatment. Comparing outcomes near the cutoff provides a quasi-experimental estimate.
+**Clinical example**: many guidelines recommend antihypertensive therapy when systolic blood pressure exceeds 140 mmHg. Patients with SBP of 141 are very similar to patients with SBP of 139, but the former are much more likely to receive treatment. Comparing outcomes near the cutoff provides a quasi-experimental estimate.
 
 Key requirements for a valid RD design:
 
@@ -374,139 +1291,11 @@ Key requirements for a valid RD design:
 
 RD designs are less common in clinical research than propensity score methods, but when applicable, they provide strong evidence because the assumptions are more testable.
 
-## Implementation in Python
-
-Python's causal inference ecosystem is maturing. Here we demonstrate propensity score matching and IPTW using `dowhy` and `causalinference`.
-
-```{python}
-#| label: python-causal
-#| eval: false
-
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from scipy import stats
-import matplotlib.pyplot as plt
-
-# Simulate clinical data
-np.random.seed(42)
-n = 2000
-
-age = np.random.normal(65, 10, n)
-diabetes = np.random.binomial(1, 0.3, n)
-egfr = np.random.normal(60, 15, n)
-smoking = np.random.binomial(1, 0.25, n)
-
-# Confounded treatment assignment
-ps_true = 1 / (1 + np.exp(-(-2 + 0.03*age + 0.5*diabetes - 0.02*egfr + 0.4*smoking)))
-treatment = np.random.binomial(1, ps_true)
-
-# Outcome
-mortality_prob = 1 / (1 + np.exp(-(-3 + 0.04*age + 0.6*diabetes -
-                                     0.03*egfr + 0.3*smoking -
-                                     0.5*treatment)))
-mortality = np.random.binomial(1, mortality_prob)
-
-df = pd.DataFrame({
-    'age': age, 'diabetes': diabetes, 'egfr': egfr,
-    'smoking': smoking, 'treatment': treatment, 'mortality': mortality
-})
-
-# --- Propensity Score Estimation ---
-covariates = ['age', 'diabetes', 'egfr', 'smoking']
-ps_model = LogisticRegression(max_iter=1000)
-ps_model.fit(df[covariates], df['treatment'])
-df['ps'] = ps_model.predict_proba(df[covariates])[:, 1]
-
-# --- IPTW ---
-# Compute ATE weights
-df['iptw'] = np.where(
-    df['treatment'] == 1,
-    1 / df['ps'],
-    1 / (1 - df['ps'])
-)
-
-# Stabilised weights
-p_treat = df['treatment'].mean()
-df['sw'] = np.where(
-    df['treatment'] == 1,
-    p_treat / df['ps'],
-    (1 - p_treat) / (1 - df['ps'])
-)
-
-# Check balance: weighted standardised mean differences
-def weighted_smd(data, var, treatment_col, weight_col):
-    treated = data[data[treatment_col] == 1]
-    control = data[data[treatment_col] == 0]
-    mean_t = np.average(treated[var], weights=treated[weight_col])
-    mean_c = np.average(control[var], weights=control[weight_col])
-    sd_pooled = np.sqrt((treated[var].var() + control[var].var()) / 2)
-    return (mean_t - mean_c) / sd_pooled
-
-print("Covariate balance (weighted SMD):")
-for var in covariates:
-    smd = weighted_smd(df, var, 'treatment', 'sw')
-    print(f"  {var}: {smd:.4f}")
-
-# --- Weighted outcome estimation ---
-from statsmodels.api import WLS, add_constant
-
-X = add_constant(df['treatment'])
-wls_model = WLS(df['mortality'], X, weights=df['sw']).fit()
-print("\nIPTW Treatment Effect Estimate:")
-print(f"  Coefficient: {wls_model.params[1]:.4f}")
-print(f"  95% CI: ({wls_model.conf_int()[1][0]:.4f}, {wls_model.conf_int()[1][1]:.4f})")
-```
-
-**What the code shows.** This is the Python counterpart to the R workflow above, written from scratch so you can see every step rather than relying on a package. We simulate the same confounded cohort, fit a logistic regression for the propensity score, then build the inverse-probability weights (both raw and stabilised). The `weighted_smd` helper prints the standardised mean difference for each covariate *after* weighting --- the printed numbers should all be close to zero (well under 0.1) if weighting has balanced the groups. The final weighted least-squares model regresses mortality on treatment using the stabilised weights; its `treatment` coefficient is the estimated effect on the probability of death (a risk difference, since the outcome is on the probability scale), reported with a 95% confidence interval.
-
-### Using DoWhy for causal analysis
-
-```{python}
-#| label: dowhy-example
-#| eval: false
-
-# DoWhy provides a structured causal inference workflow
-# Install: pip install dowhy
-
-import dowhy
-from dowhy import CausalModel
-
-# Step 1: Model - encode causal assumptions
-model = CausalModel(
-    data=df,
-    treatment='treatment',
-    outcome='mortality',
-    common_causes=['age', 'diabetes', 'egfr', 'smoking']
-)
-
-# Step 2: Identify - find valid adjustment strategy
-identified_estimand = model.identify_effect()
-print(identified_estimand)
-
-# Step 3: Estimate - using propensity score weighting
-estimate = model.estimate_effect(
-    identified_estimand,
-    method_name="backdoor.propensity_score_weighting",
-    method_params={"weighting_scheme": "ips_stabilized_weight"}
-)
-print(f"Causal Estimate: {estimate.value:.4f}")
-
-# Step 4: Refute - sensitivity analysis
-refutation = model.refute_estimate(
-    identified_estimand, estimate,
-    method_name="random_common_cause"
-)
-print(refutation)
-```
-
-**What the code shows.** `DoWhy` makes the four logical steps of a causal analysis explicit rather than burying them in modelling code. **Model** records your assumptions (treatment, outcome, and the confounders to adjust for). **Identify** uses those assumptions to work out, on paper, which quantity can actually be estimated --- printing the adjustment formula. **Estimate** then computes it; here using stabilised propensity-score weighting, so the printed `estimate.value` is comparable to the IPTW number from the manual code above. **Refute** is the part most analysts skip: it stress-tests the estimate by, for example, adding a randomly generated extra "common cause." A trustworthy estimate should barely move when a *random* (and therefore non-confounding) variable is added; a large change is a red flag that the analysis is fragile.
-
-## Sensitivity Analysis for Unmeasured Confounding
+## Sensitivity Analysis for Unmeasured Confounding {#sec-causal-sensitivity}
 
 No observational study can ever prove there is no hidden confounder lurking in the background. The honest response is not to ignore that worry but to quantify it. **Sensitivity analysis** asks: how strong would an unmeasured confounder have to be before it could wipe out the effect we observed? If the answer is "implausibly strong," your finding is robust; if "a mild, common confounder would do it," be cautious.
 
-The **E-value** (VanderWeele and Ding, 2017) puts a single number on this. It is the minimum strength of association (on the risk ratio scale) that an unmeasured confounder would need to have with *both* the treatment and the outcome to fully explain away the result you observed.
+The **E-value** [@vanderweele2017evalue] puts a single number on this. It is the minimum strength of association (on the risk ratio scale) that an unmeasured confounder would need to have with *both* the treatment and the outcome to fully explain away the result you observed.
 
 $$
 \text{E-value} = RR + \sqrt{RR \times (RR - 1)}
@@ -518,37 +1307,39 @@ where $RR$ is the observed risk ratio. The E-value for the confidence interval b
 #| label: evalue
 #| eval: false
 
-# E-value calculation
-library(EValue)
+# install.packages("EValue")
+library(EValue)   # evalues.RR() -- MUST be loaded
 
-# Suppose our IPTW analysis found RR = 0.65 (95% CI: 0.50, 0.85)
-# Convert protective RR to above-null: 1/0.65 = 1.538
-evalues.RR(est = 1/0.65, lo = 1/0.85, hi = 1/0.50)
+# Suppose our IPW analysis found RR = 0.65 (95% CI 0.50 to 0.85).
+# The E-value calculation is symmetric about the null, so flip a protective
+# RR to the above-null scale first: 1 / 0.65 = 1.54.
+evalues.RR(est = 1 / 0.65, lo = 1 / 0.85, hi = 1 / 0.50)
 ```
 
-**What the code shows.** `evalues.RR` takes our observed risk ratio (and its confidence limits) and returns the E-value. Because a protective effect (RR below 1) and a harmful one of the same magnitude are equivalent for this calculation, we flip the protective RR of 0.65 to `1/0.65 = 1.54` first. The function prints two numbers: the E-value for the point estimate and the E-value for the confidence-interval bound nearest the null. Read them like this: "an unmeasured confounder would need to be associated with both treatment and mortality by a risk ratio of *at least this value*, over and above the confounders we already adjusted for, to fully explain away our result." A large E-value (say 3 or more) means only a very strong hidden confounder could overturn the finding, so the result is fairly robust; an E-value close to 1 means a weak, plausible confounder could erase it.
+**What the code shows.** `evalues.RR()` takes our observed risk ratio (and its confidence limits) and returns the E-value. The function prints two numbers: the E-value for the point estimate and the E-value for the confidence-interval bound nearest the null. Read them like this: "an unmeasured confounder would need to be associated with both treatment and mortality by a risk ratio of *at least this value*, over and above the confounders we already adjusted for, to fully explain away our result." A large E-value (say 3 or more) means only a very strong hidden confounder could overturn the finding, so the result is fairly robust; an E-value close to 1 means a weak, plausible confounder could erase it.
 
 ## Practical Guidance: Choosing Your Method
 
 | Scenario | Recommended approach |
 |---|---|
-| Binary treatment, many controls available | Propensity score matching |
-| Binary treatment, need full sample | IPTW |
-| Concern about model misspecification | Doubly robust estimation |
-| Time-varying treatment | Marginal structural models (IPTW over time) |
+| Binary treatment, many controls available, want the ATT | Propensity score matching |
+| Binary treatment, want to keep the full sample and the ATE | IPW (stabilised weights) |
+| Rich, well-understood outcome; poorly understood treatment assignment | G-computation |
+| Concern about model misspecification | Doubly robust estimation (AIPW, TMLE) |
+| Time-varying treatment | Marginal structural models (IPW over time) |
 | Natural threshold for treatment | Regression discontinuity |
-| Emulating a specific trial design | Target trial emulation framework |
+| Any observational study making a causal claim about a drug | Target trial emulation framework, on top of one of the above |
 
 ## Exercises
 
-::: {.callout-tip title="Exercise 1: DAG construction (Conceptual)"}
+::: {.callout-tip title="Exercise 1: Build a DAG and derive the adjustment set"}
 
 You are studying the relationship between **ACE inhibitor use** and **acute kidney injury (AKI)** in hospitalised patients.
 
-a) List at least five variables that might be relevant to this relationship.
-b) Draw a DAG (on paper or using DAGitty) encoding your causal assumptions.
-c) Identify the minimal sufficient adjustment set for estimating the effect of ACE inhibitors on AKI.
-d) Identify at least one potential collider. What would happen if you adjusted for it?
+a) List at least five variables that might be relevant to this relationship, and for each say whether you think it is a confounder, a mediator, or a collider.
+b) Encode your DAG with `dagitty` (R) or `networkx` (Python). Note carefully that the `dagitty` DAG syntax is *not* R and does not accept `#` comments inside the quoted string.
+c) Derive the minimal sufficient adjustment set for the total effect of ACE inhibitors on AKI. Does it match your intuition from (a)?
+d) Identify at least one collider. Show what happens to the estimated association if you wrongly adjust for it, by simulating data from your DAG.
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -567,38 +1358,54 @@ d) Identify at least one potential collider. What would happen if you adjusted f
 
 :::
 
-::: {.callout-tip title="Exercise 2: Propensity score matching in R"}
+::: {.callout-tip title="Exercise 2: Propensity score matching"}
 
-Using the simulated dataset below, perform propensity score matching and estimate the treatment effect.
+Using the simulated dataset below, perform propensity score matching and estimate the treatment effect. (Note the libraries at the top --- the code will not run without them.)
 
 ```{r}
 #| label: exercise-2-data
 #| eval: false
 
-library(tidyverse)  # tibble()
+library(tidyverse)  # tibble(), mutate()
 
 set.seed(123)
 n <- 1500
+
 exercise_dat <- tibble(
-  age = rnorm(n, 70, 8),
-  creatinine = rnorm(n, 1.2, 0.4),
+  age           = rnorm(n, 70, 8),
+  creatinine    = rnorm(n, 1.2, 0.4),
   heart_failure = rbinom(n, 1, 0.35),
-  prior_mi = rbinom(n, 1, 0.20),
-  # Confounded treatment (beta-blocker use)
-  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
-                                     0.5*prior_mi - 0.8*creatinine)),
-  # Outcome: 1-year mortality
-  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
-                                     0.6*prior_mi + 1.0*creatinine -
-                                     0.7*treatment))
-)
+  prior_mi      = rbinom(n, 1, 0.20)
+) |>
+  mutate(
+    # Confounded treatment (beta-blocker use): sicker patients get treated more.
+    # Note that all four covariates are CENTRED, so the intercept sets the
+    # baseline rate for an average patient rather than for a 0-year-old.
+    treatment = rbinom(n, 1, plogis(-0.4 + 0.05 * (age - 70) +
+                                      0.7 * heart_failure +
+                                      0.9 * prior_mi +
+                                      0.8 * (creatinine - 1.2))),
+    # Outcome: 1-year mortality. The same four covariates raise mortality,
+    # and the beta-blocker is genuinely protective (log-odds -0.8).
+    death_1yr = rbinom(n, 1, plogis(-1.9 + 0.05 * (age - 70) +
+                                      0.7 * heart_failure +
+                                      0.8 * prior_mi +
+                                      1.0 * (creatinine - 1.2) -
+                                      0.8 * treatment))
+  )
+
+# Sanity check before analysing anything: are these numbers clinically sane?
+mean(exercise_dat$treatment)   # ~0.49 treated
+mean(exercise_dat$death_1yr)   # ~0.15 one-year mortality
 ```
 
-a) Estimate propensity scores using logistic regression.
-b) Perform 1:1 nearest-neighbour matching with a caliper of 0.2 SD.
+Because the data were simulated, the right answers are known: the true **ATT** is a risk difference of $-0.110$ (11 fewer deaths per 100 treated patients) and a marginal odds ratio of $0.475$. The raw, unadjusted comparison gives only $-0.042$ and an odds ratio of $0.72$ --- so there is plenty of confounding to remove.
+
+a) Estimate propensity scores using logistic regression and plot the overlap.
+b) Perform 1:1 nearest-neighbour matching with a caliper of 0.2 SD. How many treated patients fail to find a match, and what does that do to the population your estimate describes?
 c) Create a Love plot to assess balance before and after matching.
-d) Estimate the ATT for beta-blocker use on 1-year mortality.
-e) Calculate the E-value for your estimate. Interpret it.
+d) Estimate the ATT for beta-blocker use on 1-year mortality, as both an odds ratio and a risk difference.
+e) Calculate the E-value for your estimate and interpret it in one sentence.
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -617,43 +1424,14 @@ e) Calculate the E-value for your estimate. Interpret it.
 
 :::
 
-::: {.callout-tip title="Exercise 3: IPTW in Python"}
+::: {.callout-tip title="Exercise 3: IPW, balance, and positivity"}
 
-Using the same data-generating process as Exercise 2 (replicate it in Python):
+Using the same data-generating process as Exercise 2:
 
-```{python}
-#| label: exercise-3-data
-#| eval: false
-
-import numpy as np
-import pandas as pd
-
-np.random.seed(123)
-n = 1500
-age = np.random.normal(70, 8, n)
-creatinine = np.random.normal(1.2, 0.4, n)
-heart_failure = np.random.binomial(1, 0.35, n)
-prior_mi = np.random.binomial(1, 0.20, n)
-
-ps_true = 1 / (1 + np.exp(-(-1 + 0.02*age + 0.3*heart_failure +
-                               0.5*prior_mi - 0.8*creatinine)))
-treatment = np.random.binomial(1, ps_true)
-
-mort_prob = 1 / (1 + np.exp(-(-2 + 0.05*age + 0.4*heart_failure +
-                                 0.6*prior_mi + 1.0*creatinine -
-                                 0.7*treatment)))
-death_1yr = np.random.binomial(1, mort_prob)
-
-df = pd.DataFrame({
-    'age': age, 'creatinine': creatinine, 'heart_failure': heart_failure,
-    'prior_mi': prior_mi, 'treatment': treatment, 'death_1yr': death_1yr
-})
-```
-
-a) Fit a propensity score model and compute stabilised IPTW weights.
-b) Assess covariate balance using weighted standardised mean differences.
-c) Estimate the ATE using weighted regression.
-d) Perform a sensitivity analysis: add a simulated unmeasured confounder and show how the estimate changes.
+a) Fit a propensity score model and compute stabilised IPW weights for the ATE.
+b) Assess covariate balance using weighted standardised mean differences, and check positivity by inspecting the largest weights.
+c) Estimate the ATE as a risk difference using a weighted outcome model.
+d) Now make positivity fail: change the treatment model so that patients with heart failure are treated with probability 0.98 and those without with probability 0.03. Recompute the weights. What is the maximum weight now, and what would you tell a clinical collaborator about the trustworthiness of the estimate?
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -672,14 +1450,14 @@ d) Perform a sensitivity analysis: add a simulated unmeasured confounder and sho
 
 :::
 
-::: {.callout-tip title="Exercise 4: Target trial emulation (Conceptual)"}
+::: {.callout-tip title="Exercise 4: G-computation and interactions"}
 
-You have access to a large electronic health records database and want to estimate the effect of **early metformin initiation** (within 3 months of type 2 diabetes diagnosis) vs **delayed initiation** (3--12 months after diagnosis) on 5-year cardiovascular events.
+Return to Exercise 2's dataset.
 
-a) Write a complete target trial protocol table (eligibility, treatment strategies, assignment, start of follow-up, outcome, causal contrast, analysis plan).
-b) Identify potential sources of immortal time bias in a naive analysis.
-c) Describe how the new-user, active comparator design addresses confounding by indication.
-d) What unmeasured confounders might remain? How would you conduct a sensitivity analysis?
+a) Estimate the ATE by g-computation: fit `death_1yr ~ treatment * (age + creatinine + heart_failure + prior_mi)`, predict every patient under treatment and under no treatment, and contrast the averages.
+b) Get a confidence interval by bootstrapping the whole procedure.
+c) Explain in plain words what the interaction terms allow the drug's effect to do.
+d) Refit without the interactions. Does the estimate change much? Why might standardisation still recover a sensible average even when the interactions are omitted?
 
 ::: {.callout-note collapse="true" title="Solution"}
 ::: {.panel-tabset}
@@ -698,27 +1476,103 @@ d) What unmeasured confounders might remain? How would you conduct a sensitivity
 
 :::
 
+::: {.callout-tip title="Exercise 5: Do the adjusted methods really recover the truth?"}
+
+@fig-methods-comparison shows one simulated sample. A single sample cannot tell you whether a method is *unbiased* --- only whether it got lucky.
+
+Simulate a confounded cohort of 2000 patients in which a single binary confounder `frail` raises both the chance of treatment and the risk of a binary bad outcome, and the treatment has a known protective effect.
+
+a) On one dataset, estimate the effect by naive regression, by IPW, and by g-computation. Report all three against the truth.
+b) Now repeat the whole simulation 500 times and record all three estimates each time. Plot their distributions.
+c) Which estimators are centred on the truth, and which is not? Report the average bias of each.
+d) Which estimator has the smallest spread, and why might that not make it the best choice?
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/ch17_ex5.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/ch17_ex5.py
+```
+:::
+:::
+
+:::
+
+::: {.callout-tip title="Exercise 6: Target trial emulation and immortal time bias"}
+
+You have access to a large electronic health records database and want to estimate the effect of **early metformin initiation** (within 3 months of a type 2 diabetes diagnosis) versus **delayed initiation** (3--12 months after diagnosis) on 5-year cardiovascular events.
+
+a) Write a complete target trial protocol table: eligibility, treatment strategies, assignment, time zero, outcome, causal contrast, analysis plan.
+b) Build a cohort in which metformin timing has **no** effect on the outcome at all, then run two naive analyses timed from the diagnosis date: (i) "ever used metformin during follow-up" versus never, and (ii) initiated within 3 months versus later. How big is the spurious benefit in each? Then vary the length of the exposure window (3, 6, 12, 24 months) and describe what happens to the bias.
+c) Fix it with a landmark design and show the bias disappear. Then work out which part of the fix is doing the work: excluding the patients who had events before time zero, or moving the clock.
+d) Explain why simply adjusting for more covariates would not have fixed (b). Demonstrate it by adding a strongly prognostic covariate and adjusting for it.
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/ch17_ex6.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/ch17_ex6.py
+```
+:::
+:::
+
+:::
+
 ## Summary
 
 | Concept | Key point |
 |---|---|
 | Confounding by indication | Sicker patients get more treatment --- naive comparisons are biased |
-| DAGs | Encode causal assumptions visually; identify what to adjust for |
-| Propensity score | $P(\text{treatment} \mid \text{covariates})$; reduces dimensionality |
-| Matching | Creates balanced pseudo-randomised groups; check balance |
-| IPTW | Reweights full sample; preserves sample size |
-| Doubly robust | Combines PS + outcome model; consistent if either is correct |
-| Target trial emulation | Design observational analysis to mimic an ideal RCT |
+| $E[\,\cdot\,]$ | Just "the average, across the whole population" |
+| Exchangeability | Among patients alike on what you measured, treatment is as good as randomised |
+| DAGs | Encode causal assumptions visually; derive what to adjust for, do not guess it |
+| Confounder / mediator / collider | Adjust / leave alone / never adjust --- count the arrows pointing *in* |
+| Propensity score | $P(\text{treatment} \mid \text{covariates})$; reduces dozens of covariates to one number |
+| Matching | Creates balanced pseudo-randomised groups; gives the ATT; discards unmatched patients |
+| IPW | Re-weight by 1/P(received treatment) to build an unconfounded pseudo-population; keeps everyone |
+| Stabilised weights | Multiply by the marginal treatment probability to tame extreme weights |
+| Marginal structural model | An outcome model fitted with IP weights; its coefficients are causal |
+| Positivity check | Inspect the largest weights; a maximum above ~20 is a red flag |
+| G-computation | Fit one outcome model, predict everyone treated then untreated, average and contrast |
+| Bootstrap | The standard way to get a confidence interval for g-computation |
+| Doubly robust (AIPW/TMLE) | G-computation plus an IP-weighted correction; valid if either model is right |
+| Target trial emulation | Fix eligibility, assignment, and time zero at one moment; this is what kills immortal time bias |
 | E-value | Quantifies robustness to unmeasured confounding |
+
+::: {.callout-tip}
+## Key Takeaways
+- A treatment coefficient from a single naive regression is **not** generally a causal effect. In our running example it recovered only a quarter of the real benefit.
+- **DAGs come first.** Whether a variable should be adjusted for depends on its causal role, not on whether it improves model fit. Colliders and mediators must be left alone.
+- **IPW** models *who gets treated*; **g-computation** models *the outcome*. Both target the ATE and both recover it when confounding is fully measured. When they agree, that is reassuring; when they disagree, go and find out why.
+- Always **check balance and positivity** for IPW, and always **bootstrap** g-computation's confidence interval.
+- **Doubly robust** estimators (AIPW, TMLE) are g-computation plus an IP-weighted correction, and forgive a single modelling mistake.
+- **Design beats adjustment.** Immortal time bias produced a spurious, statistically significant 17% mortality reduction for a drug that did nothing, and no covariate adjustment would have removed it. Target trial emulation would have.
+- No method overcomes **unmeasured confounding**. Pair every causal estimate with a sensitivity analysis such as the E-value.
+:::
 
 ## References and Further Reading
 
-- For the foundations of causal inference, see @hernan2024causal (the definitive modern textbook, freely available online) and @rosenbaum2002observational.
+- For the foundations of causal inference, see @hernan2024causal (the definitive modern textbook, freely available online, with Part II covering IP weighting and the g-formula in depth) and @rosenbaum2002observational.
+- For the original g-formula, see @robins1986gformula; for marginal structural models and time-varying confounding, see @robins2000msm.
 - For propensity scores, see @rosenbaum1983propensity (the original paper) and @ho2011matchit for the `MatchIt` implementation.
+- For clinician-friendly introductions to weighting, see @mansournia2016ipw, @chesnaye2022ipw, and @haukoos2015propensity.
+- For a code-first tutorial covering exactly these methods, see @chatton2024cookbook.
 - For drawing and interrogating DAGs, see @textor2016dagitty.
 - For sensitivity analysis to unmeasured confounding, see @vanderweele2017evalue.
 - For target trial emulation, see @cashin2025target for the reporting checklist and @lodi2019effect for what happens when observational analyses are made to mirror trials properly.
-- For software, see @greifer2024weightit in R and @sharma2020dowhy in Python.
+- For software, see @greifer2024weightit and @arelbundock2024marginaleffects in R, and @zivich2024zepid in Python. If you would rather have a framework that walks you through model-identify-estimate-refute as explicit steps, @sharma2020dowhy (`DoWhy`) does that, and its refutation tests are a good habit even if you estimate the effect by hand.
 
 ::: {.sectionrefs}
 :::

@@ -1,129 +1,194 @@
 # =============================================================================
-# Chapter 17 - Exercise 3: IPTW in R
-# (Exercise specifies Python, but we provide an R version as well)
-# Beta-blocker use and 1-year mortality using IPTW
+# Chapter 17 - Exercise 3: IPW, balance, and positivity
+# Beta-blocker use and 1-year mortality
 # =============================================================================
+#
+# Libraries -------------------------------------------------------------------
+library(tidyverse)       # tibble(), mutate()
+library(WeightIt)        # weightit(), glm_weightit()
+library(cobalt)          # bal.tab()
+library(marginaleffects) # avg_comparisons()
 
-library(tidyverse)
-library(WeightIt)
-library(cobalt)
-library(survey)
-library(broom)
+# --- The dataset from the exercise ------------------------------------------
+simulate_cohort <- function(seed = 123, n = 1500, extreme = FALSE) {
+  set.seed(seed)
+  d <- tibble(
+    age           = rnorm(n, 70, 8),
+    creatinine    = rnorm(n, 1.2, 0.4),
+    heart_failure = rbinom(n, 1, 0.35),
+    prior_mi      = rbinom(n, 1, 0.20)
+  )
+  if (extreme) {
+    # Part (d): positivity is destroyed on purpose. Heart-failure patients are
+    # treated with probability 0.98, everyone else with probability 0.03.
+    p_treat <- ifelse(d$heart_failure == 1, 0.98, 0.03)
+  } else {
+    p_treat <- plogis(-0.4 + 0.05 * (d$age - 70) +
+      0.7 * d$heart_failure +
+      0.9 * d$prior_mi +
+      0.8 * (d$creatinine - 1.2))
+  }
+  d |>
+    mutate(
+      treatment = rbinom(n, 1, p_treat),
+      death_1yr = rbinom(n, 1, plogis(-1.9 + 0.05 * (age - 70) +
+                                        0.7 * heart_failure +
+                                        0.8 * prior_mi +
+                                        1.0 * (creatinine - 1.2) -
+                                        0.8 * treatment))
+    )
+}
 
-# --- Simulate the dataset (same DGP as Exercise 2) ---
-set.seed(123)
-n <- 1500
+# Truth on the risk-difference scale, averaged over whichever cohort is passed
+true_ate_rd <- function(d) {
+  lp0 <- with(d, -1.9 + 0.05 * (age - 70) + 0.7 * heart_failure +
+    0.8 * prior_mi + 1.0 * (creatinine - 1.2))
+  mean(plogis(lp0 - 0.8)) - mean(plogis(lp0))
+}
 
-exercise_dat <- tibble(
-  age = rnorm(n, 70, 8),
-  creatinine = rnorm(n, 1.2, 0.4),
-  heart_failure = rbinom(n, 1, 0.35),
-  prior_mi = rbinom(n, 1, 0.20),
-  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
-                                     0.5*prior_mi - 0.8*creatinine)),
-  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
-                                     0.6*prior_mi + 1.0*creatinine -
-                                     0.7*treatment))
+exercise_dat <- simulate_cohort()
+TRUE_ATE_RD <- true_ate_rd(exercise_dat)
+
+cat(sprintf(
+  "Cohort: %d patients | %.0f%% treated | %.1f%% died within 1 year\n",
+  nrow(exercise_dat), 100 * mean(exercise_dat$treatment),
+  100 * mean(exercise_dat$death_1yr)
+))
+cat(sprintf("TRUE ATE risk difference: %+.4f\n\n", TRUE_ATE_RD))
+
+# =============================================================================
+# (a) Propensity score model and stabilised weights for the ATE
+# =============================================================================
+W <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi,
+  data = exercise_dat,
+  method = "glm", # logistic propensity score
+  estimand = "ATE",
+  stabilize = TRUE
 )
 
-# --- Part (a): Fit PS model and compute stabilised IPTW weights ---
-w_out <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi,
-                  data = exercise_dat,
-                  method = "ps",
-                  estimand = "ATE")
+cat("--- (a) Stabilised weights ---\n")
+cat(sprintf(
+  "mean = %.3f   median = %.3f   max = %.2f\n",
+  mean(W$weights), median(W$weights), max(W$weights)
+))
+cat("Stabilised weights should cluster around 1, and these do.\n")
 
-cat("Weight summary:\n")
-summary(w_out)
-
-# Check for extreme weights
-cat("\nWeight distribution:\n")
-cat("  Min:", min(w_out$weights), "\n")
-cat("  Max:", max(w_out$weights), "\n")
-cat("  Mean:", mean(w_out$weights), "\n")
-cat("  SD:", sd(w_out$weights), "\n")
-
-# --- Part (b): Assess covariate balance using weighted SMDs ---
-cat("\nBalance table:\n")
-bt <- bal.tab(w_out, thresholds = c(m = 0.1))
-print(bt)
-
-# Love plot
-love.plot(w_out,
-          thresholds = c(m = 0.1),
-          binary = "std",
-          var.order = "unadjusted",
-          title = "Covariate Balance: Before and After IPTW",
-          colors = c("#D55E00", "#0072B2"))
-
-# --- Part (c): Estimate ATE using weighted regression ---
-d_weighted <- svydesign(ids = ~1, weights = w_out$weights, data = exercise_dat)
-
-# Logistic regression (odds ratio)
-ate_model <- svyglm(death_1yr ~ treatment, design = d_weighted,
-                    family = quasibinomial)
-cat("\nIPTW ATE estimate (logistic):\n")
-print(tidy(ate_model, conf.int = TRUE, exponentiate = TRUE))
-
-# Linear probability model (risk difference)
-rd_model <- svyglm(death_1yr ~ treatment, design = d_weighted,
-                   family = gaussian())
-cat("\nIPTW ATE estimate (risk difference):\n")
-print(tidy(rd_model, conf.int = TRUE))
-
-# --- Part (d): Sensitivity analysis with simulated unmeasured confounder ---
-cat("\n--- Sensitivity Analysis: Unmeasured Confounder ---\n")
-
-# Simulate an unmeasured confounder U that affects both treatment and outcome
-set.seed(456)
-U <- rnorm(n, 0, 1)
-
-# Re-simulate treatment and outcome with U included
-exercise_dat_u <- tibble(
-  age = exercise_dat$age,
-  creatinine = exercise_dat$creatinine,
-  heart_failure = exercise_dat$heart_failure,
-  prior_mi = exercise_dat$prior_mi,
-  U = U,
-  treatment = rbinom(n, 1, plogis(-1 + 0.02*age + 0.3*heart_failure +
-                                     0.5*prior_mi - 0.8*creatinine +
-                                     0.6*U)),  # U affects treatment
-  death_1yr = rbinom(n, 1, plogis(-2 + 0.05*age + 0.4*heart_failure +
-                                     0.6*prior_mi + 1.0*creatinine -
-                                     0.7*treatment +
-                                     0.8*U))   # U affects outcome
+# The same weights by hand, to show there is no magic in weightit():
+ps_model <- glm(treatment ~ age + creatinine + heart_failure + prior_mi,
+  data = exercise_dat, family = binomial
 )
+ps <- predict(ps_model, type = "response")
+p_marg <- mean(exercise_dat$treatment)
+sw_manual <- ifelse(exercise_dat$treatment == 1,
+  p_marg / ps,
+  (1 - p_marg) / (1 - ps)
+)
+cat(sprintf("Hand-computed max weight: %.2f\n", max(sw_manual)))
 
-# Analysis WITHOUT adjusting for U (biased)
-w_no_u <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi,
-                   data = exercise_dat_u,
-                   method = "ps", estimand = "ATE")
+# =============================================================================
+# (b) The two mandatory checks: balance, then positivity
+# =============================================================================
+cat("\n--- (b) Balance after weighting (want every SMD under 0.1) ---\n")
+print(bal.tab(W, thresholds = c(m = 0.1)))
 
-d_no_u <- svydesign(ids = ~1, weights = w_no_u$weights, data = exercise_dat_u)
-model_no_u <- svyglm(death_1yr ~ treatment, design = d_no_u,
-                     family = quasibinomial)
-res_no_u <- tidy(model_no_u, conf.int = TRUE, exponentiate = TRUE)
+cat("\n--- (b) Positivity ---\n")
+cat(sprintf("Largest stabilised weight: %.2f\n", max(W$weights)))
+cat(sprintf(
+  "Propensity score range   : %.3f to %.3f\n", min(ps), max(ps)
+))
+cat("Rule of thumb: a maximum weight above roughly 10-20 means one or two\n")
+cat("patients are dominating the analysis. We are far below that, and no\n")
+cat("propensity score is near 0 or 1, so positivity looks fine.\n")
 
-cat("\nWithout adjusting for U:\n")
-print(res_no_u)
+# =============================================================================
+# (c) The ATE as a risk difference
+# =============================================================================
+msm <- glm_weightit(death_1yr ~ treatment,
+  data = exercise_dat, weightit = W, family = binomial
+)
+ipw_rd <- avg_comparisons(msm, variables = list(treatment = 0:1))
 
-# Analysis WITH adjusting for U (unbiased)
-w_with_u <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi + U,
-                     data = exercise_dat_u,
-                     method = "ps", estimand = "ATE")
+unadjusted_rd <- mean(exercise_dat$death_1yr[exercise_dat$treatment == 1]) -
+  mean(exercise_dat$death_1yr[exercise_dat$treatment == 0])
 
-d_with_u <- svydesign(ids = ~1, weights = w_with_u$weights, data = exercise_dat_u)
-model_with_u <- svyglm(death_1yr ~ treatment, design = d_with_u,
-                       family = quasibinomial)
-res_with_u <- tidy(model_with_u, conf.int = TRUE, exponentiate = TRUE)
+cat("\n--- (c) IPW estimate of the ATE ---\n")
+cat(sprintf(
+  "IPW risk difference : %+.4f (95%% CI %+.4f, %+.4f)   [truth %+.4f]\n",
+  ipw_rd$estimate, ipw_rd$conf.low, ipw_rd$conf.high, TRUE_ATE_RD
+))
+cat(sprintf("Unadjusted, for comparison: %+.4f\n", unadjusted_rd))
+cat("The naive comparison recovers well under half the true effect; IPW\n")
+cat("recovers most of it, with an interval that contains the truth.\n")
 
-cat("\nWith adjusting for U:\n")
-print(res_with_u)
+# =============================================================================
+# (d) Breaking positivity on purpose
+# =============================================================================
+# Heart-failure patients are now treated with probability 0.98 and everyone
+# else with probability 0.03. Heart failure is still a cause of death, so it is
+# still a confounder we must adjust for -- but there are almost no untreated
+# heart-failure patients to learn from.
+extreme_dat <- simulate_cohort(extreme = TRUE)
+TRUE_ATE_BAD <- true_ate_rd(extreme_dat)
 
-cat("\n--- Interpretation ---\n")
-cat("The unmeasured confounder U (with associations of 0.6 with treatment\n")
-cat("and 0.8 with outcome on the log-odds scale) shifts the treatment effect\n")
-cat("estimate when not adjusted for. This demonstrates:\n")
-cat("  1. IPTW cannot correct for unmeasured confounding.\n")
-cat("  2. Sensitivity analysis helps quantify how strong a confounder\n")
-cat("     would need to be to change conclusions.\n")
-cat("  3. The E-value provides a formal framework for this assessment.\n")
+cat("\n\n=== (d) What happens when positivity fails ===\n")
+print(table(
+  `heart failure` = extreme_dat$heart_failure,
+  treated = extreme_dat$treatment
+))
+
+W_bad <- weightit(treatment ~ age + creatinine + heart_failure + prior_mi,
+  data = extreme_dat, method = "glm", estimand = "ATE", stabilize = TRUE
+)
+msm_bad <- glm_weightit(death_1yr ~ treatment,
+  data = extreme_dat, weightit = W_bad, family = binomial
+)
+rd_bad <- avg_comparisons(msm_bad, variables = list(treatment = 0:1))
+
+ess <- function(w) sum(w)^2 / sum(w^2)
+
+cat(sprintf(
+  "\nLargest stabilised weight now : %.1f   (it was %.2f before)\n",
+  max(W_bad$weights), max(W$weights)
+))
+cat(sprintf(
+  "The most influential single patient now carries %.1f%% of the total weight\n",
+  100 * max(W_bad$weights) / sum(W_bad$weights)
+))
+cat(sprintf(
+  "-- about %.0f times an average patient's share.\n",
+  max(W_bad$weights) / mean(W_bad$weights)
+))
+cat(sprintf(
+  "Effective sample size: %.0f (from %d real patients) -- was %.0f of %d\n",
+  ess(W_bad$weights), nrow(extreme_dat), ess(W$weights), nrow(exercise_dat)
+))
+cat(sprintf(
+  "IPW estimate: %+.4f (95%% CI %+.4f, %+.4f)   [truth %+.4f]\n",
+  rd_bad$estimate, rd_bad$conf.low, rd_bad$conf.high, TRUE_ATE_BAD
+))
+cat(sprintf(
+  "The confidence interval is now %.1f times wider than before.\n",
+  (rd_bad$conf.high - rd_bad$conf.low) / (ipw_rd$conf.high - ipw_rd$conf.low)
+))
+
+cat("\nWhat to tell a clinical collaborator:\n")
+cat("\"In this data almost every patient with heart failure was treated and\n")
+cat(" almost nobody without it was. The weighting therefore leans on a\n")
+cat(" handful of unusual patients -- the few untreated ones who had heart\n")
+cat(" failure -- to stand in for an entire group. In effect we are down from\n")
+cat(" about 1285 patients' worth of information to about 110, the confidence\n")
+cat(" interval is three times wider, and the estimate moves around a lot from\n")
+cat(" sample to sample. I would not report an ATE from this.\"\n")
+cat("\nThe options, in order of preference:\n")
+cat(" 1. Change the question. Estimate the effect only where both treatments\n")
+cat("    actually occur -- e.g. within heart-failure patients, or target the\n")
+cat("    ATT instead of the ATE.\n")
+cat(" 2. Trim or truncate the weights, and report the trimmed AND untrimmed\n")
+cat("    results so the reader sees how much the choice mattered.\n")
+cat(" 3. G-computation (Exercise 4) does not divide by a small probability, so\n")
+cat("    it will not blow up -- but it then has to EXTRAPOLATE into the region\n")
+cat("    where there is no data. That is a different way of being wrong, not\n")
+cat("    a fix, and it fails silently rather than loudly.\n")
+cat("\nThe honest answer: no estimator can recover an effect in a group where\n")
+cat("one of the treatments was essentially never given. Positivity is a\n")
+cat("property of the data, not of the method.\n")

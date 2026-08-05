@@ -1,161 +1,169 @@
 # =============================================================================
-# Chapter 17 - Exercise 4: Target Trial Emulation (Conceptual)
-# Early vs delayed metformin initiation and 5-year cardiovascular events
+# Chapter 17 - Exercise 4: G-computation and interactions
+# Beta-blocker use and 1-year mortality
 # =============================================================================
+#
+# Libraries -------------------------------------------------------------------
+library(tidyverse)       # tibble(), mutate()
+library(marginaleffects) # avg_comparisons(), inferences()
 
-# This is a conceptual exercise. All answers are provided as detailed comments.
+# --- The dataset from Exercise 2 --------------------------------------------
+set.seed(123)
+n <- 1500
 
-# --- Part (a): Complete target trial protocol table ---
-#
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Protocol component         | Target trial                                | Observational emulation                   |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Eligibility criteria       | Adults aged 30-80 with new T2DM diagnosis,  | Same criteria applied to EHR database:    |
-# |                            | no prior CVD, no prior metformin use,        | first T2DM diagnosis code (ICD-10 E11),   |
-# |                            | eGFR >= 30, no contraindications to          | no prior MACE, no metformin dispensing     |
-# |                            | metformin (e.g., severe renal impairment).   | before index date, eGFR >= 30 in prior    |
-# |                            |                                             | 6 months.                                 |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Treatment strategies       | Strategy 1: Initiate metformin within       | Same. Defined by first metformin          |
-# |                            | 3 months of T2DM diagnosis.                 | prescription fill date relative to T2DM   |
-# |                            | Strategy 2: Do not initiate metformin       | diagnosis date.                           |
-# |                            | within 3 months (delayed, 3-12 months).     |                                           |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Treatment assignment       | Random assignment at time of T2DM           | Not random. Adjusted using IPTW or        |
-# |                            | diagnosis.                                  | propensity score matching, conditioning   |
-# |                            |                                             | on baseline confounders.                  |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Start of follow-up         | Date of randomisation (= date of T2DM       | Date of T2DM diagnosis (time zero).       |
-# | (time zero)                | diagnosis).                                 | All eligible patients enter at this date. |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Outcome                    | First major adverse cardiovascular event     | Same. MACE defined by ICD-10 codes for    |
-# |                            | (MACE): composite of MI, stroke, or CV      | MI (I21), stroke (I63, I64), or CV death  |
-# |                            | death within 5 years.                       | (cause of death codes). Censored at 5     |
-# |                            |                                             | years, loss to follow-up, or death from   |
-# |                            |                                             | non-CV causes.                            |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Causal contrast            | Intention-to-treat: effect of being          | Intention-to-treat: compare early vs      |
-# |                            | assigned to early vs delayed initiation.     | delayed initiation regardless of          |
-# |                            | Per-protocol: effect of adhering to the      | subsequent adherence. Per-protocol:       |
-# |                            | assigned strategy.                           | use clone-censor-weight approach.         |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
-# | Analysis plan              | Cox proportional hazards model.              | IPTW-weighted Cox PH model for ITT.       |
-# |                            | ITT analysis is primary.                     | For per-protocol: clone each patient      |
-# |                            | Per-protocol as sensitivity analysis.        | into both strategies, censor when they    |
-# |                            |                                             | deviate, and apply IPCW to correct for    |
-# |                            |                                             | informative censoring.                    |
-# +----------------------------+---------------------------------------------+-------------------------------------------+
+exercise_dat <- tibble(
+  age           = rnorm(n, 70, 8),
+  creatinine    = rnorm(n, 1.2, 0.4),
+  heart_failure = rbinom(n, 1, 0.35),
+  prior_mi      = rbinom(n, 1, 0.20)
+) |>
+  mutate(
+    treatment = rbinom(n, 1, plogis(-0.4 + 0.05 * (age - 70) +
+                                      0.7 * heart_failure +
+                                      0.9 * prior_mi +
+                                      0.8 * (creatinine - 1.2))),
+    death_1yr = rbinom(n, 1, plogis(-1.9 + 0.05 * (age - 70) +
+                                      0.7 * heart_failure +
+                                      0.8 * prior_mi +
+                                      1.0 * (creatinine - 1.2) -
+                                      0.8 * treatment))
+  )
 
-# --- Part (b): Sources of immortal time bias in a naive analysis ---
-#
-# In a naive analysis comparing "early initiators" (metformin within 3 months)
-# vs "delayed initiators" (3-12 months), several sources of immortal time
-# bias can arise:
-#
-# 1. SURVIVAL REQUIREMENT FOR CLASSIFICATION:
-#    To be classified as a "delayed initiator," a patient must survive at least
-#    3 months (to reach the delayed window). The time between T2DM diagnosis
-#    and 3 months is "immortal" for the delayed group -- they cannot experience
-#    the outcome during this period by definition. This artificially inflates
-#    survival in the delayed group.
-#
-# 2. MISCLASSIFICATION OF PERSON-TIME:
-#    If follow-up starts at T2DM diagnosis for both groups but treatment
-#    classification depends on future events (whether and when metformin is
-#    started), person-time before treatment initiation is misclassified.
-#    A patient who starts metformin at month 2 contributes 2 months of
-#    "untreated" time that is credited to the "early" group.
-#
-# 3. EXCLUSION OF NON-INITIATORS WHO DIE EARLY:
-#    Patients who die before 3 months and never start metformin may be excluded
-#    entirely if the study requires treatment initiation. This creates
-#    survivorship bias.
-#
-# HOW TARGET TRIAL EMULATION AVOIDS THIS:
-# - Time zero is aligned with eligibility (T2DM diagnosis), not treatment start
-# - The clone-censor-weight approach assigns each patient to BOTH strategies
-#   at time zero, censors them when they deviate from their assigned strategy,
-#   and uses inverse probability of censoring weights (IPCW) to correct for
-#   the informative censoring
+lp0 <- with(exercise_dat, -1.9 + 0.05 * (age - 70) + 0.7 * heart_failure +
+  0.8 * prior_mi + 1.0 * (creatinine - 1.2))
+TRUE_ATE_RD <- mean(plogis(lp0 - 0.8)) - mean(plogis(lp0))
 
-# --- Part (c): How new-user, active comparator design addresses confounding ---
-#
-# The NEW-USER (INCIDENT USER) DESIGN:
-# - Only includes patients at the TIME OF FIRST metformin prescription
-#   (or the decision point: T2DM diagnosis)
-# - Avoids "prevalent user bias" where including patients already on metformin
-#   selectively includes those who tolerated and responded to the drug
-#   (survivors of the initial treatment period)
-# - Captures early effects (including side effects) that might be missed
-#   in prevalent user analyses
-#
-# The ACTIVE COMPARATOR DESIGN:
-# - Compares early metformin vs delayed metformin (not metformin vs no treatment)
-# - Patients choosing delayed initiation are more comparable to early initiators
-#   than patients who never initiate (who may differ fundamentally in disease
-#   severity, healthcare access, or physician preferences)
-# - Reduces confounding by indication because both groups are deemed to need
-#   metformin -- the question is only about TIMING
-# - Makes the positivity assumption more plausible: most patients have a
-#   realistic probability of being in either group
-# - Mimics the clinical question: "Should I start metformin now or wait?"
+cat(sprintf("TRUE ATE risk difference: %+.4f\n\n", TRUE_ATE_RD))
 
-# --- Part (d): Unmeasured confounders and sensitivity analysis ---
-#
-# POTENTIAL UNMEASURED CONFOUNDERS:
-#
-# 1. HbA1c trajectory / diabetes severity:
-#    Patients with more rapidly rising HbA1c may receive metformin earlier.
-#    If severity also affects CVD risk, this confounds the comparison.
-#    (May be partially captured in EHR but with measurement timing issues.)
-#
-# 2. Patient health literacy and adherence behaviour:
-#    Patients who seek care promptly and fill prescriptions early may also
-#    engage in other health-promoting behaviours (exercise, diet) that
-#    independently reduce CVD risk. This is a form of "healthy user bias."
-#
-# 3. Physician prescribing patterns / quality of care:
-#    Physicians who prescribe metformin early may also provide better
-#    overall cardiovascular risk management.
-#
-# 4. Socioeconomic status / insurance:
-#    Patients with better insurance or higher SES may fill prescriptions
-#    faster and have better access to follow-up care.
-#
-# 5. Diet, exercise, and lifestyle factors:
-#    Rarely captured in EHR data but strongly associated with both
-#    treatment initiation patterns and CVD outcomes.
-#
-# SENSITIVITY ANALYSIS APPROACHES:
-#
-# 1. E-VALUE:
-#    Calculate the E-value for the primary estimate to quantify how strong
-#    an unmeasured confounder would need to be (in terms of associations with
-#    both treatment and outcome) to fully explain away the observed effect.
-#
-# 2. QUANTITATIVE BIAS ANALYSIS:
-#    Use external data (e.g., surveys with lifestyle data) to estimate the
-#    likely magnitude of confounding by specific unmeasured factors. Apply
-#    the bias formula to adjust the estimate.
-#
-# 3. NEGATIVE CONTROL OUTCOMES:
-#    Test outcomes that should NOT be affected by metformin timing (e.g.,
-#    accidental injuries). If an association is found, it suggests residual
-#    confounding.
-#
-# 4. NEGATIVE CONTROL EXPOSURES:
-#    Test treatments that share the same confounding structure but should
-#    not affect CVD (e.g., timing of proton pump inhibitor initiation).
-#
-# 5. INSTRUMENTAL VARIABLE ANALYSIS:
-#    If a valid instrument exists (e.g., physician preference for early
-#    prescribing), IV analysis can estimate the causal effect even with
-#    unmeasured confounding.
+# =============================================================================
+# (a) G-computation, spelled out by hand
+# =============================================================================
+# Step 1: ONE outcome model, including treatment-covariate interactions.
+out_model <- glm(
+  death_1yr ~ treatment * (age + creatinine + heart_failure + prior_mi),
+  data = exercise_dat, family = binomial
+)
 
-cat("Exercise 4 is a conceptual exercise.\n")
-cat("All answers are provided as detailed comments in this script.\n")
-cat("Review the comments for:\n")
-cat("  (a) Complete target trial protocol table\n")
-cat("  (b) Sources of immortal time bias\n")
-cat("  (c) How new-user, active comparator design helps\n")
-cat("  (d) Unmeasured confounders and sensitivity approaches\n")
+# Step 2: predict EVERY patient twice -- once as if treated, once as if not.
+#         Their real covariates are left untouched; only treatment is changed.
+p1 <- predict(out_model, transform(exercise_dat, treatment = 1), type = "response")
+p0 <- predict(out_model, transform(exercise_dat, treatment = 0), type = "response")
+
+# Step 3: average each set and contrast.
+gcomp_rd <- mean(p1) - mean(p0)
+
+cat("--- (a) G-computation by hand ---\n")
+cat(sprintf("Average predicted risk if EVERYONE treated  : %.4f\n", mean(p1)))
+cat(sprintf("Average predicted risk if NOBODY treated    : %.4f\n", mean(p0)))
+cat(sprintf("Risk difference (their contrast)            : %+.4f   [truth %+.4f]\n",
+            gcomp_rd, TRUE_ATE_RD))
+
+# And the same thing via marginaleffects, which is what you would use in
+# practice. Making the 0 -> 1 contrast explicit avoids any ambiguity about
+# what "a one-unit change in treatment" means.
+mfx <- avg_comparisons(out_model, variables = list(treatment = 0:1))
+cat(sprintf("\nSame quantity via avg_comparisons()         : %+.4f\n", mfx$estimate))
+cat("Identical, as it must be -- avg_comparisons() is doing exactly the three\n")
+cat("steps above.\n")
+
+# =============================================================================
+# (b) Confidence interval: bootstrap the WHOLE procedure
+# =============================================================================
+# The uncertainty does not come out of the outcome model directly, because we
+# fit, predict, average, and contrast. So we resample patients and repeat all
+# of it. marginaleffects::inferences() wraps that up:
+boot_res <- avg_comparisons(out_model, variables = list(treatment = 0:1)) |>
+  inferences(method = "boot", R = 500)
+
+cat("\n--- (b) Bootstrap confidence interval ---\n")
+print(boot_res)
+
+# The same by hand, so you can see what inferences() did:
+gcomp_once <- function(d) {
+  m <- glm(death_1yr ~ treatment * (age + creatinine + heart_failure + prior_mi),
+    data = d, family = binomial
+  )
+  mean(predict(m, transform(d, treatment = 1), type = "response")) -
+    mean(predict(m, transform(d, treatment = 0), type = "response"))
+}
+
+set.seed(1)
+boot_manual <- replicate(500, {
+  idx <- sample(nrow(exercise_dat), replace = TRUE)
+  gcomp_once(exercise_dat[idx, ])
+})
+
+cat(sprintf(
+  "\nHand-rolled bootstrap: %+.4f (95%% percentile CI %+.4f, %+.4f)\n",
+  gcomp_rd, quantile(boot_manual, 0.025), quantile(boot_manual, 0.975)
+))
+cat("Both intervals contain the truth.\n")
+
+# =============================================================================
+# (c) What the interaction terms allow
+# =============================================================================
+cat("\n--- (c) What do the interactions do? ---\n")
+cat("Writing `treatment * (age + creatinine + ...)` rather than\n")
+cat("`treatment + age + creatinine + ...` allows the drug's effect to be\n")
+cat("DIFFERENT for different kinds of patient. Without the interactions, the\n")
+cat("model is forced to say 'the beta-blocker shifts the log-odds of death by\n")
+cat("the same amount for a fit 55-year-old and a frail 85-year-old with heart\n")
+cat("failure'. With them, the model can say 'it helps the sicker patients more'\n")
+cat("(or less) and let the data decide.\n")
+cat("\nThat matters because the ATE is an AVERAGE of individual effects. If the\n")
+cat("effect genuinely varies, the average we want is the average of the\n")
+cat("patient-specific effects across our actual patient mix -- which is\n")
+cat("precisely what predicting each patient twice and then averaging gives us.\n")
+cat("A single coefficient cannot represent that.\n")
+
+# Look at the spread of individual effects the interaction model implies:
+individual_rd <- p1 - p0
+cat(sprintf(
+  "\nIndividual risk differences implied by the model range from %+.3f to %+.3f\n",
+  min(individual_rd), max(individual_rd)
+))
+cat(sprintf("with a mean of %+.3f (the ATE) and an SD of %.3f.\n",
+            mean(individual_rd), sd(individual_rd)))
+cat("Even with no true interaction, the effect on the RISK scale varies across\n")
+cat("patients, because a constant shift in log-odds produces a bigger change in\n")
+cat("risk for a patient near 50% risk than for one near 2%.\n")
+cat("\nNote also that the range creeps slightly ABOVE zero for a few patients,\n")
+cat("implying the drug harms them. It does not -- we built it to be protective\n")
+cat("for everyone. That is the interaction model overfitting a handful of\n")
+cat("sparsely populated corners of covariate space, and it is a good reminder\n")
+cat("not to read individual predicted effects as real subgroup findings.\n")
+
+# =============================================================================
+# (d) Drop the interactions -- does it matter?
+# =============================================================================
+add_model <- glm(
+  death_1yr ~ treatment + age + creatinine + heart_failure + prior_mi,
+  data = exercise_dat, family = binomial
+)
+p1_add <- predict(add_model, transform(exercise_dat, treatment = 1), type = "response")
+p0_add <- predict(add_model, transform(exercise_dat, treatment = 0), type = "response")
+gcomp_add <- mean(p1_add) - mean(p0_add)
+
+cat("\n--- (d) With and without interactions ---\n")
+cat(sprintf("With interactions   : %+.4f\n", gcomp_rd))
+cat(sprintf("Without interactions: %+.4f\n", gcomp_add))
+cat(sprintf("Truth               : %+.4f\n", TRUE_ATE_RD))
+cat(sprintf("\nRaw `treatment` coefficient from the additive model: %+.3f\n",
+            coef(add_model)["treatment"]))
+cat(sprintf("(the data-generating value was %+.3f, on the log-odds scale)\n", -0.8))
+
+cat("\nWhy the two g-computation estimates barely differ here: we SIMULATED the\n")
+cat("data with no treatment-covariate interaction, so the extra terms have\n")
+cat("nothing to find and only add a little noise. In real data you do not know\n")
+cat("that, so including them is the safer default -- the cost is a few degrees\n")
+cat("of freedom, and the benefit is not silently assuming a constant effect.\n")
+
+cat("\nWhy standardisation still recovers a sensible average even if you omit\n")
+cat("interactions that DO exist: g-computation averages predicted RISKS over\n")
+cat("the real distribution of patient characteristics. Even a misspecified\n")
+cat("model that gets the average risk in each arm roughly right will get the\n")
+cat("contrast roughly right. What you lose is the ability to say anything about\n")
+cat("WHICH patients benefit -- and if the misspecification is severe enough to\n")
+cat("distort the average risks themselves, the estimate does become biased.\n")
+cat("This is exactly the vulnerability that doubly robust estimators (AIPW,\n")
+cat("TMLE) are designed to insure against.\n")
