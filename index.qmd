@@ -47,7 +47,7 @@ The course runs in seven parts, in this order:
 | **Supervised Learning**                                   | 12–16    | ML foundations, trees and ensembles, neural networks, model evaluation beyond accuracy, explainability |
 | **Applied Supervised Learning: Clinical Prediction Models** | 17–19  | Developing models, performance assessment and validation (calibration, decision curves), reporting to TRIPOD+AI |
 | **Unsupervised Learning**                                 | 20–21    | Dimensionality reduction with PCA, t-SNE and UMAP; clustering                                       |
-| **Advanced Research Toolkit**                              | 22–24    | Causal inference (DAGs, propensity scores, weighting, g-computation, target trial emulation), mediation analysis, meta-analysis |
+| **Causal Inference and Evidence Synthesis**                | 22–24    | Causal inference (DAGs, propensity scores, weighting, g-computation, target trial emulation), mediation analysis, meta-analysis |
 
 A few notes on how the parts fit together. The **Pre-Course** material should be
 completed before Day 1 if you are taking this in person; if you are
@@ -64,9 +64,9 @@ takes evaluation considerably further.
 **Unsupervised Learning** comes after the prediction-model chapters. It does not
 depend on them, so you can read it earlier if it is what you need.
 
-The **Advanced Research Toolkit** is for after the course --- use it when you
-are doing your own research and need guidance on causal inference, mediation, or
-meta-analysis.
+**Causal Inference and Evidence Synthesis** is for after the course --- use it
+when you are doing your own research and need to reason about cause rather than
+prediction, or to combine what other studies have already found.
 
 ## Am I ready?
 

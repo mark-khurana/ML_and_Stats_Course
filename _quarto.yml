@@ -87,7 +87,7 @@ book:
         - chapters/dimensionality_reduction.qmd
         - chapters/clustering.qmd
 
-    - part: "Advanced Research Toolkit"
+    - part: "Causal Inference and Evidence Synthesis"
       chapters:
         - advanced/causal_inference.qmd
         - advanced/mediation.qmd

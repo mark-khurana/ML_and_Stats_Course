@@ -16,15 +16,15 @@
 
 ## What this course covers
 
-| Part                           | Topics                                                  |
-| ------------------------------ | ------------------------------------------------------- |
-| **Pre-Course**                 | Probability, inference, regression foundations          |
-| **Advanced Statistics**        | Splines, penalised regression, survival analysis        |
-| **Bayesian Methods**           | Bayesian inference, hierarchical models                 |
-| **Dimensionality Reduction**   | PCA, t-SNE, UMAP, clustering                            |
-| **Machine Learning**           | Trees, ensembles, deep learning, model evaluation       |
-| **Clinical Prediction Models** | Development, validation, reporting (TRIPOD+AI)          |
-| **Advanced Toolkit**           | Causal inference, meta-analysis, journal-ready analysis |
+| Part | Chapters | Topics |
+| ---- | -------- | ------ |
+| **Pre-Course: Foundations** | 1–4 | Environment setup, probability, statistical inference, regression foundations |
+| **Advanced Statistical Methods** | 5–9 | Splines, penalised regression, survival analysis, mixed-effects models, missing data |
+| **Bayesian Methods** | 10–11 | Bayesian inference, applied hierarchical models |
+| **Supervised Learning** | 12–16 | Trees and ensembles, neural networks, model evaluation, explainability |
+| **Applied Supervised Learning: Clinical Prediction Models** | 17–19 | Development, validation and calibration, reporting to TRIPOD+AI |
+| **Unsupervised Learning** | 20–21 | PCA, t-SNE, UMAP, clustering |
+| **Causal Inference and Evidence Synthesis** | 22–24 | Causal inference, mediation analysis, meta-analysis |
 
 ## Who it is for
 
