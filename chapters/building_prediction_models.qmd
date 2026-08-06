@@ -617,7 +617,7 @@ Either choice is defensible; what matters is deciding in advance which you will 
 A **shrinkage factor** is a number between 0 and 1 that you multiply coefficients by to make predictions less extreme. An overfitted model produces predictions that are too confident — very high risks too high, very low risks too low. Shrinkage pulls those predictions back toward the average event rate, which is usually closer to the truth for new patients. A shrinkage factor of 0.85 means the development model was about 15% too optimistic and its effects should be scaled back accordingly.
 :::
 
-## Step 6: Build the Model --- A Framingham Example
+## Step 6: Build the Model --- A Framingham Example {#sec-framingham-example}
 
 Let us now walk through a complete model development process using simulated data based on the Framingham Heart Study. We will predict 10-year CVD risk using established risk factors. This is the "derivation" (or development) cohort — the dataset in which the model is built. Later, the model should be tested in a separate "validation" cohort, ideally patients from a different time or place, to check it still works.
 
@@ -1121,7 +1121,7 @@ In practice, you will iterate. Poor calibration might send you back to model spe
 
 ## Exercises
 
-These three exercises work through the same development pipeline this chapter built, on the simulated Framingham data above. They are extended practice tasks rather than short questions, so no worked solutions are given --- the chapter's own code is the model to follow.
+These three exercises work through the same development pipeline this chapter built, mostly on the simulated Framingham cohort of @sec-framingham-example.
 
 ::: {.callout-tip title="Exercise 1: Sample size calculation"}
 
@@ -1130,6 +1130,21 @@ You are developing a model to predict pre-eclampsia (expected prevalence 4%) usi
 a) Use `pmsampsize` to determine the minimum required sample size. How many pregnancies would you need to observe?
 b) Which of the criteria it evaluates is the binding one here?
 c) How does the answer compare with what the 10-events-per-variable rule of thumb would have told you?
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/building_prediction_models_ex1.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/building_prediction_models_ex1.py
+```
+:::
+:::
 
 :::
 
@@ -1140,15 +1155,45 @@ Take the simulated Framingham dataset above and compare the regression coefficie
 a) Which approach yields coefficients closest to the true values used to simulate the data?
 b) What happens to the standard errors under single imputation, and why is that the more serious problem?
 
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/building_prediction_models_ex2.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/building_prediction_models_ex2.py
+```
+:::
+:::
+
 :::
 
 ::: {.callout-tip title="Exercise 3: Variable selection"}
 
 Fit the Framingham model using (a) all pre-specified predictors, (b) forward stepwise selection, and (c) LASSO.
 
-a) Compare which variables each approach selects.
+a) Compare which variables each approach selects. Then add a dozen pure-noise candidates to the list and compare again --- selection only has work to do when some candidates do not belong.
 b) Repeat the selection across 100 bootstrap samples and record how often each variable is chosen. How stable is stepwise selection compared with LASSO?
 c) What does that instability imply for a paper reporting a single stepwise-selected model?
+
+::: {.callout-note collapse="true" title="Solution"}
+::: {.panel-tabset}
+#### R
+```{r}
+#| eval: false
+#| file: ../solutions/R/building_prediction_models_ex3.R
+```
+#### Python
+```{python}
+#| eval: false
+#| file: ../solutions/python/building_prediction_models_ex3.py
+```
+:::
+:::
 
 :::
 

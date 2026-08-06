@@ -13,7 +13,7 @@ These solutions are most valuable after you have made a genuine attempt at each 
 
 The solution files are also available in the course repository under `solutions/R/` and `solutions/python/`.
 
-Three chapters are not listed below. The exercises in Chapters 3 and 4 are conceptual, and their answers are written out in the chapters themselves rather than as code files. The three exercises in Chapter 17 are extended practice tasks on the workflow that chapter builds, and are left for you to work through.
+Chapters 3 and 4 are not listed below: their exercises are conceptual, and the answers are written out in the chapters themselves rather than as code files.
 
 ## Chapter 1: Setting Up Your Computing Environment
 
@@ -24,7 +24,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch00-ex1-r
+#| label: sol-setup-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -34,7 +34,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch00-ex1-py
+#| label: sol-setup-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -50,7 +50,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch00-ex2-r
+#| label: sol-setup-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -60,7 +60,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch00-ex2-py
+#| label: sol-setup-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -78,7 +78,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch01-ex1-r
+#| label: sol-probability-and-distributions-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -88,7 +88,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch01-ex1-py
+#| label: sol-probability-and-distributions-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -104,7 +104,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch01-ex2-r
+#| label: sol-probability-and-distributions-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -114,7 +114,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch01-ex2-py
+#| label: sol-probability-and-distributions-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -130,7 +130,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch01-ex3-r
+#| label: sol-probability-and-distributions-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -140,7 +140,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch01-ex3-py
+#| label: sol-probability-and-distributions-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -156,7 +156,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch01-ex4-r
+#| label: sol-probability-and-distributions-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -166,7 +166,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch01-ex4-py
+#| label: sol-probability-and-distributions-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -182,7 +182,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch01-ex5-r
+#| label: sol-probability-and-distributions-ex5-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -192,7 +192,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch01-ex5-py
+#| label: sol-probability-and-distributions-ex5-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -210,7 +210,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch04-ex1-r
+#| label: sol-continuous-variables-and-splines-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -220,7 +220,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch04-ex1-py
+#| label: sol-continuous-variables-and-splines-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -236,7 +236,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch04-ex2-r
+#| label: sol-continuous-variables-and-splines-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -246,7 +246,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch04-ex2-py
+#| label: sol-continuous-variables-and-splines-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -262,7 +262,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch04-ex3-r
+#| label: sol-continuous-variables-and-splines-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -272,7 +272,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch04-ex3-py
+#| label: sol-continuous-variables-and-splines-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -290,7 +290,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch05-ex1-r
+#| label: sol-penalized-regression-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -300,7 +300,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch05-ex1-py
+#| label: sol-penalized-regression-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -316,7 +316,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch05-ex2-r
+#| label: sol-penalized-regression-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -326,7 +326,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch05-ex2-py
+#| label: sol-penalized-regression-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -342,7 +342,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch05-ex3-r
+#| label: sol-penalized-regression-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -352,7 +352,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch05-ex3-py
+#| label: sol-penalized-regression-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -370,7 +370,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06-ex1-r
+#| label: sol-survival-analysis-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -380,7 +380,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06-ex1-py
+#| label: sol-survival-analysis-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -396,7 +396,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06-ex2-r
+#| label: sol-survival-analysis-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -406,7 +406,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06-ex2-py
+#| label: sol-survival-analysis-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -422,7 +422,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06-ex3-r
+#| label: sol-survival-analysis-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -432,7 +432,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06-ex3-py
+#| label: sol-survival-analysis-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -450,7 +450,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06b-ex1-r
+#| label: sol-mixed-models-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -460,7 +460,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06b-ex1-py
+#| label: sol-mixed-models-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -476,7 +476,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06b-ex2-r
+#| label: sol-mixed-models-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -486,7 +486,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06b-ex2-py
+#| label: sol-mixed-models-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -502,7 +502,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06b-ex3-r
+#| label: sol-mixed-models-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -512,7 +512,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06b-ex3-py
+#| label: sol-mixed-models-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -528,7 +528,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06b-ex4-r
+#| label: sol-mixed-models-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -538,7 +538,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06b-ex4-py
+#| label: sol-mixed-models-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -556,7 +556,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06c-ex1-r
+#| label: sol-missing-data-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -566,7 +566,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06c-ex1-py
+#| label: sol-missing-data-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -582,7 +582,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06c-ex2-r
+#| label: sol-missing-data-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -592,7 +592,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06c-ex2-py
+#| label: sol-missing-data-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -608,7 +608,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06c-ex3-r
+#| label: sol-missing-data-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -618,7 +618,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06c-ex3-py
+#| label: sol-missing-data-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -634,7 +634,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch06c-ex4-r
+#| label: sol-missing-data-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -644,7 +644,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch06c-ex4-py
+#| label: sol-missing-data-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -662,7 +662,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch13-ex1-r
+#| label: sol-bayesian-inference-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -672,7 +672,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch13-ex1-py
+#| label: sol-bayesian-inference-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -688,7 +688,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch13-ex2-r
+#| label: sol-bayesian-inference-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -698,7 +698,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch13-ex2-py
+#| label: sol-bayesian-inference-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -714,7 +714,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch13-ex3-r
+#| label: sol-bayesian-inference-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -724,7 +724,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch13-ex3-py
+#| label: sol-bayesian-inference-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -742,7 +742,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch14-ex1-r
+#| label: sol-applied-bayesian-modeling-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -752,7 +752,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch14-ex1-py
+#| label: sol-applied-bayesian-modeling-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -768,7 +768,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch14-ex2-r
+#| label: sol-applied-bayesian-modeling-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -778,7 +778,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch14-ex2-py
+#| label: sol-applied-bayesian-modeling-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -794,7 +794,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch14-ex3-r
+#| label: sol-applied-bayesian-modeling-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -804,7 +804,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch14-ex3-py
+#| label: sol-applied-bayesian-modeling-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -822,7 +822,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch07-ex1-r
+#| label: sol-ml-foundations-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -832,7 +832,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch07-ex1-py
+#| label: sol-ml-foundations-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -848,7 +848,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch07-ex2-r
+#| label: sol-ml-foundations-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -858,7 +858,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch07-ex2-py
+#| label: sol-ml-foundations-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -874,7 +874,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch07-ex3-r
+#| label: sol-ml-foundations-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -884,7 +884,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch07-ex3-py
+#| label: sol-ml-foundations-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -900,7 +900,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch07-ex4-r
+#| label: sol-ml-foundations-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -910,7 +910,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch07-ex4-py
+#| label: sol-ml-foundations-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -928,7 +928,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch08-ex1-r
+#| label: sol-trees-and-ensembles-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -938,7 +938,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch08-ex1-py
+#| label: sol-trees-and-ensembles-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -954,7 +954,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch08-ex2-r
+#| label: sol-trees-and-ensembles-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -964,7 +964,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch08-ex2-py
+#| label: sol-trees-and-ensembles-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -980,7 +980,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch08-ex3-r
+#| label: sol-trees-and-ensembles-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -990,7 +990,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch08-ex3-py
+#| label: sol-trees-and-ensembles-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1008,7 +1008,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch08b-ex1-r
+#| label: sol-introduction-to-deep-learning-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1018,7 +1018,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch08b-ex1-py
+#| label: sol-introduction-to-deep-learning-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1034,7 +1034,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch08b-ex2-r
+#| label: sol-introduction-to-deep-learning-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1044,7 +1044,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch08b-ex2-py
+#| label: sol-introduction-to-deep-learning-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1060,7 +1060,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch08b-ex3-r
+#| label: sol-introduction-to-deep-learning-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1070,7 +1070,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch08b-ex3-py
+#| label: sol-introduction-to-deep-learning-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1088,7 +1088,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09-ex1-r
+#| label: sol-model-evaluation-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1098,7 +1098,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09-ex1-py
+#| label: sol-model-evaluation-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1114,7 +1114,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09-ex2-r
+#| label: sol-model-evaluation-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1124,7 +1124,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09-ex2-py
+#| label: sol-model-evaluation-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1140,7 +1140,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09-ex3-r
+#| label: sol-model-evaluation-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1150,7 +1150,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09-ex3-py
+#| label: sol-model-evaluation-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1168,7 +1168,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09b-ex1-r
+#| label: sol-ml-explainability-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1178,7 +1178,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09b-ex1-py
+#| label: sol-ml-explainability-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1194,7 +1194,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09b-ex2-r
+#| label: sol-ml-explainability-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1204,7 +1204,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09b-ex2-py
+#| label: sol-ml-explainability-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1220,7 +1220,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09b-ex3-r
+#| label: sol-ml-explainability-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1230,7 +1230,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09b-ex3-py
+#| label: sol-ml-explainability-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1246,7 +1246,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch09b-ex4-r
+#| label: sol-ml-explainability-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1256,11 +1256,91 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch09b-ex4-py
+#| label: sol-ml-explainability-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
 #| file: ../solutions/python/ml_explainability_ex4.py
+```
+
+:::
+
+## Chapter 17: Developing Clinical Prediction Models
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-building-prediction-models-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/building_prediction_models_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-building-prediction-models-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/building_prediction_models_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-building-prediction-models-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/building_prediction_models_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-building-prediction-models-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/building_prediction_models_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-building-prediction-models-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/building_prediction_models_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-building-prediction-models-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/building_prediction_models_ex3.py
 ```
 
 :::
@@ -1274,7 +1354,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch11-ex1-r
+#| label: sol-performance-and-validation-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1284,7 +1364,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch11-ex1-py
+#| label: sol-performance-and-validation-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1300,7 +1380,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch11-ex2-r
+#| label: sol-performance-and-validation-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1310,7 +1390,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch11-ex2-py
+#| label: sol-performance-and-validation-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1326,7 +1406,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch11-ex3-r
+#| label: sol-performance-and-validation-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1336,7 +1416,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch11-ex3-py
+#| label: sol-performance-and-validation-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1352,7 +1432,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch11-ex4-r
+#| label: sol-performance-and-validation-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1362,7 +1442,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch11-ex4-py
+#| label: sol-performance-and-validation-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1380,7 +1460,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch19-ex1-r
+#| label: sol-reporting-and-implementation-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1390,7 +1470,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch19-ex1-py
+#| label: sol-reporting-and-implementation-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1406,7 +1486,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch19-ex2-r
+#| label: sol-reporting-and-implementation-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1416,7 +1496,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch19-ex2-py
+#| label: sol-reporting-and-implementation-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1434,7 +1514,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch15-ex1-r
+#| label: sol-dimensionality-reduction-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1444,7 +1524,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex1-py
+#| label: sol-dimensionality-reduction-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1460,7 +1540,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch15-ex2-r
+#| label: sol-dimensionality-reduction-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1470,7 +1550,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex2-py
+#| label: sol-dimensionality-reduction-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1486,7 +1566,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch15-ex3-r
+#| label: sol-dimensionality-reduction-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1496,7 +1576,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex3-py
+#| label: sol-dimensionality-reduction-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1512,7 +1592,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch15-ex4-r
+#| label: sol-dimensionality-reduction-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1522,7 +1602,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex4-py
+#| label: sol-dimensionality-reduction-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1540,7 +1620,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch16-ex1-r
+#| label: sol-clustering-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1550,7 +1630,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex1-py
+#| label: sol-clustering-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1566,7 +1646,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch16-ex2-r
+#| label: sol-clustering-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1576,7 +1656,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex2-py
+#| label: sol-clustering-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1592,7 +1672,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch16-ex3-r
+#| label: sol-clustering-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1602,7 +1682,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex3-py
+#| label: sol-clustering-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1618,7 +1698,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch16-ex4-r
+#| label: sol-clustering-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1628,7 +1708,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex4-py
+#| label: sol-clustering-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1646,7 +1726,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17-ex1-r
+#| label: sol-causal-inference-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1656,7 +1736,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex1-py
+#| label: sol-causal-inference-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1672,7 +1752,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17-ex2-r
+#| label: sol-causal-inference-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1682,7 +1762,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex2-py
+#| label: sol-causal-inference-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1698,7 +1778,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17-ex3-r
+#| label: sol-causal-inference-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1708,7 +1788,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex3-py
+#| label: sol-causal-inference-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1724,7 +1804,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17-ex4-r
+#| label: sol-causal-inference-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1734,7 +1814,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex4-py
+#| label: sol-causal-inference-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1750,7 +1830,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17-ex5-r
+#| label: sol-causal-inference-ex5-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1760,7 +1840,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex5-py
+#| label: sol-causal-inference-ex5-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1776,7 +1856,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17-ex6-r
+#| label: sol-causal-inference-ex6-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1786,7 +1866,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex6-py
+#| label: sol-causal-inference-ex6-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1804,7 +1884,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex1-r
+#| label: sol-mediation-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1814,7 +1894,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex1-py
+#| label: sol-mediation-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1830,7 +1910,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex2-r
+#| label: sol-mediation-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1840,7 +1920,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex2-py
+#| label: sol-mediation-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1856,7 +1936,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex3-r
+#| label: sol-mediation-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1866,7 +1946,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex3-py
+#| label: sol-mediation-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1882,7 +1962,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex4-r
+#| label: sol-mediation-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1892,7 +1972,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex4-py
+#| label: sol-mediation-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1910,7 +1990,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch18-ex1-r
+#| label: sol-meta-analysis-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1920,7 +2000,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex1-py
+#| label: sol-meta-analysis-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1936,7 +2016,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch18-ex2-r
+#| label: sol-meta-analysis-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1946,7 +2026,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex2-py
+#| label: sol-meta-analysis-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1962,7 +2042,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch18-ex3-r
+#| label: sol-meta-analysis-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1972,7 +2052,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex3-py
+#| label: sol-meta-analysis-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
@@ -1988,7 +2068,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### R
 
 ```{r}
-#| label: sol-ch18-ex4-r
+#| label: sol-meta-analysis-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
@@ -1998,7 +2078,7 @@ Three chapters are not listed below. The exercises in Chapters 3 and 4 are conce
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex4-py
+#| label: sol-meta-analysis-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
