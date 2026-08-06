@@ -29,7 +29,7 @@ This course will focus on the first two, which will give you the tools to explor
 
 A single patient encounter can generate hundreds of variables: vital signs, lab results, imaging features, medication lists, genomic markers, clinical notes. The (*a priori*) reason for collecting so many variables is that each one may carry some information about the patient's health. However, study cohorts are rarely large enough to support the hundreds, if not thousands, of variables that are measured. In other words, the number of features ($P$) is often large relative to the number of observations ($N$).
 
-This $P \gg N$ scenario is common in modern biomedical research, and can make analysis challenging. Imagine regressing a binary outcome (e.g., disease vs. no disease) on 5,000 gene expression values with only 50 patients. As the model has far more parameters than data points, it risks overfitting the training data and producing unstable estimates. You also risk encountering collinear coefficients that make prediction unstable. The number of false positives increases with each additional predictor. If regression coefficients are unstable, imagine simply visualizing trends in the dataset: how to make sense of 5,000 axes?
+This $P \gg N$ scenario is common in modern biomedical research, and can make analysis challenging. Imagine regressing a binary outcome (e.g., disease vs. no disease) on 5,000 gene expression values with only 50 patients. As the model has far more parameters than data points, it risks overfitting the training data and producing unstable estimates. You also risk encountering collinear coefficients that make prediction unstable. The number of false positives increases with each additional predictor. If regression coefficients are unstable, imagine simply visualising trends in the dataset: how to make sense of 5,000 axes?
 
 Such challenges are collectively referred to as the **curse of dimensionality**: above a certain number of dimensions, our ability to make sense of the data breaks down. Distances between points become less meaningful, and the volume of the space grows so quickly that data points become sparse. This sparsity makes it difficult to find meaningful patterns, as most points are far from each other in high-dimensional space.
 
@@ -625,12 +625,12 @@ d. Create a biplot coloured by a simulated diabetes status variable. Do diabetic
 ### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch15_ex1.R
+#| file: ../solutions/R/dimensionality_reduction_ex1.R
 ```
 ### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch15_ex1.py
+#| file: ../solutions/python/dimensionality_reduction_ex1.py
 ```
 
 :::
@@ -652,12 +652,12 @@ d. Are the distances between clusters consistent across perplexity values? What 
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch15_ex2.R
+#| file: ../solutions/R/dimensionality_reduction_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch15_ex2.py
+#| file: ../solutions/python/dimensionality_reduction_ex2.py
 ```
 :::
 :::
@@ -678,12 +678,12 @@ d. Describe how each parameter affects the visual appearance. Which combination 
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch15_ex3.R
+#| file: ../solutions/R/dimensionality_reduction_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch15_ex3.py
+#| file: ../solutions/python/dimensionality_reduction_ex3.py
 ```
 :::
 :::
@@ -704,12 +704,12 @@ d. One of the four subtypes is rare (5% of patients). Can you still identify it 
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch15_ex4.R
+#| file: ../solutions/R/dimensionality_reduction_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch15_ex4.py
+#| file: ../solutions/python/dimensionality_reduction_ex4.py
 ```
 :::
 :::

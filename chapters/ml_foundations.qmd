@@ -33,9 +33,9 @@ Machine learning involves four key components:
 3. The **task** or **objective** is the prediction or structure discovery problem the model is trying to solve.
    *Examples: predicting levels of a biomarker, classifying images, clustering patients into subgroups.*
 4. The **learning algorithm** is the procedure for selecting a specific model given the data.
-   *Example: in linear regression, ordinary least squares can be used to find coefficients that minimize the sum of squared errors. OLS is the "learning engine" of the linear regression model.*
+   *Example: in linear regression, ordinary least squares can be used to find coefficients that minimise the sum of squared errors. OLS is the "learning engine" of the linear regression model.*
 
-<!-- TODO: Add a schematic/diagram showing how the 4 components (model, data, task, optimizer) interact — e.g. a cycle: data feeds into model, model produces predictions, loss compares predictions to truth, optimizer updates model. -->
+<!-- TODO: Add a schematic/diagram showing how the 4 components (model, data, task, optimiser) interact — e.g. a cycle: data feeds into model, model produces predictions, loss compares predictions to truth, optimiser updates model. -->
 
 Whilst each component requires careful thought, modelling itself is only one stage of the data science pipeline. In practice, a considerable amount of work lies upstream (cleaning, linking, and transforming raw data) and downstream (evaluating, interpreting, reporting, and deploying the model).
 
@@ -63,23 +63,23 @@ Most clinical prediction models — logistic regression, random forests, neural 
 **Unsupervised learning** deals with unlabelled data. Rather than predicting a known outcome, the model discovers structure in the data. Common tasks include:
 
 - **Clustering**: Find an optimal grouping of data based on similarity. *Are there distinct phenotypes of sepsis patients?*
-- **Dimensionality reduction**: Compress high-dimensional data into fewer dimensions for visualization or preprocessing. *Can we summarize 50 lab values into a few meaningful components?*
+- **Dimensionality reduction**: Compress high-dimensional data into fewer dimensions for visualisation or preprocessing. *Can we summarise 50 lab values into a few meaningful components?*
 - **Anomaly detection**: Identify unusual observations. *Which patients have lab value patterns that are outliers?*
 
 We cover dimensionality reduction and clustering in detail later in the course.
 
 ### Reinforcement Learning
 
-**Reinforcement learning (RL)** concerns how models (called *agents*) learn to take actions in an environment to optimize a reward signal. In RL, agents learn by trial and error by interacting with the environment and receiving feedback in the form of rewards or penalties. The goal is to learn a policy that maximizes cumulative reward over time. While RL has exciting potential in medicine (e.g., optimizing treatment policies for sepsis management or dynamic treatment regimes), it requires large amounts of interaction data and is rarely used in standard clinical research. We mention it for completeness but will not cover it further in this course.
+**Reinforcement learning (RL)** concerns how models (called *agents*) learn to take actions in an environment to optimise a reward signal. In RL, agents learn by trial and error by interacting with the environment and receiving feedback in the form of rewards or penalties. The goal is to learn a policy that maximises cumulative reward over time. While RL has exciting potential in medicine (e.g., optimising treatment policies for sepsis management or dynamic treatment regimes), it requires large amounts of interaction data and is rarely used in standard clinical research. We mention it for completeness but will not cover it further in this course.
 
 ::: {.callout-note}
 ## Where Does Traditional Statistics Fit?
-Linear regression, logistic regression, and Cox regression are all forms of supervised learning. The distinction between "statistics" and "machine learning" is largely cultural and historical. Statistics emphasizes inference (understanding relationships, testing hypotheses). ML emphasizes prediction (making accurate forecasts on new data). The methods overlap substantially.
+Linear regression, logistic regression, and Cox regression are all forms of supervised learning. The distinction between "statistics" and "machine learning" is largely cultural and historical. Statistics emphasises inference (understanding relationships, testing hypotheses). ML emphasises prediction (making accurate forecasts on new data). The methods overlap substantially.
 :::
 
 ## Supervised Learning
 
-A core tenet of supervised learning is that the model is trained on a dataset that constitutes a sample of a (much) larger population. The model learns patterns from the training data, but its ultimate goal is to generalize to new, unseen data. This is where the concepts of **bias** and **variance** come into play.
+A core tenet of supervised learning is that the model is trained on a dataset that constitutes a sample of a (much) larger population. The model learns patterns from the training data, but its ultimate goal is to generalise to new, unseen data. This is where the concepts of **bias** and **variance** come into play.
 
 ### The Bias-Variance Tradeoff
 
@@ -101,7 +101,7 @@ We can draw a clinical analogy to make this more concrete. Think of a diagnostic
 
 The optimal diagnostic criterion balances sensitivity and specificity. Similarly, the optimal ML model balances bias and variance.
 
-#### Visualizing the Tradeoff
+#### Visualising the Tradeoff
 
 ```{r}
 #| label: bias-variance-plot
@@ -169,7 +169,7 @@ Each set serves a distinct purpose.
 | **Validation set** | Tune hyperparameters, select among models | 15–20% |
 | **Test set** | Final, unbiased performance estimate | 15–20% |
 
-The most important methodological consideration in machine learning is that the **test set must never be used for any decision** — not for feature selection, not for hyperparameter tuning, not for choosing between models. It is opened exactly once, at the very end, to report final performance. If you use the test set to make modeling decisions, it becomes a validation set, and your reported performance will be optimistically biased.
+The most important methodological consideration in machine learning is that the **test set must never be used for any decision** — not for feature selection, not for hyperparameter tuning, not for choosing between models. It is opened exactly once, at the very end, to report final performance. If you use the test set to make modelling decisions, it becomes a validation set, and your reported performance will be optimistically biased.
 
 ::: {.callout-warning}
 ## The Cardinal Sin of Machine Learning
@@ -179,7 +179,7 @@ Using the test set during model development — and then reporting performance o
 Splitting data into training, validation, and test sets may be performed at random or in a stratified manner, but the key is that the splits are **mutually exclusive**. Potential pitfalls (also called *data leakage*) include:
 
 * Repeated measurements from the same patient appearing in several splits.
-* Site- or instrument-specific patterns in multi-center data that correlate with the outcome, so the model learns institutional identity rather than biology.
+* Site- or instrument-specific patterns in multi-centre data that correlate with the outcome, so the model learns institutional identity rather than biology.
 * Features derived from information collected *after* the prediction time point (*temporal leakage*).
 * Variables that exist as a consequence of the outcome rather than as independent predictors (e.g., a chemotherapy flag leaking a cancer diagnosis).
 
@@ -311,7 +311,7 @@ The point of the exercise is not the specific number (the data are random here, 
 
 ### Feature Engineering in Clinical Data
 
-**Feature engineering** is the process of transforming raw variables into features that are more useful for modeling. In clinical ML, this often means incorporating domain knowledge.
+**Feature engineering** is the process of transforming raw variables into features that are more useful for modelling. In clinical ML, this often means incorporating domain knowledge.
 
 #### Examples of Clinical Feature Engineering
 
@@ -321,7 +321,7 @@ The point of the exercise is not the specific number (the data are random here, 
 | Systolic BP, Diastolic BP | Mean arterial pressure, pulse pressure | Physiologically meaningful composites |
 | Serum creatinine, age, sex, race | eGFR (CKD-EPI equation) | Standard clinical measure of kidney function |
 | Multiple lab values over time | Rate of change (slope), variability (SD) | Trajectory matters more than single values |
-| ICD-10 codes | Charlson comorbidity index | Summarizes comorbidity burden |
+| ICD-10 codes | Charlson comorbidity index | Summarises comorbidity burden |
 | Free-text clinical notes | Extracted symptoms via natural language processing (NLP) | Unlocks unstructured data |
 | Medication list | Binary flags for drug classes | Captures treatment intent |
 
@@ -461,7 +461,7 @@ This is a question clinical researchers often ask, and the honest answer is: les
 | **Sample size** | Can work with small samples | Often needs more data for complex models |
 | **Assumptions** | Explicit (linearity, normality, etc.) | Implicit (representative data, stationarity) |
 
-The biggest practical difference is in **workflow**. Statistical modeling typically follows a hypothesis-driven process: specify a model based on theory, fit it, check assumptions, interpret coefficients. ML follows a more empirical process: try many models, tune them, evaluate on held-out data, pick the best performer.
+The biggest practical difference is in **workflow**. Statistical modelling typically follows a hypothesis-driven process: specify a model based on theory, fit it, check assumptions, interpret coefficients. ML follows a more empirical process: try many models, tune them, evaluate on held-out data, pick the best performer.
 
 Neither approach is inherently superior. For a clinical trial with 200 patients and 5 pre-specified predictors, logistic regression is perfectly appropriate and more interpretable than a random forest. For a hospital system with 500,000 patient records, 1,000 candidate features, and the goal of predicting ICU transfer, a gradient-boosted tree with cross-validated tuning may outperform logistic regression.
 
@@ -544,12 +544,12 @@ n = 600
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch07_ex1.R
+#| file: ../solutions/R/ml_foundations_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch07_ex1.py
+#| file: ../solutions/python/ml_foundations_ex1.py
 ```
 :::
 :::
@@ -576,12 +576,12 @@ You have the following raw variables for a diabetes prediction model:
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch07_ex2.R
+#| file: ../solutions/R/ml_foundations_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch07_ex2.py
+#| file: ../solutions/python/ml_foundations_ex2.py
 ```
 :::
 :::
@@ -595,7 +595,7 @@ Using polynomial regression on a simulated dataset:
 1. Fit polynomials of degree 1, 3, 5, 10, and 20 to a training set.
 2. Plot the fitted curves overlaid on the data.
 3. Compute training error and test error for each degree.
-4. Identify the degree that minimizes test error. Explain this in terms of the bias-variance tradeoff.
+4. Identify the degree that minimises test error. Explain this in terms of the bias-variance tradeoff.
 
 ::: {.panel-tabset}
 
@@ -643,12 +643,12 @@ y_test = np.sin(x_test) + np.random.normal(0, 0.3, 200)
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch07_ex3.R
+#| file: ../solutions/R/ml_foundations_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch07_ex3.py
+#| file: ../solutions/python/ml_foundations_ex3.py
 ```
 :::
 :::
@@ -757,12 +757,12 @@ print(f"AUC: {scores.mean():.3f} (+/- {scores.std():.3f})")
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch07_ex4.R
+#| file: ../solutions/R/ml_foundations_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch07_ex4.py
+#| file: ../solutions/python/ml_foundations_ex4.py
 ```
 :::
 :::
@@ -774,7 +774,7 @@ print(f"AUC: {scores.mean():.3f} (+/- {scores.std():.3f})")
 This chapter introduced the foundational concepts of machine learning that every clinical researcher should understand before applying ML methods:
 
 - **ML is pattern recognition**, not magic. It requires careful validation and domain knowledge.
-- **Supervised learning** (prediction from labeled data) is the most common ML paradigm in clinical research.
+- **Supervised learning** (prediction from labelled data) is the most common ML paradigm in clinical research.
 - The **bias-variance tradeoff** governs all model selection: too simple = underfitting, too complex = overfitting.
 - **Training/validation/test splits** and **cross-validation** are essential for honest performance evaluation.
 - **Feature engineering** — where clinical expertise meets data science — is often more important than model choice.
@@ -787,7 +787,7 @@ We list here several misconceptions about machine learning that are particularly
 
 1. **"Complex ML models are always better than regression."** False. For many clinical prediction tasks with modest sample sizes and well-understood relationships, logistic or Cox regression can perform just as well as or better than complex ML models — and is far more interpretable. A 2019 systematic review by Christodoulou et al. in the *Journal of Clinical Epidemiology* found that ML models did not consistently outperform logistic regression for clinical prediction once methodological bias was accounted for. As we will see during the course, machine learning practitioners have to balance a trade-off between model complexity, interpretability, accuracy and flexibility to unseen data.
 
-2. **"ML finds truth in data automatically."** False. ML models find patterns — including spurious ones. Without careful validation, feature engineering, and domain knowledge, ML models can learn noise, artifacts, and biases in the data. As the computer science adage goes: "garbage in, garbage out" (GIGO).
+2. **"ML finds truth in data automatically."** False. ML models find patterns — including spurious ones. Without careful validation, feature engineering, and domain knowledge, ML models can learn noise, artefacts, and biases in the data. As the computer science adage goes: "garbage in, garbage out" (GIGO).
 
 3. **"More data always helps."** Mostly true, but not always. Whilst research in large language models (LLMs) has shown that simply scaling up data and model size can go surprisingly far, data quality matters at least as much as data quantity in clinical settings — more biased data produces a more confidently wrong model.
 

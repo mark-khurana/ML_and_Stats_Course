@@ -339,7 +339,7 @@ By averaging many high-variance, low-bias trees, bagging dramatically reduces th
 
 **Random forests** extend bagging with one additional trick: at each split, instead of considering all features, the algorithm randomly selects a **subset of features** (typically $\sqrt{p}$ for classification or $p/3$ for regression, where $p$ is the total number of features).
 
-This feature randomization **decorrelates the trees** --- it deliberately makes the individual trees more different from one another. Here is why that matters: averaging only cancels out error when the things being averaged make *different* mistakes. In bagging without feature randomization, if one feature is very strong, nearly every tree splits on it first and the trees end up looking alike, so their errors line up and averaging them buys little. By forcing each split to choose from a random subset of features, random forests make the trees disagree in their details; their individual errors then partly cancel when averaged, and the ensemble is more stable and accurate than any single tree.
+This feature randomisation **decorrelates the trees** --- it deliberately makes the individual trees more different from one another. Here is why that matters: averaging only cancels out error when the things being averaged make *different* mistakes. In bagging without feature randomisation, if one feature is very strong, nearly every tree splits on it first and the trees end up looking alike, so their errors line up and averaging them buys little. By forcing each split to choose from a random subset of features, random forests make the trees disagree in their details; their individual errors then partly cancel when averaged, and the ensemble is more stable and accurate than any single tree.
 
 ### Key Hyperparameters
 
@@ -491,7 +491,7 @@ Each new tree focuses on the observations the current ensemble gets wrong. Over 
 
 ### The Mathematics (Brief)
 
-Gradient boosting minimizes a loss function $L(y, \hat{y})$ by gradient descent in function space. At iteration $m$:
+Gradient boosting minimises a loss function $L(y, \hat{y})$ by gradient descent in function space. At iteration $m$:
 
 $$\hat{f}_m(x) = \hat{f}_{m-1}(x) + \eta \cdot h_m(x)$$
 
@@ -499,9 +499,9 @@ where $h_m(x)$ is a tree fitted to the negative gradient of the loss (the "pseud
 
 ### XGBoost and LightGBM
 
-In practice, you rarely implement gradient boosting from scratch. Two optimized libraries dominate the landscape:
+In practice, you rarely implement gradient boosting from scratch. Two optimised libraries dominate the landscape:
 
-**XGBoost** (eXtreme Gradient Boosting) by @chen2016xgboost added regularization, efficient computation, and handling of missing values to gradient boosting, making it the dominant algorithm for tabular data competitions and many clinical prediction tasks.
+**XGBoost** (eXtreme Gradient Boosting) by @chen2016xgboost added regularisation, efficient computation, and handling of missing values to gradient boosting, making it the dominant algorithm for tabular data competitions and many clinical prediction tasks.
 
 **LightGBM** by Microsoft further improves efficiency with gradient-based one-side sampling (GOSS) and exclusive feature bundling. It is often faster than XGBoost on large datasets.
 
@@ -646,7 +646,7 @@ plt.show()
 | `subsample` | Fraction of data used per tree | 0.5–1.0 |
 | `colsample_bytree` | Fraction of features per tree | 0.5–1.0 |
 | `min_child_weight` | Minimum sum of instance weights in a leaf | 1–10 |
-| `reg_alpha` (L1) / `reg_lambda` (L2) | Regularization | 0–10 |
+| `reg_alpha` (L1) / `reg_lambda` (L2) | Regularisation | 0–10 |
 
 ::: {.callout-tip}
 ## The Learning Rate / Number of Trees Tradeoff
@@ -814,7 +814,7 @@ Tuning must happen **inside** cross-validation, using only the training data ---
 |--------|-----------|------------|----------|
 | **Single tree** | Interpretable, handles non-linearity | Unstable, overfits | Exploration, simple rules |
 | **Random forest** | Robust, low tuning needed, OOB error | Less interpretable than single tree | General-purpose prediction |
-| **Gradient boosting** | Often highest accuracy, flexible | More tuning, can overfit, slower | Maximizing prediction accuracy |
+| **Gradient boosting** | Often highest accuracy, flexible | More tuning, can overfit, slower | Maximising prediction accuracy |
 | **Logistic regression** | Interpretable, well-understood inference | Assumes linearity (without transforms) | Inference, small samples, reporting ORs |
 
 ::: {.callout-note}
@@ -998,12 +998,12 @@ from sklearn.model_selection import cross_val_score
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch08_ex1.R
+#| file: ../solutions/R/trees_and_ensembles_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch08_ex1.py
+#| file: ../solutions/python/trees_and_ensembles_ex1.py
 ```
 :::
 :::
@@ -1064,12 +1064,12 @@ X_train, X_test, y_train, y_test = train_test_split(
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch08_ex2.R
+#| file: ../solutions/R/trees_and_ensembles_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch08_ex2.py
+#| file: ../solutions/python/trees_and_ensembles_ex2.py
 ```
 :::
 :::
@@ -1089,12 +1089,12 @@ You have built a gradient-boosted model for 30-day hospital readmission. Your ho
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch08_ex3.R
+#| file: ../solutions/R/trees_and_ensembles_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch08_ex3.py
+#| file: ../solutions/python/trees_and_ensembles_ex3.py
 ```
 :::
 :::

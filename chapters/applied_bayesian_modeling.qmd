@@ -980,12 +980,12 @@ e. Calculate $P(\text{OR}_{\text{APACHE}} > 1.10 \mid \text{data})$ --- the prob
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch14_ex1.R
+#| file: ../solutions/R/applied_bayesian_modeling_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch14_ex1.py
+#| file: ../solutions/python/applied_bayesian_modeling_ex1.py
 ```
 :::
 :::
@@ -1006,12 +1006,12 @@ d. Compare the hierarchical model estimates to separate hospital-by-hospital OLS
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch14_ex2.R
+#| file: ../solutions/R/applied_bayesian_modeling_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch14_ex2.py
+#| file: ../solutions/python/applied_bayesian_modeling_ex2.py
 ```
 :::
 :::
@@ -1031,12 +1031,12 @@ c. A frequentist would report the point estimate as 0/40 = 0. Explain why the Ba
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch14_ex3.R
+#| file: ../solutions/R/applied_bayesian_modeling_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch14_ex3.py
+#| file: ../solutions/python/applied_bayesian_modeling_ex3.py
 ```
 :::
 :::

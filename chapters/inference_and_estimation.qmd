@@ -7,7 +7,7 @@ Imagine you run a clinical trial comparing a new antihypertensive drug to placeb
 
 These are the questions that **statistical inference** answers. Inference is the bridge between the data you *observed* (your sample) and the truth you *want to know* (the population). This chapter will equip you to cross that bridge carefully, avoiding the many pitfalls that trip up even experienced researchers.
 
-We will use a single running example throughout: a randomized controlled trial (RCT) of **Drug X** versus placebo for systolic blood pressure reduction. This trial enrolled 200 participants (100 per arm), measured blood pressure at baseline and 12 weeks, and found a mean difference of 8.3 mmHg (SD = 14.2 mmHg) favoring Drug X.
+We will use a single running example throughout: a randomised controlled trial (RCT) of **Drug X** versus placebo for systolic blood pressure reduction. This trial enrolled 200 participants (100 per arm), measured blood pressure at baseline and 12 weeks, and found a mean difference of 8.3 mmHg (SD = 14.2 mmHg) favouring Drug X.
 
 ## Point Estimates and Sampling Variability
 
@@ -119,7 +119,7 @@ The American Statistical Association published a landmark statement in 2016 [@wa
 
 The threshold of $p < 0.05$ is deeply entrenched in medical research. But there is nothing magical about 0.05. It is an arbitrary convention, originally proposed as a convenient rule of thumb by Ronald Fisher, not as a rigid decision boundary.
 
-**Problems with dichotomizing at $p = 0.05$:**
+**Problems with dichotomising at $p = 0.05$:**
 
 - A result with $p = 0.049$ is treated as fundamentally different from $p = 0.051$, even though they are essentially identical in evidential strength.
 - Journals preferentially publish "significant" results, creating **publication bias**.
@@ -134,7 +134,7 @@ The threshold of $p < 0.05$ is deeply entrenched in medical research. But there 
 
 Statistical significance tells you whether an effect is likely to be non-zero. It says nothing about whether the effect is *large enough to matter*. In medicine, this distinction is critical: a drug that lowers blood pressure by 0.5 mmHg might achieve $p < 0.001$ in a trial of 50,000 people, but no clinician would prescribe it based on that effect.
 
-### Cohen's d (Standardized Mean Difference)
+### Cohen's d (Standardised Mean Difference)
 
 Cohen's $d$ expresses the difference between two means in standard deviation units:
 
@@ -154,7 +154,7 @@ These benchmarks [from @cohen1988power] are rough guidelines, not rigid rules. A
 
 ### Odds Ratios and Risk Ratios
 
-For binary outcomes (e.g., death, hospitalization, disease incidence), effect sizes are typically reported as:
+For binary outcomes (e.g., death, hospitalisation, disease incidence), effect sizes are typically reported as:
 
 **Risk Ratio (Relative Risk):**
 $$RR = \frac{P(\text{event} \mid \text{treatment})}{P(\text{event} \mid \text{control})}$$
@@ -169,7 +169,7 @@ Odds ratios are the natural output of logistic regression. When the outcome is r
 **Risk Difference (Absolute Risk Reduction):**
 $$RD = P(\text{event} \mid \text{control}) - P(\text{event} \mid \text{treatment})$$
 
-If 15% of control patients are hospitalized vs. 10% of treatment patients, the RD = 0.05 (or 5 percentage points).
+If 15% of control patients are hospitalised vs. 10% of treatment patients, the RD = 0.05 (or 5 percentage points).
 
 ### Number Needed to Treat (NNT)
 
@@ -177,7 +177,7 @@ The NNT is perhaps the most clinician-friendly effect size:
 
 $$NNT = \frac{1}{RD} = \frac{1}{|p_1 - p_2|}$$
 
-Using our example: $NNT = 1 / 0.05 = 20$. This means you need to treat 20 patients to prevent one additional hospitalization. A low NNT is desirable. For reference:
+Using our example: $NNT = 1 / 0.05 = 20$. This means you need to treat 20 patients to prevent one additional hospitalisation. A low NNT is desirable. For reference:
 
 - Statins for secondary prevention of MI: NNT around 30-80
 - Aspirin for acute MI: NNT around 40
@@ -456,7 +456,7 @@ print(f"NNT: {nnt:.1f}")
 :::
 
 ::: {.callout-tip title="Exercise 3: Multiple Testing Correction"}
-You are analyzing gene expression data and have tested 1,000 genes for differential expression between a treatment and control group. You find 60 genes with p < 0.05. Apply both Bonferroni correction and BH-FDR correction. How many genes remain significant under each approach?
+You are analysing gene expression data and have tested 1,000 genes for differential expression between a treatment and control group. You find 60 genes with p < 0.05. Apply both Bonferroni correction and BH-FDR correction. How many genes remain significant under each approach?
 
 ::: {.panel-tabset}
 ## R

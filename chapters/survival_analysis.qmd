@@ -776,12 +776,12 @@ km_stage <- survfit(Surv(time_years, status_binary) ~ stage, data = pbc_clean)
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06_ex1.R
+#| file: ../solutions/R/survival_analysis_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06_ex1.py
+#| file: ../solutions/python/survival_analysis_ex1.py
 ```
 :::
 :::
@@ -830,12 +830,12 @@ library(survival) # Surv(), coxph(), cox.zph()
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06_ex2.R
+#| file: ../solutions/R/survival_analysis_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06_ex2.py
+#| file: ../solutions/python/survival_analysis_ex2.py
 ```
 :::
 :::
@@ -855,12 +855,12 @@ Consider a study of time to kidney transplant rejection in 500 recipients. Durin
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06_ex3.R
+#| file: ../solutions/R/survival_analysis_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06_ex3.py
+#| file: ../solutions/python/survival_analysis_ex3.py
 ```
 :::
 :::

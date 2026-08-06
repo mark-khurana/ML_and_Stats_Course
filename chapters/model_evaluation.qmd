@@ -750,12 +750,12 @@ npvs = # YOUR CODE HERE
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch09_ex1.R
+#| file: ../solutions/R/model_evaluation_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch09_ex1.py
+#| file: ../solutions/python/model_evaluation_ex1.py
 ```
 :::
 :::
@@ -858,12 +858,12 @@ print(f"PPV at optimal threshold: {ppv:.3f}")
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch09_ex2.R
+#| file: ../solutions/R/model_evaluation_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch09_ex2.py
+#| file: ../solutions/python/model_evaluation_ex2.py
 ```
 :::
 :::
@@ -968,12 +968,12 @@ for g in ["A", "B"]:
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch09_ex3.R
+#| file: ../solutions/R/model_evaluation_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch09_ex3.py
+#| file: ../solutions/python/model_evaluation_ex3.py
 ```
 :::
 :::

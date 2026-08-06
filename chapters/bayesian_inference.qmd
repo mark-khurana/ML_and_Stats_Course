@@ -851,12 +851,12 @@ c. What does this sequential updating illustrate about the Bayesian framework?
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch13_ex1.R
+#| file: ../solutions/R/bayesian_inference_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch13_ex1.py
+#| file: ../solutions/python/bayesian_inference_ex1.py
 ```
 :::
 :::
@@ -876,12 +876,12 @@ c. Which prior has the most influence on the posterior? Why?
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch13_ex2.R
+#| file: ../solutions/R/bayesian_inference_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch13_ex2.py
+#| file: ../solutions/python/bayesian_inference_ex2.py
 ```
 :::
 :::
@@ -907,12 +907,12 @@ c. Would you trust the posterior summaries from this model? Why or why not?
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch13_ex3.R
+#| file: ../solutions/R/bayesian_inference_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch13_ex3.py
+#| file: ../solutions/python/bayesian_inference_ex3.py
 ```
 :::
 :::

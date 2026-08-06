@@ -1245,12 +1245,12 @@ d. Apply bootstrap optimism correction. How much does the C-statistic decrease? 
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch11_ex1.R
+#| file: ../solutions/R/performance_and_validation_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch11_ex1.py
+#| file: ../solutions/python/performance_and_validation_ex1.py
 ```
 :::
 :::
@@ -1296,12 +1296,12 @@ d. Apply bootstrap optimism correction. How much does the C-statistic decrease? 
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch11_ex2.R
+#| file: ../solutions/R/performance_and_validation_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch11_ex2.py
+#| file: ../solutions/python/performance_and_validation_ex2.py
 ```
 :::
 :::
@@ -1321,12 +1321,12 @@ c. How would the decision curve change if the follow-up action (closer monitorin
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch11_ex3.R
+#| file: ../solutions/R/performance_and_validation_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch11_ex3.py
+#| file: ../solutions/python/performance_and_validation_ex3.py
 ```
 :::
 :::
@@ -1348,12 +1348,12 @@ e. Based on your assessment, would you recommend implementing this model in your
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch11_ex4.R
+#| file: ../solutions/R/performance_and_validation_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch11_ex4.py
+#| file: ../solutions/python/performance_and_validation_ex4.py
 ```
 :::
 :::

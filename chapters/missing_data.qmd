@@ -316,12 +316,12 @@ c) Patients with the most severe symptoms are too unwell to complete a quality-o
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06c_ex1.R
+#| file: ../solutions/R/missing_data_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06c_ex1.py
+#| file: ../solutions/python/missing_data_ex1.py
 ```
 :::
 :::
@@ -341,12 +341,12 @@ c) In one sentence, explain why dropping rows became much more costly once a sec
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06c_ex2.R
+#| file: ../solutions/R/missing_data_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06c_ex2.py
+#| file: ../solutions/python/missing_data_ex2.py
 ```
 :::
 :::
@@ -367,12 +367,12 @@ d) Inspect the imputation diagnostics. Do the imputed values look plausible?
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06c_ex3.R
+#| file: ../solutions/R/missing_data_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06c_ex3.py
+#| file: ../solutions/python/missing_data_ex3.py
 ```
 :::
 :::
@@ -392,12 +392,12 @@ c) Sketch (in words or code) how you would report the result across a range of d
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06c_ex4.R
+#| file: ../solutions/R/missing_data_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06c_ex4.py
+#| file: ../solutions/python/missing_data_ex4.py
 ```
 :::
 :::

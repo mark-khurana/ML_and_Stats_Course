@@ -336,12 +336,12 @@ c) Interpret the proportion mediated for a clinician in one sentence.
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17c_ex1.R
+#| file: ../solutions/R/mediation_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17c_ex1.py
+#| file: ../solutions/python/mediation_ex1.py
 ```
 :::
 :::
@@ -358,12 +358,12 @@ b) For a *binary* outcome analysed by logistic regression, why does the simple p
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17c_ex2.R
+#| file: ../solutions/R/mediation_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17c_ex2.py
+#| file: ../solutions/python/mediation_ex2.py
 ```
 :::
 :::
@@ -383,12 +383,12 @@ c) Suppose a mediator-outcome confounder is itself *caused by* exercise. Why doe
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17c_ex3.R
+#| file: ../solutions/R/mediation_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17c_ex3.py
+#| file: ../solutions/python/mediation_ex3.py
 ```
 :::
 :::
@@ -407,12 +407,12 @@ b) If the E-value for the indirect effect were 1.3, how would you temper your co
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17c_ex4.R
+#| file: ../solutions/R/mediation_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17c_ex4.py
+#| file: ../solutions/python/mediation_ex4.py
 ```
 :::
 :::

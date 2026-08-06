@@ -718,12 +718,12 @@ c) Suggest a better modelling approach and explain how you would implement it.
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch04_ex1.R
+#| file: ../solutions/R/continuous_variables_and_splines_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch04_ex1.py
+#| file: ../solutions/python/continuous_variables_and_splines_ex1.py
 ```
 :::
 :::
@@ -841,12 +841,12 @@ plt.show()
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch04_ex2.R
+#| file: ../solutions/R/continuous_variables_and_splines_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch04_ex2.py
+#| file: ../solutions/python/continuous_variables_and_splines_ex2.py
 ```
 :::
 :::
@@ -983,12 +983,12 @@ plt.show()
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch04_ex3.R
+#| file: ../solutions/R/continuous_variables_and_splines_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch04_ex3.py
+#| file: ../solutions/python/continuous_variables_and_splines_ex3.py
 ```
 :::
 :::

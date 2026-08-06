@@ -24,7 +24,7 @@ The short answer: **deep learning excels when your data has spatial, sequential,
 
 2. **"Deep learning requires millions of examples."** Misleading. Transfer learning --- starting from a model pretrained on millions of images and fine-tuning on your hundreds --- has made deep learning practical even with small clinical datasets. Many successful medical imaging studies use fewer than 5,000 labelled examples.
 
-3. **"Neural networks are uninterpretable black boxes."** Partially true, but increasingly addressable. Techniques such as Grad-CAM (which highlights the image regions driving a prediction) and attention visualization (which shows which words or time steps a model focuses on) provide clinically meaningful explanations. They are not as clean as a regression coefficient, but they are far from opaque.
+3. **"Neural networks are uninterpretable black boxes."** Partially true, but increasingly addressable. Techniques such as Grad-CAM (which highlights the image regions driving a prediction) and attention visualisation (which shows which words or time steps a model focuses on) provide clinically meaningful explanations. They are not as clean as a regression coefficient, but they are far from opaque.
 
 4. **"I need a GPU cluster to do deep learning."** Not necessarily. Transfer learning with pretrained models can be done on a single consumer GPU or even in the cloud (Google Colab offers free GPU access). Training a model from scratch on large datasets is another matter entirely.
 
@@ -44,7 +44,7 @@ $$a = f\left(\sum_{i=1}^{n} w_i x_i + b\right)$$
 
 where $x_i$ are the inputs, $w_i$ are the weights, $b$ is the bias, and $f$ is the activation function. In clinical terms, this is exactly the structure of a risk score: each input (say, age, creatinine, blood pressure) is multiplied by a weight that says how much it matters, the weighted contributions are added up, an intercept (the bias $b$) is added, and the total is squashed into a usable range by $f$. A single neuron with a sigmoid activation *is* a logistic regression. The power of a network comes from wiring thousands of these simple units together so the later ones can act on features the earlier ones discovered.
 
-**Layers**: Neurons are organized into layers:
+**Layers**: Neurons are organised into layers:
 
 - **Input layer**: receives the raw data (pixel values, lab values, word embeddings).
 - **Hidden layers**: intermediate layers that learn increasingly abstract features --- "hidden" simply means they sit between the input and output and never face the outside world directly. A network with many hidden layers is called "deep" --- hence "deep learning."
@@ -54,7 +54,7 @@ where $x_i$ are the inputs, $w_i$ are the weights, $b$ is the bias, and $f$ is t
 
 - **ReLU** (Rectified Linear Unit): $f(x) = \max(0, x)$. In plain terms, it passes positive values through unchanged and replaces any negative value with zero --- a simple on/off gate. It is the default for hidden layers because it is simple, fast, and effective.
 - **Sigmoid**: $f(x) = \frac{1}{1+e^{-x}}$. Used in the output layer for binary classification. You already know this from logistic regression.
-- **Softmax**: Generalizes sigmoid to multiple classes. Used in the output layer for multi-class classification.
+- **Softmax**: Generalises sigmoid to multiple classes. Used in the output layer for multi-class classification.
 
 ### Training: Gradient Descent and Backpropagation
 
@@ -73,15 +73,15 @@ This whole cycle repeats over many **epochs** --- one epoch is a single complete
 
 ::: {.callout-tip}
 ## You Already Know This Pattern
-Gradient descent is not unique to deep learning. It is the same optimization strategy used in logistic regression and many other statistical models. The difference is scale: a logistic regression with 10 predictors has 11 parameters; a deep neural network may have millions.
+Gradient descent is not unique to deep learning. It is the same optimisation strategy used in logistic regression and many other statistical models. The difference is scale: a logistic regression with 10 predictors has 11 parameters; a deep neural network may have millions.
 :::
 
-### Regularization: Preventing Overfitting
+### Regularisation: Preventing Overfitting
 
 Deep networks have enormous capacity and will happily *memorise* the training data if you let them. This memorisation is called **overfitting**: the model learns the quirks and noise of the patients it was trained on, rather than the general pattern, and then performs poorly on new patients. For a clinician, this is the single most important failure mode to watch for --- a model that looks brilliant in the development paper but collapses when applied to your own patients has almost certainly overfit. The strategies for preventing this parallel what you learned in @sec-penalised-regression, but with some additions:
 
 - **Dropout**: During training, randomly "turn off" a fraction of neurons in each layer for each batch. This stops the network from leaning too heavily on any single neuron and forces it to learn more robust, redundant features --- a bit like training a clinical team so that no single member is a point of failure. Typical dropout rates range from 0.2 to 0.5 (i.e. 20--50% of neurons switched off at a time).
-- **Weight decay (L2 regularization)**: Gently penalise large weights, exactly as in ridge regression, to keep the model from over-relying on any one input.
+- **Weight decay (L2 regularisation)**: Gently penalise large weights, exactly as in ridge regression, to keep the model from over-relying on any one input.
 - **Early stopping**: Watch performance on a held-out validation set during training and stop as soon as it starts getting worse --- the point at which the model begins memorising rather than learning.
 - **Data augmentation**: Artificially expand the training set by applying small random changes (rotations, flips, crops, colour jitter). This is especially important in medical imaging, where labelled data is scarce.
 
@@ -560,7 +560,7 @@ If you publish research involving deep learning, several reporting guidelines ap
 
 ### Regulatory Context
 
-As of early 2026, the FDA has authorized over 1,350 AI-enabled medical devices, with 76% in radiology. Nearly all are Class II devices cleared via the 510(k) pathway. The EU AI Act, which entered into force in August 2024, classifies AI-enabled medical devices as high-risk, with full compliance obligations from August 2026. If you are developing a model intended for clinical deployment, regulatory awareness is essential from the outset.
+As of early 2026, the FDA has authorised over 1,350 AI-enabled medical devices, with 76% in radiology. Nearly all are Class II devices cleared via the 510(k) pathway. The EU AI Act, which entered into force in August 2024, classifies AI-enabled medical devices as high-risk, with full compliance obligations from August 2026. If you are developing a model intended for clinical deployment, regulatory awareness is essential from the outset.
 
 ## Challenges and Limitations
 
@@ -569,7 +569,7 @@ As of early 2026, the FDA has authorized over 1,350 AI-enabled medical devices, 
 A systematic review of 86 deep learning algorithms in radiology found that **81% exhibited decreased accuracy on external datasets**, with nearly a quarter experiencing a substantial drop of 0.10 or greater in AUC. Domain shift --- differences in patient demographics, imaging equipment, acquisition protocols, and disease prevalence between development and deployment sites --- remains the greatest obstacle to clinical translation.
 :::
 
-**Fairness and bias**: A 2024 study in *Nature Medicine* demonstrated that even if a model is optimized for fairness at a single site, fairness does not transfer to out-of-distribution datasets. Subgroup analysis across age, sex, and ethnicity is essential.
+**Fairness and bias**: A 2024 study in *Nature Medicine* demonstrated that even if a model is optimised for fairness at a single site, fairness does not transfer to out-of-distribution datasets. Subgroup analysis across age, sex, and ethnicity is essential.
 
 **Interpretability**: A systematic review of 67 studies (2019--2024) found that the addition of explainability methods (Grad-CAM, saliency maps) provided no statistically significant improvement in diagnostic accuracy beyond the AI prediction itself. Interpretability tools are valuable for debugging and trust-building, but they are not a substitute for rigorous external validation.
 
@@ -660,12 +660,12 @@ n = 1000
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch08b_ex1.R
+#| file: ../solutions/R/introduction_to_deep_learning_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch08b_ex1.py
+#| file: ../solutions/python/introduction_to_deep_learning_ex1.py
 ```
 :::
 :::
@@ -687,12 +687,12 @@ For each of the following clinical tasks, identify (a) the most appropriate deep
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch08b_ex2.R
+#| file: ../solutions/R/introduction_to_deep_learning_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch08b_ex2.py
+#| file: ../solutions/python/introduction_to_deep_learning_ex2.py
 ```
 :::
 :::
@@ -714,12 +714,12 @@ Find a recent (2024 or later) paper that applies deep learning to a clinical tas
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch08b_ex3.R
+#| file: ../solutions/R/introduction_to_deep_learning_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch08b_ex3.py
+#| file: ../solutions/python/introduction_to_deep_learning_ex3.py
 ```
 :::
 :::

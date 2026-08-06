@@ -1171,12 +1171,12 @@ d. Profile the clusters: compute the mean of each variable within each cluster. 
 ### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch16_ex1.R
+#| file: ../solutions/R/clustering_ex1.R
 ```
 ### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch16_ex1.py
+#| file: ../solutions/python/clustering_ex1.py
 ```
 
 :::
@@ -1198,12 +1198,12 @@ d. Which linkage method would you recommend for clinical data and why?
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch16_ex2.R
+#| file: ../solutions/R/clustering_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch16_ex2.py
+#| file: ../solutions/python/clustering_ex2.py
 ```
 :::
 :::
@@ -1224,12 +1224,12 @@ d. In a clinical phenotyping study, which approach would you prefer for handling
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch16_ex3.R
+#| file: ../solutions/R/clustering_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch16_ex3.py
+#| file: ../solutions/python/clustering_ex3.py
 ```
 :::
 :::
@@ -1251,12 +1251,12 @@ e. Discuss: how would you validate these clusters in a real clinical study?
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch16_ex4.R
+#| file: ../solutions/R/clustering_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch16_ex4.py
+#| file: ../solutions/python/clustering_ex4.py
 ```
 :::
 :::

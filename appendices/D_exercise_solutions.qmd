@@ -13,8 +13,9 @@ These solutions are most valuable after you have made a genuine attempt at each 
 
 The solution files are also available in the course repository under `solutions/R/` and `solutions/python/`.
 
+Three chapters are not listed below. The exercises in Chapters 3 and 4 are conceptual, and their answers are written out in the chapters themselves rather than as code files. The three exercises in Chapter 17 are extended practice tasks on the workflow that chapter builds, and are left for you to work through.
 
-## Chapter 01: Setup
+## Chapter 1: Setting Up Your Computing Environment
 
 ### Exercise 1
 
@@ -27,7 +28,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch00_ex1.R
+#| file: ../solutions/R/setup_ex1.R
 ```
 
 #### Python
@@ -37,7 +38,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch00_ex1.py
+#| file: ../solutions/python/setup_ex1.py
 ```
 
 :::
@@ -53,7 +54,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch00_ex2.R
+#| file: ../solutions/R/setup_ex2.R
 ```
 
 #### Python
@@ -63,12 +64,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch00_ex2.py
+#| file: ../solutions/python/setup_ex2.py
 ```
 
 :::
 
-## Chapter 02: Probability and Distributions
+## Chapter 2: Probability, Distributions, and the Language of Uncertainty
 
 ### Exercise 1
 
@@ -81,7 +82,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch01_ex1.R
+#| file: ../solutions/R/probability_and_distributions_ex1.R
 ```
 
 #### Python
@@ -91,7 +92,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch01_ex1.py
+#| file: ../solutions/python/probability_and_distributions_ex1.py
 ```
 
 :::
@@ -107,7 +108,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch01_ex2.R
+#| file: ../solutions/R/probability_and_distributions_ex2.R
 ```
 
 #### Python
@@ -117,7 +118,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch01_ex2.py
+#| file: ../solutions/python/probability_and_distributions_ex2.py
 ```
 
 :::
@@ -133,7 +134,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch01_ex3.R
+#| file: ../solutions/R/probability_and_distributions_ex3.R
 ```
 
 #### Python
@@ -143,7 +144,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch01_ex3.py
+#| file: ../solutions/python/probability_and_distributions_ex3.py
 ```
 
 :::
@@ -159,7 +160,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch01_ex4.R
+#| file: ../solutions/R/probability_and_distributions_ex4.R
 ```
 
 #### Python
@@ -169,7 +170,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch01_ex4.py
+#| file: ../solutions/python/probability_and_distributions_ex4.py
 ```
 
 :::
@@ -185,7 +186,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch01_ex5.R
+#| file: ../solutions/R/probability_and_distributions_ex5.R
 ```
 
 #### Python
@@ -195,12 +196,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch01_ex5.py
+#| file: ../solutions/python/probability_and_distributions_ex5.py
 ```
 
 :::
 
-## Chapter 04: Continuous Variables and Splines
+## Chapter 5: Modelling Non-Linear Relationships
 
 ### Exercise 1
 
@@ -213,7 +214,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch04_ex1.R
+#| file: ../solutions/R/continuous_variables_and_splines_ex1.R
 ```
 
 #### Python
@@ -223,7 +224,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch04_ex1.py
+#| file: ../solutions/python/continuous_variables_and_splines_ex1.py
 ```
 
 :::
@@ -239,7 +240,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch04_ex2.R
+#| file: ../solutions/R/continuous_variables_and_splines_ex2.R
 ```
 
 #### Python
@@ -249,7 +250,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch04_ex2.py
+#| file: ../solutions/python/continuous_variables_and_splines_ex2.py
 ```
 
 :::
@@ -265,7 +266,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch04_ex3.R
+#| file: ../solutions/R/continuous_variables_and_splines_ex3.R
 ```
 
 #### Python
@@ -275,12 +276,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch04_ex3.py
+#| file: ../solutions/python/continuous_variables_and_splines_ex3.py
 ```
 
 :::
 
-## Chapter 05: Penalised Regression
+## Chapter 6: Penalised Regression
 
 ### Exercise 1
 
@@ -293,7 +294,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch05_ex1.R
+#| file: ../solutions/R/penalized_regression_ex1.R
 ```
 
 #### Python
@@ -303,7 +304,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch05_ex1.py
+#| file: ../solutions/python/penalized_regression_ex1.py
 ```
 
 :::
@@ -319,7 +320,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch05_ex2.R
+#| file: ../solutions/R/penalized_regression_ex2.R
 ```
 
 #### Python
@@ -329,7 +330,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch05_ex2.py
+#| file: ../solutions/python/penalized_regression_ex2.py
 ```
 
 :::
@@ -345,7 +346,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch05_ex3.R
+#| file: ../solutions/R/penalized_regression_ex3.R
 ```
 
 #### Python
@@ -355,12 +356,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch05_ex3.py
+#| file: ../solutions/python/penalized_regression_ex3.py
 ```
 
 :::
 
-## Chapter 06: Survival Analysis
+## Chapter 7: Survival Analysis
 
 ### Exercise 1
 
@@ -373,7 +374,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06_ex1.R
+#| file: ../solutions/R/survival_analysis_ex1.R
 ```
 
 #### Python
@@ -383,7 +384,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06_ex1.py
+#| file: ../solutions/python/survival_analysis_ex1.py
 ```
 
 :::
@@ -399,7 +400,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06_ex2.R
+#| file: ../solutions/R/survival_analysis_ex2.R
 ```
 
 #### Python
@@ -409,7 +410,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06_ex2.py
+#| file: ../solutions/python/survival_analysis_ex2.py
 ```
 
 :::
@@ -425,7 +426,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06_ex3.R
+#| file: ../solutions/R/survival_analysis_ex3.R
 ```
 
 #### Python
@@ -435,12 +436,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06_ex3.py
+#| file: ../solutions/python/survival_analysis_ex3.py
 ```
 
 :::
 
-## Chapter 06b: Mixed-Effects Models
+## Chapter 8: Mixed-Effects Models for Clustered and Longitudinal Data
 
 ### Exercise 1
 
@@ -453,7 +454,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06b_ex1.R
+#| file: ../solutions/R/mixed_models_ex1.R
 ```
 
 #### Python
@@ -463,7 +464,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06b_ex1.py
+#| file: ../solutions/python/mixed_models_ex1.py
 ```
 
 :::
@@ -479,7 +480,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06b_ex2.R
+#| file: ../solutions/R/mixed_models_ex2.R
 ```
 
 #### Python
@@ -489,7 +490,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06b_ex2.py
+#| file: ../solutions/python/mixed_models_ex2.py
 ```
 
 :::
@@ -505,7 +506,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06b_ex3.R
+#| file: ../solutions/R/mixed_models_ex3.R
 ```
 
 #### Python
@@ -515,7 +516,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06b_ex3.py
+#| file: ../solutions/python/mixed_models_ex3.py
 ```
 
 :::
@@ -531,7 +532,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06b_ex4.R
+#| file: ../solutions/R/mixed_models_ex4.R
 ```
 
 #### Python
@@ -541,12 +542,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06b_ex4.py
+#| file: ../solutions/python/mixed_models_ex4.py
 ```
 
 :::
 
-## Chapter 06c: Missing Data
+## Chapter 9: Missing Data and Multiple Imputation
 
 ### Exercise 1
 
@@ -559,7 +560,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06c_ex1.R
+#| file: ../solutions/R/missing_data_ex1.R
 ```
 
 #### Python
@@ -569,7 +570,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06c_ex1.py
+#| file: ../solutions/python/missing_data_ex1.py
 ```
 
 :::
@@ -585,7 +586,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06c_ex2.R
+#| file: ../solutions/R/missing_data_ex2.R
 ```
 
 #### Python
@@ -595,7 +596,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06c_ex2.py
+#| file: ../solutions/python/missing_data_ex2.py
 ```
 
 :::
@@ -611,7 +612,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06c_ex3.R
+#| file: ../solutions/R/missing_data_ex3.R
 ```
 
 #### Python
@@ -621,7 +622,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06c_ex3.py
+#| file: ../solutions/python/missing_data_ex3.py
 ```
 
 :::
@@ -637,7 +638,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch06c_ex4.R
+#| file: ../solutions/R/missing_data_ex4.R
 ```
 
 #### Python
@@ -647,570 +648,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch06c_ex4.py
+#| file: ../solutions/python/missing_data_ex4.py
 ```
 
 :::
 
-## Chapter 07: ML Foundations
-
-### Exercise 1
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch07-ex1-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch07_ex1.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch07-ex1-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch07_ex1.py
-```
-
-:::
-
-### Exercise 2
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch07-ex2-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch07_ex2.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch07-ex2-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch07_ex2.py
-```
-
-:::
-
-### Exercise 3
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch07-ex3-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch07_ex3.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch07-ex3-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch07_ex3.py
-```
-
-:::
-
-### Exercise 4
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch07-ex4-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch07_ex4.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch07-ex4-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch07_ex4.py
-```
-
-:::
-
-## Chapter 08: Trees and Ensembles
-
-### Exercise 1
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch08-ex1-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch08_ex1.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch08-ex1-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch08_ex1.py
-```
-
-:::
-
-### Exercise 2
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch08-ex2-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch08_ex2.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch08-ex2-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch08_ex2.py
-```
-
-:::
-
-### Exercise 3
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch08-ex3-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch08_ex3.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch08-ex3-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch08_ex3.py
-```
-
-:::
-
-## Chapter 08b: Introduction to Neural Networks
-
-### Exercise 1
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch08b-ex1-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch08b_ex1.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch08b-ex1-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch08b_ex1.py
-```
-
-:::
-
-### Exercise 2
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch08b-ex2-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch08b_ex2.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch08b-ex2-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch08b_ex2.py
-```
-
-:::
-
-### Exercise 3
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch08b-ex3-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch08b_ex3.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch08b-ex3-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch08b_ex3.py
-```
-
-:::
-
-## Chapter 09: Model Evaluation
-
-### Exercise 1
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09-ex1-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09_ex1.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09-ex1-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09_ex1.py
-```
-
-:::
-
-### Exercise 2
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09-ex2-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09_ex2.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09-ex2-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09_ex2.py
-```
-
-:::
-
-### Exercise 3
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09-ex3-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09_ex3.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09-ex3-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09_ex3.py
-```
-
-:::
-
-## Chapter 09b: ML Explainability
-
-### Exercise 1
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09b-ex1-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09b_ex1.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09b-ex1-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09b_ex1.py
-```
-
-:::
-
-### Exercise 2
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09b-ex2-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09b_ex2.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09b-ex2-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09b_ex2.py
-```
-
-:::
-
-### Exercise 3
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09b-ex3-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09b_ex3.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09b-ex3-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09b_ex3.py
-```
-
-:::
-
-### Exercise 4
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch09b-ex4-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch09b_ex4.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch09b-ex4-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch09b_ex4.py
-```
-
-:::
-
-## Chapter 11: Performance and Validation
-
-### Exercise 1
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch11-ex1-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch11_ex1.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch11-ex1-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch11_ex1.py
-```
-
-:::
-
-### Exercise 2
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch11-ex2-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch11_ex2.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch11-ex2-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch11_ex2.py
-```
-
-:::
-
-### Exercise 3
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch11-ex3-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch11_ex3.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch11-ex3-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch11_ex3.py
-```
-
-:::
-
-### Exercise 4
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch11-ex4-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch11_ex4.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch11-ex4-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch11_ex4.py
-```
-
-:::
-
-## Chapter 13: Bayesian Inference
+## Chapter 10: Bayesian Inference
 
 ### Exercise 1
 
@@ -1223,7 +666,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch13_ex1.R
+#| file: ../solutions/R/bayesian_inference_ex1.R
 ```
 
 #### Python
@@ -1233,7 +676,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch13_ex1.py
+#| file: ../solutions/python/bayesian_inference_ex1.py
 ```
 
 :::
@@ -1249,7 +692,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch13_ex2.R
+#| file: ../solutions/R/bayesian_inference_ex2.R
 ```
 
 #### Python
@@ -1259,7 +702,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch13_ex2.py
+#| file: ../solutions/python/bayesian_inference_ex2.py
 ```
 
 :::
@@ -1275,7 +718,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch13_ex3.R
+#| file: ../solutions/R/bayesian_inference_ex3.R
 ```
 
 #### Python
@@ -1285,12 +728,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch13_ex3.py
+#| file: ../solutions/python/bayesian_inference_ex3.py
 ```
 
 :::
 
-## Chapter 14: Applied Bayesian Modelling
+## Chapter 11: Applied Bayesian Modelling
 
 ### Exercise 1
 
@@ -1303,7 +746,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch14_ex1.R
+#| file: ../solutions/R/applied_bayesian_modeling_ex1.R
 ```
 
 #### Python
@@ -1313,7 +756,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch14_ex1.py
+#| file: ../solutions/python/applied_bayesian_modeling_ex1.py
 ```
 
 :::
@@ -1329,7 +772,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch14_ex2.R
+#| file: ../solutions/R/applied_bayesian_modeling_ex2.R
 ```
 
 #### Python
@@ -1339,7 +782,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch14_ex2.py
+#| file: ../solutions/python/applied_bayesian_modeling_ex2.py
 ```
 
 :::
@@ -1355,7 +798,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch14_ex3.R
+#| file: ../solutions/R/applied_bayesian_modeling_ex3.R
 ```
 
 #### Python
@@ -1365,12 +808,12 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch14_ex3.py
+#| file: ../solutions/python/applied_bayesian_modeling_ex3.py
 ```
 
 :::
 
-## Chapter 15: Dimensionality Reduction
+## Chapter 12: What Is Machine Learning?
 
 ### Exercise 1
 
@@ -1379,21 +822,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch15-ex1-r
+#| label: sol-ch07-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch15_ex1.R
+#| file: ../solutions/R/ml_foundations_ex1.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex1-py
+#| label: sol-ch07-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch15_ex1.py
+#| file: ../solutions/python/ml_foundations_ex1.py
 ```
 
 :::
@@ -1405,21 +848,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch15-ex2-r
+#| label: sol-ch07-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch15_ex2.R
+#| file: ../solutions/R/ml_foundations_ex2.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex2-py
+#| label: sol-ch07-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch15_ex2.py
+#| file: ../solutions/python/ml_foundations_ex2.py
 ```
 
 :::
@@ -1431,21 +874,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch15-ex3-r
+#| label: sol-ch07-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch15_ex3.R
+#| file: ../solutions/R/ml_foundations_ex3.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex3-py
+#| label: sol-ch07-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch15_ex3.py
+#| file: ../solutions/python/ml_foundations_ex3.py
 ```
 
 :::
@@ -1457,26 +900,26 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch15-ex4-r
+#| label: sol-ch07-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch15_ex4.R
+#| file: ../solutions/R/ml_foundations_ex4.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch15-ex4-py
+#| label: sol-ch07-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch15_ex4.py
+#| file: ../solutions/python/ml_foundations_ex4.py
 ```
 
 :::
 
-## Chapter 16: Clustering
+## Chapter 13: Decision Trees, Random Forests, and Gradient Boosting
 
 ### Exercise 1
 
@@ -1485,21 +928,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch16-ex1-r
+#| label: sol-ch08-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch16_ex1.R
+#| file: ../solutions/R/trees_and_ensembles_ex1.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex1-py
+#| label: sol-ch08-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch16_ex1.py
+#| file: ../solutions/python/trees_and_ensembles_ex1.py
 ```
 
 :::
@@ -1511,21 +954,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch16-ex2-r
+#| label: sol-ch08-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch16_ex2.R
+#| file: ../solutions/R/trees_and_ensembles_ex2.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex2-py
+#| label: sol-ch08-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch16_ex2.py
+#| file: ../solutions/python/trees_and_ensembles_ex2.py
 ```
 
 :::
@@ -1537,52 +980,26 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch16-ex3-r
+#| label: sol-ch08-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch16_ex3.R
+#| file: ../solutions/R/trees_and_ensembles_ex3.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch16-ex3-py
+#| label: sol-ch08-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch16_ex3.py
+#| file: ../solutions/python/trees_and_ensembles_ex3.py
 ```
 
 :::
 
-### Exercise 4
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch16-ex4-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch16_ex4.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch16-ex4-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch16_ex4.py
-```
-
-:::
-
-## Chapter 17: Causal Inference and Treatment Effects
+## Chapter 14: Introduction to Neural Networks
 
 ### Exercise 1
 
@@ -1591,21 +1008,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch17-ex1-r
+#| label: sol-ch08b-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17_ex1.R
+#| file: ../solutions/R/introduction_to_deep_learning_ex1.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex1-py
+#| label: sol-ch08b-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17_ex1.py
+#| file: ../solutions/python/introduction_to_deep_learning_ex1.py
 ```
 
 :::
@@ -1617,21 +1034,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch17-ex2-r
+#| label: sol-ch08b-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17_ex2.R
+#| file: ../solutions/R/introduction_to_deep_learning_ex2.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex2-py
+#| label: sol-ch08b-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17_ex2.py
+#| file: ../solutions/python/introduction_to_deep_learning_ex2.py
 ```
 
 :::
@@ -1643,104 +1060,26 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch17-ex3-r
+#| label: sol-ch08b-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17_ex3.R
+#| file: ../solutions/R/introduction_to_deep_learning_ex3.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch17-ex3-py
+#| label: sol-ch08b-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17_ex3.py
+#| file: ../solutions/python/introduction_to_deep_learning_ex3.py
 ```
 
 :::
 
-### Exercise 4
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch17-ex4-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17_ex4.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch17-ex4-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17_ex4.py
-```
-
-:::
-
-### Exercise 5
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch17-ex5-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17_ex5.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch17-ex5-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17_ex5.py
-```
-
-:::
-
-### Exercise 6
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch17-ex6-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17_ex6.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch17-ex6-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17_ex6.py
-```
-
-:::
-
-## Chapter 17c: Mediation Analysis
+## Chapter 15: Evaluating Models
 
 ### Exercise 1
 
@@ -1749,21 +1088,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex1-r
+#| label: sol-ch09-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17c_ex1.R
+#| file: ../solutions/R/model_evaluation_ex1.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex1-py
+#| label: sol-ch09-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17c_ex1.py
+#| file: ../solutions/python/model_evaluation_ex1.py
 ```
 
 :::
@@ -1775,21 +1114,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex2-r
+#| label: sol-ch09-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17c_ex2.R
+#| file: ../solutions/R/model_evaluation_ex2.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex2-py
+#| label: sol-ch09-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17c_ex2.py
+#| file: ../solutions/python/model_evaluation_ex2.py
 ```
 
 :::
@@ -1801,52 +1140,26 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch17c-ex3-r
+#| label: sol-ch09-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17c_ex3.R
+#| file: ../solutions/R/model_evaluation_ex3.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch17c-ex3-py
+#| label: sol-ch09-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17c_ex3.py
+#| file: ../solutions/python/model_evaluation_ex3.py
 ```
 
 :::
 
-### Exercise 4
-
-::: {.panel-tabset}
-
-#### R
-
-```{r}
-#| label: sol-ch17c-ex4-r
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show R solution"
-#| file: ../solutions/R/ch17c_ex4.R
-```
-
-#### Python
-
-```{python}
-#| label: sol-ch17c-ex4-py
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch17c_ex4.py
-```
-
-:::
-
-## Chapter 18: Meta-Analysis
+## Chapter 16: Explainable AI & Interpretability for Tabular Clinical Data
 
 ### Exercise 1
 
@@ -1855,21 +1168,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch18-ex1-r
+#| label: sol-ch09b-ex1-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch18_ex1.R
+#| file: ../solutions/R/ml_explainability_ex1.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex1-py
+#| label: sol-ch09b-ex1-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch18_ex1.py
+#| file: ../solutions/python/ml_explainability_ex1.py
 ```
 
 :::
@@ -1881,21 +1194,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch18-ex2-r
+#| label: sol-ch09b-ex2-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch18_ex2.R
+#| file: ../solutions/R/ml_explainability_ex2.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex2-py
+#| label: sol-ch09b-ex2-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch18_ex2.py
+#| file: ../solutions/python/ml_explainability_ex2.py
 ```
 
 :::
@@ -1907,21 +1220,21 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch18-ex3-r
+#| label: sol-ch09b-ex3-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch18_ex3.R
+#| file: ../solutions/R/ml_explainability_ex3.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex3-py
+#| label: sol-ch09b-ex3-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch18_ex3.py
+#| file: ../solutions/python/ml_explainability_ex3.py
 ```
 
 :::
@@ -1933,26 +1246,132 @@ The solution files are also available in the course repository under `solutions/
 #### R
 
 ```{r}
-#| label: sol-ch18-ex4-r
+#| label: sol-ch09b-ex4-r
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch18_ex4.R
+#| file: ../solutions/R/ml_explainability_ex4.R
 ```
 
 #### Python
 
 ```{python}
-#| label: sol-ch18-ex4-py
+#| label: sol-ch09b-ex4-py
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch18_ex4.py
+#| file: ../solutions/python/ml_explainability_ex4.py
 ```
 
 :::
 
-## Chapter 19: Reporting and Implementation
+## Chapter 18: Performance Assessment and Model Validation
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch11-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/performance_and_validation_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch11-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/performance_and_validation_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch11-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/performance_and_validation_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch11-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/performance_and_validation_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch11-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/performance_and_validation_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch11-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/performance_and_validation_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch11-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/performance_and_validation_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch11-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/performance_and_validation_ex4.py
+```
+
+:::
+
+## Chapter 19: Reporting Standards, TRIPOD+AI, and Clinical Impact
 
 ### Exercise 1
 
@@ -1965,7 +1384,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch19_ex1.R
+#| file: ../solutions/R/reporting_and_implementation_ex1.R
 ```
 
 #### Python
@@ -1975,7 +1394,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch19_ex1.py
+#| file: ../solutions/python/reporting_and_implementation_ex1.py
 ```
 
 :::
@@ -1991,7 +1410,7 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show R solution"
-#| file: ../solutions/R/ch19_ex2.R
+#| file: ../solutions/R/reporting_and_implementation_ex2.R
 ```
 
 #### Python
@@ -2001,7 +1420,589 @@ The solution files are also available in the course repository under `solutions/
 #| eval: false
 #| code-fold: true
 #| code-summary: "Show Python solution"
-#| file: ../solutions/python/ch19_ex2.py
+#| file: ../solutions/python/reporting_and_implementation_ex2.py
+```
+
+:::
+
+## Chapter 20: Making Sense of High-Dimensional Data
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch15-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/dimensionality_reduction_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch15-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/dimensionality_reduction_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch15-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/dimensionality_reduction_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch15-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/dimensionality_reduction_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch15-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/dimensionality_reduction_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch15-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/dimensionality_reduction_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch15-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/dimensionality_reduction_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch15-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/dimensionality_reduction_ex4.py
+```
+
+:::
+
+## Chapter 21: Clustering: Discovering Groups in Data
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch16-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/clustering_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch16-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/clustering_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch16-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/clustering_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch16-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/clustering_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch16-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/clustering_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch16-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/clustering_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch16-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/clustering_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch16-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/clustering_ex4.py
+```
+
+:::
+
+## Chapter 22: Causal Inference and Treatment Effects
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/causal_inference_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/causal_inference_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/causal_inference_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/causal_inference_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/causal_inference_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/causal_inference_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/causal_inference_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/causal_inference_ex4.py
+```
+
+:::
+
+### Exercise 5
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex5-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/causal_inference_ex5.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex5-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/causal_inference_ex5.py
+```
+
+:::
+
+### Exercise 6
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17-ex6-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/causal_inference_ex6.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17-ex6-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/causal_inference_ex6.py
+```
+
+:::
+
+## Chapter 23: Mediation Analysis
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/mediation_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/mediation_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/mediation_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/mediation_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/mediation_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/mediation_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch17c-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/mediation_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch17c-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/mediation_ex4.py
+```
+
+:::
+
+## Chapter 24: Meta-Analysis for Evidence Synthesis
+
+### Exercise 1
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch18-ex1-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/meta_analysis_ex1.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch18-ex1-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/meta_analysis_ex1.py
+```
+
+:::
+
+### Exercise 2
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch18-ex2-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/meta_analysis_ex2.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch18-ex2-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/meta_analysis_ex2.py
+```
+
+:::
+
+### Exercise 3
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch18-ex3-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/meta_analysis_ex3.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch18-ex3-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/meta_analysis_ex3.py
+```
+
+:::
+
+### Exercise 4
+
+::: {.panel-tabset}
+
+#### R
+
+```{r}
+#| label: sol-ch18-ex4-r
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show R solution"
+#| file: ../solutions/R/meta_analysis_ex4.R
+```
+
+#### Python
+
+```{python}
+#| label: sol-ch18-ex4-py
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show Python solution"
+#| file: ../solutions/python/meta_analysis_ex4.py
 ```
 
 :::

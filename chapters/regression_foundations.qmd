@@ -36,7 +36,7 @@ We assume: $\epsilon_i \sim N(0, \sigma^2)$ -- the residuals are normally distri
 
 ### Fitting the Line
 
-The method of **ordinary least squares (OLS)** finds the values of $\beta_0$ and $\beta_1$ that minimize the sum of squared residuals:
+The method of **ordinary least squares (OLS)** finds the values of $\beta_0$ and $\beta_1$ that minimise the sum of squared residuals:
 
 $$\min_{\beta_0, \beta_1} \sum_{i=1}^{n} (y_i - \beta_0 - \beta_1 x_i)^2$$
 
@@ -55,7 +55,7 @@ $$\widehat{\text{SBP}} = 90.5 + 0.65 \times \text{Age}$$
 **Slope (0.65 mmHg/year):** For each additional year of age, systolic blood pressure is predicted to increase by 0.65 mmHg, on average. This is the key quantity of interest. A 10-year age difference corresponds to a predicted 6.5 mmHg difference in SBP.
 
 ::: {.callout-important}
-**Correlation is not causation.** The slope tells you about the *association* between age and blood pressure. It does not mean that aging *causes* blood pressure to rise by exactly 0.65 mmHg per year. There may be confounders (e.g., weight gain, decreased physical activity, dietary changes) that both increase with age and raise blood pressure. To estimate causal effects, you need additional assumptions or study designs (e.g., randomized trials, instrumental variables).
+**Correlation is not causation.** The slope tells you about the *association* between age and blood pressure. It does not mean that aging *causes* blood pressure to rise by exactly 0.65 mmHg per year. There may be confounders (e.g., weight gain, decreased physical activity, dietary changes) that both increase with age and raise blood pressure. To estimate causal effects, you need additional assumptions or study designs (e.g., randomised trials, instrumental variables).
 :::
 
 ### Hypothesis Testing for the Slope
@@ -149,13 +149,13 @@ No real dataset perfectly satisfies all assumptions. The question is whether vio
 
 ### Why Not Linear Regression for Binary Outcomes?
 
-Many outcomes in medicine are binary: alive/dead, disease/no disease, hospitalized/not. You might think you could code the outcome as 0/1 and use linear regression. But this causes problems:
+Many outcomes in medicine are binary: alive/dead, disease/no disease, hospitalised/not. You might think you could code the outcome as 0/1 and use linear regression. But this causes problems:
 
 - Predicted values can fall below 0 or above 1, which are impossible for probabilities
 - The residuals are not normally distributed
 - The variance is not constant (it depends on the predicted probability)
 
-**Logistic regression** solves these problems by modeling the **log-odds** (logit) of the outcome:
+**Logistic regression** solves these problems by modelling the **log-odds** (logit) of the outcome:
 
 $$\log\left(\frac{p}{1 - p}\right) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \ldots$$
 
@@ -234,7 +234,7 @@ $$R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2} = 1 - \frac{
 
 In clinical research, $R^2$ values are often modest (0.10 - 0.40) because human biology is variable. An $R^2$ of 0.25 means your model explains 25% of the variance in blood pressure -- the remaining 75% is due to factors not in your model, measurement error, and inherent biological variability.
 
-**Adjusted $R^2$** penalizes for the number of predictors, preventing the illusion of improvement from adding noise variables:
+**Adjusted $R^2$** penalises for the number of predictors, preventing the illusion of improvement from adding noise variables:
 
 $$R^2_{\text{adj}} = 1 - \frac{(1 - R^2)(n - 1)}{n - k - 1}$$
 
@@ -333,7 +333,7 @@ So the age slope is 0.50 mmHg/year for females but 0.70 mmHg/year for males. The
 ::: {.callout-tip title="When to Test for Interactions"}
 Do not test every possible interaction -- this leads to multiple testing problems and overfitting. Only test interactions that are:
 
-1. **Pre-specified** based on clinical reasoning (e.g., "We hypothesize the drug works differently in men vs. women")
+1. **Pre-specified** based on clinical reasoning (e.g., "We hypothesise the drug works differently in men vs. women")
 2. **Scientifically plausible** (there is a biological mechanism for effect modification)
 3. **Adequately powered** (interaction tests require much larger samples than main effect tests -- roughly 4x the sample size)
 :::
@@ -757,7 +757,7 @@ In real clinical data, you will rarely see such clean diagnostics. Common violat
 :::
 
 ::: {.callout-tip title="Exercise 5: Interaction Terms"}
-Test whether the effect of age on SBP differs between males and females by adding an interaction term. Interpret the interaction coefficient and create a visualization.
+Test whether the effect of age on SBP differs between males and females by adding an interaction term. Interpret the interaction coefficient and create a visualisation.
 
 ::: {.panel-tabset}
 ## R
@@ -868,7 +868,7 @@ The interaction term should be statistically significant and close to the true v
 - **Male age slope:** approximately 0.45 + 0.25 = 0.70 mmHg/year (main effect + interaction)
 - **Interaction coefficient (~0.25):** Males' blood pressure increases 0.25 mmHg/year *faster* than females' blood pressure
 
-The visualization should show two regression lines with noticeably different slopes -- the male line is steeper. The lines may cross at some point, which reflects the negative main effect of male sex combined with the positive interaction.
+The visualisation should show two regression lines with noticeably different slopes -- the male line is steeper. The lines may cross at some point, which reflects the negative main effect of male sex combined with the positive interaction.
 
 This has clinical implications: if the age-SBP relationship truly differs by sex, then risk prediction models should account for this interaction rather than assuming a uniform age effect.
 :::

@@ -20,9 +20,9 @@ the PhD course [Git & GitHub](https://heads.ku.dk/course/git_github/) at the Uni
 
 ### Why Two Languages?
 
-Throughout this course, you will have the opportunity to work with both **R** and **Python**. This is not an accident or an attempt to double your workload. In modern biostatistics, epidemiology, and health data science, both languages appear regularly in published research, collaborative projects, and industry applications. R has deep roots in classical statistics and has an extraordinary ecosystem of packages for survival analysis, Bayesian modeling, and clinical reporting. Python dominates in machine learning, deep learning, and large-scale data engineering. By learning both, you will be able to read and contribute to a wider range of projects, collaborate with more colleagues, and choose the best tool for each task.
+Throughout this course, you will have the opportunity to work with both **R** and **Python**. This is not an accident or an attempt to double your workload. In modern biostatistics, epidemiology, and health data science, both languages appear regularly in published research, collaborative projects, and industry applications. R has deep roots in classical statistics and has an extraordinary ecosystem of packages for survival analysis, Bayesian modelling, and clinical reporting. Python dominates in machine learning, deep learning, and large-scale data engineering. By learning both, you will be able to read and contribute to a wider range of projects, collaborate with more colleagues, and choose the best tool for each task.
 
-You do not need to be an expert programmer to succeed in this course. We will introduce code gradually and explain every line. Think of R and Python as lab instruments: you will learn to use them by doing, and we will always prioritize understanding the statistical ideas over memorizing syntax.
+You do not need to be an expert programmer to succeed in this course. We will introduce code gradually and explain every line. Think of R and Python as lab instruments: you will learn to use them by doing, and we will always prioritise understanding the statistical ideas over memorising syntax.
 
 ::: {.callout-tip title="Which language should I pick?"}
 If you have little or no programming experience, or prefer sticking to R, use **Setup 1: R in RStudio**. RStudio is designed for data analysis and is standard in many biostatistics departments. You can always add Python development to your toolkit later on.
@@ -83,7 +83,7 @@ You should see output that includes the R version number (4.5.3 or later is reco
 
 ### Step 1.1.4: Install key course packages for R
 
-R packages extend the language with specialized tools. Think of them as apps you install on your phone --- the base R system is the phone itself, and packages add new capabilities.
+R packages extend the language with specialised tools. Think of them as apps you install on your phone --- the base R system is the phone itself, and packages add new capabilities.
 
 Open RStudio and run the following command in the Console. This will take several minutes the first time because it downloads and compiles many packages:
 
@@ -99,11 +99,11 @@ If you get an error like `there is no package called 'xyz'`, try reinstalling th
 
 | Package | Purpose |
 |---------|---------|
-| `tidyverse` | A collection of packages for data wrangling and visualization. Includes `ggplot2` (plotting), `dplyr` (data manipulation), `tidyr` (reshaping), and more. |
+| `tidyverse` | A collection of packages for data wrangling and visualisation. Includes `ggplot2` (plotting), `dplyr` (data manipulation), `tidyr` (reshaping), and more. |
 | `rms` | Frank Harrell's Regression Modeling Strategies package. Provides tools for fitting and validating regression models with a focus on best practices. |
-| `glmnet` | Fits penalized (regularized) generalized linear models, including lasso and ridge regression. |
+| `glmnet` | Fits penalised (regularised) generalised linear models, including lasso and ridge regression. |
 | `survival` | The foundational package for survival (time-to-event) analysis in R. |
-| `brms` | An interface to Stan for fitting Bayesian generalized linear mixed models using familiar R formula syntax. |
+| `brms` | An interface to Stan for fitting Bayesian generalised linear mixed models using familiar R formula syntax. |
 | `rstanarm` | Similar to `brms` but with pre-compiled Stan models for faster startup. Great for common Bayesian regression tasks. |
 | `ranger` | A fast implementation of random forests, useful for both classification and regression. |
 | `xgboost` | Extreme gradient boosting --- one of the most powerful and popular machine learning algorithms. |
@@ -174,12 +174,12 @@ python scripts/check_packages.py
 | `statsmodels` | Classical statistical models: linear regression, logistic regression, time series, and more. Provides p-values and confidence intervals that scikit-learn does not. |
 | `lifelines` | Survival analysis in Python: Kaplan-Meier curves, Cox proportional hazards models, and more. |
 | `xgboost` | Gradient boosted trees (same algorithm as the R version). |
-| `pymc` | Bayesian statistical modeling and probabilistic programming. |
+| `pymc` | Bayesian statistical modelling and probabilistic programming. |
 | `bambi` | BAyesian Model-Building Interface --- a high-level interface to PyMC using R-style formulas. |
-| `arviz` | Visualization and diagnostics for Bayesian models. |
+| `arviz` | Visualisation and diagnostics for Bayesian models. |
 | `umap-learn` | UMAP dimensionality reduction for Python. |
 | `matplotlib` | The foundational plotting library for Python. |
-| `seaborn` | Statistical data visualization built on top of matplotlib. Easier to use for common statistical plots. |
+| `seaborn` | Statistical data visualisation built on top of matplotlib. Easier to use for common statistical plots. |
 | `miceforest` | Multiple imputation using random forests in Python. |
 
 : Key Python packages for this course {.striped}
@@ -273,7 +273,7 @@ plt.show()
 
 :::
 
-If you see a colorful scatter plot with three clusters of points, congratulations --- your setup is working.
+If you see a colourful scatter plot with three clusters of points, congratulations --- your setup is working.
 
 ## How to Use the Course Materials
 
@@ -292,13 +292,13 @@ x <- c(1, 2, 3, 4, 5)
 mean(x)
 ```
 
-Many chapters present code in **tabbed panels** labeled "R" and "Python." Click the tab for your preferred language. We encourage you to try both, but if you are short on time, pick the one you are more comfortable with and come back to the other later.
+Many chapters present code in **tabbed panels** labelled "R" and "Python." Click the tab for your preferred language. We encourage you to try both, but if you are short on time, pick the one you are more comfortable with and come back to the other later.
 
 ### Exercises
 
 Each chapter ends with exercises. They follow this pattern:
 
-1. A description of the task inside a colored callout box.
+1. A description of the task inside a coloured callout box.
 2. **Starter code** that sets up the problem and leaves blanks for you to fill in.
 3. A **Solution** hidden inside a collapsible box --- try the exercise yourself before peeking!
 
@@ -409,12 +409,12 @@ iris = pd.DataFrame(iris_data.data, columns=iris_data.feature_names)
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch00_ex1.R
+#| file: ../solutions/R/setup_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch00_ex1.py
+#| file: ../solutions/python/setup_ex1.py
 ```
 :::
 :::
@@ -470,12 +470,12 @@ clinical["bmi"] = np.round(np.random.normal(27, 5, n), 1)
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch00_ex2.R
+#| file: ../solutions/R/setup_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch00_ex2.py
+#| file: ../solutions/python/setup_ex2.py
 ```
 :::
 :::

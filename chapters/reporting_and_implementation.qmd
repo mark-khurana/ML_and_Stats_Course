@@ -108,12 +108,12 @@ Write a brief (one paragraph) critical appraisal.
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch19_ex1.R
+#| file: ../solutions/R/reporting_and_implementation_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch19_ex1.py
+#| file: ../solutions/python/reporting_and_implementation_ex1.py
 ```
 :::
 :::
@@ -217,12 +217,12 @@ Check your methods section against the TRIPOD+AI checklist. Are all key items co
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch19_ex2.R
+#| file: ../solutions/R/reporting_and_implementation_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch19_ex2.py
+#| file: ../solutions/python/reporting_and_implementation_ex2.py
 ```
 :::
 :::

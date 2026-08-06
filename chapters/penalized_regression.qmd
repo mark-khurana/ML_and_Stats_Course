@@ -902,12 +902,12 @@ c) Explain in one sentence why the LASSO produces exact zeros but Ridge does not
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch05_ex1.R
+#| file: ../solutions/R/penalized_regression_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch05_ex1.py
+#| file: ../solutions/python/penalized_regression_ex1.py
 ```
 :::
 :::
@@ -1057,12 +1057,12 @@ plt.show()
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch05_ex2.R
+#| file: ../solutions/R/penalized_regression_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch05_ex2.py
+#| file: ../solutions/python/penalized_regression_ex2.py
 ```
 :::
 :::
@@ -1207,12 +1207,12 @@ for seed in range(10):
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch05_ex3.R
+#| file: ../solutions/R/penalized_regression_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch05_ex3.py
+#| file: ../solutions/python/penalized_regression_ex3.py
 ```
 :::
 :::

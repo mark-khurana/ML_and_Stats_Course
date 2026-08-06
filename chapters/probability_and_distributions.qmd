@@ -5,7 +5,7 @@
 
 Medicine is a discipline of uncertainty. A patient presents with chest pain --- is it a heart attack, acid reflux, or a pulled muscle? A new drug shows a 15% reduction in tumor size --- is this a real effect or a fluke of sampling? A screening test comes back positive --- what is the chance the patient actually has the disease?
 
-Probability gives us a formal language for reasoning about uncertainty. It allows us to quantify how likely different outcomes are, how confident we should be in our conclusions, and how we should update our beliefs when new evidence arrives. Every statistical method you will learn in this course --- from logistic regression to Bayesian modeling to machine learning --- is built on the foundation of probability theory.
+Probability gives us a formal language for reasoning about uncertainty. It allows us to quantify how likely different outcomes are, how confident we should be in our conclusions, and how we should update our beliefs when new evidence arrives. Every statistical method you will learn in this course --- from logistic regression to Bayesian modelling to machine learning --- is built on the foundation of probability theory.
 
 This chapter introduces the key ideas you need. We will move slowly, use concrete clinical examples, and build intuition before introducing formulas.
 
@@ -56,7 +56,7 @@ A **discrete** random variable takes on a countable number of values, typically 
 - The number of positive test results in a batch of 20 specimens: 0, 1, 2, ..., 20
 - A patient's pain score on a 0--10 scale: 0, 1, 2, ..., 10
 
-For a discrete random variable, we describe its behavior using a **probability mass function (PMF)**, which gives the probability of each possible value:
+For a discrete random variable, we describe its behaviour using a **probability mass function (PMF)**, which gives the probability of each possible value:
 
 $$P(X = x)$$
 
@@ -94,14 +94,14 @@ The **normal distribution** --- also called the Gaussian distribution or the "be
 
 A normal distribution is completely described by two parameters:
 
-- **Mean ($\mu$)**: The center of the distribution. The peak of the bell curve.
+- **Mean ($\mu$)**: The centre of the distribution. The peak of the bell curve.
 - **Standard deviation ($\sigma$)**: A measure of spread. About 68% of values fall within one standard deviation of the mean, about 95% within two, and about 99.7% within three. This is sometimes called the **68-95-99.7 rule**.
 
 The probability density function is:
 
 $$f(x) = \frac{1}{\sigma \sqrt{2\pi}} \exp\left(-\frac{(x - \mu)^2}{2\sigma^2}\right)$$
 
-You do not need to memorize this formula. What matters is understanding the shape and the role of $\mu$ and $\sigma$.
+You do not need to memorise this formula. What matters is understanding the shape and the role of $\mu$ and $\sigma$.
 
 We write $X \sim \text{Normal}(\mu, \sigma^2)$ or $X \sim N(\mu, \sigma^2)$ to say that $X$ follows a normal distribution with mean $\mu$ and variance $\sigma^2$.
 
@@ -117,7 +117,7 @@ Using the 68-95-99.7 rule:
 
 If a patient has a systolic blood pressure of 160 mmHg, how unusual is that? We can answer this using **Z-scores**.
 
-### Z-Scores: Standardizing Values
+### Z-Scores: Standardising Values
 
 A **Z-score** tells you how many standard deviations a value is from the mean:
 
@@ -131,7 +131,7 @@ This patient's blood pressure is about 2.67 standard deviations above the mean. 
 
 The **standard normal distribution** is a normal distribution with $\mu = 0$ and $\sigma = 1$. Any normal distribution can be converted to the standard normal by computing Z-scores.
 
-Let us visualize the normal distribution and Z-scores:
+Let us visualise the normal distribution and Z-scores:
 
 ::: {.panel-tabset}
 
@@ -311,7 +311,7 @@ plt.show()
 
 ## The Poisson Distribution
 
-The **Poisson distribution** models the number of events occurring in a fixed interval of time or space, when events happen independently at a constant average rate. It is the go-to distribution for modeling rare events.
+The **Poisson distribution** models the number of events occurring in a fixed interval of time or space, when events happen independently at a constant average rate. It is the go-to distribution for modelling rare events.
 
 ### Parameters
 
@@ -331,7 +331,7 @@ The fact that the mean equals the variance is a distinctive property of the Pois
 
 **Adverse drug reactions.** A hospital reports an average of 2.5 serious adverse drug reactions per month. If these events are independent, the number in any given month follows approximately a Poisson(2.5) distribution. The probability of zero serious reactions in a month is $P(X = 0) = e^{-2.5} \approx 0.082$, or about 8.2%.
 
-**Hospital admissions.** An emergency department sees an average of 40 patients per shift. The number of arrivals per shift can be modeled with a Poisson(40) distribution (though in practice, arrivals may cluster, violating independence).
+**Hospital admissions.** An emergency department sees an average of 40 patients per shift. The number of arrivals per shift can be modelled with a Poisson(40) distribution (though in practice, arrivals may cluster, violating independence).
 
 **Rare disease incidence.** If a rare genetic disorder affects 1 in 100,000 people per year and a city has 500,000 people, we expect about 5 cases per year. The annual count follows approximately a Poisson(5) distribution.
 
@@ -711,12 +711,12 @@ percentile_95 = # YOUR CODE HERE (hint: use stats.norm.ppf())
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch01_ex1.R
+#| file: ../solutions/R/probability_and_distributions_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch01_ex1.py
+#| file: ../solutions/python/probability_and_distributions_ex1.py
 ```
 :::
 :::
@@ -780,12 +780,12 @@ prob_five_or_more = # YOUR CODE HERE (hint: stats.binom.sf())
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch01_ex2.R
+#| file: ../solutions/R/probability_and_distributions_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch01_ex2.py
+#| file: ../solutions/python/probability_and_distributions_ex2.py
 ```
 :::
 :::
@@ -847,12 +847,12 @@ expected_zero_days = # YOUR CODE HERE
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch01_ex3.R
+#| file: ../solutions/R/probability_and_distributions_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch01_ex3.py
+#| file: ../solutions/python/probability_and_distributions_ex3.py
 ```
 :::
 :::
@@ -919,12 +919,12 @@ ppv_high_risk = # YOUR CODE HERE
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch01_ex4.R
+#| file: ../solutions/R/probability_and_distributions_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch01_ex4.py
+#| file: ../solutions/python/probability_and_distributions_ex4.py
 ```
 :::
 :::
@@ -985,25 +985,25 @@ sample_sizes = [5, 15, 50, 200]
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch01_ex5.R
+#| file: ../solutions/R/probability_and_distributions_ex5.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch01_ex5.py
+#| file: ../solutions/python/probability_and_distributions_ex5.py
 ```
 :::
 :::
 :::
 
-## Chapter Summary
+## Summary
 
 In this chapter, we covered the foundational language of probability and statistics:
 
 - **Probability** quantifies uncertainty. The frequentist interpretation focuses on long-run frequencies; the Bayesian interpretation treats probability as a degree of belief. Both are useful.
 - **Random variables** can be discrete (countable values) or continuous (any value in a range).
-- The **normal distribution** is the most important distribution in statistics, characterized by its mean and standard deviation. Z-scores standardize values relative to the distribution.
-- The **binomial distribution** models the number of successes in a fixed number of independent trials --- useful for modeling treatment response rates, disease prevalence, and more.
+- The **normal distribution** is the most important distribution in statistics, characterised by its mean and standard deviation. Z-scores standardise values relative to the distribution.
+- The **binomial distribution** models the number of successes in a fixed number of independent trials --- useful for modelling treatment response rates, disease prevalence, and more.
 - The **Poisson distribution** models counts of rare events occurring at a constant rate --- useful for adverse events, hospital admissions, and rare disease incidence.
 - The **Central Limit Theorem** tells us that sample means are approximately normally distributed regardless of the underlying population distribution, as long as the sample size is large enough. This justifies the widespread use of normal-based statistical methods.
 - **Bayes' theorem** provides a principled way to update probabilities in light of new evidence. In diagnostic testing, it reveals that the predictive value of a test depends critically on disease prevalence, not just sensitivity and specificity.

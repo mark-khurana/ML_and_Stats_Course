@@ -1346,12 +1346,12 @@ d) Identify at least one collider. Show what happens to the estimated associatio
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17_ex1.R
+#| file: ../solutions/R/causal_inference_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17_ex1.py
+#| file: ../solutions/python/causal_inference_ex1.py
 ```
 :::
 :::
@@ -1412,12 +1412,12 @@ e) Calculate the E-value for your estimate and interpret it in one sentence.
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17_ex2.R
+#| file: ../solutions/R/causal_inference_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17_ex2.py
+#| file: ../solutions/python/causal_inference_ex2.py
 ```
 :::
 :::
@@ -1438,12 +1438,12 @@ d) Now make positivity fail: change the treatment model so that patients with he
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17_ex3.R
+#| file: ../solutions/R/causal_inference_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17_ex3.py
+#| file: ../solutions/python/causal_inference_ex3.py
 ```
 :::
 :::
@@ -1464,12 +1464,12 @@ d) Refit without the interactions. Does the estimate change much? Why might stan
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17_ex4.R
+#| file: ../solutions/R/causal_inference_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17_ex4.py
+#| file: ../solutions/python/causal_inference_ex4.py
 ```
 :::
 :::
@@ -1492,12 +1492,12 @@ d) Which estimator has the smallest spread, and why might that not make it the b
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17_ex5.R
+#| file: ../solutions/R/causal_inference_ex5.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17_ex5.py
+#| file: ../solutions/python/causal_inference_ex5.py
 ```
 :::
 :::
@@ -1518,12 +1518,12 @@ d) Explain why simply adjusting for more covariates would not have fixed (b). De
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch17_ex6.R
+#| file: ../solutions/R/causal_inference_ex6.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch17_ex6.py
+#| file: ../solutions/python/causal_inference_ex6.py
 ```
 :::
 :::
