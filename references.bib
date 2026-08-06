@@ -1738,3 +1738,63 @@
   doi = {10.1136/bmjopen-2015-010247},
   note = {Argues that a prediction interval, not just a confidence interval, is what tells you the plausible effect in a new setting.}
 }
+
+@article{higgins2009reevaluation,
+  author = {Higgins, Julian P. T. and Thompson, Simon G. and Spiegelhalter, David J.},
+  title = {A Re-Evaluation of Random-Effects Meta-Analysis},
+  journal = {Journal of the Royal Statistical Society Series A: Statistics in Society},
+  year = {2009},
+  volume = {172},
+  number = {1},
+  pages = {137--159},
+  doi = {10.1111/j.1467-985X.2008.00552.x},
+  note = {Argues that random-effects meta-analyses often fail to report the predictive distribution, and that a Bayesian treatment naturally allows for uncertainty in the heterogeneity parameter.}
+}
+
+@article{sutton2001bayesian,
+  author = {Sutton, Alexander J. and Abrams, Keith R.},
+  title = {Bayesian Methods in Meta-Analysis and Evidence Synthesis},
+  journal = {Statistical Methods in Medical Research},
+  year = {2001},
+  volume = {10},
+  number = {4},
+  pages = {277--303},
+  doi = {10.1191/096228001678227794},
+  note = {Standard overview of meta-analysis as a Bayesian hierarchical model.}
+}
+
+@article{rover2021weakly,
+  author = {R{\"o}ver, Christian and Bender, Ralf and Dias, Sofia and Schmid, Christopher H. and Schmidli, Heinz and Sturtz, Sibylle and Weber, Sebastian and Friede, Tim},
+  title = {On Weakly Informative Prior Distributions for the Heterogeneity Parameter in Bayesian Random-Effects Meta-Analysis},
+  journal = {Research Synthesis Methods},
+  year = {2021},
+  volume = {12},
+  number = {4},
+  pages = {448--474},
+  doi = {10.1002/jrsm.1475},
+  note = {Guidance on priors for tau; recommends half-normal families and, for log-scale effect measures, a scale of 0.5 as weakly informative.}
+}
+
+@article{turner2012predicting,
+  author = {Turner, Rebecca M. and Davey, Jonathan and Clarke, Mike J. and Thompson, Simon G. and Higgins, Julian P. T.},
+  title = {Predicting the Extent of Heterogeneity in Meta-Analysis, Using Empirical Data from the {Cochrane} {Database} of {Systematic} {Reviews}},
+  journal = {International Journal of Epidemiology},
+  year = {2012},
+  volume = {41},
+  number = {3},
+  pages = {818--827},
+  doi = {10.1093/ije/dys041},
+  note = {Empirical distributions of between-study heterogeneity by outcome type; the source of informative priors on tau for Bayesian meta-analysis with few studies.}
+}
+
+@article{partlett2017random,
+  author = {Partlett, Christopher and Riley, Richard D.},
+  title = {Random Effects Meta-Analysis: Coverage Performance of 95\% Confidence and Prediction Intervals Following REML Estimation},
+  journal = {Statistics in Medicine},
+  year = {2017},
+  volume = {36},
+  number = {2},
+  pages = {301--317},
+  doi = {10.1002/sim.7140},
+  note = {Compares confidence- and prediction-interval variants after REML; the basis for the variance-inflated prediction interval that `meta` uses by default.}
+}

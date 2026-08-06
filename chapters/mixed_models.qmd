@@ -73,6 +73,8 @@ Here is the clever part. You could analyse each cluster completely separately (*
 
 The clinical intuition: a practice that contributes only a handful of patients should not be trusted to define its own baseline from scratch; we sensibly assume it is probably not too far from the average until its own data prove otherwise. Partial pooling does this automatically, which is why mixed models give stabler, more honest cluster estimates than fitting each cluster alone.
 
+The same structure turns up again in @sec-meta-analysis, where the clusters are entire published studies rather than clinics, and the "random-effects model" of meta-analysis is this model with the within-cluster variances already known.
+
 ### The intraclass correlation (ICC)
 
 Once we let clusters differ, a natural question is: *how much* of the variation is between clusters versus within them? The **intraclass correlation coefficient (ICC)** answers exactly this. It is the proportion of the total variation that is *between* clusters:
@@ -354,12 +356,12 @@ c) A multi-site ICU study of a sepsis bundle across 6 hospitals, one outcome per
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06b_ex1.R
+#| file: ../solutions/R/mixed_models_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06b_ex1.py
+#| file: ../solutions/python/mixed_models_ex1.py
 ```
 :::
 :::
@@ -379,12 +381,12 @@ c) Refit the same data with an ordinary linear regression (`lm`) that ignores cl
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06b_ex2.R
+#| file: ../solutions/R/mixed_models_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06b_ex2.py
+#| file: ../solutions/python/mixed_models_ex2.py
 ```
 :::
 :::
@@ -403,12 +405,12 @@ b) Does allowing clinic-specific trends improve the model? What does your answer
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06b_ex3.R
+#| file: ../solutions/R/mixed_models_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06b_ex3.py
+#| file: ../solutions/python/mixed_models_ex3.py
 ```
 :::
 :::
@@ -428,12 +430,12 @@ c) Which would you report if a hospital manager asks "what happens to *this hosp
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch06b_ex4.R
+#| file: ../solutions/R/mixed_models_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch06b_ex4.py
+#| file: ../solutions/python/mixed_models_ex4.py
 ```
 :::
 :::

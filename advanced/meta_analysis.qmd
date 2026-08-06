@@ -68,9 +68,21 @@ Here $a, b, c, d$ are the cells of a 2x2 table (treatment events, treatment non-
 | Measure | Formula | When to use |
 |---|---|---|
 | **Mean difference (MD)** | $\bar{X}_T - \bar{X}_C$ | All studies use the same measurement scale |
-| **Standardised mean difference (SMD)** | $\frac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ | Studies use different scales for the same construct (e.g. different depression questionnaires) |
+| **Standardised mean difference (SMD)** | $\dfrac{\bar{X}_T - \bar{X}_C}{S_{\text{pooled}}}$ | Studies use different scales for the same construct (e.g. different depression questionnaires) |
 
-The SMD is also known as **Hedges' g** (with a small-sample correction) or **Cohen's d**.
+Here $\bar{X}_T$ and $\bar{X}_C$ are the average outcomes in the treatment and control groups. $S_{\text{pooled}}$ is the **pooled standard deviation**: how much patients within a group differ from one another, combined across the two arms.
+
+$$
+S_{\text{pooled}} = \sqrt{\frac{(n_T - 1)\,S_T^2 + (n_C - 1)\,S_C^2}{n_T + n_C - 2}}
+$$
+
+where $n_T$ and $n_C$ are the two group sizes and $S_T$ and $S_C$ the standard deviations *within* each group. It is essentially a sample-size-weighted average of those two standard deviations --- not the standard deviation of the difference, and not the standard error.
+
+Dividing by it is what makes different measurement scales comparable. Suppose one trial measured depression on a 0--63 questionnaire and improved scores by 6 points, while another used a 0--52 questionnaire and improved them by 4. Those raw numbers cannot be averaged together. But if patients within a group typically varied by 12 points on the first scale and 8 points on the second, then both trials moved patients by half of that typical variation, and the SMD is 0.5 in both. **The SMD expresses the effect in units of how much patients differ from each other**, so SMD = 0.5 means the average treated patient ended up half a standard deviation better off than the average control patient.
+
+The cost is interpretability. "Half a standard deviation" is not a clinical quantity, and it depends on how variable the recruited population happened to be: a trial with narrow eligibility criteria has a small $S_{\text{pooled}}$ and therefore reports a *larger* SMD for exactly the same real benefit. Use the plain mean difference whenever the studies share a scale.
+
+The SMD is also known as **Hedges' g** (with a small-sample correction applied, which is the version you should use) or **Cohen's d** (without it).
 
 ::: {.callout-warning}
 ## The effect measure is not just a presentation choice
@@ -110,19 +122,51 @@ We will build up the standard analysis, and only in @sec-meta-nonreporting revea
 
 The single most consequential choice in a meta-analysis is whether you assume the studies are all estimating *one* true effect or a *range* of true effects.
 
+The next few pages use a handful of Greek symbols, so here is the whole vocabulary in one place. You can read the rest of the chapter with nothing more than this.
+
+::: {.callout-note}
+## The symbols in this chapter, in words
+
+| Symbol | Read it as | What it means here |
+|---|---|---|
+| $\theta$ | "theta" | A **true effect** --- the answer we would get from an infinitely large, perfect study. Greek letters are for quantities that exist but are never observed. |
+| $\hat{\theta}$ | "theta hat" | An **estimate** of that effect, calculated from data actually collected. The hat always means "our best guess at, from a sample". |
+| $\theta_i$, $\hat{\theta}_i$ | "theta i" | The true effect, and the estimate, **in study number $i$**. The subscript just numbers the studies. |
+| $k$ | "k" | The **number of studies** being pooled (here, 16). |
+| $\hat{\sigma}_i^2$ | "sigma squared i" | Study $i$'s **within-study variance**: how much its own result would bounce around if that same trial were repeated. It is the square of the standard error, so a big trial has a *small* $\hat{\sigma}_i^2$. |
+| $\tau^2$, $\hat{\tau}^2$ | "tau squared" | The **between-study variance**: how much the true effects genuinely differ from one study to the next. |
+| $\mu$ | "mu" | The **average** of the true effects across studies --- what a random-effects model is actually estimating. |
+| $w_i$ | "w i" | The **weight** given to study $i$ when averaging. |
+| $\theta_i \sim N(\mu, \tau^2)$ | "theta i is normally distributed with mean mu and variance tau squared" | The true effects are scattered in a bell curve centred on $\mu$, whose width is $\tau$. |
+
+Whenever a formula looks opaque, read the hats as "estimated", the subscript $i$ as "for this one study", and $\sigma$ and $\tau$ as "noise within a study" and "real differences between studies". [Appendix B](../appendices/B_math_notation.qmd) has a fuller list for the rest of the book.
+:::
+
 **The fixed-effect model** assumes every study estimates the **same** true effect $\theta$; differences between results are pure sampling noise, like getting slightly different averages each time you measure the same group of patients. Weights are the inverse of the within-study variance:
 
 $$
 w_i^{\text{FE}} = \frac{1}{\hat{\sigma}_i^2}
 $$
 
-**The random-effects model** assumes each study estimates **its own** true effect $\theta_i$, and that these scatter around an overall average: $\theta_i \sim N(\mu, \tau^2)$. In plain terms, the treatment might genuinely work better in one population than another, so there is no single true number. Weights add the between-study variance:
+In words: **a study's weight is one divided by how noisy it is.** Halve a study's standard error --- which takes roughly four times as many patients --- and you quadruple its weight, because the variance is the standard error squared.
+
+**The random-effects model** assumes each study estimates **its own** true effect $\theta_i$, and that these scatter around an overall average: $\theta_i \sim N(\mu, \tau^2)$. In plain terms, the treatment might genuinely work better in one population than another, so there is no single true number to find; there is an average, and a spread around it. Weights add the between-study variance:
 
 $$
 w_i^{\text{RE}} = \frac{1}{\hat{\sigma}_i^2 + \hat{\tau}^2}
 $$
 
-$\tau^2$ (**tau-squared**) is the between-study variance: how much the true effects genuinely scatter, over and above sampling noise. If $\tau^2 = 0$, the random-effects model collapses back to the fixed-effect one.
+In words: **a study's weight is now one divided by (how noisy it is *plus* how much studies really differ).** The second term is the same for every study, because it is a property of the literature rather than of any one trial.
+
+$\tau^2$ (**tau-squared**) is that second term: how much the true effects genuinely scatter, over and above sampling noise. It is estimated from how widely the observed results disagree, after allowing for the noise you would expect anyway. If $\tau^2 = 0$ --- the studies agree no more and no less than chance predicts --- the random-effects model collapses back to the fixed-effect one.
+
+::: {.callout-note}
+## How this relates to mixed models, and one terminology trap
+
+If this feels like @sec-mixed-models, that is because it is the same machinery. A random-effects meta-analysis is a mixed model in which each **study** plays the part of a cluster, $\tau^2$ is the between-cluster variance, and the within-cluster variances $\hat{\sigma}_i^2$ are taken as already known rather than estimated from raw patient data. Partial pooling is what the weights $w_i^{\text{RE}}$ are doing, and $I^2$ (below) has the same shape as the intraclass correlation: between-variance over total variance. @sec-meta-bayesian fits precisely that model, with the same `(1 | cluster)` syntax the mixed-models chapter used for clinics.
+
+The trap is the word "fixed". In a mixed model, **fixed effects** are the population-average coefficients you care about, and they sit *alongside* random effects in the same model. In meta-analysis, the **fixed-effect model** is a *rival* to the random-effects model, meaning "assume one single true effect for all studies". Same word, unrelated meaning --- which is part of why Cochrane writes "fixed-effect" in the singular for this sense.
+:::
 
 ::: {.callout-important}
 ## Adding $\hat\tau^2$ to every study levels the weights --- and that cuts both ways
@@ -286,9 +330,9 @@ The **forest plot** is the one figure almost every systematic review puts front 
 #| label: fig-forest-schematic
 #| echo: false
 #| eval: true
-#| fig-cap: "How to read a forest plot. Each row is one study: the box marks its effect estimate and its **area** is that study's weight, the whisker is the 95% confidence interval. The diamond is the pooled estimate. The red bar is the prediction interval --- the range in which a *new* study's true effect would be expected to fall, which is wider than the confidence interval and is the number you should look at when deciding whether the result transfers to your own setting."
+#| fig-cap: "How to read a forest plot. Each row is one study: the box marks its effect estimate and its **area** is that study's weight, the whisker is the 95% confidence interval. The vertical grey line is the no-effect line (a risk ratio of 1, meaning treatment and control fared identically); a whisker crossing it means that study alone cannot rule out no effect. The diamond is the pooled estimate. The red bar is the prediction interval --- the range in which a *new* study's true effect would be expected to fall. It is wider than the pooled confidence interval because it carries a second source of uncertainty on top of the first: not just *how precisely we know the average effect*, but *how much the true effect genuinely varies from setting to setting*. @sec-meta-prediction-interval works through the formula. It is the number to look at when deciding whether a result will transfer to your own patients."
 #| fig-width: 10
-#| fig-height: 4.7
+#| fig-height: 5.0
 
 op <- par(mar = c(4.2, 9.5, 2.2, 8.5), xpd = NA)
 
@@ -303,9 +347,10 @@ n <- nrow(studies)
 ys <- rev(seq_len(n)) + 1.6
 xlim <- c(0.1, 3.0)
 
-plot(NA, xlim = log(xlim), ylim = c(-0.5, n + 3.0), axes = FALSE,
+plot(NA, xlim = log(xlim), ylim = c(-0.5, n + 3.6), axes = FALSE,
      xlab = "Risk ratio (log scale)", ylab = "")
-abline(v = 0, col = "grey45", lwd = 1.4)
+# The no-effect line, drawn only across the rows (not through the axis below).
+segments(0, -0.35, 0, n + 3.2, col = "grey45", lwd = 1.4)
 axis(1, at = log(c(0.125, 0.25, 0.5, 1, 2)), labels = c(0.125, 0.25, 0.5, 1, 2))
 
 for (i in seq_len(n)) {
@@ -334,8 +379,10 @@ ann <- function(x, y, lab, dx, dy, col = "#b5651d") {
   text(x + dx, y + dy, lab, col = col, cex = 0.82, adj = if (dx > 0) 0 else 1, font = 3)
 }
 ann(log(studies$rr[4]), ys[4], "box area = this trial's weight", -0.55, -0.85)
-ann(log(studies$hi[1]), ys[1], "whisker = 95% CI", 0.38, 0.60)
-ann(0, n + 1.5, "no effect", -0.42, 0.85, col = "grey35")
+ann(log(studies$lo[2]), ys[2], "whisker = 95% CI", -0.15, -0.52)
+# Label the null line in the empty band above the study rows, so the arrow does
+# not land on top of the first study's whisker (which crosses the line).
+ann(0, n + 2.9, "no-effect line (RR = 1)", -0.30, 0, col = "grey35")
 par(op)
 ```
 
@@ -385,11 +432,33 @@ Three statistics get reported, and they answer three genuinely different questio
 | **$I^2$** | *What proportion of the observed scatter is real rather than sampling noise?* | **Not** how much the effect varies. A relative quantity: it can be 90% with trivial variation, or 0% with large variation, depending on how precise the studies are. |
 | **$\tau^2$ / $\tau$** | *How much do the true effects vary?* An absolute measure, on the effect scale. | Hard to interpret directly on a log scale. |
 
+All three are built from one quantity, $Q$, so it is worth taking that apart slowly.
+
 $$
-Q = \sum_{i=1}^{k} w_i^{\text{FE}} (\hat{\theta}_i - \hat{\theta}_{\text{FE}})^2,
-\qquad
-I^2 = \max\left(0, \frac{Q - (k-1)}{Q}\right) \times 100\%
+\underbrace{Q}_{\substack{\text{total observed} \\ \text{disagreement}}}
+\;=\; \sum_{i=1}^{k}
+\underbrace{w_i^{\text{FE}}}_{\substack{\text{precise studies} \\ \text{count for more}}}
+\times
+\underbrace{\left(\hat{\theta}_i - \hat{\theta}_{\text{FE}}\right)^2}_{\substack{\text{squared distance from} \\ \text{the pooled estimate}}}
 $$
+
+Term by term:
+
+- $(\hat{\theta}_i - \hat{\theta}_{\text{FE}})^2$ is how far study $i$ landed from the pooled result, squared --- so that falling short and overshooting both count as disagreement.
+- Multiplying by $w_i^{\text{FE}} = 1/\hat{\sigma}_i^2$ says that a *precise* study sitting far from the pooled estimate is more surprising than an imprecise one doing the same. Each term is therefore a distance measured in units of that study's own noise.
+- That scaling is what makes $Q$ interpretable. If every study really were estimating the same effect, each term would average about 1, so the whole sum would average about $k - 1$ (one degree of freedom goes on estimating the pooled effect itself). **So compare $Q$ with $k-1$: the excess is disagreement that sampling noise cannot account for.** On the magnesium data $Q = 45.1$ against $k - 1 = 15$ --- three times what noise alone would produce, hence $p = 0.0001$.
+
+Both summary statistics are then built from that same excess, $Q - (k-1)$:
+
+$$
+I^2 = \frac{\overbrace{Q - (k-1)}^{\text{excess over noise}}}{\underbrace{Q}_{\text{total disagreement}}} \times 100\%
+\qquad\qquad
+\hat{\tau}^2 = \frac{\overbrace{Q - (k-1)}^{\text{excess over noise}}}{\underbrace{C}_{\substack{\text{scaling constant} \\ \text{(see below)}}}}
+$$
+
+where $C = \sum_i w_i - \left(\sum_i w_i^2 \big/ \sum_i w_i\right)$, and both quantities are set to zero if the excess comes out negative, which sampling noise alone can produce. (This is the DerSimonian-Laird version of $\hat{\tau}^2$, the one you can compute by hand; REML, which is preferred, solves for it iteratively instead.)
+
+**Same numerator, different denominators --- and that is the entire distinction between the two.** Dividing the excess by $Q$ gives a *proportion*: what share of the disagreement we can see is real rather than noise (66.7% here). Dividing it instead by $C$ rescales the excess into a *variance on the effect scale* (0.174 by this formula, 0.227 by REML), which is an amount rather than a share. This is why $I^2$ can be large when the true effects barely differ and small when they differ a lot: recruit ten times as many patients per trial and $Q$ --- the denominator --- grows, so $I^2$ rises, without the true effects having moved at all.
 
 ::: {.callout-important}
 ## $I^2$ does not tell you how much the effect varies
@@ -401,15 +470,28 @@ The reason is that $I^2$ is a **ratio**, not an amount. It is the share of obser
 The statistic that answers "how much does the effect vary?" is the **prediction interval**. Report it. Use $I^2$, if at all, only to say what fraction of the scatter is signal.
 :::
 
-### The prediction interval
+### The prediction interval {#sec-meta-prediction-interval}
 
 The confidence interval describes the *average* true effect. The **prediction interval** answers the question a clinician actually has: if this treatment were used in a new setting tomorrow, what range of true effects might we see?
 
 $$
-\hat{\mu} \;\pm\; \underbrace{t_{k-2,\,0.975}}_{\substack{\text{t multiplier, } k-2 \text{ degrees}\\ \text{of freedom (we estimated}\\ \text{both } \mu \text{ and } \tau^2)}} \times \underbrace{\sqrt{\text{SE}(\hat{\mu})^2 + \hat{\tau}^2}}_{\substack{\text{uncertainty in the average,}\\ \text{PLUS genuine variation}\\ \text{between settings}}}
+\underbrace{\hat{\mu}}_{\substack{\text{estimated average} \\ \text{true effect}}} \;\pm\; \underbrace{t_{k-2,\,0.975}}_{\substack{\text{multiplier, } k-2 \text{ degrees}\\ \text{of freedom (we estimated}\\ \text{both } \mu \text{ and } \tau^2)}} \times \underbrace{\sqrt{\underbrace{\text{SE}(\hat{\mu})^2}_{\substack{\text{we are unsure} \\ \text{of the average}}} + \underbrace{\hat{\tau}^2}_{\substack{\text{settings genuinely} \\ \text{differ}}}}}_{\substack{\text{total spread of a new} \\ \text{setting's true effect}}}
 $$
 
-The extra $\hat{\tau}^2$ under the square root is the whole point: the confidence interval shrinks towards zero width as you add studies, but the prediction interval does not, because real between-setting variation does not go away no matter how much you measure it [@riley2011interpretation; @inthout2016prediction].
+Read it as three pieces.
+
+$\hat{\mu}$, the centre, is just the random-effects pooled estimate --- the same number the confidence interval is built around. A prediction interval is not a different estimate; it is the same estimate with a wider ruler.
+
+The **square-root term is where the intuition lives.** There are two independent reasons a new setting's true effect might not equal $\hat{\mu}$: we do not know $\mu$ exactly (that is $\text{SE}(\hat{\mu})^2$), *and* the truth genuinely differs from place to place even if we did know $\mu$ (that is $\hat{\tau}^2$). Independent uncertainties add as variances, not as widths --- the same reason a journey made of two uncertain legs is less uncertain than the sum of its two worst cases --- so the two terms are added under the square root rather than added directly. A useful consequence: whichever term is much the larger dominates. Here $\text{SE}(\hat{\mu})^2 = 0.036$ against $\hat{\tau}^2 = 0.227$, so roughly six-sevenths of the width comes from genuine between-setting variation, not from our ignorance about the average.
+
+The **$t$ multiplier** plays the role that 1.96 plays in an ordinary confidence interval, but it is larger, because $\hat{\tau}^2$ is itself an estimate from only $k$ studies. With 16 trials it is 2.15 rather than 1.96; with 5 trials it would be 3.18. Few studies means an untrustworthy estimate of how much settings differ, and the multiplier says so.
+
+The extra $\hat{\tau}^2$ under the square root is the whole point, and it is why the prediction interval in @fig-forest-schematic is drawn wider than the diamond: the confidence interval shrinks towards zero width as you add studies, because $\text{SE}(\hat{\mu})$ does, but the prediction interval does not, because real between-setting variation does not go away no matter how precisely you measure it [@riley2011interpretation; @inthout2016prediction]. An infinite number of studies would tell you the average effect exactly and still leave you unsure what the next hospital will see.
+
+::: {.callout-note}
+## Which prediction-interval formula your software uses
+The form above is the original one [@riley2011interpretation], and it is what the Python tab computes by hand. `meta` 8.x defaults to a refinement (`method.predict = "V"`) that uses $k-1$ degrees of freedom and a slightly different variance for $\hat{\mu}$, on the grounds of better coverage [@partlett2017random]. On these data the two agree closely --- 0.170 to 1.536 versus 0.171 to 1.526 --- and the choice between them matters far less than reporting an interval at all. Say which you used.
+:::
 
 For the magnesium data:
 
@@ -425,9 +507,17 @@ Read the last two rows together. The confidence interval says the *average* effe
 
 ## Investigating Heterogeneity
 
-When heterogeneity is substantial, the useful question is not "how big is $I^2$" but "*what* differs between these studies". Two tools:
+When heterogeneity is substantial, the useful question is not "how big is $I^2$" but "*what* differs between these studies?" A characteristic that might explain the differences is called a **moderator**. It is a property of the *study*, not of an individual patient: the year the trial ran, the dose used, the average age of the population it recruited, its risk-of-bias rating.
 
-**Subgroup analysis** splits the studies by a characteristic and compares pooled effects. **Meta-regression** models the effect as a function of a study-level covariate, which is the same idea for a continuous moderator. Both should be **pre-specified**; with a handful of studies and a free choice of moderator you will always find something.
+There are two ways to test a moderator, and they are one idea applied to two kinds of variable.
+
+**Subgroup analysis** is for a *categorical* moderator. Split the studies into groups --- trials in hospital settings versus trials in primary care, high dose versus low dose --- pool each group separately, then test whether the group estimates differ by more than chance. It answers: *does the effect differ between these kinds of study?*
+
+**Meta-regression** is for a *continuous* moderator. Rather than splitting, it fits a weighted straight line across the studies, with the moderator on the horizontal axis and each study's effect estimate on the vertical, again giving precise studies more say. The slope says how much the effect changes per unit of the moderator --- "the log risk ratio rose by 0.05 for each later calendar year". It answers: *does the effect trend with this quantity?*
+
+The two are faces of the same model: a subgroup analysis with two groups **is** a meta-regression on a 0/1 indicator, and the test for a subgroup difference is the test of that indicator's slope. Choose subgroups when the moderator really is categorical, and meta-regression when chopping a continuous variable at an arbitrary cut-point would throw information away --- the same argument @sec-splines makes for patient-level data.
+
+Two constraints on both. They should be **pre-specified**: with a handful of studies and a free choice of moderator, you will always find something. And you have far less power than the patient counts suggest, because the unit of analysis is the *study*, not the patient --- 16 trials give you 16 data points for the line. A common rule of thumb is at least ten studies per moderator examined [@cochrane2024handbook].
 
 ```{r}
 #| label: mag-moderators
@@ -469,6 +559,111 @@ First, the honest one: splitting by trial size is a **diagnostic**, not a pre-sp
 Second, the **ecological fallacy**. Study-level associations do not imply individual-level ones. If trials with older populations show larger effects, that does *not* establish that older individuals benefit more --- the trials may differ in a dozen other ways. This is a fundamental limitation of aggregate-data meta-analysis, and the reason individual participant data (@sec-meta-next-steps) is worth the effort when the question is about who benefits.
 :::
 
+## Bayesian Meta-Analysis {#sec-meta-bayesian}
+
+You have already met everything needed for this. A random-effects meta-analysis **is** a hierarchical model --- statisticians call this particular one the normal-normal hierarchical model --- which is exactly the object @sec-bayesian-inference introduced, so the Bayesian version is not a new method. It is the same two lines of model, fitted the way that chapter fitted things [@sutton2001bayesian].
+
+Written out, the model is:
+
+$$
+\underbrace{\hat{\theta}_i \sim N(\theta_i,\; \hat{\sigma}_i^2)}_{\substack{\text{what we observe: each study's estimate} \\ \text{scatters around its own true effect}}}
+\qquad\qquad
+\underbrace{\theta_i \sim N(\mu,\; \tau^2)}_{\substack{\text{what we assume: the true effects} \\ \text{scatter around an average}}}
+$$
+
+The second line is the random-effects assumption from earlier in this chapter, unchanged. The difference is what happens to $\mu$ and $\tau$. The frequentist route estimates $\tau^2$ once, by REML, and then treats that single number as though it were known when computing everything downstream --- the Hartung-Knapp adjustment is a partial patch for exactly this [@inthout2014hksj]. The Bayesian route puts a prior on $\mu$ and on $\tau$ and returns a joint posterior, so uncertainty about how much studies differ is carried through to every number you report. This is the main argument @higgins2009reevaluation make for the approach, and the reason it is standard practice when studies are few [@rover2021weakly].
+
+Three things you get for the trouble:
+
+1. **Honest uncertainty about $\tau$.** With few studies, $\tau^2$ is the weakest quantity in a meta-analysis, and the frequentist interval's coverage suffers for it. A posterior gives you an interval for $\tau$ instead of a point.
+2. **Direct probability statements.** "There is a 99% probability the risk ratio is below 1" is a sentence a frequentist analysis cannot produce, and a clinician immediately understands.
+3. **The prediction interval for free.** Draw $\mu$ and $\tau$ from the posterior, then draw a new $\theta_{\text{new}} \sim N(\mu, \tau^2)$ for each --- and you have the distribution of the true effect in a new setting (@sec-meta-prediction-interval), with no $t$ approximation needed. @higgins2009reevaluation argue this predictive distribution, not the confidence interval for $\mu$, is the result a random-effects meta-analysis should lead with.
+
+```{r}
+#| label: mag-bayes
+#| eval: false
+
+library(brms)      # installed by scripts/post_install.sh, not from conda;
+library(metafor)   # needs a working C++ toolchain (see the setup chapter)
+
+# escalc() turns the 2x2 counts into log risk ratios (yi) and their variances
+# (vi); it adds 0.5 to the trial with a zero cell, as metabin() did.
+es <- escalc(measure = "RR", ai = ai, n1i = n1i, ci = ci, n2i = n2i,
+             data = dat.egger2001)
+es$sei   <- sqrt(es$vi)
+es$trial <- paste(es$study, es$year)
+
+# yi | se(sei)  -- the outcome is an estimate whose standard error we already
+#                  know, so brms should not try to estimate residual noise
+# (1 | trial)   -- each trial gets its own true effect; the SD of these IS tau
+fit <- brm(
+  yi | se(sei) ~ 1 + (1 | trial),
+  data  = es,
+  prior = c(prior(normal(0, 1),   class = Intercept),  # prior on mu
+            prior(normal(0, 0.5), class = sd)),        # prior on tau (half-normal)
+  chains = 4, iter = 4000, warmup = 1000, seed = 24,
+  control = list(adapt_delta = 0.95)
+)
+
+draws <- as_draws_df(fit)
+mu  <- draws$b_Intercept            # average log risk ratio
+tau <- draws$sd_trial__Intercept    # between-study SD
+
+cat(sprintf("Pooled RR %.3f (95%% CrI %.3f to %.3f)\n",
+            exp(median(mu)), exp(quantile(mu, .025)), exp(quantile(mu, .975))))
+cat(sprintf("tau       %.3f (95%% CrI %.3f to %.3f)\n",
+            median(tau), quantile(tau, .025), quantile(tau, .975)))
+cat(sprintf("P(RR < 1) = %.3f   P(RR < 0.9) = %.3f\n",
+            mean(mu < 0), mean(mu < log(0.9))))
+
+# Posterior predictive effect in a NEW setting = the prediction interval.
+# One draw of theta_new per posterior draw of (mu, tau), so the interval carries
+# uncertainty about tau rather than fixing it at a point estimate.
+set.seed(24)
+theta_new <- rnorm(length(mu), mu, tau)
+cat(sprintf("New-setting interval: %.3f to %.3f\n",
+            exp(quantile(theta_new, .025)), exp(quantile(theta_new, .975))))
+```
+
+**Two notes on the priors**, since they are the only genuinely new decision here.
+
+`normal(0, 1)` on $\mu$ is on the log scale, so it says the risk ratio is probably somewhere between about 0.14 and 7 --- wide enough to be uninformative about any plausible clinical effect.
+
+`normal(0, 0.5)` on `class = sd` is automatically truncated at zero by brms, making it a **half-normal** prior on $\tau$ with scale 0.5. That is not an arbitrary choice: the half-normal family is the one generally recommended for $\tau$ in this model, and for effect measures on a log scale a scale of 0.5 is the specific weakly informative default that @rover2021weakly arrive at --- it puts most of its mass on heterogeneity in the "reasonable to fairly high" range and only 4.6% above $\tau = 1$. It expects some heterogeneity while treating a great deal of it as unlikely. With few studies this prior does real work, and the better move is then an *informative* one drawn from the empirical distribution of $\tau$ across comparable meta-analyses [@turner2012predicting] rather than any generic default.
+
+**What the code shows.** The Bayesian and frequentist answers land in nearly the same place:
+
+| | Bayesian (brms) | Frequentist (REML + Hartung-Knapp) |
+|---|---|---|
+| Pooled RR | 0.541 (95% CrI 0.347 to 0.781) | 0.511 (95% CI 0.356 to 0.735) |
+| $\tau$ | 0.459 (95% CrI **0.217 to 0.837**) | 0.476 (point estimate) |
+| Effect in a new setting | 0.168 to 1.537 | 0.171 to 1.526 |
+| $P(\text{RR} < 1)$ | $> 0.999$ | not available |
+
+Look at the $\tau$ row: the frequentist analysis reports one number, the Bayesian one reports 0.22 to 0.84. Between-study variation could be half what REML estimated or nearly double it, and *that* is the uncertainty the prediction interval depends on. With sixteen studies the two approaches agree closely, which is the expected result and a good sanity check. With five studies they would not, and the Bayesian version would be the more honest of the two.
+
+Because the prior on $\tau$ matters most when it matters at all, refit with a different one and report both:
+
+```{r}
+#| label: mag-bayes-sensitivity
+#| eval: false
+
+# A heavier-tailed prior that allows much larger heterogeneity
+fit2 <- update(fit, prior = c(prior(normal(0, 1), class = Intercept),
+                              prior(student_t(3, 0, 1), class = sd)), seed = 24)
+#> Pooled RR 0.530 (95% CrI 0.332 to 0.775), tau 0.500
+```
+
+Barely moves --- with sixteen studies the data, not the prior, is deciding. That sentence is only worth writing because you checked.
+
+::: {.callout-warning}
+## What the Bayesian version does not fix
+
+Read that $P(\text{RR} < 1) > 0.999$ again. The model is more than 99.9% certain that magnesium reduces mortality after a heart attack.
+
+It is wrong, and the next section explains why. Priors express uncertainty about *parameters*; they say nothing about studies that were run and never published. Any model --- REML, Hartung-Knapp, Bayesian, whatever comes next --- fitted to a biased set of studies returns a confident, well-calibrated-looking answer about the wrong quantity. **A more careful model is not a substitute for a more complete set of studies.**
+:::
+
 ## Small-Study Effects and Non-Reporting Bias {#sec-meta-nonreporting}
 
 ::: {.callout-note}
@@ -480,7 +675,13 @@ Studies with positive, statistically significant results are more likely to be p
 
 ### Funnel plots
 
-A **funnel plot** puts each study's effect estimate on the x-axis against its precision on the y-axis (inverted, so the most precise studies sit at the top). With no small-study effects, it should look like a symmetric inverted funnel: precise studies clustered tightly at the top, imprecise ones fanning out evenly below.
+A **funnel plot** puts each study's effect estimate on the horizontal axis and its **standard error** on the vertical axis, upside down, so the most precise studies sit at the top.
+
+That vertical axis is study size in disguise. A standard error shrinks roughly in proportion to $1/\sqrt{n}$, so a trial with four times as many patients has half the standard error. Big trials therefore have small standard errors and sit near the top of the plot; small trials have large ones and sit near the bottom.
+
+**Why the boundary lines are diagonal.** Suppose every study really is estimating the same effect. A study with standard error SE would then land within roughly $\pm 1.96 \times \text{SE}$ of that common effect 95% of the time. Now read that as you move down the plot: at the very top SE is nearly zero, so the scatter a study is allowed is nearly zero; halfway down, SE is half its largest value, so the allowed scatter is half as wide as at the bottom. The permitted spread grows *in direct proportion to* SE --- and a quantity growing in direct proportion draws a straight line. Two of them, one per side, meeting at the apex: a triangle, or an inverted funnel.
+
+With no small-study effects, the studies should fill that triangle **symmetrically** --- a tight cluster at the top, fanning out evenly to left and right further down. It is the asymmetry, not the funnel shape itself, that you are looking for.
 
 ::: {.panel-tabset}
 
@@ -489,15 +690,33 @@ A **funnel plot** puts each study's effect estimate on the x-axis against its pr
 ```{r}
 #| label: fig-funnel-magnesium
 #| eval: true
-#| fig-cap: "Funnel plot of the magnesium trials. Each dot is one trial, plotted by its effect estimate against its standard error, with the most precise trials at the top. The diagonal dashed lines are the pseudo-95% confidence region: the range in which trials of a given precision would be expected to scatter if they were all estimating the same effect. The vertical dashed line is the fixed-effect estimate (1.01), the dotted one the random-effects estimate (0.51) --- their separation is the same disagreement seen in the table above. Read the bottom of the plot, where the imprecise small trials live: the left side (benefit) is populated and the right side (no benefit) is nearly empty."
+#| fig-cap: "Funnel plot of the magnesium trials. Each dot is one trial, plotted by its effect estimate (horizontal) against its standard error (vertical, inverted) --- so the largest trials sit at the top, because more patients means a smaller standard error. The grey dashed diagonals are the pseudo-95% funnel: the range in which trials of a given precision would be expected to scatter *if they were all estimating the same effect*. The grey dashed vertical line is the fixed-effect estimate (1.01) that the funnel is centred on; the solid red line is the random-effects estimate (0.51), and their separation is the same disagreement seen in the table above. Read the bottom of the plot, where the imprecise small trials live: the left side (benefit) is populated and the right side (no benefit) is empty."
 #| fig-width: 8
 #| fig-height: 5.5
 
+# The three reference lines are deliberately styled to be told apart: the funnel
+# edges and the fixed-effect line share a grey dashed look (the funnel is drawn
+# around the fixed-effect estimate), while the random-effects estimate is solid
+# red. ref = NA suppresses meta's no-effect line, which here would sit almost
+# exactly on top of the fixed-effect line (1.006 versus 1.000) and add nothing
+# but confusion.
 funnel(m,
   xlab = "Risk ratio (log scale)",
+  ylab = "Standard error (larger trials sit higher up)",
   level = 0.95,        # draw the pseudo-95% confidence funnel
-  studlab = FALSE
+  studlab = FALSE,
+  bg = "#2c3e50", col = "black",
+  col.common = "grey50", lty.common = 2, lwd.common = 1.6,
+  col.random = "#b02a2a", lty.random = 1, lwd.random = 1.8,
+  ref = NA
 )
+legend("topleft", bty = "n", cex = 0.8, inset = c(0, 0.03),
+       legend = c("Fixed effect (1.01) + 95% funnel", "Random effects (0.51)"),
+       col = c("grey50", "#b02a2a"), lty = c(2, 1), lwd = c(1.6, 1.8))
+# Note: funnel() plots on the risk-ratio scale with a log axis, so annotation
+# coordinates are risk ratios, not log risk ratios.
+text(3.5, 1.30, "the small trials that\nfound nothing are\nnot here",
+     col = "grey35", cex = 0.8, font = 3)
 ```
 
 ### Python
@@ -505,7 +724,7 @@ funnel(m,
 ```{python}
 #| label: fig-funnel-py
 #| eval: true
-#| fig-cap: "The same funnel plot built from scratch with matplotlib."
+#| fig-cap: "The same funnel plot built from scratch with matplotlib. Drawing it by hand shows where the triangle comes from: the funnel edges are simply the fixed-effect estimate plus and minus 1.96 standard errors, evaluated down the range of standard errors present in the data --- a straight line on each side, because the permitted scatter grows in direct proportion to the standard error."
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -513,18 +732,28 @@ import matplotlib.pyplot as plt
 se = np.sqrt(var)
 fig, ax = plt.subplots(figsize=(7.5, 5.5))
 
-# pseudo-confidence region around the fixed-effect estimate
+# The pseudo-95% funnel: +-1.96 SE either side of the fixed-effect estimate,
+# traced down the range of standard errors. This is the line that makes the
+# triangle -- the wider a study's SE, the further it is allowed to scatter.
 se_grid = np.linspace(0.001, se.max() * 1.05, 100)
-for z, shade in [(1.96, "0.85"), (2.58, "0.92")]:
-    ax.fill_betweenx(se_grid, te_fe - z * se_grid, te_fe + z * se_grid,
-                     color=shade, zorder=0)
+ax.fill_betweenx(se_grid, te_fe - 1.96 * se_grid, te_fe + 1.96 * se_grid,
+                 color="#eff2f5", zorder=0)
+ax.plot(te_fe - 1.96 * se_grid, se_grid, color="grey", lw=1.3, ls="--", zorder=1)
+ax.plot(te_fe + 1.96 * se_grid, se_grid, color="grey", lw=1.3, ls="--", zorder=1,
+        label="95% funnel around the fixed-effect estimate")
 
-ax.scatter(log_rr, se, s=28, color="#2c3e50", zorder=3)
-ax.axvline(te_fe, color="grey", lw=1.2, ls="--", zorder=2)
-ax.invert_yaxis()                     # most precise studies at the top
+# Two estimates, styled so they cannot be mistaken for each other or the funnel
+ax.axvline(te_fe, color="grey", lw=1.4, ls="--", zorder=2,
+           label=f"Fixed effect ({np.exp(te_fe):.2f})")
+ax.axvline(te_re, color="#b02a2a", lw=1.8, ls="-", zorder=2,
+           label=f"Random effects ({np.exp(te_re):.2f})")
+
+ax.scatter(log_rr, se, s=30, color="#2c3e50", zorder=3, label="Trials")
+ax.invert_yaxis()                     # most precise (largest) studies at the top
 ax.set_xlabel("log risk ratio")
-ax.set_ylabel("Standard error (precision increases upwards)")
+ax.set_ylabel("Standard error (larger trials sit higher up)")
 ax.set_title("Funnel plot: magnesium trials")
+ax.legend(loc="upper left", frameon=False, fontsize=8)
 plt.tight_layout()
 plt.show()
 ```
@@ -594,7 +823,7 @@ This chapter deliberately stops at aggregate-data meta-analysis of one compariso
 |---|---|---|
 | **Network meta-analysis** | Which of several treatments is best, when few have been compared head to head? Combines direct and indirect evidence. | `netmeta` in R; @salanti2012network. Check the network is connected and that transitivity is plausible before believing any ranking. |
 | **Individual participant data (IPD) meta-analysis** | *Who* benefits? Needs raw patient-level data from each study, which avoids the ecological fallacy. | @riley2019prognostic, @riley2020ipdinteractions; one-stage mixed models or two-stage pooling. |
-| **Bayesian meta-analysis** | The same random-effects model, but with a prior on $\tau^2$ --- which is exactly what you want when there are too few studies to estimate heterogeneity well. | `brms` or `bayesmeta` in R. The natural sequel to @sec-bayesian-inference: a random-effects meta-analysis *is* a hierarchical model. |
+| **Bayesian meta-analysis** (covered in @sec-meta-bayesian) | The same random-effects model, but with a prior on $\tau$ --- which is what you want when there are too few studies to estimate heterogeneity well. | `bayesmeta` in R is a lighter alternative to the `brms` fit shown above; for informative priors on $\tau$, see @turner2012predicting. |
 | **Dose-response meta-analysis** | Is there a gradient rather than a yes/no effect? | `dosresmeta` in R. |
 | **Prognostic and prediction-model reviews** | Does a published model work elsewhere? | @riley2019prognostic; connects directly to @sec-performance-validation. |
 
@@ -616,12 +845,12 @@ d) In one sentence each, write what you would tell a guideline committee based o
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch18_ex1.R
+#| file: ../solutions/R/meta_analysis_ex1.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch18_ex1.py
+#| file: ../solutions/python/meta_analysis_ex1.py
 ```
 :::
 :::
@@ -642,12 +871,12 @@ d) Compare your numbers with `metabin(..., method.tau = "DL")`. They should agre
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch18_ex2.R
+#| file: ../solutions/R/meta_analysis_ex2.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch18_ex2.py
+#| file: ../solutions/python/meta_analysis_ex2.py
 ```
 :::
 :::
@@ -668,12 +897,12 @@ d) You now have 15 studies, an apparently large benefit, and an asymmetric funne
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch18_ex3.R
+#| file: ../solutions/R/meta_analysis_ex3.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch18_ex3.py
+#| file: ../solutions/python/meta_analysis_ex3.py
 ```
 :::
 :::
@@ -695,12 +924,12 @@ e) Would you change your practice on the strength of this paper? Say what would 
 #### R
 ```{r}
 #| eval: false
-#| file: ../solutions/R/ch18_ex4.R
+#| file: ../solutions/R/meta_analysis_ex4.R
 ```
 #### Python
 ```{python}
 #| eval: false
-#| file: ../solutions/python/ch18_ex4.py
+#| file: ../solutions/python/meta_analysis_ex4.py
 ```
 :::
 :::
@@ -718,6 +947,7 @@ e) Would you change your practice on the strength of this paper? Say what would 
 | $I^2$ | The *proportion* of scatter that is real. **Not** how much the effect varies |
 | Prediction interval | The range a new study's true effect might fall in. Report it alongside the CI |
 | Cochran's $Q$ | A test for any heterogeneity, not a measure of its size |
+| Bayesian version | The same hierarchical model with priors on $\mu$ and $\tau$; gives an interval for $\tau$ and direct probability statements. Report prior sensitivity |
 | Small-study effects | Effects shrinking as trials get larger; the funnel plot's real subject |
 | Asymmetry tests | Need $k \ge 10$; use Harbord or Peters for binary outcomes, not Egger |
 | Trim-and-fill | A fragility check, not a correction; not in current Cochrane guidance |
@@ -738,7 +968,8 @@ e) Would you change your practice on the strength of this paper? Say what would 
 - For systematic review methodology and current guidance on missing evidence, see @cochrane2024handbook; for reporting, see @page2021prisma.
 - For the random-effects model, see @dersimonian1986; for choosing a $\tau^2$ estimator, see @veroniki2016methods; and for the confidence-interval method, see @inthout2014hksj.
 - For heterogeneity, read @borenstein2024mistakes (or the shorter @borenstein2023heterogeneity) on why $I^2$ is not a measure of how much the effect varies, alongside @higgins2003inconsistency for the original $I^2$ paper.
-- For prediction intervals, see @riley2011interpretation and @inthout2016prediction.
+- For prediction intervals, see @riley2011interpretation and @inthout2016prediction; for the variants that software actually implements, see @partlett2017random.
+- For Bayesian meta-analysis, start with @higgins2009reevaluation on why the predictive distribution is the quantity of interest and @sutton2001bayesian for the hierarchical-model framing; for priors on between-study heterogeneity, see @rover2021weakly and @turner2012predicting; and @harrer2021doing for further worked `brms` code.
 - For funnel plot asymmetry, see @egger1997bias for the original test and @harbord2006modified and @peters2006comparison for the versions appropriate to binary outcomes.
 - For the running example, see @egger2001systematic for the dataset and @isis4 for the trial that settled the question.
 - For network meta-analysis, see @salanti2012network; for individual participant data, see @riley2019prognostic and @riley2020ipdinteractions.
