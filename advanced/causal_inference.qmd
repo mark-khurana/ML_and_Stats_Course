@@ -90,10 +90,12 @@ The modern causal inference framework, formalised by Rubin (1974) and extended b
 
 The **individual causal effect** is the difference between these two, $Y^{a=1} - Y^{a=0}$. The catch is that a patient is either treated or not --- we only ever see one of the two outcomes, never both. (Imagine wanting to know whether a specific patient's statin prevented their heart attack: we cannot rewind and rerun their life without the drug.) This is the **fundamental problem of causal inference**.
 
-We cannot get the effect for one person, but we *can* estimate an average. Before writing that down, it is worth pausing on the notation, because three symbols do all the work in this chapter and none of them are as forbidding as they look.
+We cannot get the effect for one person, but we *can* estimate an average. Before writing that down, it is worth pausing on the notation, because a handful of symbols do all the work in this chapter and none of them are as forbidding as they look.
 
 ::: {.callout-note}
-## Reading the notation: three symbols, in plain English
+## Reading the notation, in plain English
+
+**$A$, $Y$ and $L$ --- treatment, outcome, and everything measured beforehand.** These three letters stand in for the three roles every causal question has. $A$ is the treatment or exposure ($A = 1$ treated, $A = 0$ untreated) --- a statin, insulin, an ACE inhibitor. $Y$ is the outcome --- death, HbA1c, acute kidney injury. $L$ is the collection of patient characteristics recorded *before* treatment, such as age, comorbidities and baseline labs; it is a bundle of variables rather than a single one, which is why you will see "adjust for $L$" meaning "adjust for all of them together".
 
 **$E[\,\cdot\,]$ --- "the average of, across everybody".** $E$ stands for *expectation*, which is statisticians' word for a population average. If $Y$ is 1 for a patient who dies and 0 for one who survives, then $E[Y]$ is just the proportion who die --- the mortality rate. Nothing more exotic than that. So whenever you see $E[\ldots]$, read it as "the average value of $\ldots$ if we could look at the whole population".
 
@@ -225,9 +227,9 @@ explain("Either one gets you into clinic, so\nstudying only clinic patients\nINV
 verdict("DO NOT adjust", "#b02a2a")
 ```
 
-**1. Confounders (common causes) --- adjust.** A variable with an arrow into both treatment and outcome. If `L` is diabetes severity, `A` is insulin therapy, and `Y` is HbA1c, then sicker patients both get insulin and have worse HbA1c anyway. Leave `L` alone and insulin will look useless or harmful.
+**1. Confounders (common causes) --- adjust.** A variable with an arrow into both the treatment and the outcome. In the first panel of @fig-dag-structures, diabetes severity is a common cause of insulin therapy and of HbA1c: sicker patients are more likely to be started on insulin, *and* they tend to have a higher HbA1c whatever the insulin does. Leave diabetes severity out of the analysis and insulin will look useless, or even harmful.
 
-**2. Mediators (intermediate variables) --- do not adjust, if you want the total effect.** A variable *on* the causal pathway from treatment to outcome. If `A` is exercise, `M` is weight loss, and `Y` is blood pressure, then part of exercise's benefit *is* the weight loss. Adjusting for weight loss asks "what does exercise do for patients whose weight did not change?", which is a different (and usually not the intended) question. Decomposing an effect into its mediated and unmediated parts on purpose is the subject of @sec-mediation.
+**2. Mediators (intermediate variables) --- do not adjust, if you want the total effect.** A variable *on* the causal pathway from treatment to outcome. In the middle panel, exercise lowers blood pressure partly *by* causing weight loss, so part of exercise's benefit *is* the weight loss. Adjusting for weight loss asks "what does exercise do for patients whose weight did not change?", which is a different (and usually not the intended) question. Decomposing an effect into its mediated and unmediated parts on purpose is the subject of @sec-mediation.
 
 **3. Colliders (common effects) --- do not adjust.** A **collider** is a variable that is *caused* by both the treatment and the outcome (or by variables on each path) --- the two arrows "collide" into it. This is the counter-intuitive case: adjusting for a collider *creates* an association that was not there.
 
