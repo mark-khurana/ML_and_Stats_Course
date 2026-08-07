@@ -95,7 +95,7 @@ We cannot get the effect for one person, but we *can* estimate an average. Befor
 ::: {.callout-note}
 ## Reading the notation, in plain English
 
-**$A$, $Y$ and $L$ --- treatment, outcome, and everything measured beforehand.** These three letters stand in for the three roles every causal question has. $A$ is the treatment or exposure ($A = 1$ treated, $A = 0$ untreated) --- a statin, insulin, an ACE inhibitor. $Y$ is the outcome --- death, HbA1c, acute kidney injury. $L$ is the collection of patient characteristics recorded *before* treatment, such as age, comorbidities and baseline labs; it is a bundle of variables rather than a single one, which is why you will see "adjust for $L$" meaning "adjust for all of them together".
+**$A$, $Y$ and $L$ --- treatment, outcome, confounders.** $A$ is the treatment ($A = 1$ treated, $A = 0$ untreated), $Y$ is the outcome, and $L$ is everything measured *before* treatment: age, comorbidities, baseline labs. $L$ is a bundle of variables rather than a single one, so "adjust for $L$" means "adjust for all of them together".
 
 **$E[\,\cdot\,]$ --- "the average of, across everybody".** $E$ stands for *expectation*, which is statisticians' word for a population average. If $Y$ is 1 for a patient who dies and 0 for one who survives, then $E[Y]$ is just the proportion who die --- the mortality rate. Nothing more exotic than that. So whenever you see $E[\ldots]$, read it as "the average value of $\ldots$ if we could look at the whole population".
 
